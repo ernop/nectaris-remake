@@ -1,0 +1,84 @@
+---
+description: Code style conventions for Python and JavaScript
+globs: ["**/*.py", "**/*.js", "**/*.ts"]
+alwaysApply: false
+---
+
+# Code Style & Conventions
+
+## Comments Policy
+
+### DO NOT add redundant comments
+- ❌ If a function is named `showError()`, DO NOT add a comment like "Shows an error"
+- ❌ If a function is named `updateGalleryState()`, DO NOT add a comment like "Updates the gallery state"
+- ❌ Avoid JSDoc-style comments that just repeat what the function name already says
+- ❌ No XML-docs style comments that provide zero additional information
+
+### DO add useful comments
+- ✅ Explain WHY something is done, not WHAT it does (if the what is obvious)
+- ✅ Document non-obvious behavior, edge cases, or gotchas
+- ✅ Explain terminology, architecture decisions, or complex algorithms
+- ✅ Add context about browser quirks, API limitations, or workarounds
+- ✅ Comment on magic numbers before extracting them to constants
+- ✅ Clarify business logic that isn't self-evident from code
+
+### Examples
+
+**BAD:**
+```javascript
+/**
+ * Shows an error message to the user
+ * @param {string} message - User-friendly error message
+ */
+function showError(message, error = null) {
+```
+
+**GOOD:**
+```javascript
+// Displays error in #output div for 5 seconds, then clears automatically
+function showError(message, error = null) {
+```
+
+## Python Conventions
+- Use type hints for function parameters and returns.
+- Keep functions focused and single-purpose.
+- Use meaningful variable names (`elevation_data` over `ed`).
+- Document complex data transformations with inline comments.
+- Use `pathlib.Path` for cross-platform paths.
+- Wrap stdout/stderr with UTF-8 TextIOWrapper on Windows.
+
+## JavaScript/TypeScript Conventions
+- Separate HTML and JS into different files.
+- Avoid inline styles; use rationally-named CSS classes.
+- Inline styles (`element.style.property`) override CSS with highest specificity; check JS when CSS changes don't apply.
+
+## Formatting
+- Constants for magic values even if used 2-3 times.
+- Organize by purpose, not type (CORE STATE, DATA STATE).
+- Cache expensive computations, not simple lookups.
+- Use compact section headers: `//-------SECTION NAME-------`
+
+## Type Safety & Enums
+- Use enums for closed sets of string values.
+- String enums inherit from `str` for JSON compatibility: `class MyEnum(str, Enum)`
+- Use `typing.Literal['value1', 'value2']` for type hints without runtime overhead.
+- Never use enums for open-ended values.
+
+## Import Safety
+Never use defensive imports with fallbacks. Let imports fail hard.
+
+```python
+# WRONG - Defensive import
+try:
+    import rasterio
+except ImportError:
+    print("Install rasterio")
+    sys.exit(1)
+
+# CORRECT - Direct import
+import rasterio
+```
+
+## Terminology
+- One term per concept; never use synonyms for the same thing.
+- Unify immediately when dual terminology appears.

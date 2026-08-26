@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nectaris — level editor</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='24,16 20,23 12,23 8,16 12,9 20,9' fill='%23ffd94a'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/nectaris.css">
+</head>
+<body>
+
+<div id="editor-screen">
+  <div id="editor-tools">
+    <h2>LEVEL EDITOR</h2>
+    <a class="btn-like" href="index.html">◄ Back to game</a>
+
+    <h3>Level</h3>
+    <div class="editor-row"><label>Name</label><input type="text" id="inp-name"></div>
+    <div class="editor-row">
+      <label>Size</label>
+      <input type="number" id="inp-width" min="4" max="60"> ×
+      <input type="number" id="inp-height" min="4" max="60">
+      <button id="btn-resize">Apply</button>
+    </div>
+    <div class="editor-row"><label>Turn limit</label><input type="number" id="inp-turns" min="1" max="999"></div>
+
+    <h3>Owner for placed units / buildings</h3>
+    <div class="editor-row">
+      <label><input type="radio" name="owner" value="0" checked> Union (blue)</label>
+    </div>
+    <div class="editor-row">
+      <label><input type="radio" name="owner" value="1"> Xenon (red)</label>
+    </div>
+    <div class="editor-row">
+      <label><input type="radio" name="owner" value="-1"> Neutral (buildings only)</label>
+    </div>
+
+    <h3>Terrain brush (drag to paint)</h3>
+    <div class="tool-grid" id="terrain-tools"></div>
+
+    <h3>Units (click to place)</h3>
+    <div class="tool-grid" id="unit-tools"></div>
+    <p style="color:#776f5a">Shift-click a factory or base to edit its stored units.</p>
+
+    <h3>Custom unit types (JSON)</h3>
+    <textarea id="custom-units-json" spellcheck="false"
+      placeholder='{"HOVER":{"name":"Hover MK-1","cls":"tank","move":8,"moveType":"treads","rmin":1,"rmax":1,"atkG":55,"atkA":20,"def":35}}'></textarea>
+    <button id="btn-apply-units">Apply custom units</button>
+
+    <h3>File</h3>
+    <div class="editor-row">
+      <button id="btn-playtest">Play-test</button>
+      <button id="btn-save">Save in browser</button>
+      <button id="btn-export">Export JSON</button>
+    </div>
+    <div class="editor-row">
+      <label class="filebtn">Load JSON<input type="file" id="file-load" accept=".json"></label>
+    </div>
+    <div class="editor-row">
+      <select id="sel-campaign"></select>
+      <button id="btn-load-campaign">Load as template</button>
+    </div>
+    <div id="editor-msg"></div>
+  </div>
+
+  <div id="editor-canvas-wrap"><canvas id="editor-canvas"></canvas></div>
+</div>
+
+<script src="js/hex.js"></script>
+<script src="js/data-terrain.js"></script>
+<script src="js/data-units.js"></script>
+<script src="js/combat.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/data-maps.js"></script>
+<script src="js/render.js"></script>
+<script src="js/editor.js"></script>
+</body>
+</html>

@@ -1,0 +1,189 @@
+/* Nectaris remake — stylesheet. Original design; dark lunar palette. */
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0; padding: 0;
+  height: 100%;
+  background: #14110c;
+  color: #e8e2d4;
+  font-family: "Segoe UI", system-ui, sans-serif;
+}
+
+.hidden { display: none !important; }
+
+button, .btn-like, .filebtn {
+  background: #2c2820;
+  color: #e8e2d4;
+  border: 1px solid #55503f;
+  border-radius: 4px;
+  padding: 6px 14px;
+  font-size: 14px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+}
+button:hover:not(:disabled), .btn-like:hover, .filebtn:hover { background: #3d382c; }
+button:disabled { opacity: 0.4; cursor: default; }
+.filebtn input { display: none; }
+
+/* ---------- menu ---------- */
+
+#menu-screen {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 32px 20px 60px;
+}
+.menu-header h1 {
+  font-size: 52px;
+  letter-spacing: 14px;
+  margin: 0 0 4px;
+  color: #ffd94a;
+  text-shadow: 0 0 24px rgba(255, 217, 74, 0.25);
+}
+.subtitle { color: #b0a890; max-width: 620px; }
+
+.menu-section { margin-top: 28px; }
+.menu-section h2 {
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: #b0a890;
+  border-bottom: 1px solid #3d382c;
+  padding-bottom: 6px;
+}
+.mission-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 8px;
+}
+.mission {
+  background: #221e17;
+  border: 1px solid #3d382c;
+  border-radius: 4px;
+  padding: 10px 12px;
+  cursor: pointer;
+  display: flex;
+  gap: 10px;
+  align-items: baseline;
+}
+.mission:hover { background: #2f2a20; border-color: #6b6350; }
+.mission.locked { opacity: 0.35; cursor: default; }
+.mission.cleared { border-color: #7a6c33; }
+.mnum { color: #776f5a; font-family: monospace; }
+.mname { font-weight: 600; letter-spacing: 1px; }
+.mstar { margin-left: auto; color: #ffd94a; }
+
+.menu-controls { margin-top: 12px; display: flex; gap: 10px; }
+.menu-options label { margin-right: 24px; color: #c8c2b0; }
+.menu-footer { margin-top: 40px; color: #776f5a; font-size: 13px; }
+.menu-footer a { color: #b0a890; }
+
+/* ---------- game ---------- */
+
+#game-screen {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+#topbar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 8px 14px;
+  background: #1d1912;
+  border-bottom: 1px solid #3d382c;
+}
+#map-title { font-weight: 700; letter-spacing: 3px; color: #ffd94a; }
+#btn-endturn { margin-left: auto; }
+
+#game-main { flex: 1; display: flex; min-height: 0; }
+#canvas-wrap { flex: 1; position: relative; min-width: 0; }
+#game-canvas { display: block; width: 100%; height: 100%; cursor: crosshair; }
+
+#sidebar {
+  width: 230px;
+  background: #1d1912;
+  border-left: 1px solid #3d382c;
+  padding: 12px;
+  overflow-y: auto;
+  font-size: 13px;
+}
+#hex-info { margin-top: 14px; color: #b0a890; }
+.ui-name { font-weight: 700; color: #ffd94a; margin-bottom: 6px; }
+.ui-stats { width: 100%; border-collapse: collapse; }
+.ui-stats td { padding: 2px 4px; border-bottom: 1px solid #2c2820; }
+.ui-stats td:last-child { text-align: right; color: #d8d2c0; }
+
+/* ---------- popups ---------- */
+
+.popup {
+  position: absolute;
+  background: #241f17;
+  border: 1px solid #6b6350;
+  border-radius: 6px;
+  padding: 10px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
+  z-index: 20;
+}
+#action-menu { display: flex; flex-direction: column; gap: 4px; min-width: 130px; }
+.popup-title { font-weight: 700; color: #ffd94a; margin-bottom: 8px; letter-spacing: 1px; }
+.popup-buttons { display: flex; gap: 8px; margin-top: 10px; justify-content: flex-end; }
+
+#factory-panel { left: 50%; top: 30%; transform: translateX(-50%); min-width: 300px; }
+.factory-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 4px 0; }
+
+#battle-panel { left: 50%; top: 18%; transform: translateX(-50%); min-width: 420px; }
+#battle-detail { display: flex; gap: 18px; flex-wrap: wrap; }
+.battle-side { flex: 1; min-width: 180px; }
+.battle-steps { border-collapse: collapse; width: 100%; font-family: monospace; font-size: 13px; }
+.battle-steps th, .battle-steps td { padding: 2px 8px; text-align: right; border-bottom: 1px solid #2c2820; }
+.battle-steps td:first-child { text-align: left; color: #b0a890; }
+.battle-note { width: 100%; color: #b0a890; margin-top: 6px; font-size: 13px; }
+.battle-result { width: 100%; margin-top: 8px; font-weight: 700; color: #ffb08a; }
+
+#gameover-panel { left: 50%; top: 35%; transform: translateX(-50%); min-width: 320px; text-align: center; }
+#gameover-text { font-size: 18px; margin: 10px 0; }
+
+#toast {
+  position: absolute;
+  bottom: 24px; left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20, 17, 12, 0.92);
+  border: 1px solid #6b6350;
+  border-radius: 4px;
+  padding: 8px 18px;
+  z-index: 30;
+}
+
+/* ---------- editor ---------- */
+
+#editor-screen { display: flex; height: 100vh; }
+#editor-tools {
+  width: 300px;
+  background: #1d1912;
+  border-right: 1px solid #3d382c;
+  padding: 12px;
+  overflow-y: auto;
+  font-size: 13px;
+}
+#editor-tools h2 { font-size: 15px; letter-spacing: 2px; color: #ffd94a; margin: 0 0 10px; }
+#editor-tools h3 {
+  font-size: 12px; text-transform: uppercase; letter-spacing: 2px;
+  color: #b0a890; margin: 16px 0 6px; border-bottom: 1px solid #2c2820;
+}
+.tool-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+.tool-grid button { padding: 4px 8px; font-size: 12px; }
+.tool-grid button.active { background: #6b5c22; border-color: #ffd94a; }
+.editor-row { display: flex; gap: 6px; align-items: center; margin: 4px 0; }
+.editor-row label { flex: 1; }
+.editor-row input[type="number"] { width: 60px; background: #14110c; color: #e8e2d4; border: 1px solid #55503f; }
+.editor-row input[type="text"] { flex: 1; background: #14110c; color: #e8e2d4; border: 1px solid #55503f; padding: 3px 6px; }
+#editor-canvas-wrap { flex: 1; position: relative; }
+#editor-canvas { display: block; width: 100%; height: 100%; cursor: crosshair; }
+#editor-msg { color: #ffb08a; min-height: 18px; margin-top: 8px; }
+textarea#custom-units-json {
+  width: 100%; height: 120px;
+  background: #14110c; color: #e8e2d4;
+  border: 1px solid #55503f; font-family: monospace; font-size: 11px;
+}

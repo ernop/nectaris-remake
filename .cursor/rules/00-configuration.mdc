@@ -1,0 +1,24 @@
+---
+description: Configuration pattern (single source of truth; no environment variables)
+globs: ["**/*"]
+alwaysApply: false
+---
+
+# Configuration Pattern
+
+## Single Source of Truth
+- Configuration must come from one place: a config file.
+- Do not duplicate configuration across scripts or modules.
+
+## No Environment Variables
+- Do not use environment variables for configuration.
+- Do not implement multi-step “detection” (env var, then config, then defaults). Keep one primary path.
+
+## Files
+- `settings.json` (gitignored): per-machine settings (paths, preferences) and secrets (API keys).
+- `settings.example.json` (checked in): template with placeholders like `YOUR_API_KEY_HERE`.
+
+## Expectations
+- Code reads from `settings.json`.
+- If `settings.json` is missing or invalid, fail fast with a clear, actionable error that points to `settings.example.json`.
+

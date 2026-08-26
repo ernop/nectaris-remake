@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nectaris — hex tactics remake</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='24,16 20,23 12,23 8,16 12,9 20,9' fill='%23ffd94a'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/nectaris.css">
+</head>
+<body>
+
+<!-- ============ Mission menu ============ -->
+<div id="menu-screen">
+  <header class="menu-header">
+    <h1>NECTARIS</h1>
+    <p class="subtitle">A faithful JavaScript remake of the classic lunar hex-tactics game.
+    Original code and art; the rules are the real thing: ZOC, support &amp; surround fire,
+    experience, terrain, factories, transports.</p>
+  </header>
+
+  <section class="menu-section">
+    <h2>Campaign</h2>
+    <div id="mission-list" class="mission-grid"></div>
+  </section>
+
+  <section class="menu-section">
+    <h2>Custom levels</h2>
+    <div id="custom-list" class="mission-grid"></div>
+    <div class="menu-controls">
+      <label class="filebtn">Import level JSON<input type="file" id="file-import" accept=".json"></label>
+      <a class="btn-like" href="editor.html">Open level editor</a>
+    </div>
+  </section>
+
+  <section class="menu-section menu-options">
+    <label><input type="checkbox" id="chk-hotseat"> Two players (hotseat)</label>
+    <label><input type="checkbox" id="chk-unlock"> Unlock all missions</label>
+  </section>
+
+  <footer class="menu-footer">
+    Controls: click to select / move · right-click or Esc to cancel · wheel zooms · drag pans · E ends turn.
+    See <a href="MECHANICS.md">MECHANICS.md</a> for the full rules reconstruction.
+  </footer>
+</div>
+
+<!-- ============ Game ============ -->
+<div id="game-screen" class="hidden">
+  <div id="topbar">
+    <button id="btn-menu">◄ Menu</button>
+    <span id="map-title"></span>
+    <span id="status-turn"></span>
+    <span id="status-player"></span>
+    <span id="status-units"></span>
+    <button id="btn-endturn">End Turn (E)</button>
+  </div>
+  <div id="game-main">
+    <div id="canvas-wrap"><canvas id="game-canvas"></canvas></div>
+    <div id="sidebar">
+      <div id="unit-info"></div>
+      <div id="hex-info"></div>
+    </div>
+  </div>
+
+  <div id="action-menu" class="hidden popup"></div>
+
+  <div id="factory-panel" class="hidden popup">
+    <div id="factory-title" class="popup-title"></div>
+    <div id="factory-list"></div>
+    <button id="factory-close">Close</button>
+  </div>
+
+  <div id="battle-panel" class="hidden popup">
+    <div class="popup-title">Combat calculator</div>
+    <div id="battle-detail"></div>
+    <div class="popup-buttons">
+      <button id="battle-fight">Fight</button>
+      <button id="battle-cancel">Cancel</button>
+    </div>
+  </div>
+
+  <div id="gameover-panel" class="hidden popup">
+    <div class="popup-title">Battle over</div>
+    <div id="gameover-text"></div>
+    <div class="popup-buttons">
+      <button id="gameover-again">Replay</button>
+      <button id="gameover-menu">Menu</button>
+    </div>
+  </div>
+
+  <div id="toast" class="hidden"></div>
+</div>
+
+<script src="js/hex.js"></script>
+<script src="js/data-terrain.js"></script>
+<script src="js/data-units.js"></script>
+<script src="js/combat.js"></script>
+<script src="js/engine.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/data-maps.js"></script>
+<script src="js/render.js"></script>
+<script src="js/ui.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

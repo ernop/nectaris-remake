@@ -1,0 +1,58 @@
+---
+description: Data handling, error reporting, and single source of truth patterns
+globs: ["**/*.py", "**/*.js"]
+alwaysApply: false
+---
+
+# Data Handling
+
+## Single Source of Truth
+- No scripts store local copies of data lists; all info comes from imports.
+- Having something configured does NOT mean data exists; check manifests separately.
+- Never re-compute or re-extract data already normalized upstream.
+
+## Error Reporting
+Every failure must print:
+- Reason
+- URL (if applicable)
+- Full details
+
+Format:
+```
+OPERATION FAILED
+Operation: [description]
+Errors by step:
+  - Step 1 (Fetch/Read/Parse/etc.): [specific reason]
+  - Step 2 (Validate/Normalize/etc.): [specific reason]
+```
+
+## Critical Failures
+If an operation fails:
+- Abort immediately
+- Don't continue (downstream will fail anyway)
+- Print clear error message
+
+## JSON Export Performance (Python)
+```python
+# CORRECT - Vectorized (28x faster)
+mask = np.isnan(arr)
+arr_obj = arr.astype(object)
+arr_obj[mask] = None
+result = arr_obj.tolist()
+
+# WRONG - Nested loops (slow)
+```
+
+## File & Naming Conventions
+
+### Configuration Files
+See `.cursor/rules/00-configuration.mdc`.
+
+### Versioning
+- Filename-based versioning: `{item}_{source}_{size}_v2.json`
+- Strict version-only selection; fail-fast on version mismatch
+- No redundant version fields inside JSON
+
+## File Operations Safety
+- "Name cleaning" should never rename or delete files on disk
+- Only filter them from display/database or change how they are displayed to users
