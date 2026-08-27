@@ -146,6 +146,7 @@ select, input[type="url"] {
 }
 #map-title { font-weight: 700; letter-spacing: 3px; color: #ffd94a; }
 #map-jump { max-width: 150px; }
+#btn-watch[aria-pressed="true"] { color: #bfe95c; border-color: #6f8d31; }
 #btn-music[aria-pressed="true"] { color: #ffd94a; border-color: #8c7930; }
 #btn-endturn { margin-left: auto; }
 
@@ -163,6 +164,44 @@ select, input[type="url"] {
 }
 #hex-info { margin-top: 14px; color: #b0a890; }
 .ui-name { font-weight: 700; color: #ffd94a; margin-bottom: 6px; }
+.experience-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 42px;
+  margin-bottom: 8px;
+  padding: 6px 8px;
+  background: #15120e;
+  border: 1px solid #3d382c;
+}
+.exp-columns { display: flex; gap: 4px; align-items: center; height: 32px; }
+.exp-star-column {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  height: 32px;
+}
+.exp-star-slot, .exp-master-star {
+  display: block;
+  width: 9px;
+  height: 9px;
+  background: #403a2d;
+  clip-path: polygon(50% 0%, 61% 35%, 100% 35%, 69% 57%, 80% 100%, 50% 73%, 20% 100%, 31% 57%, 0% 35%, 39% 35%);
+}
+.exp-star-slot.filled {
+  background: #ffd94a;
+  filter: drop-shadow(0 0 2px #b87319);
+}
+.exp-master { display: flex; align-items: center; gap: 7px; color: #ffd94a; letter-spacing: 1px; }
+.exp-master-star {
+  width: 34px;
+  height: 34px;
+  background: #ffd94a;
+  filter: drop-shadow(0 0 2px #fff2a0) drop-shadow(0 0 5px #b64b19);
+}
+.exp-effect { color: #d8d2c0; font: 11px/1.4 monospace; text-align: right; }
 .ui-stats { width: 100%; border-collapse: collapse; }
 .ui-stats td { padding: 2px 4px; border-bottom: 1px solid #2c2820; }
 .ui-stats td:last-child { text-align: right; color: #d8d2c0; }
@@ -182,17 +221,65 @@ select, input[type="url"] {
 .popup-title { font-weight: 700; color: #ffd94a; margin-bottom: 8px; letter-spacing: 1px; }
 .popup-buttons { display: flex; gap: 8px; margin-top: 10px; justify-content: flex-end; }
 
-#factory-panel { left: 50%; top: 30%; transform: translateX(-50%); min-width: 300px; }
-.factory-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 4px 0; }
+#factory-panel { left: 50%; top: 18%; transform: translateX(-50%); min-width: 390px; max-height: 70%; overflow-y: auto; }
+.factory-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  min-height: 52px;
+  padding: 5px 0;
+  border-bottom: 1px solid #302b22;
+}
+.factory-unit { display: flex; align-items: center; gap: 9px; min-width: 0; }
+.factory-unit-icon {
+  width: 56px;
+  height: 44px;
+  flex: 0 0 auto;
+  background: #191711;
+  border: 1px solid #494233;
+  border-radius: 4px;
+}
+.factory-unit-details { display: flex; flex-direction: column; gap: 3px; }
+.factory-unit-details strong { color: #ffe9a0; }
+.factory-unit-details span { color: #aaa18d; font: 11px monospace; white-space: nowrap; }
 
 #battle-panel { left: 50%; top: 18%; transform: translateX(-50%); min-width: 420px; }
 #battle-detail { display: flex; gap: 18px; flex-wrap: wrap; }
 .battle-side { flex: 1; min-width: 180px; }
+.battle-exp { color: #ffd94a; font: 11px/1.4 monospace; margin: -2px 0 5px; }
 .battle-steps { border-collapse: collapse; width: 100%; font-family: monospace; font-size: 13px; }
 .battle-steps th, .battle-steps td { padding: 2px 8px; text-align: right; border-bottom: 1px solid #2c2820; }
 .battle-steps td:first-child { text-align: left; color: #b0a890; }
 .battle-note { width: 100%; color: #b0a890; margin-top: 6px; font-size: 13px; }
 .battle-result { width: 100%; margin-top: 8px; font-weight: 700; color: #ffb08a; }
+
+#watch-panel {
+  left: 50%;
+  top: 72px;
+  transform: translateX(-50%);
+  min-width: 460px;
+  max-width: 620px;
+  border-width: 2px;
+  pointer-events: none;
+  text-align: center;
+}
+#watch-title { color: #bfe95c; letter-spacing: 3px; }
+.watch-matchup {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 16px;
+  align-items: center;
+  margin: 5px 0;
+}
+.watch-side { font-weight: 700; font-size: 15px; }
+.watch-versus { color: #8f8772; font-size: 12px; letter-spacing: 2px; }
+.watch-strength { color: #ffe9a0; font-family: monospace; font-size: 17px; }
+.watch-survived { color: #cfc8b4; font-size: 12px; margin-top: 3px; }
+.watch-destroyed { color: #ff8f6f; text-transform: uppercase; letter-spacing: 1px; }
+.watch-calcs { color: #a9a18c; font: 12px monospace; margin-top: 5px; }
+.watch-move { color: #d8d2c0; font-size: 14px; }
+#battle-detail > .watch-matchup { width: 100%; }
 
 #gameover-panel { left: 50%; top: 35%; transform: translateX(-50%); min-width: 320px; text-align: center; }
 #gameover-text { font-size: 18px; margin: 10px 0; }

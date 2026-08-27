@@ -477,8 +477,7 @@ var ENGINE = (function () {
     return storedUnit;
   };
 
-  /* Load a stored immobile unit directly from factory onto an adjacent (or
-   * on-factory) friendly transport. */
+  /* Load a stored ground unit directly onto an eligible adjacent transport. */
   Game.prototype.loadFromFactory = function (building, storedUnit, transport) {
     if (building.owner !== this.currentPlayer) throw new Error("Not your factory");
     if (storedUnit.moved) throw new Error(storedUnit.type.name + " was stored this turn");
@@ -486,7 +485,6 @@ var ENGINE = (function () {
     if (d > 1) throw new Error("Transport must be on or adjacent to factory");
     if (!transport.type.cargo || transport.cargo.length >= transport.type.cargo) throw new Error("Transport full");
     var idx = building.stored.indexOf(storedUnit);
-    if (idx < 0) throw new Error("Unit not stored here");
     building.stored.splice(idx, 1);
     storedUnit.inFactory = false;
     storedUnit.player = building.owner;

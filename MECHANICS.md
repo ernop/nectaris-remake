@@ -3,9 +3,8 @@
 How this remake implements the original's rules, and where each rule comes
 from. "Documented" means published community documentation of the original
 game's behavior (StrategyWiki's *Military Madness/Combat* page, player-written
-FAQs, and the game's published manual); "reconstructed" means the original's
-exact internals were never published and this project supplies a formula tuned
-to observed behavior. Everything here is data-driven: the tables live in
+FAQs, the game's published manual, and Japanese community ROM analysis).
+Everything here is data-driven: the tables live in
 `js/data-*.js` and the pipeline in `js/combat.js` / `js/engine.js`.
 
 ## Units
@@ -171,6 +170,10 @@ cost the defender ~3–5 points, outmatched attacks bounce off. Seedable RNG
 kill +2. Defending — unhurt +2, hurt +1, counterattack destroys the attacker
 +2. Infantry earns +4 for capturing a factory. Max 8; the 7→8 step adds no
 stats, so 7 is the effective ceiling.
+
+The map groups levels 1–7 into 3/2/3 star columns; level 8 replaces the
+columns with the General star. The selected-unit panel and battle preview
+state each level's attack and defense bonus.
 
 One naming note: the Japanese unit page designates the heavy infantry GX-78
 (ダーベック); the US release, whose English names this remake uses, prints

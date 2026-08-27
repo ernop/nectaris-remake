@@ -19,6 +19,7 @@ global.COMBAT = COMBAT;
 var ENGINE = require(path.join(__dirname, "../js/engine.js"));
 global.ENGINE = ENGINE;
 var AI = require(path.join(__dirname, "../js/ai.js"));
+var RENDER = require(path.join(__dirname, "../js/render.js"));
 var CAMPAIGN = require(path.join(__dirname, "../js/data-maps.js"));
 var EXPANSION_LEVELS = require(path.join(__dirname, "../js/data-expansion-maps.js"));
 var BASE_NECTARIS_LEVELS = require(path.join(__dirname, "../js/data-basenectaris-maps.js")).BASE_NECTARIS_LEVELS;
@@ -97,6 +98,14 @@ ok(ns.length === 6, "6 neighbors");
 ns.forEach(function (n) {
   ok(HEX.distance(4, 4, n.col, n.row) === 1, "neighbor at distance 1: " + n.col + "," + n.row);
 });
+var exitsEven = HEX.neighborsClockwiseFromLowerLeft(2, 2);
+ok(exitsEven.map(function (n) { return n.col + "," + n.row; }).join(" ") ===
+  "1,2 1,1 2,1 3,1 3,2 2,3",
+  "even-column factory exits start lower-left and proceed clockwise");
+var exitsOdd = HEX.neighborsClockwiseFromLowerLeft(3, 2);
+ok(exitsOdd.map(function (n) { return n.col + "," + n.row; }).join(" ") ===
+  "2,3 2,2 3,1 4,2 4,3 3,3",
+  "odd-column factory exits start lower-left and proceed clockwise");
 // pixel round-trip
 for (var c = 0; c < 8; c++) {
   for (var r = 0; r < 8; r++) {
@@ -105,6 +114,59 @@ for (var c = 0; c < 8; c++) {
     ok(back.col === c && back.row === r, "pixel round-trip " + c + "," + r);
   }
 }
+
+section("renderer roads and viewport constraints");
+var rendererGame = {
+  width: 3,
+  height: 3,
+  inBounds: function (col, row) { return col >= 0 && row >= 0 && col < 3 && row < 3; },
+  terrainAt: function (col, row) {
+    var rows = ["...", "-=B", "..."];
+    return TERRAIN_BY_CHAR[rows[row][col]];
+  },
+};
+var rendererCanvas = { width: 800, height: 600, getContext: function () { return {}; } };
+var renderer = new RENDER.Renderer(rendererCanvas, rendererGame);
+renderer.fitToMap();
+var fittedAxes = renderer.panAxes();
+ok(!fittedAxes.x && !fittedAxes.y, "fitted map cannot pan on either axis");
+var fittedX = renderer.originX, fittedY = renderer.originY;
+ok(!renderer.panBy(100, 100), "dragging a fully visible map changes nothing");
+ok(renderer.originX === fittedX && renderer.originY === fittedY, "fully visible map stays centered");
+renderer.zoom = 10;
+renderer.constrainView();
+var zoomedAxes = renderer.panAxes();
+ok(zoomedAxes.x && zoomedAxes.y, "zoomed map can pan on both oversized axes");
+ok(renderer.panBy(-100, -100), "dragging a zoomed map changes its origin");
+ok(renderer.roadNeighbors(1, 1).length === 2, "bridge connects to adjacent road and base");
+var roadHub = renderer.roadHub(0, 1);
+var bridgeHub = renderer.roadHub(1, 1);
+ok(Math.abs(roadHub.y - bridgeHub.y) < 0.0001,
+  "same-row road tile variants align on one horizontal line");
+var thumbnailOps = 0;
+var thumbnailScales = [];
+var thumbnailContext = new Proxy({
+  scale: function (x, y) { thumbnailOps++; thumbnailScales.push([x, y]); },
+}, {
+  get: function (target, property) {
+    if (!(property in target)) {
+      target[property] = function () { thumbnailOps++; };
+    }
+    return target[property];
+  },
+});
+RENDER.drawUnitIcon({
+  width: 56, height: 44,
+  getContext: function () { return thumbnailContext; },
+}, { typeId: "BISON", type: UNIT_TYPES.BISON, player: 0 });
+ok(thumbnailOps > 20, "factory thumbnail draws the stored unit silhouette");
+ok(thumbnailScales.length === 0, "Union unit silhouettes retain their rightward facing");
+RENDER.drawUnitIcon({
+  width: 56, height: 44,
+  getContext: function () { return thumbnailContext; },
+}, { typeId: "BISON", type: UNIT_TYPES.BISON, player: 1 });
+ok(thumbnailScales.some(function (scale) { return scale[0] === -1 && scale[1] === 1; }),
+  "Xenon unit silhouettes are reflected to face left");
 
 section("movement and ZOC");
 var testMap = {
@@ -218,6 +280,13 @@ ok(COMBAT.strengthCaption(7) === "7", "damaged strength is captioned");
 ok(COMBAT.strengthCaption(1) === "1", "1-strength is captioned");
 // experience table endpoints from the documented tiers
 ok(COMBAT.EXP_ATK[7] === 100 && COMBAT.EXP_DEF[8] === 100, "experience tiers cap at +100%");
+ok(COMBAT.experienceBonus(3).attack === 20 &&
+  COMBAT.experienceBonus(3).defense === 20, "three stars expose their +20% combat effect");
+ok(COMBAT.experienceBonus(8).general === true &&
+  COMBAT.experienceBonus(8).attack === 100, "level eight exposes General rank and +100% attack");
+var badExperienceRejected = false;
+try { COMBAT.experienceBonus(9); } catch (err) { badExperienceRejected = true; }
+ok(badExperienceRejected, "experience display rejects levels beyond General");
 // terrain bonus: BISON (def 40) at full strength on hills (+20%)
 var g3 = new ENGINE.Game({
   name: "T3", turnLimit: 50,
@@ -231,6 +300,17 @@ var pv = COMBAT.preview(g3, atk, def);
 ok(pv.defender.steps[3].da === 384, "hill terrain bonus: expected 384, got " + pv.defender.steps[3].da);
 ok(pv.attacker.steps[0].ap === 400, "bison base AP 400, got " + pv.attacker.steps[0].ap);
 ok(pv.counter === true, "tank vs tank direct combat draws counterattack");
+var overkillGame = new ENGINE.Game({
+  name: "Overkill clamp", turnLimit: 10,
+  grid: ["......", "B....B"],
+  buildings: [{ col: 0, row: 1, owner: 0 }, { col: 5, row: 1, owner: 1 }],
+  units: [{ t: "BISON", o: 0, x: 2, y: 0 }, { t: "BISON", o: 1, x: 3, y: 0, str: 5 }],
+}, { seed: 1 });
+var overkillAttacker = overkillGame.unitAt(2, 0);
+var overkillDefender = overkillGame.unitAt(3, 0);
+var overkillResult = COMBAT.resolve(overkillGame, overkillAttacker, overkillDefender, function () { return 0; });
+ok(overkillResult.dmgToDefender === 5 && overkillDefender.strength === 0,
+  "reported casualties stop at the defender's pre-battle strength");
 
 // air unit gets no terrain bonus, cannot be hit by ground-only attacker
 var g4 = new ENGINE.Game({
@@ -513,6 +593,52 @@ g14.moveUnit(cap, 2, 0, capRange);
 g14.finishUnit(cap);
 ok(g14.buildingAt(2, 0).owner === 0, "infantry captures the neutral factory");
 ok(cap.exp === 4, "factory capture awards +4 exp, got " + cap.exp);
+
+section("observable AI turn steps");
+var aiFactoryGame = new ENGINE.Game({
+  name: "AI factory priority", turnLimit: 20,
+  grid: [".....", ".....", "..F..", ".....", "B...B"],
+  buildings: [
+    { col: 2, row: 2, owner: 1, stored: ["LENET", "BISON"] },
+    { col: 0, row: 4, owner: 0 }, { col: 4, row: 4, owner: 1 },
+  ],
+  units: [{ t: "CHARLIE", o: 0, x: 0, y: 0 }],
+}, { seed: 31 });
+aiFactoryGame.endTurn();
+var aiFactoryTurn = AI.createTurn(aiFactoryGame, 1);
+var firstFactoryDeploy = aiFactoryTurn.next();
+ok(firstFactoryDeploy.t === "deploy" && firstFactoryDeploy.unit.typeId === "BISON",
+  "AI deploys one eligible stored unit from the factory");
+ok(aiFactoryGame.buildingAt(2, 2).stored.length === 1,
+  "AI leaves the remaining inventory for a later turn");
+
+var watchMap = {
+  name: "WATCH", turnLimit: 20,
+  grid: [
+    "......",
+    "B....B",
+    "......",
+  ],
+  buildings: [{ col: 0, row: 1, owner: 0 }, { col: 5, row: 1, owner: 1 }],
+  units: [
+    { t: "CHARLIE", o: 0, x: 4, y: 1 },
+    { t: "BISON", o: 1, x: 1, y: 1 },
+  ],
+};
+var watchedGame = new ENGINE.Game(watchMap, { seed: 77 });
+watchedGame.endTurn();
+var watchedTarget = watchedGame.playerUnits(0)[0];
+var watchedTurn = AI.createTurn(watchedGame, 1);
+var watchMove = watchedTurn.next();
+ok(watchMove.t === "move", "watched AI emits movement before combat");
+ok(watchedTarget.strength === 8, "movement step does not resolve later combat");
+var watchPreview = watchedTurn.next();
+ok(watchPreview.t === "battle-preview", "watched AI emits a readable battle preview");
+ok(watchedTarget.strength === 8, "battle preview does not mutate either squad");
+var watchBattle = watchedTurn.next();
+ok(watchBattle.t === "battle", "watched AI resolves combat in a later step");
+ok(watchedTarget.strength === 8 - watchBattle.result.dmgToDefender,
+  "battle result damage matches the defender's new strength");
 
 /* ---------- 3. AI self-play ---------- */
 

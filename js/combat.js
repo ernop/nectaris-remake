@@ -54,6 +54,17 @@ var COMBAT = (function () {
   var MAX_EXP = 8;
   var MAX_STRENGTH = 8;
 
+  function experienceBonus(level) {
+    if (!Number.isInteger(level) || level < 0 || level > MAX_EXP) {
+      throw new Error("Experience level must be an integer from 0 to " + MAX_EXP);
+    }
+    return {
+      attack: EXP_ATK[level],
+      defense: EXP_DEF[level],
+      general: level === MAX_EXP,
+    };
+  }
+
   /* Mulberry32 — small seedable PRNG so replays/tests are deterministic. */
   function makeRng(seed) {
     var s = seed >>> 0;
@@ -185,11 +196,15 @@ var COMBAT = (function () {
     var aStr0 = attacker.strength, dStr0 = defender.strength;
 
     // Simultaneous fire from pre-battle strengths.
-    var dmgToDefender = rollKills(rng, aStr0, pv.attacker.ap, pv.defender.da);
-    var dmgToAttacker = pv.counter ? rollKills(rng, dStr0, pv.defender.ap, pv.attacker.da) : 0;
+    var dmgToDefender = Math.min(
+      dStr0, rollKills(rng, aStr0, pv.attacker.ap, pv.defender.da)
+    );
+    var dmgToAttacker = pv.counter ? Math.min(
+      aStr0, rollKills(rng, dStr0, pv.defender.ap, pv.attacker.da)
+    ) : 0;
 
-    defender.strength = Math.max(0, dStr0 - dmgToDefender);
-    attacker.strength = Math.max(0, aStr0 - dmgToAttacker);
+    defender.strength = dStr0 - dmgToDefender;
+    attacker.strength = aStr0 - dmgToAttacker;
 
     // Published experience awards. Attacking: +0 for no damage, +1 for
     // damage, +2 for a kill. Defending: +2 when unhurt, +1 when hurt, +2
@@ -216,6 +231,7 @@ var COMBAT = (function () {
     preview: preview, resolve: resolve, makeRng: makeRng,
     atkStat: atkStat, isAir: isAir,
     rangeBand: rangeBand, canAttackAt: canAttackAt,
+    experienceBonus: experienceBonus,
     MAX_EXP: MAX_EXP, MAX_STRENGTH: MAX_STRENGTH,
     EXP_ATK: EXP_ATK, EXP_DEF: EXP_DEF,
     /* Full strength is the default squad size; UI must not print it. */

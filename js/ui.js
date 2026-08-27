@@ -6,13 +6,42 @@
  *   Attack          -> pick highlighted target, battle preview, resolve
  *   Finish          -> commit without attacking (captures/repairs apply)
  *   Cancel          -> unit returns to where it was
- * Right-click / Esc cancels. Wheel zooms; middle/right-drag pans.
+ * Right-click / Esc cancels. Wheel zooms; middle/right-drag pans only on axes
+ * where the zoomed map is larger than the viewport.
  */
 "use strict";
 
 var UI = (function () {
 
   function $(id) { return document.getElementById(id); }
+  function esc(value) {
+    return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  }
+
+  function experienceStarsHtml(level) {
+    if (level === COMBAT.MAX_EXP) {
+      return "<div class='exp-master' aria-label='General experience rank'>" +
+        "<span class='exp-master-star'></span><strong>GENERAL</strong></div>";
+    }
+    var capacities = [3, 2, 3];
+    var slot = 0;
+    var columns = capacities.map(function (capacity) {
+      var stars = "";
+      for (var i = 0; i < capacity; i++, slot++) {
+        stars += "<span class='exp-star-slot" + (slot < level ? " filled" : "") + "'></span>";
+      }
+      return "<span class='exp-star-column'>" + stars + "</span>";
+    }).join("");
+    return "<div class='exp-columns' aria-label='Experience " + level + " of 8'>" +
+      columns + "</div>";
+  }
+
+  function experienceEffectHtml(level) {
+    var bonus = COMBAT.experienceBonus(level);
+    return "<div class='exp-effect'>Attack +" + bonus.attack +
+      "% · Defense +" + bonus.defense + "%</div>";
+  }
 
   /* Human-readable attack band vs one domain, e.g. "1", "2–5", or "—". */
   function bandText(unitType, targetIsAir) {
@@ -27,12 +56,13 @@ var UI = (function () {
     this.game = game;
     this.options = options || {};
     this.renderer = new RENDER.Renderer(canvas, game);
-    this.mode = "idle"; // idle | unitSelected | moved | pickTarget | battle | aiTurn | over
+    this.mode = "idle"; // idle | unitSelected | moved | pickTarget | unload | factory | deployPick | battle | aiTurn | over
     this.selected = null;
     this.range = null;
     this.pendingMoveFrom = null;   // {col,row,movePointsLeft,attackSpent}
     this.busy = false;
     this.destroyed = false;
+    this.watchAI = localStorage.getItem("nectaris-watch-ai") !== "off";
     this.onGameOver = this.options.onGameOver || function () {};
 
     // Keep exact function references so destroy() can remove every listener.
@@ -61,6 +91,11 @@ var UI = (function () {
 
     $("btn-endturn").onclick = function () { self.endTurn(); };
     $("btn-menu").onclick = this.options.onMenu || function () { location.reload(); };
+    $("btn-watch").onclick = function () {
+      self.watchAI = !self.watchAI;
+      localStorage.setItem("nectaris-watch-ai", self.watchAI ? "on" : "off");
+      self.refreshWatchButton();
+    };
 
     var styleSel = $("style-select");
     styleSel.value = RENDER.getStyle();
@@ -71,6 +106,7 @@ var UI = (function () {
     };
 
     this.refreshStatus();
+    this.refreshWatchButton();
     this.renderer.fitToMap();
     this.draw();
   }
@@ -107,11 +143,14 @@ var UI = (function () {
     this.canvas.removeEventListener("contextmenu", h.contextmenu);
     document.removeEventListener("keydown", h.keydown);
     cancelAnimationFrame(this._drawFrame);
+    cancelAnimationFrame(this._battleAnimationFrame);
     clearTimeout(this._toastT);
     clearTimeout(this._aiTimer);
+    this._aiTurn = null;
     this.closeActionMenu();
     this.closeFactoryPanel();
     $("battle-panel").classList.add("hidden");
+    $("watch-panel").classList.add("hidden");
   };
 
   /* --- status / panels ------------------------------------------------- */
@@ -127,6 +166,146 @@ var UI = (function () {
     $("status-units").textContent = "Units " + counts[0] + " : " + counts[1];
   };
 
+  GameUI.prototype.refreshWatchButton = function () {
+    var button = $("btn-watch");
+    button.textContent = "Watch AI: " + (this.watchAI ? "On" : "Off");
+    button.setAttribute("aria-pressed", this.watchAI ? "true" : "false");
+  };
+
+  GameUI.prototype.showWatchPanel = function (title, detail) {
+    $("watch-title").textContent = title;
+    $("watch-detail").innerHTML = detail;
+    $("watch-panel").classList.remove("hidden");
+  };
+
+  GameUI.prototype.hideWatchPanel = function () {
+    $("watch-panel").classList.add("hidden");
+    this.renderer.flashUnits = {};
+  };
+
+  GameUI.prototype.showWatchMove = function (event) {
+    var reasons = {
+      attack: "moving into firing position",
+      repair: "retreating for repairs",
+      advance: "advancing",
+    };
+    var action = event.t === "deploy" ? "deployed from a factory" : (reasons[event.reason] || "moving");
+    if (event.effects && event.effects.length) {
+      var effect = event.effects[0];
+      action += effect.t === "capture" ? " and captured " + effect.kind : " and repaired to full strength";
+    }
+    this.showWatchPanel(
+      event.t === "deploy" ? "XENON DEPLOYMENT" : "XENON MOVEMENT",
+      "<div class='watch-move'><strong>" + esc(event.unit.type.name) + "</strong> " +
+        esc(action) +
+      "</div>"
+    );
+  };
+
+  GameUI.prototype.showWatchPreview = function (event) {
+    this.renderer.flashUnits = {};
+    this.renderer.flashUnits[event.attacker.id] = "#ffe067";
+    this.renderer.flashUnits[event.defender.id] = "#ff765f";
+    this.showWatchPanel(
+      "XENON ATTACK",
+      "<div class='watch-matchup'>" +
+        "<div class='watch-side'>" + esc(event.attacker.type.name) +
+          "<div class='watch-strength'>strength " + event.attackerBefore + "</div></div>" +
+        "<div class='watch-versus'>VERSUS</div>" +
+        "<div class='watch-side'>" + esc(event.defender.type.name) +
+          "<div class='watch-strength'>strength " + event.defenderBefore + "</div></div>" +
+      "</div>"
+    );
+  };
+
+  GameUI.prototype.showWatchResult = function (event) {
+    this.renderer.flashUnits = {};
+    $("watch-title").textContent = "BATTLE RESULT";
+    $("watch-panel").classList.remove("hidden");
+    return this.animateBattleResult(event, $("watch-detail"));
+  };
+
+  GameUI.prototype.animateBattleResult = function (event, detail, onComplete) {
+    cancelAnimationFrame(this._battleAnimationFrame);
+    var self = this;
+    var result = event.result;
+    var attackerLosses = result.dmgToAttacker;
+    var defenderLosses = result.dmgToDefender;
+    if (!Number.isInteger(attackerLosses) || attackerLosses < 0 ||
+        attackerLosses > event.attackerBefore ||
+        !Number.isInteger(defenderLosses) || defenderLosses < 0 ||
+        defenderLosses > event.defenderBefore) {
+      throw new Error("Battle result casualties exceed the pre-battle squad count");
+    }
+    var largestLoss = Math.max(attackerLosses, defenderLosses);
+    var duration = Math.max(1000, Math.min(2000, largestLoss * 320));
+    var start = null;
+    this.renderer.battleGhosts = [event.attacker, event.defender];
+
+    function sideHtml(unit, before, current, finished) {
+      var status = "";
+      if (finished) {
+        status = current === 0 ?
+          "<div class='watch-destroyed'>squad destroyed</div>" :
+          "<div class='watch-survived'>" + current + " survived</div>";
+      }
+      return "<div class='watch-side'>" + esc(unit.type.name) +
+        "<div class='watch-strength'>" + before + " =&gt; " + current + "</div>" +
+        status + "</div>";
+    }
+
+    function casualtyState(before, losses, progress, unit, seed) {
+      if (!losses) return before;
+      if (progress >= 1) return before - losses;
+      var scaled = progress * losses;
+      var completed = Math.floor(scaled);
+      var phase = scaled - completed;
+      var removed = Math.min(losses, completed + (phase >= 0.62 ? 1 : 0));
+      if (phase < 0.86) {
+        self.renderer.explosions.push({
+          col: unit.col, row: unit.row,
+          phase: phase / 0.86, seed: seed + completed,
+        });
+      }
+      return before - removed;
+    }
+
+    function frame(timestamp) {
+      if (self.destroyed) return;
+      if (start === null) start = timestamp;
+      var progress = Math.min(1, (timestamp - start) / duration);
+      self.renderer.explosions = [];
+      var attackerCurrent = casualtyState(
+        event.attackerBefore, attackerLosses, progress, event.attacker, 11
+      );
+      var defenderCurrent = casualtyState(
+        event.defenderBefore, defenderLosses, progress, event.defender, 29
+      );
+      self.renderer.strengthOverrides = {};
+      self.renderer.strengthOverrides[event.attacker.id] = attackerCurrent;
+      self.renderer.strengthOverrides[event.defender.id] = defenderCurrent;
+      detail.innerHTML = "<div class='watch-matchup'>" +
+        sideHtml(event.attacker, event.attackerBefore, attackerCurrent, progress === 1) +
+        "<div class='watch-versus'>RESULT</div>" +
+        sideHtml(event.defender, event.defenderBefore, defenderCurrent, progress === 1) +
+        "</div>";
+      self.draw();
+
+      if (progress < 1) {
+        self._battleAnimationFrame = requestAnimationFrame(frame);
+        return;
+      }
+      self.renderer.strengthOverrides = {};
+      self.renderer.battleGhosts = [];
+      self.renderer.explosions = [];
+      self.draw();
+      if (onComplete) onComplete();
+    }
+
+    this._battleAnimationFrame = requestAnimationFrame(frame);
+    return duration;
+  };
+
   GameUI.prototype.showUnitInfo = function (unit) {
     var el = $("unit-info");
     if (!unit) { el.innerHTML = ""; return; }
@@ -135,9 +314,10 @@ var UI = (function () {
     var strCap = COMBAT.strengthCaption(unit.strength);
     el.innerHTML =
       "<div class='ui-name'>" + t.name + "</div>" +
+      "<div class='experience-card'>" + experienceStarsHtml(unit.exp) +
+      experienceEffectHtml(unit.exp) + "</div>" +
       "<table class='ui-stats'>" +
       (strCap ? "<tr><td>Strength</td><td>" + strCap + "</td></tr>" : "") +
-      "<tr><td>Experience</td><td>" + unit.exp + (unit.exp >= 8 ? " ★" : "") + "</td></tr>" +
       "<tr><td>Atk G / A</td><td>" + (t.atkG || "—") + " / " + (t.atkA || "—") + "</td></tr>" +
       "<tr><td>Defense</td><td>" + t.def + "</td></tr>" +
       "<tr><td>Move</td><td>" + (t.move || "—") + " (" + t.moveType + ")</td></tr>" +
@@ -211,43 +391,77 @@ var UI = (function () {
     var panel = $("factory-panel");
     var list = $("factory-list");
     list.innerHTML = "";
+    this.mode = "factory";
     $("factory-title").textContent =
       (building.kind === "base" ? "Base" : "Factory") + " — stored units";
     building.stored.forEach(function (su) {
       var row = document.createElement("div");
       row.className = "factory-row";
       var storedCap = COMBAT.strengthCaption(su.strength);
-      row.innerHTML = "<span>" + su.type.name + (storedCap ? " (str " + storedCap + ")" : "") + "</span>";
+      var unit = document.createElement("div");
+      unit.className = "factory-unit";
+      var icon = document.createElement("canvas");
+      icon.className = "factory-unit-icon";
+      icon.width = 56;
+      icon.height = 44;
+      icon.setAttribute("role", "img");
+      icon.setAttribute("aria-label", su.type.name + " unit icon");
+      var details = document.createElement("div");
+      details.className = "factory-unit-details";
+      var name = document.createElement("strong");
+      name.textContent = su.type.name;
+      var stats = document.createElement("span");
+      stats.textContent = (storedCap ? "Strength " + storedCap + " · " : "") +
+        "Experience " + su.exp;
+      details.appendChild(name);
+      details.appendChild(stats);
+      unit.appendChild(icon);
+      unit.appendChild(details);
+      row.appendChild(unit);
+      RENDER.drawUnitIcon(icon, su);
       var btn = document.createElement("button");
       btn.textContent = "Deploy";
       if (su.moved) {
         btn.disabled = true;
         btn.title = "Stored this turn — can leave from the next turn";
+      } else if (su.type.placeByTransport &&
+                 !self.findAdjacentTransport(building)) {
+        btn.disabled = true;
+        btn.title = su.type.name + " needs an available transport on or next to the factory";
+      } else if (!su.type.placeByTransport &&
+                 !g.deployTargets(building, su).length) {
+        btn.disabled = true;
+        btn.title = "No open exit hex next to the factory";
       }
       btn.onclick = function () {
         try {
           if (su.type.placeByTransport) {
-            // must load onto adjacent transport
-            var tr = self.findAdjacentTransport(building);
-            if (!tr) { self.toast(su.type.name + " needs a transport on/next to the factory"); return; }
-            g.loadFromFactory(building, su, tr);
+            var transport = self.findAdjacentTransport(building);
+            if (!transport) {
+              throw new Error(su.type.name +
+                " needs an available transport on or next to the factory");
+            }
+            g.loadFromFactory(building, su, transport);
             self.closeFactoryPanel();
             self.refreshStatus();
             self.draw();
             return;
           }
-          // Units leave to a hex you pick next to the factory.
           var exits = g.deployTargets(building, su);
-          if (!exits.length) { self.toast("No open exit hex next to the factory"); return; }
+          if (!exits.length) throw new Error("No open exit hex next to the factory");
           self.closeFactoryPanel();
           self.mode = "deployPick";
           self.deployPending = { building: building, unit: su };
-          var hl = {};
-          exits.forEach(function (p) { hl[HEX.key(p.col, p.row)] = "rgba(130,220,130,0.45)"; });
-          self.renderer.highlights = hl;
+          var highlights = {};
+          exits.forEach(function (exit) {
+            highlights[HEX.key(exit.col, exit.row)] = "rgba(130,220,130,0.45)";
+          });
+          self.renderer.highlights = highlights;
           self.toast("Choose an exit hex for " + su.type.name);
           self.draw();
-        } catch (err) { self.toast(err.message); }
+        } catch (err) {
+          self.toast(err.message);
+        }
       };
       row.appendChild(btn);
       list.appendChild(row);
@@ -258,16 +472,20 @@ var UI = (function () {
   };
 
   GameUI.prototype.findAdjacentTransport = function (building) {
-    var g = this.game;
-    var spots = [{ col: building.col, row: building.row }].concat(HEX.neighbors(building.col, building.row));
-    for (var i = 0; i < spots.length; i++) {
-      var u = g.unitAt(spots[i].col, spots[i].row);
-      if (u && u.player === g.currentPlayer && u.type.cargo && u.cargo.length < u.type.cargo) return u;
+    var positions = [{ col: building.col, row: building.row }]
+      .concat(HEX.neighbors(building.col, building.row));
+    for (var i = 0; i < positions.length; i++) {
+      var unit = this.game.unitAt(positions[i].col, positions[i].row);
+      if (unit && unit.player === building.owner && unit.type.cargo &&
+          unit.cargo.length < unit.type.cargo) return unit;
     }
     return null;
   };
 
-  GameUI.prototype.closeFactoryPanel = function () { $("factory-panel").classList.add("hidden"); };
+  GameUI.prototype.closeFactoryPanel = function () {
+    $("factory-panel").classList.add("hidden");
+    if (this.mode === "factory") this.mode = "idle";
+  };
 
   /* --- battle preview ----------------------------------------------------- */
 
@@ -276,6 +494,9 @@ var UI = (function () {
     var pv = COMBAT.preview(g, attacker, defender);
     var panel = $("battle-panel");
     panel.classList.remove("hidden");
+    $("battle-title").textContent = "Combat calculator";
+    $("battle-fight").classList.remove("hidden");
+    $("battle-cancel").classList.remove("hidden");
     this.mode = "battle";
 
     function sideHtml(unit, calc, label) {
@@ -283,8 +504,12 @@ var UI = (function () {
         return "<tr><td>" + s.label + "</td><td>" + s.ap + "</td><td>" + s.da + "</td></tr>";
       }).join("");
       var bcap = COMBAT.strengthCaption(unit.strength);
+      var bonus = COMBAT.experienceBonus(unit.exp);
+      var rank = bonus.general ? "GENERAL" : unit.exp + " / 8 stars";
       return "<div class='battle-side'><div class='ui-name'>" + label + ": " + unit.type.name +
         (bcap ? " (str " + bcap + ")" : "") + "</div>" +
+        "<div class='battle-exp'>" + rank + " · attack +" + bonus.attack +
+        "% · defense +" + bonus.defense + "%</div>" +
         "<table class='battle-steps'><tr><th></th><th>ATK</th><th>DEF</th></tr>" + rows + "</table></div>";
     }
     $("battle-detail").innerHTML =
@@ -293,21 +518,31 @@ var UI = (function () {
         (pv.counter ? "Defender will counterattack." : "Defender cannot counterattack.")) + "</div>";
 
     $("battle-fight").onclick = function () {
+      var attackerBefore = attacker.strength;
+      var defenderBefore = defender.strength;
       var result = g.attack(attacker, defender);
-      var msg = "Defender −" + result.dmgToDefender +
-        (result.defenderDead ? " (destroyed)" : "") +
-        (result.preview.counter ? " · Attacker −" + result.dmgToAttacker + (result.attackerDead ? " (destroyed)" : "") : "");
-      $("battle-detail").innerHTML += "<div class='battle-result'>" + msg + "</div>";
       $("battle-fight").classList.add("hidden");
-      $("battle-cancel").textContent = "Close";
+      $("battle-cancel").classList.add("hidden");
+      $("battle-title").textContent = "Battle result";
       self.renderer.flashUnits = {};
-      self.draw(); self.refreshStatus();
-      $("battle-cancel").onclick = function () {
-        panel.classList.add("hidden");
-        $("battle-fight").classList.remove("hidden");
-        $("battle-cancel").textContent = "Cancel";
-        done(result);
-      };
+      self.refreshStatus();
+      self.animateBattleResult({
+        attacker: attacker,
+        defender: defender,
+        attackerBefore: attackerBefore,
+        defenderBefore: defenderBefore,
+        result: result,
+      }, $("battle-detail"), function () {
+        $("battle-cancel").textContent = "Close";
+        $("battle-cancel").classList.remove("hidden");
+        $("battle-cancel").onclick = function () {
+          panel.classList.add("hidden");
+          $("battle-fight").classList.remove("hidden");
+          $("battle-cancel").textContent = "Cancel";
+          $("battle-title").textContent = "Combat calculator";
+          done(result);
+        };
+      });
     };
     $("battle-cancel").textContent = "Cancel";
     $("battle-cancel").onclick = function () {
@@ -485,11 +720,13 @@ var UI = (function () {
   GameUI.prototype.onMouseMove = function (e) {
     if (this.dragging) {
       var dx = e.offsetX - this.dragging.x, dy = e.offsetY - this.dragging.y;
-      if (this.dragging.pan && Math.abs(dx) + Math.abs(dy) > 4) this.dragging.moved = true;
-      if (this.dragging.pan && this.dragging.moved) {
-        this.renderer.originX += dx; this.renderer.originY += dy;
+      if (this.dragging.pan && Math.abs(dx) + Math.abs(dy) > 4) {
+        var viewMoved = this.renderer.panBy(dx, dy);
         this.dragging.x = e.offsetX; this.dragging.y = e.offsetY;
-        this.draw();
+        if (viewMoved) {
+          this.dragging.moved = true;
+          this.draw();
+        }
       }
       if (this.dragging.pan) return;
     }
@@ -514,7 +751,8 @@ var UI = (function () {
       this.onCancel();
       return;
     }
-    if (this.busy || this.mode === "aiTurn" || this.mode === "battle" || this.mode === "over") return;
+    if (this.busy || this.mode === "aiTurn" || this.mode === "battle" ||
+        this.mode === "factory" || this.mode === "over") return;
     var hex = this.renderer.pixelToHex(e.offsetX, e.offsetY);
     if (!hex) return;
     this.onHexClick(hex.col, hex.row);
@@ -525,6 +763,7 @@ var UI = (function () {
     else if (this.mode === "pickTarget" && this.selected) { this.openActionMenu(this.selected); this.mode = "moved"; this.renderer.highlights = null; this.draw(); }
     else if (this.mode === "unload" && this.selected) { this.openActionMenu(this.selected); this.mode = "moved"; this.renderer.highlights = null; this.draw(); }
     else if (this.mode === "deployPick") { this.deployPending = null; this.deselect(); }
+    else if (this.mode === "factory") this.closeFactoryPanel();
     else this.deselect();
   };
 
@@ -542,6 +781,7 @@ var UI = (function () {
     r.originX = e.offsetX - (e.offsetX - r.originX) * (nz / r.zoom);
     r.originY = e.offsetY - (e.offsetY - r.originY) * (nz / r.zoom);
     r.zoom = nz;
+    r.constrainView();
     this.draw();
   };
 
@@ -672,6 +912,61 @@ var UI = (function () {
 
   /* --- turns ---------------------------------------------------------------- */
 
+  GameUI.prototype.finishAITurn = function () {
+    this._aiTurn = null;
+    this.selected = null;
+    this.hideWatchPanel();
+    if (this.game.winner === null) this.game.endTurn();
+    this.busy = false;
+    this.mode = this.game.winner === null ? "idle" : "over";
+    this.refreshStatus();
+    this.draw();
+    this.checkGameOver();
+  };
+
+  GameUI.prototype.runNextAIEvent = function () {
+    if (this.destroyed || !this._aiTurn) return;
+    var event = this._aiTurn.next();
+    if (!event) {
+      this.finishAITurn();
+      return;
+    }
+
+    var delay = 40;
+    if (event.t === "deploy" || event.t === "move") {
+      this.selected = event.unit;
+      this.renderer.flashUnits = {};
+      this.renderer.flashUnits[event.unit.id] = "#bfe95c";
+      this.showUnitInfo(event.unit);
+      this.showWatchMove(event);
+      delay = event.t === "deploy" ? 900 : 800;
+    } else if (event.t === "battle-preview") {
+      this.selected = event.attacker;
+      this.showUnitInfo(event.attacker);
+      this.showWatchPreview(event);
+      delay = 1100;
+    } else if (event.t === "battle") {
+      this.selected = event.result.attackerDead ? null : event.attacker;
+      delay = this.watchAI ? this.showWatchResult(event) + 350 : 0;
+    } else if (event.t === "finish") {
+      this.selected = event.unit;
+      var effect = event.effects[0];
+      var text = effect.t === "capture" ? "captured " + effect.kind : "repaired to full strength";
+      this.showWatchPanel("XENON ACTION", "<div class='watch-move'><strong>" +
+        esc(event.unit.type.name) + "</strong> " + esc(text) + "</div>");
+      delay = 900;
+    }
+
+    this.refreshStatus();
+    this.draw();
+    if (!this.watchAI) {
+      this.hideWatchPanel();
+      delay = 0;
+    }
+    var self = this;
+    this._aiTimer = setTimeout(function () { self.runNextAIEvent(); }, delay);
+  };
+
   GameUI.prototype.endTurn = function () {
     if (this.mode === "over" || this.busy) return;
     var g = this.game, self = this;
@@ -689,13 +984,13 @@ var UI = (function () {
     $("status-player").textContent = RENDER.PLAYER_COLORS[g.currentPlayer].name + " (thinking…)";
     this._aiTimer = setTimeout(function () {
       if (self.destroyed) return;
-      AI.playTurn(g, g.currentPlayer);
-      g.endTurn();
-      self.busy = false;
-      self.mode = "idle";
-      self.refreshStatus();
-      self.draw();
-      self.checkGameOver();
+      if (!self.watchAI) {
+        AI.playTurn(g, g.currentPlayer);
+        self.finishAITurn();
+        return;
+      }
+      self._aiTurn = AI.createTurn(g, g.currentPlayer);
+      self.runNextAIEvent();
     }, 300);
   };
 

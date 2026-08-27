@@ -14,6 +14,8 @@ Facts wei need across sessions:
 - **Tests:** `node test/run-tests.js` — map validation, rule unit-tests, and
   AI-vs-AI self-play on all 16 campaign + 12 Lunar Frontiers maps. Run it
   after any engine, data, or map change.
+- **Local development:** `./serve.sh` serves the repo at
+  `http://127.0.0.1:8001`. Port 8001 is fixed; do not substitute a random port.
 - **Deploy target:** none written yet. It is a static folder; any web host
   works. When youi picks a live target, record it here (per the pdeploy
   rule).
@@ -43,5 +45,6 @@ Facts wei need across sessions:
   the campaign maps, which were built against the old reconstructed rules.
 - **Rule constants live in data files**, not code: terrain costs/defense in
   `js/data-terrain.js`, roster in `js/data-units.js`, experience tiers in
-  `js/combat.js` (top). The damage roll (`AP/(AP+DA)` per strength die) is a
-  reconstruction — if youi tunes it after play, update `MECHANICS.md` too.
+  `js/combat.js` (top). The current damage roll (`AP/(AP+DA)` per strength
+  die) differs from the recovered original total-damage formula and 0.2x–4.0x
+  random coefficient; `MECHANICS.md` records the source and migration gap.

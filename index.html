@@ -62,7 +62,7 @@
   </section>
 
   <footer class="menu-footer">
-    Controls: click to select / move · right-click or Esc to cancel · wheel zooms · middle/right-drag pans · E ends turn.
+    Controls: click to select / move · right-click or Esc to cancel · wheel zooms · middle/right-drag pans when zoomed in · E ends turn.
     See <a href="MECHANICS.md">MECHANICS.md</a> for the full rules reconstruction.
   </footer>
 </div>
@@ -81,6 +81,7 @@
       <option value="pixel">Pixel style</option>
       <option value="classic">Classic style</option>
     </select>
+    <button id="btn-watch" aria-pressed="true">Watch AI: On</button>
     <button id="btn-music" aria-pressed="false">Music: Off</button>
     <button id="btn-endturn">End Turn (E)</button>
   </div>
@@ -101,12 +102,17 @@
   </div>
 
   <div id="battle-panel" class="hidden popup">
-    <div class="popup-title">Combat calculator</div>
+    <div id="battle-title" class="popup-title">Combat calculator</div>
     <div id="battle-detail"></div>
     <div class="popup-buttons">
       <button id="battle-fight">Fight</button>
       <button id="battle-cancel">Cancel</button>
     </div>
+  </div>
+
+  <div id="watch-panel" class="hidden popup" aria-live="polite">
+    <div id="watch-title" class="popup-title"></div>
+    <div id="watch-detail"></div>
   </div>
 
   <div id="gameover-panel" class="hidden popup">

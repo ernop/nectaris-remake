@@ -32,6 +32,17 @@ an original procedural chiptune score, and a level editor with URL sharing.
 | `js/ui.js`, `js/main.js` | Game UI and boot/menu |
 | `js/editor.js` | Editor logic |
 | `test/run-tests.js` | Node test suite (`node test/run-tests.js`) |
+| `serve.sh` | Local server on the fixed development port |
+
+## Run locally
+
+```bash
+./serve.sh
+```
+
+Open <http://127.0.0.1:8001>. Port **8001** is canonical; if another process
+has it, the server exits with the bind error rather than selecting a different
+port.
 
 ## Deployment
 
@@ -48,7 +59,8 @@ state (campaign progress, custom levels, custom units) lives in
   the action menu opens (Attack / Unload / Finish / Cancel); otherwise the
   move completes immediately. Clicking a red enemy attacks directly,
   auto-stepping to the best adjacent hex first.
-- Right-click or Esc: cancel. Mouse wheel: zoom. Middle/right-drag: pan.
+- Right-click or Esc: cancel. Mouse wheel: zoom. Middle/right-drag pans only
+  when the zoomed map extends beyond the viewport.
   `E`: end turn.
 - Unit chrome shows remaining strength only when damaged (1–7). Full
   strength (8) is omitted — see `PRODUCT.md`.
@@ -56,6 +68,15 @@ state (campaign progress, custom levels, custom units) lives in
   then asks for an exit hex — pick one of the highlighted hexes next to the
   factory. Stop a damaged unit on your own factory to store and repair it;
   it can come back out from the next turn.
+- **Watch AI: On** shows every Xenon move, combat matchup, and before/after
+  squad strength. Turn it off for immediate AI turns.
+- The factory panel shows each stored unit's map icon, damage when present,
+  experience, and deployment control.
+- Experience appears on units in three star columns holding 3, 2, and 3 stars.
+  Selecting a unit shows the exact attack/defense percentage; level 8 replaces
+  the columns with the large **GENERAL** star.
+- Union silhouettes face right and Xenon silhouettes face left, so opposing
+  units visibly confront one another.
 - Battle preview shows the original-style calculator: EXP → SURROUND →
   SUPPORT → TERRAIN rows for both sides, before you commit to the attack.
 - Every campaign and expansion map is available immediately. Use the map
@@ -88,6 +109,8 @@ The editor exports self-contained JSON. Schema:
 Terrain characters: `.` plains, `-` road, `w` wasteland, `h` hills,
 `M` mountains, `v` valley, `=` bridge, `F` factory, `B` base. Owners:
 `0` Union (human by default), `1` Xenon (AI), `-1` neutral.
+Road tiles choose their path from adjacent road/building tiles: same-row runs
+stay horizontal, while turns and junctions meet at their shared hex edges.
 
 ### Online levels
 

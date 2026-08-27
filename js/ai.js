@@ -149,7 +149,7 @@ var AI = (function () {
     return plans[0];
   }
 
-  function actUnit(game, unit, events) {
+  function planUnit(game, unit) {
     var range = game.movementRange(unit);
 
     // Retreat to repair when battered and a friendly building is near.
@@ -158,26 +158,14 @@ var AI = (function () {
       if (rb) {
         var rec = range[HEX.key(rb.col, rb.row)];
         if (rec && rec.canStop && !game.unitAt(rb.col, rb.row)) {
-          game.moveUnit(unit, rb.col, rb.row, range);
-          events.push({ t: "move", unit: unit });
-          game.finishUnit(unit);
-          return;
+          return { kind: "move", dest: rec, range: range, reason: "repair" };
         }
       }
     }
 
     var plan = bestAttackPlan(game, unit);
     if (plan && plan.score > -2) {
-      if (plan.dest && (plan.dest.col !== unit.col || plan.dest.row !== unit.row)) {
-        game.moveUnit(unit, plan.dest.col, plan.dest.row, range);
-        events.push({ t: "move", unit: unit });
-      }
-      if (game.units.indexOf(plan.target) >= 0) {
-        var result = game.attack(unit, plan.target);
-        events.push({ t: "battle", attacker: unit, defender: plan.target, result: result });
-        if (game.units.indexOf(unit) >= 0 && !unit.moved) game.finishUnit(unit);
-        return;
-      }
+      return { kind: "attack", dest: plan.dest, target: plan.target, range: range };
     }
 
     // No good attack: advance.
@@ -185,56 +173,45 @@ var AI = (function () {
     if (goal && unit.type.move > 0) {
       var step = bestStepToward(game, unit, range, goal, unit.type.moveOrFire);
       if (step) {
-        var res = game.moveUnit(unit, step.col, step.row, range);
-        events.push({ t: "move", unit: unit });
-        if (!res.loaded) {
-          // capture / repair handled by finish
-          game.finishUnit(unit);
-          return;
-        }
-        return;
+        return { kind: "move", dest: step, range: range, reason: "advance" };
       }
     }
-    game.finishUnit(unit);
+    return { kind: "finish" };
   }
 
-  function deployFromFactories(game, player, events) {
-    var facs = game.playerFactories(player);
-    for (var i = 0; i < facs.length; i++) {
-      var b = facs[i];
-      // Deploy one stored (mobile) unit per factory per turn, onto the
-      // open exit hex nearest the enemy base.
-      for (var s = b.stored.length - 1; s >= 0; s--) {
-        var su = b.stored[s];
-        if (su.type.placeByTransport) continue; // AI skips Atlas/Trigger logistics
-        if (su.moved) continue;                 // stored this turn
-        var exits = game.deployTargets(b, su);
-        if (exits.length) {
-          var goal = null;
-          for (var k in game.buildings) {
-            var eb = game.buildings[k];
-            if (eb.kind === "base" && eb.owner === 1 - player) { goal = eb; break; }
-          }
-          exits.sort(function (p, q) {
-            if (!goal) return 0;
-            return HEX.distance(p.col, p.row, goal.col, goal.row) -
-                   HEX.distance(q.col, q.row, goal.col, goal.row);
-          });
-          game.deployFromFactory(b, su, exits[0].col, exits[0].row);
-          events.push({ t: "deploy", unit: su });
+  function deployOneFactory(game, building) {
+    // Deploy one stored mobile unit per factory and turn, choosing the exit
+    // nearest the opposing base.
+    for (var s = building.stored.length - 1; s >= 0; s--) {
+      var su = building.stored[s];
+      if (su.type.placeByTransport || su.moved) continue;
+      var exits = game.deployTargets(building, su);
+      if (!exits.length) return null;
+      var goal = null;
+      for (var k in game.buildings) {
+        var enemyBuilding = game.buildings[k];
+        if (enemyBuilding.kind === "base" &&
+            enemyBuilding.owner === 1 - building.owner) {
+          goal = enemyBuilding;
+          break;
         }
-        break; // one deployment per factory per turn
       }
+      exits.sort(function (a, b) {
+        if (!goal) return 0;
+        return HEX.distance(a.col, a.row, goal.col, goal.row) -
+          HEX.distance(b.col, b.row, goal.col, goal.row);
+      });
+      var exit = exits[0];
+      game.deployFromFactory(building, su, exit.col, exit.row);
+      return {
+        t: "deploy", unit: su, building: building,
+        to: { col: exit.col, row: exit.row },
+      };
     }
+    return null;
   }
 
-  /* Play a whole turn. Returns events for animation. */
-  function playTurn(game, player) {
-    var events = [];
-    deployFromFactories(game, player, events);
-
-    // Activation order: artillery/AA first (soften), then combat units by
-    // value, infantry last so captures happen after the field is shaped.
+  function activationOrder(game, player) {
     var units = game.playerUnits(player).slice();
     units.sort(function (a, b) {
       function rank(u) {
@@ -244,17 +221,108 @@ var AI = (function () {
       }
       return rank(a) - rank(b) || unitValue(b) - unitValue(a);
     });
+    return units;
+  }
 
-    for (var i = 0; i < units.length; i++) {
-      var u = units[i];
-      if (game.winner !== null) break;
-      if (game.units.indexOf(u) < 0 || u.moved || u.carriedBy) continue;
-      actUnit(game, u, events);
+  /* A turn runner mutates one visible action per next() call. Movement,
+   * battle preview and battle result are separate events, so the UI can
+   * render each state before the next mutation. */
+  function createTurn(game, player) {
+    var factories = game.playerFactories(player);
+    var factoryIndex = 0;
+    var units = null;
+    var unitIndex = 0;
+    var pending = [];
+
+    function queueAction(unit, action) {
+      if (action.kind === "finish") {
+        pending.push(function () {
+          var effects = game.finishUnit(unit);
+          return effects.length ? { t: "finish", unit: unit, effects: effects } : { t: "wait", unit: unit };
+        });
+        return;
+      }
+
+      if (action.kind === "move") {
+        pending.push(function () {
+          var from = { col: unit.col, row: unit.row };
+          var moved = game.moveUnit(unit, action.dest.col, action.dest.row, action.range);
+          var effects = moved.loaded ? [] : game.finishUnit(unit);
+          return {
+            t: "move", unit: unit, from: from,
+            to: { col: action.dest.col, row: action.dest.row },
+            reason: action.reason, effects: effects,
+          };
+        });
+        return;
+      }
+
+      if (action.dest && (action.dest.col !== unit.col || action.dest.row !== unit.row)) {
+        pending.push(function () {
+          var from = { col: unit.col, row: unit.row };
+          game.moveUnit(unit, action.dest.col, action.dest.row, action.range);
+          return {
+            t: "move", unit: unit, from: from,
+            to: { col: action.dest.col, row: action.dest.row },
+            reason: "attack",
+          };
+        });
+      }
+
+      var attackerBefore, defenderBefore, preview;
+      pending.push(function () {
+        attackerBefore = unit.strength;
+        defenderBefore = action.target.strength;
+        preview = COMBAT.preview(game, unit, action.target);
+        return {
+          t: "battle-preview", attacker: unit, defender: action.target,
+          attackerBefore: attackerBefore, defenderBefore: defenderBefore,
+          preview: preview,
+        };
+      });
+      pending.push(function () {
+        var result = game.attack(unit, action.target);
+        if (game.units.indexOf(unit) >= 0 && !unit.moved) game.finishUnit(unit);
+        return {
+          t: "battle", attacker: unit, defender: action.target,
+          attackerBefore: attackerBefore, defenderBefore: defenderBefore,
+          result: result,
+        };
+      });
     }
+
+    function next() {
+      while (true) {
+        if (pending.length) return pending.shift()();
+        if (game.winner !== null) return null;
+
+        if (factoryIndex < factories.length) {
+          var deployed = deployOneFactory(game, factories[factoryIndex++]);
+          if (deployed) return deployed;
+          continue;
+        }
+
+        if (!units) units = activationOrder(game, player);
+        if (unitIndex >= units.length) return null;
+        var unit = units[unitIndex++];
+        if (game.units.indexOf(unit) < 0 || unit.moved || unit.carriedBy) continue;
+        queueAction(unit, planUnit(game, unit));
+      }
+    }
+
+    return { next: next };
+  }
+
+  /* Immediate mode consumes the same event stream without display delays. */
+  function playTurn(game, player) {
+    var events = [];
+    var turn = createTurn(game, player);
+    var event;
+    while ((event = turn.next()) !== null) events.push(event);
     return events;
   }
 
-  return { playTurn: playTurn, expectedTrade: expectedTrade };
+  return { createTurn: createTurn, playTurn: playTurn, expectedTrade: expectedTrade };
 })();
 
 if (typeof module !== "undefined") module.exports = AI;
