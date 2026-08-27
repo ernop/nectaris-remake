@@ -24,21 +24,33 @@
   </section>
 
   <section class="menu-section">
+    <h2>Online expansion · Lunar Frontiers</h2>
+    <p class="section-note">Twelve original web-edition scenarios. Every card names its design focus and links to its source data.</p>
+    <div id="expansion-list" class="level-library"></div>
+  </section>
+
+  <section class="menu-section">
     <h2>Custom levels</h2>
     <div id="custom-list" class="mission-grid"></div>
     <div class="menu-controls">
       <label class="filebtn">Import level JSON<input type="file" id="file-import" accept=".json"></label>
       <a class="btn-like" href="editor.html">Open level editor</a>
     </div>
+    <div class="url-import">
+      <input type="url" id="online-level-url" placeholder="https://…/level.json" aria-label="Online level JSON URL">
+      <button id="btn-online-import">Install from URL</button>
+      <span id="online-import-status" role="status"></span>
+    </div>
+    <p class="section-note">Raw GitHub and Gist URLs work. See <a href="LEVEL_SOURCES.md">level sources and archive notes</a>.</p>
   </section>
 
   <section class="menu-section menu-options">
     <label><input type="checkbox" id="chk-hotseat"> Two players (hotseat)</label>
-    <label><input type="checkbox" id="chk-unlock"> Unlock all missions</label>
+    <span>All campaign maps are available from the start.</span>
   </section>
 
   <footer class="menu-footer">
-    Controls: click to select / move · right-click or Esc to cancel · wheel zooms · drag pans · E ends turn.
+    Controls: click to select / move · right-click or Esc to cancel · wheel zooms · middle/right-drag pans · E ends turn.
     See <a href="MECHANICS.md">MECHANICS.md</a> for the full rules reconstruction.
   </footer>
 </div>
@@ -48,17 +60,19 @@
   <div id="topbar">
     <button id="btn-menu">◄ Menu</button>
     <span id="map-title"></span>
+    <select id="map-jump" aria-label="Jump to campaign map"></select>
     <span id="status-turn"></span>
     <span id="status-player"></span>
     <span id="status-units"></span>
+    <button id="btn-music" aria-pressed="false">Music: Off</button>
     <button id="btn-endturn">End Turn (E)</button>
   </div>
   <div id="game-main">
-    <div id="canvas-wrap"><canvas id="game-canvas"></canvas></div>
     <div id="sidebar">
       <div id="unit-info"></div>
       <div id="hex-info"></div>
     </div>
+    <div id="canvas-wrap"><canvas id="game-canvas"></canvas></div>
   </div>
 
   <div id="action-menu" class="hidden popup"></div>
@@ -82,6 +96,7 @@
     <div class="popup-title">Battle over</div>
     <div id="gameover-text"></div>
     <div class="popup-buttons">
+      <button id="gameover-next">Next Mission</button>
       <button id="gameover-again">Replay</button>
       <button id="gameover-menu">Menu</button>
     </div>
@@ -97,7 +112,9 @@
 <script src="js/engine.js"></script>
 <script src="js/ai.js"></script>
 <script src="js/data-maps.js"></script>
+<script src="js/data-expansion-maps.js"></script>
 <script src="js/render.js"></script>
+<script src="js/music.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/main.js"></script>
 </body>

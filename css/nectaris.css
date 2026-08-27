@@ -26,6 +26,13 @@ button, .btn-like, .filebtn {
 button:hover:not(:disabled), .btn-like:hover, .filebtn:hover { background: #3d382c; }
 button:disabled { opacity: 0.4; cursor: default; }
 .filebtn input { display: none; }
+select, input[type="url"] {
+  background: #17140f;
+  color: #e8e2d4;
+  border: 1px solid #55503f;
+  border-radius: 4px;
+  padding: 6px 8px;
+}
 
 /* ---------- menu ---------- */
 
@@ -76,8 +83,41 @@ button:disabled { opacity: 0.4; cursor: default; }
 
 .menu-controls { margin-top: 12px; display: flex; gap: 10px; }
 .menu-options label { margin-right: 24px; color: #c8c2b0; }
+.menu-options span, .section-note { color: #8f8772; font-size: 13px; }
 .menu-footer { margin-top: 40px; color: #776f5a; font-size: 13px; }
 .menu-footer a { color: #b0a890; }
+
+.level-library {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+  gap: 10px;
+}
+.level-card {
+  background: #211d16;
+  border: 1px solid #494230;
+  border-left: 3px solid #74672e;
+  border-radius: 4px;
+  padding: 11px 12px;
+  cursor: pointer;
+}
+.level-card:hover { background: #2b261c; border-color: #756b50; }
+.level-card-heading { color: #ffd94a; font-weight: 700; letter-spacing: 1px; }
+.level-card p { margin: 6px 0; font-size: 13px; line-height: 1.35; color: #c5bea9; }
+.level-card .level-special { color: #9fb8cc; }
+.level-card-footer {
+  display: flex;
+  justify-content: space-between;
+  color: #7f7764;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.level-card-footer a { color: #b9ad79; }
+.url-import { margin-top: 12px; display: flex; gap: 8px; align-items: center; }
+.url-import input { min-width: 300px; flex: 1; }
+#online-import-status { font-size: 12px; }
+#online-import-status.success { color: #8bcf8b; }
+#online-import-status.error { color: #ff8f6f; }
 
 /* ---------- game ---------- */
 
@@ -95,6 +135,8 @@ button:disabled { opacity: 0.4; cursor: default; }
   border-bottom: 1px solid #3d382c;
 }
 #map-title { font-weight: 700; letter-spacing: 3px; color: #ffd94a; }
+#map-jump { max-width: 150px; }
+#btn-music[aria-pressed="true"] { color: #ffd94a; border-color: #8c7930; }
 #btn-endturn { margin-left: auto; }
 
 #game-main { flex: 1; display: flex; min-height: 0; }
@@ -104,7 +146,7 @@ button:disabled { opacity: 0.4; cursor: default; }
 #sidebar {
   width: 230px;
   background: #1d1912;
-  border-left: 1px solid #3d382c;
+  border-right: 1px solid #3d382c;
   padding: 12px;
   overflow-y: auto;
   font-size: 13px;

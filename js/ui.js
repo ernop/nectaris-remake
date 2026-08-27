@@ -2,11 +2,11 @@
  *
  * Interaction model (mirrors the original's flow, minus its screen limits):
  *   click own unit  -> show movement range + attackable targets
- *   click dest hex  -> unit steps there (cancellable), action menu opens
+ *   click dest hex  -> unit steps there; menu opens only when an action remains
  *   Attack          -> pick highlighted target, battle preview, resolve
- *   Wait            -> commit (captures/repairs apply)
+ *   Finish          -> commit without attacking (captures/repairs apply)
  *   Cancel          -> unit returns to where it was
- * Right-click / Esc cancels. Wheel zooms, drag pans. Any map size works.
+ * Right-click / Esc cancels. Wheel zooms; middle/right-drag pans.
  */
 "use strict";
 
@@ -25,20 +25,35 @@ var UI = (function () {
     this.range = null;
     this.pendingMoveFrom = null;   // {col,row,movePointsLeft,attackSpent}
     this.busy = false;
+    this.destroyed = false;
     this.onGameOver = this.options.onGameOver || function () {};
 
-    this.resize();
-    window.addEventListener("resize", function () { self.resize(); });
+    // Keep exact function references so destroy() can remove every listener.
+    // Starting a second map used to leave the first map's listeners alive;
+    // both renderers then painted the same canvas, producing visible flashing.
+    this.handlers = {
+      resize: function () { self.resize(); },
+      mousedown: function (e) { self.onMouseDown(e); },
+      mousemove: function (e) { self.onMouseMove(e); },
+      mouseup: function (e) { self.onMouseUp(e); },
+      windowMouseup: function () { self.dragging = null; },
+      wheel: function (e) { self.onWheel(e); },
+      contextmenu: function (e) { e.preventDefault(); },
+      keydown: function (e) { self.onKey(e); },
+    };
 
-    canvas.addEventListener("mousedown", function (e) { self.onMouseDown(e); });
-    canvas.addEventListener("mousemove", function (e) { self.onMouseMove(e); });
-    canvas.addEventListener("mouseup", function (e) { self.onMouseUp(e); });
-    canvas.addEventListener("wheel", function (e) { self.onWheel(e); }, { passive: false });
-    canvas.addEventListener("contextmenu", function (e) { e.preventDefault(); });
-    document.addEventListener("keydown", function (e) { self.onKey(e); });
+    this.resize();
+    window.addEventListener("resize", this.handlers.resize);
+    window.addEventListener("mouseup", this.handlers.windowMouseup);
+    canvas.addEventListener("mousedown", this.handlers.mousedown);
+    canvas.addEventListener("mousemove", this.handlers.mousemove);
+    canvas.addEventListener("mouseup", this.handlers.mouseup);
+    canvas.addEventListener("wheel", this.handlers.wheel, { passive: false });
+    canvas.addEventListener("contextmenu", this.handlers.contextmenu);
+    document.addEventListener("keydown", this.handlers.keydown);
 
     $("btn-endturn").onclick = function () { self.endTurn(); };
-    $("btn-menu").onclick = function () { location.hash = ""; location.reload(); };
+    $("btn-menu").onclick = this.options.onMenu || function () { location.reload(); };
 
     this.refreshStatus();
     this.renderer.fitToMap();
@@ -53,8 +68,35 @@ var UI = (function () {
   };
 
   GameUI.prototype.draw = function () {
-    this.renderer.selected = this.selected;
-    this.renderer.draw();
+    var self = this;
+    if (this.destroyed || this._drawPending) return;
+    this._drawPending = true;
+    this._drawFrame = requestAnimationFrame(function () {
+      self._drawPending = false;
+      if (self.destroyed) return;
+      self.renderer.selected = self.selected;
+      self.renderer.draw();
+    });
+  };
+
+  GameUI.prototype.destroy = function () {
+    if (this.destroyed) return;
+    this.destroyed = true;
+    var h = this.handlers;
+    window.removeEventListener("resize", h.resize);
+    window.removeEventListener("mouseup", h.windowMouseup);
+    this.canvas.removeEventListener("mousedown", h.mousedown);
+    this.canvas.removeEventListener("mousemove", h.mousemove);
+    this.canvas.removeEventListener("mouseup", h.mouseup);
+    this.canvas.removeEventListener("wheel", h.wheel);
+    this.canvas.removeEventListener("contextmenu", h.contextmenu);
+    document.removeEventListener("keydown", h.keydown);
+    cancelAnimationFrame(this._drawFrame);
+    clearTimeout(this._toastT);
+    clearTimeout(this._aiTimer);
+    this.closeActionMenu();
+    this.closeFactoryPanel();
+    $("battle-panel").classList.add("hidden");
   };
 
   /* --- status / panels ------------------------------------------------- */
@@ -133,7 +175,7 @@ var UI = (function () {
     // Factory panel if standing on own factory with stored units
     var b0 = g.buildingAt(unit.col, unit.row);
 
-    add("Wait", true, function () { self.commitUnit(unit); });
+    add("Finish", true, function () { self.commitUnit(unit); });
     add("Cancel", !!this.pendingMoveFrom || !unit.attacked, function () { self.cancelMove(unit); });
 
     var ctr = this.renderer.hexCenter(unit.col, unit.row);
@@ -320,9 +362,30 @@ var UI = (function () {
       this.refreshStatus();
       return true;
     }
+    var targets = this.game.attackTargets(unit);
+    var canAttack = targets.length > 0 &&
+      !(unit.type.rmax > 1 && unit.attackSpent) && !unit.attacked;
+    var canUnload = unit.cargo && unit.cargo.length &&
+      this.hasUnloadDestination(unit, unit.cargo[0]);
+    // No decision remains: commit immediately. This removes the redundant
+    // "Wait" click after ranged movement and ordinary non-combat moves.
+    if (!canAttack && !canUnload) {
+      this.commitUnit(unit);
+      return true;
+    }
     this.mode = "moved";
     this.openActionMenu(unit);
     return true;
+  };
+
+  GameUI.prototype.hasUnloadDestination = function (transport, cargoUnit) {
+    var ns = HEX.neighbors(transport.col, transport.row);
+    for (var i = 0; i < ns.length; i++) {
+      var n = ns[i];
+      if (!this.game.inBounds(n.col, n.row) || this.game.unitAt(n.col, n.row)) continue;
+      if (terrainCost(this.game.terrainAt(n.col, n.row), cargoUnit.type.moveType) !== null) return true;
+    }
+    return false;
   };
 
   GameUI.prototype.cancelMove = function (unit) {
@@ -390,13 +453,13 @@ var UI = (function () {
   GameUI.prototype.onMouseMove = function (e) {
     if (this.dragging) {
       var dx = e.offsetX - this.dragging.x, dy = e.offsetY - this.dragging.y;
-      if (Math.abs(dx) + Math.abs(dy) > 4) this.dragging.moved = true;
-      if (this.dragging.moved) {
+      if (this.dragging.pan && Math.abs(dx) + Math.abs(dy) > 4) this.dragging.moved = true;
+      if (this.dragging.pan && this.dragging.moved) {
         this.renderer.originX += dx; this.renderer.originY += dy;
         this.dragging.x = e.offsetX; this.dragging.y = e.offsetY;
         this.draw();
       }
-      return;
+      if (this.dragging.pan) return;
     }
     var hex = this.renderer.pixelToHex(e.offsetX, e.offsetY);
     var changed = HEX.key((this.renderer.hoverHex || {}).col, (this.renderer.hoverHex || {}).row) !==
@@ -575,7 +638,8 @@ var UI = (function () {
     this.mode = "aiTurn";
     this.busy = true;
     $("status-player").textContent = RENDER.PLAYER_COLORS[g.currentPlayer].name + " (thinking…)";
-    setTimeout(function () {
+    this._aiTimer = setTimeout(function () {
+      if (self.destroyed) return;
       AI.playTurn(g, g.currentPlayer);
       g.endTurn();
       self.busy = false;

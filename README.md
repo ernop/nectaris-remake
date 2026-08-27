@@ -6,7 +6,8 @@ hex-based tactics game (TG-16 / PC Engine, 1989: *Nectaris* in Japan,
 combat calculator with support and surround fire, experience, terrain
 defense, factories with stored units, transports — while dropping the pure
 hardware limitations: the whole map is visible at once, with free zoom and
-pan, at any map size.
+pan, at any map size. It includes 16 campaign maps, a 12-map online expansion,
+an original procedural chiptune score, and a level editor with URL sharing.
 
 ## What's what
 
@@ -22,7 +23,9 @@ pan, at any map size.
 | `js/engine.js` | Game state, movement/ZOC, actions, victory |
 | `js/ai.js` | Computer opponent |
 | `js/data-maps.js` | 16-mission campaign (original layouts, classic structure) |
+| `js/data-expansion-maps.js` | 12-map Lunar Frontiers online expansion |
 | `js/render.js` | Canvas renderer (all art procedural and original) |
+| `js/music.js` | Original synthesized military chiptune (Web Audio; no audio files) |
 | `js/ui.js`, `js/main.js` | Game UI and boot/menu |
 | `js/editor.js` | Editor logic |
 | `test/run-tests.js` | Node test suite (`node test/run-tests.js`) |
@@ -38,13 +41,19 @@ state (campaign progress, custom levels, custom units) lives in
 
 - Click a unit: shows movement range (white), boardable transports (blue),
   attackable enemies (red).
-- Click a destination: the unit steps there and the action menu opens
-  (Attack / Unload / Wait / Cancel). Clicking a red enemy attacks directly,
+- Click a destination: the unit steps there. If an attack or unload remains,
+  the action menu opens (Attack / Unload / Finish / Cancel); otherwise the
+  move completes immediately. Clicking a red enemy attacks directly,
   auto-stepping to the best adjacent hex first.
-- Right-click or Esc: cancel. Mouse wheel: zoom. Drag: pan. `E`: end turn.
+- Right-click or Esc: cancel. Mouse wheel: zoom. Middle/right-drag: pan.
+  `E`: end turn.
 - Click an own factory (with stored units, unoccupied): deploy panel.
 - Battle preview shows the original-style calculator: EXP → SURROUND →
   SUPPORT → TERRAIN rows for both sides, before you commit to the attack.
+- Every campaign and expansion map is available immediately. Use the map
+  selector in the top bar to move directly between them.
+- **Music: On/Off** starts an original square-wave/triangle/noise military
+  chiptune. Browsers require the button press before audio may begin.
 
 ## Custom levels
 
@@ -72,6 +81,15 @@ Terrain characters: `.` plains, `-` road, `w` wasteland, `h` hills,
 `M` mountains, `v` valley, `=` bridge, `F` factory, `B` base. Owners:
 `0` Union (blue, human by default), `1` Xenon (red, AI), `-1` neutral.
 
+### Online levels
+
+Paste a raw level-JSON URL into **Install from URL** on the mission menu.
+Single levels, arrays, and `{ "levels": [...] }` packs are accepted. Every
+level is engine-validated before it is installed. Raw GitHub and Gist links
+work. See [`LEVEL_SOURCES.md`](LEVEL_SOURCES.md) for the twelve included
+Lunar Frontiers maps, historical Nectaris map archives, their redistribution
+status, and the sharing procedure.
+
 ## Custom units
 
 New unit types are plain data — no code needed. Define them in the editor's
@@ -94,4 +112,7 @@ automatically get the artillery rules: move or fire, no counters.
   (functional game data).
 - **Art, sounds, and map layouts are original to this project.** The 16
   campaign missions are new designs that follow the original campaign's
-  structure and difficulty curve, not copies of its map data.
+  structure and difficulty curve, not copies of its map data. The 12-map
+  expansion is original too. Historical fan-map archives are linked but not
+  copied where their terms prohibit republication or map-data rights are
+  unclear.

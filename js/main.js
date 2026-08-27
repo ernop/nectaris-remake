@@ -27,17 +27,24 @@
   }
 
   var currentUI = null;
+  var currentOptions = {};
 
   function startGame(mapDef, opts) {
     opts = opts || {};
+    if (currentUI) currentUI.destroy();
+    currentUI = null;
+    currentOptions = opts;
     $("menu-screen").classList.add("hidden");
     $("game-screen").classList.remove("hidden");
     $("gameover-panel").classList.add("hidden");
     $("map-title").textContent = mapDef.name;
+    $("map-jump").value = opts.campaignIndex !== undefined ? "c:" + opts.campaignIndex :
+      (opts.expansionIndex !== undefined ? "e:" + opts.expansionIndex : "");
 
     var game = new ENGINE.Game(mapDef, { seed: opts.seed });
     currentUI = new UI.GameUI($("game-canvas"), game, {
       hotseat: !!opts.hotseat,
+      onMenu: showMenu,
       onGameOver: function (winner) {
         if (winner === 0 && opts.campaignIndex !== undefined) {
           var p = getProgress();
@@ -45,12 +52,25 @@
         }
         $("gameover-again").onclick = function () { startGame(mapDef, opts); };
         $("gameover-menu").onclick = function () { showMenu(); };
+        var next = $("gameover-next");
+        if (opts.campaignIndex !== undefined && opts.campaignIndex + 1 < CAMPAIGN.length) {
+          next.classList.remove("hidden");
+          next.onclick = function () {
+            var ni = opts.campaignIndex + 1;
+            startGame(CAMPAIGN[ni], { campaignIndex: ni, hotseat: !!opts.hotseat });
+          };
+        } else {
+          next.classList.add("hidden");
+          next.onclick = null;
+        }
       },
     });
     currentUI.resize();
   }
 
   function showMenu() {
+    if (currentUI) currentUI.destroy();
+    currentUI = null;
     $("game-screen").classList.add("hidden");
     $("menu-screen").classList.remove("hidden");
     buildMenu();
@@ -60,21 +80,52 @@
     var p = getProgress();
     var list = $("mission-list");
     list.innerHTML = "";
-    var allOpen = $("chk-unlock").checked;
     CAMPAIGN.forEach(function (m, i) {
-      var unlocked = allOpen || i <= p.cleared;
       var div = document.createElement("div");
-      div.className = "mission" + (unlocked ? "" : " locked") + (i < p.cleared ? " cleared" : "");
+      div.className = "mission" + (i < p.cleared ? " cleared" : "");
       div.innerHTML = "<span class='mnum'>" + String(i + 1).padStart(2, "0") + "</span>" +
         "<span class='mname'>" + m.name + "</span>" +
         (i < p.cleared ? "<span class='mstar'>★</span>" : "");
       div.title = m.blurb || "";
-      if (unlocked) {
-        div.onclick = function () {
-          startGame(m, { campaignIndex: i, hotseat: $("chk-hotseat").checked });
-        };
-      }
+      div.onclick = function () {
+        startGame(m, { campaignIndex: i, hotseat: $("chk-hotseat").checked });
+      };
       list.appendChild(div);
+    });
+
+    var expansion = $("expansion-list");
+    expansion.innerHTML = "";
+    EXPANSION_LEVELS.forEach(function (lv, i) {
+      var card = document.createElement("article");
+      card.className = "level-card";
+      var heading = document.createElement("div");
+      heading.className = "level-card-heading";
+      heading.textContent = String(i + 1).padStart(2, "0") + " · " + lv.name;
+      var description = document.createElement("p");
+      description.textContent = lv.description;
+      var special = document.createElement("p");
+      special.className = "level-special";
+      special.textContent = "Special: " + lv.special;
+      var footer = document.createElement("div");
+      footer.className = "level-card-footer";
+      var tags = document.createElement("span");
+      tags.textContent = lv.tags.join(" · ");
+      var source = document.createElement("a");
+      source.href = lv.source;
+      source.target = "_blank";
+      source.rel = "noopener";
+      source.textContent = "Source";
+      source.onclick = function (event) { event.stopPropagation(); };
+      footer.appendChild(tags);
+      footer.appendChild(source);
+      card.appendChild(heading);
+      card.appendChild(description);
+      card.appendChild(special);
+      card.appendChild(footer);
+      card.onclick = function () {
+        startGame(lv, { expansionIndex: i, hotseat: $("chk-hotseat").checked });
+      };
+      expansion.appendChild(card);
     });
 
     var clist = $("custom-list");
@@ -109,12 +160,93 @@
     reader.readAsText(file);
   }
 
+  function installOnlineLevels(url) {
+    var status = $("online-import-status");
+    status.className = "";
+    status.textContent = "Downloading…";
+    fetch(url).then(function (response) {
+      if (!response.ok) {
+        throw new Error("HTTP " + response.status + " " + response.statusText + " from " + url);
+      }
+      return response.json();
+    }).then(function (payload) {
+      var levels = Array.isArray(payload) ? payload :
+        (payload.levels && Array.isArray(payload.levels) ? payload.levels : [payload]);
+      if (!levels.length) throw new Error("The file contains no levels.");
+      var customs = getCustomLevels();
+      levels.forEach(function (lv) {
+        if (!lv.name) throw new Error("Every online level needs a name.");
+        if (lv.customUnits) mergeUnitTypes(lv.customUnits);
+        new ENGINE.Game(lv, { seed: 1 });
+        lv.source = lv.source || url;
+        var replaced = false;
+        for (var i = 0; i < customs.length; i++) {
+          if (customs[i].name === lv.name) {
+            customs[i] = lv;
+            replaced = true;
+            break;
+          }
+        }
+        if (!replaced) customs.push(lv);
+      });
+      localStorage.setItem(CUSTOM_LEVELS_KEY, JSON.stringify(customs));
+      status.className = "success";
+      status.textContent = "Installed " + levels.length + " level" + (levels.length === 1 ? "" : "s") + ".";
+      buildMenu();
+    }).catch(function (error) {
+      status.className = "error";
+      status.textContent = error.message;
+    });
+  }
+
   window.addEventListener("DOMContentLoaded", function () {
     loadCustomUnits();
-    $("chk-unlock").onchange = buildMenu;
+    MUSIC.init();
+    var jump = $("map-jump");
+    var placeholder = document.createElement("option");
+    placeholder.value = "";
+    placeholder.textContent = "Jump to map…";
+    jump.appendChild(placeholder);
+    var campaignGroup = document.createElement("optgroup");
+    campaignGroup.label = "Campaign";
+    CAMPAIGN.forEach(function (m, i) {
+      var option = document.createElement("option");
+      option.value = "c:" + i;
+      option.textContent = String(i + 1).padStart(2, "0") + " · " + m.name;
+      campaignGroup.appendChild(option);
+    });
+    jump.appendChild(campaignGroup);
+    var expansionGroup = document.createElement("optgroup");
+    expansionGroup.label = "Lunar Frontiers";
+    EXPANSION_LEVELS.forEach(function (m, i) {
+      var option = document.createElement("option");
+      option.value = "e:" + i;
+      option.textContent = String(i + 1).padStart(2, "0") + " · " + m.name;
+      expansionGroup.appendChild(option);
+    });
+    jump.appendChild(expansionGroup);
+    jump.onchange = function () {
+      if (this.value === "") return;
+      var parts = this.value.split(":");
+      var i = +parts[1];
+      if (parts[0] === "c") {
+        startGame(CAMPAIGN[i], { campaignIndex: i, hotseat: !!currentOptions.hotseat });
+      } else {
+        startGame(EXPANSION_LEVELS[i], { expansionIndex: i, hotseat: !!currentOptions.hotseat });
+      }
+    };
     $("file-import").onchange = function (e) {
       if (e.target.files[0]) importLevelFile(e.target.files[0]);
       e.target.value = "";
+    };
+    $("btn-online-import").onclick = function () {
+      var url = $("online-level-url").value.trim();
+      if (!url) {
+        $("online-import-status").className = "error";
+        $("online-import-status").textContent = "Enter a level JSON URL.";
+        return;
+      }
+      installOnlineLevels(url);
     };
     // Editor play-test handoff: ?playtest=1 reads the level from localStorage.
     if (location.search.indexOf("playtest=1") >= 0) {

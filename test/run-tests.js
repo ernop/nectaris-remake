@@ -1,9 +1,9 @@
 /* Nectaris remake — node test suite.
  * Run: node test/run-tests.js
  *
- * 1. Static validation of every campaign map.
+ * 1. Static validation of every campaign and expansion map.
  * 2. Rule unit-tests (hex math, movement/ZOC, combat calculator steps).
- * 3. AI-vs-AI self-play on every campaign map (crash + termination check).
+ * 3. AI-vs-AI self-play on every included map (crash + termination check).
  */
 "use strict";
 
@@ -20,6 +20,8 @@ var ENGINE = require(path.join(__dirname, "../js/engine.js"));
 global.ENGINE = ENGINE;
 var AI = require(path.join(__dirname, "../js/ai.js"));
 var CAMPAIGN = require(path.join(__dirname, "../js/data-maps.js"));
+var EXPANSION_LEVELS = require(path.join(__dirname, "../js/data-expansion-maps.js"));
+var ALL_MAPS = CAMPAIGN.concat(EXPANSION_LEVELS);
 
 var failures = 0, checks = 0;
 function ok(cond, msg) {
@@ -30,8 +32,8 @@ function section(name) { console.log("== " + name); }
 
 /* ---------- 1. map validation ---------- */
 
-section("campaign map validation");
-CAMPAIGN.forEach(function (m, mi) {
+section("campaign + expansion map validation");
+ALL_MAPS.forEach(function (m, mi) {
   var label = "map " + (mi + 1) + " " + m.name;
   var w = m.grid[0].length;
   m.grid.forEach(function (row, ri) {
@@ -82,7 +84,7 @@ CAMPAIGN.forEach(function (m, mi) {
   try { new ENGINE.Game(m, { seed: 42 }); ok(true, ""); }
   catch (e) { ok(false, label + ": Game constructor threw: " + e.message); }
 });
-console.log("  " + CAMPAIGN.length + " maps checked");
+console.log("  " + ALL_MAPS.length + " maps checked");
 
 /* ---------- 2. rules ---------- */
 
@@ -309,8 +311,8 @@ ok(gz.exp === 2, "attacker gains 2 exp for a kill, got " + gz.exp);
 
 /* ---------- 3. AI self-play ---------- */
 
-section("AI self-play (all campaign maps)");
-CAMPAIGN.forEach(function (m, mi) {
+section("AI self-play (all included maps)");
+ALL_MAPS.forEach(function (m, mi) {
   var game = new ENGINE.Game(m, { seed: 1000 + mi });
   var guard = 0;
   try {

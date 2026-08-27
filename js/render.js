@@ -162,88 +162,163 @@ var RENDER = (function () {
 
   /* --- units ------------------------------------------------------------ */
 
-  /* Original geometric silhouettes per unit class. */
+  /* Original military silhouettes. Every role has a distinct profile and a
+   * two-letter stencil badge (drawn below), so units remain readable when
+   * zoomed out without using any original-game artwork. */
   function drawUnitBody(ctx, unit, u, colors) {
     var cls = unit.type.cls;
-    ctx.lineWidth = 1.2 * u;
-    ctx.strokeStyle = colors.dark;
+    var id = unit.typeId;
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    ctx.lineWidth = 1.6 * u;
+    ctx.strokeStyle = "#171714";
     ctx.fillStyle = colors.body;
+
+    function wheel(x, y, r) {
+      ctx.fillStyle = "#22221f";
+      ctx.beginPath(); ctx.arc(x * u, y * u, r * u, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = colors.light; ctx.lineWidth = 0.7 * u;
+      ctx.beginPath(); ctx.arc(x * u, y * u, r * 0.45 * u, 0, Math.PI * 2); ctx.stroke();
+      ctx.strokeStyle = "#171714"; ctx.lineWidth = 1.6 * u;
+    }
+
+    function trackedHull(heavy) {
+      ctx.fillStyle = "#22221f";
+      roundRect(ctx, -12 * u, 2 * u, 24 * u, 8 * u, 3 * u); ctx.fill(); ctx.stroke();
+      for (var wi = -8; wi <= 8; wi += 4) wheel(wi, 6, 2.1);
+      ctx.fillStyle = colors.body;
+      ctx.beginPath();
+      ctx.moveTo(-10 * u, 2 * u); ctx.lineTo(-7 * u, -4 * u);
+      ctx.lineTo((heavy ? 8 : 7) * u, -4 * u); ctx.lineTo(11 * u, 2 * u);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+    }
+
     switch (cls) {
       case "infantry":
-        ctx.beginPath(); ctx.arc(0, -6 * u, 3.4 * u, 0, 7); ctx.fill(); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(0, -3 * u); ctx.lineTo(0, 5 * u);
-        ctx.moveTo(-5 * u, 0); ctx.lineTo(5 * u, -1 * u);
-        ctx.moveTo(0, 5 * u); ctx.lineTo(-4 * u, 11 * u);
-        ctx.moveTo(0, 5 * u); ctx.lineTo(4 * u, 11 * u);
-        ctx.lineWidth = 2.4 * u; ctx.stroke();
-        ctx.strokeStyle = colors.light; ctx.lineWidth = 1.4 * u;
-        ctx.beginPath(); ctx.moveTo(4 * u, -8 * u); ctx.lineTo(8 * u, 2 * u); ctx.stroke(); // rifle
+        // Helmet, field pack, torso and shouldered rifle.
+        ctx.fillStyle = colors.body;
+        ctx.beginPath(); ctx.arc(-1 * u, -7 * u, 4 * u, Math.PI, 0); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.arc(-1 * u, -6 * u, 2.8 * u, 0, Math.PI); ctx.fill(); ctx.stroke();
+        roundRect(ctx, -5 * u, -3 * u, 8 * u, 10 * u, 2 * u); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = colors.dark; roundRect(ctx, -8 * u, -2 * u, 4 * u, 7 * u, 1 * u); ctx.fill(); ctx.stroke();
+        ctx.strokeStyle = colors.light; ctx.lineWidth = 2.1 * u;
+        ctx.beginPath(); ctx.moveTo(1 * u, -2 * u); ctx.lineTo(10 * u, -9 * u); ctx.stroke();
+        ctx.strokeStyle = "#171714"; ctx.lineWidth = 2.5 * u;
+        ctx.beginPath(); ctx.moveTo(-2 * u, 6 * u); ctx.lineTo(-6 * u, 12 * u);
+        ctx.moveTo(1 * u, 6 * u); ctx.lineTo(6 * u, 12 * u); ctx.stroke();
         break;
       case "tank":
-        ctx.fillStyle = colors.dark;
-        roundRect(ctx, -10 * u, 2 * u, 20 * u, 7 * u, 3 * u); ctx.fill();
+        trackedHull(id === "GIANT");
         ctx.fillStyle = colors.body;
-        roundRect(ctx, -8 * u, -4 * u, 16 * u, 7 * u, 2 * u); ctx.fill(); ctx.stroke();
-        ctx.beginPath(); ctx.arc(-1 * u, -4 * u, 4 * u, 0, 7); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.ellipse(-1 * u, -5 * u, id === "GIANT" ? 7 * u : 5.5 * u, 4 * u, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
         ctx.strokeStyle = colors.light; ctx.lineWidth = 2 * u;
-        ctx.beginPath(); ctx.moveTo(2 * u, -5 * u); ctx.lineTo(12 * u, -7 * u); ctx.stroke(); // barrel
+        ctx.beginPath(); ctx.moveTo(3 * u, -6 * u); ctx.lineTo(14 * u, -9 * u); ctx.stroke();
+        if (id === "GIANT") {
+          ctx.beginPath(); ctx.moveTo(3 * u, -3 * u); ctx.lineTo(14 * u, -5 * u); ctx.stroke();
+        }
+        ctx.fillStyle = colors.light; ctx.beginPath(); ctx.arc(-2 * u, -6 * u, 1.5 * u, 0, Math.PI * 2); ctx.fill();
         break;
       case "air":
+        // Fighter planform. Falcon has swept wings; Hunter has a broad delta.
         ctx.beginPath();
-        ctx.moveTo(0, -11 * u); ctx.lineTo(3.5 * u, -2 * u); ctx.lineTo(11 * u, 4 * u);
-        ctx.lineTo(3 * u, 3 * u); ctx.lineTo(2 * u, 9 * u); ctx.lineTo(0, 7 * u);
-        ctx.lineTo(-2 * u, 9 * u); ctx.lineTo(-3 * u, 3 * u); ctx.lineTo(-11 * u, 4 * u);
-        ctx.lineTo(-3.5 * u, -2 * u); ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.moveTo(0, -14 * u);
+        if (id === "HUNTER") {
+          ctx.lineTo(4 * u, -2 * u); ctx.lineTo(13 * u, 8 * u); ctx.lineTo(3 * u, 4 * u);
+        } else if (id === "FALCON") {
+          ctx.lineTo(3 * u, -2 * u); ctx.lineTo(12 * u, 7 * u); ctx.lineTo(3 * u, 3 * u);
+        } else {
+          ctx.lineTo(3 * u, -2 * u); ctx.lineTo(13 * u, 2 * u); ctx.lineTo(3 * u, 4 * u);
+        }
+        ctx.lineTo(2 * u, 11 * u); ctx.lineTo(0, 8 * u); ctx.lineTo(-2 * u, 11 * u);
+        ctx.lineTo(-3 * u, 4 * u);
+        if (id === "HUNTER") ctx.lineTo(-13 * u, 8 * u);
+        else if (id === "FALCON") ctx.lineTo(-12 * u, 7 * u);
+        else ctx.lineTo(-13 * u, 2 * u);
+        ctx.lineTo(-3 * u, -2 * u); ctx.closePath(); ctx.fill(); ctx.stroke();
         ctx.fillStyle = colors.light;
-        ctx.beginPath(); ctx.arc(0, -4 * u, 2 * u, 0, 7); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(0, -5 * u, 1.8 * u, 4 * u, 0, 0, Math.PI * 2); ctx.fill();
         break;
       case "artillery":
-        ctx.fillStyle = colors.dark;
-        roundRect(ctx, -9 * u, 3 * u, 18 * u, 6 * u, 3 * u); ctx.fill();
+        trackedHull(false);
         ctx.fillStyle = colors.body;
-        roundRect(ctx, -7 * u, -2 * u, 14 * u, 6 * u, 2 * u); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(-7 * u, 0); ctx.lineTo(-4 * u, -6 * u);
+        ctx.lineTo(5 * u, -6 * u); ctx.lineTo(8 * u, 1 * u); ctx.closePath(); ctx.fill(); ctx.stroke();
         ctx.strokeStyle = colors.light; ctx.lineWidth = 2.6 * u;
-        ctx.beginPath(); ctx.moveTo(-2 * u, -1 * u); ctx.lineTo(9 * u, -11 * u); ctx.stroke(); // high barrel
+        ctx.beginPath(); ctx.moveTo(1 * u, -5 * u); ctx.lineTo(13 * u, -14 * u); ctx.stroke();
+        ctx.strokeStyle = "#171714"; ctx.lineWidth = 1.3 * u;
+        ctx.beginPath(); ctx.moveTo(9 * u, -11 * u); ctx.lineTo(12 * u, -8 * u); ctx.stroke();
         break;
       case "buggy":
+        // Armored scout car with a four-tube missile rack.
         ctx.fillStyle = colors.body;
-        roundRect(ctx, -8 * u, -3 * u, 16 * u, 7 * u, 3 * u); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = colors.dark;
-        ctx.beginPath(); ctx.arc(-5 * u, 6 * u, 3.4 * u, 0, 7); ctx.fill();
-        ctx.beginPath(); ctx.arc(5 * u, 6 * u, 3.4 * u, 0, 7); ctx.fill();
+        ctx.beginPath(); ctx.moveTo(-10 * u, 4 * u); ctx.lineTo(-7 * u, -3 * u);
+        ctx.lineTo(5 * u, -3 * u); ctx.lineTo(10 * u, 4 * u); ctx.closePath(); ctx.fill(); ctx.stroke();
+        wheel(-7, 6, 3.2); wheel(7, 6, 3.2);
         ctx.fillStyle = colors.light;
-        roundRect(ctx, -3 * u, -8 * u, 8 * u, 4 * u, 1 * u); ctx.fill(); // missile box
+        for (var tube = 0; tube < 4; tube++) {
+          roundRect(ctx, (-7 + tube * 3.5) * u, -10 * u, 3 * u, 6 * u, 1 * u); ctx.fill(); ctx.stroke();
+        }
         break;
       case "antiair":
-        ctx.fillStyle = colors.body;
-        roundRect(ctx, -8 * u, 0, 16 * u, 7 * u, 2 * u); ctx.fill(); ctx.stroke();
+        trackedHull(false);
         ctx.strokeStyle = colors.light; ctx.lineWidth = 1.8 * u;
-        ctx.beginPath(); ctx.moveTo(-2 * u, 0); ctx.lineTo(5 * u, -10 * u); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(2 * u, 0); ctx.lineTo(9 * u, -8 * u); ctx.stroke();
+        if (id === "HAWKEYE") {
+          // Radar dish and missile rail identify the ranged AA system.
+          ctx.beginPath(); ctx.moveTo(-3 * u, -3 * u); ctx.lineTo(7 * u, -12 * u); ctx.stroke();
+          ctx.beginPath(); ctx.arc(-4 * u, -7 * u, 5 * u, -1.0, 1.0); ctx.stroke();
+        } else {
+          ctx.beginPath(); ctx.moveTo(-3 * u, -2 * u); ctx.lineTo(4 * u, -13 * u); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(2 * u, -2 * u); ctx.lineTo(9 * u, -11 * u); ctx.stroke();
+        }
         break;
       case "transport":
-        ctx.fillStyle = colors.body;
-        roundRect(ctx, -9 * u, -6 * u, 18 * u, 12 * u, 3 * u); ctx.fill(); ctx.stroke();
-        ctx.strokeStyle = colors.light; ctx.lineWidth = 1.4 * u;
-        ctx.strokeRect(-5 * u, -3 * u, 10 * u, 6 * u);
         if (unit.type.moveType === "air") {
-          ctx.beginPath(); ctx.moveTo(-13 * u, 0); ctx.lineTo(13 * u, 0); ctx.stroke(); // rotor
+          // Pelican: unmistakable helicopter side profile.
+          ctx.fillStyle = colors.body;
+          ctx.beginPath(); ctx.ellipse(-2 * u, 0, 9 * u, 6 * u, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(5 * u, -1 * u); ctx.lineTo(14 * u, -5 * u);
+          ctx.lineTo(14 * u, 1 * u); ctx.lineTo(6 * u, 2 * u); ctx.closePath(); ctx.fill(); ctx.stroke();
+          ctx.strokeStyle = "#171714"; ctx.lineWidth = 1.5 * u;
+          ctx.beginPath(); ctx.moveTo(-14 * u, -8 * u); ctx.lineTo(12 * u, -8 * u); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(-1 * u, -8 * u); ctx.lineTo(-1 * u, -5 * u); ctx.stroke();
+          ctx.beginPath(); ctx.arc(14 * u, -4 * u, 3 * u, 0, Math.PI * 2); ctx.stroke();
+          ctx.fillStyle = colors.light; ctx.fillRect(-8 * u, -3 * u, 5 * u, 3 * u);
+        } else {
+          // Mule: six-wheel armored cargo truck with cab and box.
+          ctx.fillStyle = colors.body;
+          roundRect(ctx, -11 * u, -6 * u, 14 * u, 10 * u, 1 * u); ctx.fill(); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(3 * u, -4 * u); ctx.lineTo(8 * u, -4 * u);
+          ctx.lineTo(11 * u, 3 * u); ctx.lineTo(3 * u, 3 * u); ctx.closePath(); ctx.fill(); ctx.stroke();
+          wheel(-7, 6, 2.8); wheel(0, 6, 2.8); wheel(8, 6, 2.8);
+          ctx.fillStyle = colors.light; ctx.fillRect(5 * u, -2 * u, 4 * u, 3 * u);
         }
         break;
       case "mine":
+        // Raised anti-vehicle mine: toothed outer ring and pressure plate.
         ctx.fillStyle = colors.dark;
-        ctx.beginPath(); ctx.arc(0, 0, 7 * u, 0, 7); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, 1 * u, 8 * u, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
         ctx.strokeStyle = colors.light; ctx.lineWidth = 1.6 * u;
         for (var a = 0; a < 6; a++) {
           var ang = a * Math.PI / 3;
-          ctx.beginPath(); ctx.moveTo(Math.cos(ang) * 7 * u, Math.sin(ang) * 7 * u);
-          ctx.lineTo(Math.cos(ang) * 11 * u, Math.sin(ang) * 11 * u); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(Math.cos(ang) * 7 * u, 1 * u + Math.sin(ang) * 7 * u);
+          ctx.lineTo(Math.cos(ang) * 12 * u, 1 * u + Math.sin(ang) * 12 * u); ctx.stroke();
         }
+        ctx.fillStyle = colors.light; ctx.beginPath(); ctx.arc(0, 1 * u, 3 * u, 0, Math.PI * 2); ctx.fill();
         break;
       default:
         ctx.beginPath(); ctx.arc(0, 0, 8 * u, 0, 7); ctx.fill(); ctx.stroke();
     }
   }
+
+  var UNIT_MARKS = {
+    CHARLIE: "CH", KILROY: "KI", PANTHER: "PA",
+    BISON: "BI", LENET: "LE", POLAR: "PO", GRIZZLY: "GR",
+    SLAGGER: "SL", TITAN: "TI", GIANT: "GI",
+    EAGLE: "EA", FALCON: "FA", HUNTER: "HU",
+    HADRIAN: "HA", OCTOPUS: "OC", ATLAS: "AT",
+    RABBIT: "RA", LYNX: "LY", SEEKER: "SE", HAWKEYE: "HW",
+    MULE: "MU", PELICAN: "PE", TRIGGER: "TR",
+  };
 
   function roundRect(ctx, x, y, w, h, r) {
     ctx.beginPath();
@@ -273,6 +348,14 @@ var RENDER = (function () {
     drawUnitBody(ctx, unit, u, colors);
 
     ctx.globalAlpha = 1;
+    // Two-letter stencil makes individual chassis identifiable at a glance.
+    ctx.fillStyle = "rgba(18,18,16,0.92)";
+    ctx.fillRect(-15 * u, -16 * u, 11 * u, 7 * u);
+    ctx.fillStyle = "#f2eddc";
+    ctx.font = "bold " + Math.max(5, Math.round(5.5 * u)) + "px monospace";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(UNIT_MARKS[unit.typeId] || unit.typeId.slice(0, 2), -9.5 * u, -12.5 * u);
+
     // strength number (bottom-left, like the original's squad count)
     ctx.fillStyle = "#111";
     ctx.fillRect(-15 * u, 5 * u, 10 * u, 11 * u);
