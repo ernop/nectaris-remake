@@ -55,6 +55,14 @@ var UI = (function () {
     $("btn-endturn").onclick = function () { self.endTurn(); };
     $("btn-menu").onclick = this.options.onMenu || function () { location.reload(); };
 
+    var styleSel = $("style-select");
+    styleSel.value = RENDER.getStyle();
+    styleSel.onchange = function () {
+      RENDER.setStyle(styleSel.value);
+      self.refreshStatus();   // faction names/colors differ per style
+      self.draw();
+    };
+
     this.refreshStatus();
     this.renderer.fitToMap();
     this.draw();
