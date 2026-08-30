@@ -9,26 +9,71 @@
 
 var RENDER = (function () {
 
-  /* Faction palette, from the neon-wireframe reference art: glowing outline
-   * colors (edge/rib/hot) drive the unit icons; body/dark/light tint the
-   * buildings so ownership reads the same on map structures.
-   * Union = the magenta-violet band, Xenon = the red band, neutral = the
-   * pale dashed gray. Yellow is a shared accent (weapons, canopies). */
-  var PLAYER_COLORS = [
-    { body: "#9b4bd8", dark: "#5f2b8f", light: "#e06bff",
-      edge: "#c455ff", rib: "#8038c0", hot: "#ff4fd8", name: "Union (violet)" },
-    { body: "#e03a4a", dark: "#8f1f2c", light: "#ff8a94",
-      edge: "#ff3d4d", rib: "#b3202f", hot: "#ff8c5a", name: "Xenon (red)" },
-    { body: "#8a8a8a", dark: "#5a5a5a", light: "#c9c9d4",
-      edge: "#d8d8e4", rib: "#84848f", hot: "#ffffff", name: "Neutral" },
-  ];
+  /* Two selectable visual styles (top-bar picker; persisted under the
+   * localStorage key "nectaris-style"):
+   *   classic — the remake's original look: solid painted silhouettes.
+   *   neon    — wireframe glow, from the neon reference palette: dark
+   *             plates, glowing faction outlines, yellow weapon accents.
+   * Per faction, body/dark/light drive the classic icons and tint the
+   * buildings in both styles; edge/rib/hot drive the neon linework. */
 
-  /* Shared neon accents (faction-independent). */
+  /* Shared neon accents (faction-independent, neon style only). */
   var NEON = {
     ink: "#0e0b14",     // dark fill inside every silhouette
     yellow: "#eaff3d",  // weapons, canopies, tick marks
     pale: "#dcdce6",    // dashed structural details (rotors, radar, hubs)
   };
+
+  var THEMES = {
+    classic: {
+      playerColors: [
+        { body: "#3a6ea5", dark: "#274b70", light: "#7aa8d8", name: "Union (blue)" },
+        { body: "#b04a3a", dark: "#763027", light: "#d88a7a", name: "Xenon (red)" },
+        { body: "#8a8a8a", dark: "#5a5a5a", light: "#bcbcbc", name: "Neutral" },
+      ],
+      chrome: {
+        stencilBg: "rgba(18,18,16,0.92)", stencilText: "#f2eddc",
+        strengthBg: "#111", strengthLow: "#ff8f6f", strengthOk: "#ffe9a0",
+        pip: "#ffd94a", select: "#ffe9a0",
+      },
+    },
+    neon: {
+      playerColors: [
+        { body: "#9b4bd8", dark: "#5f2b8f", light: "#e06bff",
+          edge: "#c455ff", rib: "#8038c0", hot: "#ff4fd8", name: "Union (violet)" },
+        { body: "#e03a4a", dark: "#8f1f2c", light: "#ff8a94",
+          edge: "#ff3d4d", rib: "#b3202f", hot: "#ff8c5a", name: "Xenon (red)" },
+        { body: "#8a8a8a", dark: "#5a5a5a", light: "#c9c9d4",
+          edge: "#d8d8e4", rib: "#84848f", hot: "#ffffff", name: "Neutral" },
+      ],
+      chrome: {
+        stencilBg: "rgba(14,11,20,0.92)", stencilText: "#dcdce6",
+        strengthBg: "#0e0b14", strengthLow: "#ff3d4d", strengthOk: "#eaff3d",
+        pip: "#eaff3d", select: "#eaff3d",
+      },
+    },
+  };
+  (function () { for (var k in THEMES) THEMES[k].id = k; })();
+
+  var STYLE_KEY = "nectaris-style";
+  var theme;               // active THEMES entry
+  var PLAYER_COLORS = [];  // exported by reference; repopulated on style change
+
+  function setStyle(name) {
+    if (!THEMES[name]) throw new Error("Unknown visual style: " + name);
+    theme = THEMES[name];
+    PLAYER_COLORS.length = 0;
+    for (var i = 0; i < theme.playerColors.length; i++) PLAYER_COLORS.push(theme.playerColors[i]);
+    if (typeof localStorage !== "undefined") localStorage.setItem(STYLE_KEY, name);
+  }
+  function getStyle() { return theme.id; }
+
+  // Initial style: the stored preference when it names a known style
+  // (an unset or stale preference is a valid state), otherwise neon.
+  (function () {
+    var saved = typeof localStorage !== "undefined" ? localStorage.getItem(STYLE_KEY) : null;
+    setStyle(saved && THEMES[saved] ? saved : "neon");
+  })();
 
   function Renderer(canvas, game) {
     this.canvas = canvas;
@@ -177,13 +222,19 @@ var RENDER = (function () {
 
   /* --- units ------------------------------------------------------------ */
 
-  /* Original military silhouettes in the neon-wireframe style: every shape
-   * is a dark plate with a glowing faction-colored outline, ribbed hatch
-   * lines for structure, dashed pale details, and shared yellow accents on
-   * weapons and canopies. Every role keeps a distinct profile plus the
+  /* Original military silhouettes. Every role has a distinct profile plus a
    * two-letter stencil badge (drawn below), so units remain readable when
-   * zoomed out without using any original-game artwork. */
+   * zoomed out without using any original-game artwork. Both styles share
+   * the same geometry per role; only the rendering treatment differs. */
   function drawUnitBody(ctx, unit, u, colors) {
+    if (theme.id === "classic") drawUnitBodyClassic(ctx, unit, u, colors);
+    else drawUnitBodyNeon(ctx, unit, u, colors);
+  }
+
+  /* Neon style: every shape is a dark plate with a glowing faction-colored
+   * outline, ribbed hatch lines for structure, dashed pale details, and
+   * shared yellow accents on weapons and canopies. */
+  function drawUnitBodyNeon(ctx, unit, u, colors) {
     var cls = unit.type.cls;
     var id = unit.typeId;
     var edge = colors.edge, rib = colors.rib, hot = colors.hot;
@@ -384,6 +435,152 @@ var RENDER = (function () {
     }
   }
 
+  /* Classic style: solid painted silhouettes with dark outlines. */
+  function drawUnitBodyClassic(ctx, unit, u, colors) {
+    var cls = unit.type.cls;
+    var id = unit.typeId;
+    ctx.lineJoin = "round";
+    ctx.lineCap = "round";
+    ctx.lineWidth = 1.6 * u;
+    ctx.strokeStyle = "#171714";
+    ctx.fillStyle = colors.body;
+
+    function wheel(x, y, r) {
+      ctx.fillStyle = "#22221f";
+      ctx.beginPath(); ctx.arc(x * u, y * u, r * u, 0, Math.PI * 2); ctx.fill();
+      ctx.strokeStyle = colors.light; ctx.lineWidth = 0.7 * u;
+      ctx.beginPath(); ctx.arc(x * u, y * u, r * 0.45 * u, 0, Math.PI * 2); ctx.stroke();
+      ctx.strokeStyle = "#171714"; ctx.lineWidth = 1.6 * u;
+    }
+
+    function trackedHull(heavy) {
+      ctx.fillStyle = "#22221f";
+      roundRect(ctx, -12 * u, 2 * u, 24 * u, 8 * u, 3 * u); ctx.fill(); ctx.stroke();
+      for (var wi = -8; wi <= 8; wi += 4) wheel(wi, 6, 2.1);
+      ctx.fillStyle = colors.body;
+      ctx.beginPath();
+      ctx.moveTo(-10 * u, 2 * u); ctx.lineTo(-7 * u, -4 * u);
+      ctx.lineTo((heavy ? 8 : 7) * u, -4 * u); ctx.lineTo(11 * u, 2 * u);
+      ctx.closePath(); ctx.fill(); ctx.stroke();
+    }
+
+    switch (cls) {
+      case "infantry":
+        // Helmet, field pack, torso and shouldered rifle.
+        ctx.fillStyle = colors.body;
+        ctx.beginPath(); ctx.arc(-1 * u, -7 * u, 4 * u, Math.PI, 0); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.arc(-1 * u, -6 * u, 2.8 * u, 0, Math.PI); ctx.fill(); ctx.stroke();
+        roundRect(ctx, -5 * u, -3 * u, 8 * u, 10 * u, 2 * u); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = colors.dark; roundRect(ctx, -8 * u, -2 * u, 4 * u, 7 * u, 1 * u); ctx.fill(); ctx.stroke();
+        ctx.strokeStyle = colors.light; ctx.lineWidth = 2.1 * u;
+        ctx.beginPath(); ctx.moveTo(1 * u, -2 * u); ctx.lineTo(10 * u, -9 * u); ctx.stroke();
+        ctx.strokeStyle = "#171714"; ctx.lineWidth = 2.5 * u;
+        ctx.beginPath(); ctx.moveTo(-2 * u, 6 * u); ctx.lineTo(-6 * u, 12 * u);
+        ctx.moveTo(1 * u, 6 * u); ctx.lineTo(6 * u, 12 * u); ctx.stroke();
+        break;
+      case "tank":
+        trackedHull(id === "GIANT");
+        ctx.fillStyle = colors.body;
+        ctx.beginPath(); ctx.ellipse(-1 * u, -5 * u, id === "GIANT" ? 7 * u : 5.5 * u, 4 * u, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.strokeStyle = colors.light; ctx.lineWidth = 2 * u;
+        ctx.beginPath(); ctx.moveTo(3 * u, -6 * u); ctx.lineTo(14 * u, -9 * u); ctx.stroke();
+        if (id === "GIANT") {
+          ctx.beginPath(); ctx.moveTo(3 * u, -3 * u); ctx.lineTo(14 * u, -5 * u); ctx.stroke();
+        }
+        ctx.fillStyle = colors.light; ctx.beginPath(); ctx.arc(-2 * u, -6 * u, 1.5 * u, 0, Math.PI * 2); ctx.fill();
+        break;
+      case "air":
+        // Fighter planform. Falcon has swept wings; Hunter has a broad delta.
+        ctx.beginPath();
+        ctx.moveTo(0, -14 * u);
+        if (id === "HUNTER") {
+          ctx.lineTo(4 * u, -2 * u); ctx.lineTo(13 * u, 8 * u); ctx.lineTo(3 * u, 4 * u);
+        } else if (id === "FALCON") {
+          ctx.lineTo(3 * u, -2 * u); ctx.lineTo(12 * u, 7 * u); ctx.lineTo(3 * u, 3 * u);
+        } else {
+          ctx.lineTo(3 * u, -2 * u); ctx.lineTo(13 * u, 2 * u); ctx.lineTo(3 * u, 4 * u);
+        }
+        ctx.lineTo(2 * u, 11 * u); ctx.lineTo(0, 8 * u); ctx.lineTo(-2 * u, 11 * u);
+        ctx.lineTo(-3 * u, 4 * u);
+        if (id === "HUNTER") ctx.lineTo(-13 * u, 8 * u);
+        else if (id === "FALCON") ctx.lineTo(-12 * u, 7 * u);
+        else ctx.lineTo(-13 * u, 2 * u);
+        ctx.lineTo(-3 * u, -2 * u); ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = colors.light;
+        ctx.beginPath(); ctx.ellipse(0, -5 * u, 1.8 * u, 4 * u, 0, 0, Math.PI * 2); ctx.fill();
+        break;
+      case "artillery":
+        trackedHull(false);
+        ctx.fillStyle = colors.body;
+        ctx.beginPath(); ctx.moveTo(-7 * u, 0); ctx.lineTo(-4 * u, -6 * u);
+        ctx.lineTo(5 * u, -6 * u); ctx.lineTo(8 * u, 1 * u); ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.strokeStyle = colors.light; ctx.lineWidth = 2.6 * u;
+        ctx.beginPath(); ctx.moveTo(1 * u, -5 * u); ctx.lineTo(13 * u, -14 * u); ctx.stroke();
+        ctx.strokeStyle = "#171714"; ctx.lineWidth = 1.3 * u;
+        ctx.beginPath(); ctx.moveTo(9 * u, -11 * u); ctx.lineTo(12 * u, -8 * u); ctx.stroke();
+        break;
+      case "buggy":
+        // Armored scout car with a four-tube missile rack.
+        ctx.fillStyle = colors.body;
+        ctx.beginPath(); ctx.moveTo(-10 * u, 4 * u); ctx.lineTo(-7 * u, -3 * u);
+        ctx.lineTo(5 * u, -3 * u); ctx.lineTo(10 * u, 4 * u); ctx.closePath(); ctx.fill(); ctx.stroke();
+        wheel(-7, 6, 3.2); wheel(7, 6, 3.2);
+        ctx.fillStyle = colors.light;
+        for (var tube = 0; tube < 4; tube++) {
+          roundRect(ctx, (-7 + tube * 3.5) * u, -10 * u, 3 * u, 6 * u, 1 * u); ctx.fill(); ctx.stroke();
+        }
+        break;
+      case "antiair":
+        trackedHull(false);
+        ctx.strokeStyle = colors.light; ctx.lineWidth = 1.8 * u;
+        if (id === "HAWKEYE") {
+          // Radar dish and missile rail identify the ranged AA system.
+          ctx.beginPath(); ctx.moveTo(-3 * u, -3 * u); ctx.lineTo(7 * u, -12 * u); ctx.stroke();
+          ctx.beginPath(); ctx.arc(-4 * u, -7 * u, 5 * u, -1.0, 1.0); ctx.stroke();
+        } else {
+          ctx.beginPath(); ctx.moveTo(-3 * u, -2 * u); ctx.lineTo(4 * u, -13 * u); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(2 * u, -2 * u); ctx.lineTo(9 * u, -11 * u); ctx.stroke();
+        }
+        break;
+      case "transport":
+        if (unit.type.moveType === "air") {
+          // Pelican: unmistakable helicopter side profile.
+          ctx.fillStyle = colors.body;
+          ctx.beginPath(); ctx.ellipse(-2 * u, 0, 9 * u, 6 * u, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(5 * u, -1 * u); ctx.lineTo(14 * u, -5 * u);
+          ctx.lineTo(14 * u, 1 * u); ctx.lineTo(6 * u, 2 * u); ctx.closePath(); ctx.fill(); ctx.stroke();
+          ctx.strokeStyle = "#171714"; ctx.lineWidth = 1.5 * u;
+          ctx.beginPath(); ctx.moveTo(-14 * u, -8 * u); ctx.lineTo(12 * u, -8 * u); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(-1 * u, -8 * u); ctx.lineTo(-1 * u, -5 * u); ctx.stroke();
+          ctx.beginPath(); ctx.arc(14 * u, -4 * u, 3 * u, 0, Math.PI * 2); ctx.stroke();
+          ctx.fillStyle = colors.light; ctx.fillRect(-8 * u, -3 * u, 5 * u, 3 * u);
+        } else {
+          // Mule: six-wheel armored cargo truck with cab and box.
+          ctx.fillStyle = colors.body;
+          roundRect(ctx, -11 * u, -6 * u, 14 * u, 10 * u, 1 * u); ctx.fill(); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(3 * u, -4 * u); ctx.lineTo(8 * u, -4 * u);
+          ctx.lineTo(11 * u, 3 * u); ctx.lineTo(3 * u, 3 * u); ctx.closePath(); ctx.fill(); ctx.stroke();
+          wheel(-7, 6, 2.8); wheel(0, 6, 2.8); wheel(8, 6, 2.8);
+          ctx.fillStyle = colors.light; ctx.fillRect(5 * u, -2 * u, 4 * u, 3 * u);
+        }
+        break;
+      case "mine":
+        // Raised anti-vehicle mine: toothed outer ring and pressure plate.
+        ctx.fillStyle = colors.dark;
+        ctx.beginPath(); ctx.arc(0, 1 * u, 8 * u, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.strokeStyle = colors.light; ctx.lineWidth = 1.6 * u;
+        for (var a = 0; a < 6; a++) {
+          var ang = a * Math.PI / 3;
+          ctx.beginPath(); ctx.moveTo(Math.cos(ang) * 7 * u, 1 * u + Math.sin(ang) * 7 * u);
+          ctx.lineTo(Math.cos(ang) * 12 * u, 1 * u + Math.sin(ang) * 12 * u); ctx.stroke();
+        }
+        ctx.fillStyle = colors.light; ctx.beginPath(); ctx.arc(0, 1 * u, 3 * u, 0, Math.PI * 2); ctx.fill();
+        break;
+      default:
+        ctx.beginPath(); ctx.arc(0, 0, 8 * u, 0, 7); ctx.fill(); ctx.stroke();
+    }
+  }
+
   var UNIT_MARKS = {
     CHARLIE: "CH", KILROY: "KI", PANTHER: "PA",
     BISON: "BI", LENET: "LE", POLAR: "PO", GRIZZLY: "GR",
@@ -423,24 +620,24 @@ var RENDER = (function () {
 
     ctx.globalAlpha = 1;
     // Two-letter stencil makes individual chassis identifiable at a glance.
-    ctx.fillStyle = "rgba(14,11,20,0.92)";
+    ctx.fillStyle = theme.chrome.stencilBg;
     ctx.fillRect(-15 * u, -16 * u, 11 * u, 7 * u);
-    ctx.fillStyle = NEON.pale;
+    ctx.fillStyle = theme.chrome.stencilText;
     ctx.font = "bold " + Math.max(5, Math.round(5.5 * u)) + "px monospace";
     ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.fillText(UNIT_MARKS[unit.typeId] || unit.typeId.slice(0, 2), -9.5 * u, -12.5 * u);
 
     // strength number (bottom-left, like the original's squad count)
-    ctx.fillStyle = NEON.ink;
+    ctx.fillStyle = theme.chrome.strengthBg;
     ctx.fillRect(-15 * u, 5 * u, 10 * u, 11 * u);
-    ctx.fillStyle = unit.strength <= 2 ? "#ff3d4d" : NEON.yellow;
+    ctx.fillStyle = unit.strength <= 2 ? theme.chrome.strengthLow : theme.chrome.strengthOk;
     ctx.font = "bold " + Math.round(9 * u) + "px monospace";
     ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.fillText("" + unit.strength, -10 * u, 10.5 * u);
 
     // experience pips (top-right)
     if (unit.exp > 0) {
-      ctx.fillStyle = NEON.yellow;
+      ctx.fillStyle = theme.chrome.pip;
       if (unit.exp >= 8) {
         drawStar(ctx, 11 * u, -11 * u, 4.5 * u);
       } else {
@@ -515,7 +712,7 @@ var RENDER = (function () {
     if (this.selected) {
       var sc = this.hexCenter(this.selected.col, this.selected.row);
       pathHex(ctx, sc.x, sc.y, this.hexSize * this.zoom);
-      ctx.strokeStyle = NEON.yellow; ctx.lineWidth = 2.5;
+      ctx.strokeStyle = theme.chrome.select; ctx.lineWidth = 2.5;
       ctx.stroke();
     }
 
@@ -528,5 +725,5 @@ var RENDER = (function () {
     }
   };
 
-  return { Renderer: Renderer, PLAYER_COLORS: PLAYER_COLORS };
+  return { Renderer: Renderer, PLAYER_COLORS: PLAYER_COLORS, setStyle: setStyle, getStyle: getStyle };
 })();

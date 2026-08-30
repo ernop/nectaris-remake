@@ -79,7 +79,7 @@ The editor exports self-contained JSON. Schema:
 
 Terrain characters: `.` plains, `-` road, `w` wasteland, `h` hills,
 `M` mountains, `v` valley, `=` bridge, `F` factory, `B` base. Owners:
-`0` Union (violet, human by default), `1` Xenon (red, AI), `-1` neutral.
+`0` Union (human by default), `1` Xenon (AI), `-1` neutral.
 
 ### Online levels
 
@@ -103,14 +103,21 @@ automatically get the artillery rules: move or fire, no counters.
 
 ## Art style
 
-Unit icons are procedural neon wireframes (settled 2026-08-30, from a
-reference palette image): dark plates with glowing faction-colored
-outlines, rib hatching, dashed pale details, and shared neon-yellow
-accents on weapons/canopies. Faction colors: Union = violet/magenta,
-Xenon = red, neutral = pale gray (the palette has no blue, so Union moved
-from blue to the magenta-violet band). The palette lives at the top of
-`js/render.js` (`PLAYER_COLORS` + `NEON`); buildings tint from the same
-faction entries so ownership reads consistently.
+Two selectable visual styles, switched with the dropdown in the game's top
+bar and persisted in `localStorage` under `nectaris-style` (decision
+2026-08-30; the editor follows the stored choice on load):
+
+- **Neon** (default): procedural neon wireframes from a reference palette
+  image — dark plates with glowing faction-colored outlines, rib hatching,
+  dashed pale details, and shared neon-yellow accents on weapons/canopies.
+  Union = violet/magenta, Xenon = red, neutral = pale gray (the palette
+  has no blue, so Union moved from blue to the magenta-violet band).
+- **Classic**: the remake's original look — solid painted silhouettes with
+  dark outlines. Union = blue, Xenon = red.
+
+Both styles share the same silhouette geometry per unit role. The palettes
+live at the top of `js/render.js` (`THEMES` + `NEON`); buildings tint from
+the same faction entries so ownership reads consistently in either style.
 
 ## Fidelity and originality
 
