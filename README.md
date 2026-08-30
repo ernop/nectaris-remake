@@ -79,7 +79,7 @@ The editor exports self-contained JSON. Schema:
 
 Terrain characters: `.` plains, `-` road, `w` wasteland, `h` hills,
 `M` mountains, `v` valley, `=` bridge, `F` factory, `B` base. Owners:
-`0` Union (blue, human by default), `1` Xenon (red, AI), `-1` neutral.
+`0` Union (violet, human by default), `1` Xenon (red, AI), `-1` neutral.
 
 ### Online levels
 
@@ -100,6 +100,17 @@ the palette and work everywhere: `cls` picks the drawn silhouette
 `air`), and flags (`capture`, `moveAfterAttack`, `cargo`,
 `placeByTransport`) enable the special behaviors. Ranged units (`rmax` > 1)
 automatically get the artillery rules: move or fire, no counters.
+
+## Art style
+
+Unit icons are procedural neon wireframes (settled 2026-08-30, from a
+reference palette image): dark plates with glowing faction-colored
+outlines, rib hatching, dashed pale details, and shared neon-yellow
+accents on weapons/canopies. Faction colors: Union = violet/magenta,
+Xenon = red, neutral = pale gray (the palette has no blue, so Union moved
+from blue to the magenta-violet band). The palette lives at the top of
+`js/render.js` (`PLAYER_COLORS` + `NEON`); buildings tint from the same
+faction entries so ownership reads consistently.
 
 ## Fidelity and originality
 
