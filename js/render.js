@@ -9,11 +9,26 @@
 
 var RENDER = (function () {
 
+  /* Faction palette, from the neon-wireframe reference art: glowing outline
+   * colors (edge/rib/hot) drive the unit icons; body/dark/light tint the
+   * buildings so ownership reads the same on map structures.
+   * Union = the magenta-violet band, Xenon = the red band, neutral = the
+   * pale dashed gray. Yellow is a shared accent (weapons, canopies). */
   var PLAYER_COLORS = [
-    { body: "#3a6ea5", dark: "#274b70", light: "#7aa8d8", name: "Union (blue)" },
-    { body: "#b04a3a", dark: "#763027", light: "#d88a7a", name: "Xenon (red)" },
-    { body: "#8a8a8a", dark: "#5a5a5a", light: "#bcbcbc", name: "Neutral" },
+    { body: "#9b4bd8", dark: "#5f2b8f", light: "#e06bff",
+      edge: "#c455ff", rib: "#8038c0", hot: "#ff4fd8", name: "Union (violet)" },
+    { body: "#e03a4a", dark: "#8f1f2c", light: "#ff8a94",
+      edge: "#ff3d4d", rib: "#b3202f", hot: "#ff8c5a", name: "Xenon (red)" },
+    { body: "#8a8a8a", dark: "#5a5a5a", light: "#c9c9d4",
+      edge: "#d8d8e4", rib: "#84848f", hot: "#ffffff", name: "Neutral" },
   ];
+
+  /* Shared neon accents (faction-independent). */
+  var NEON = {
+    ink: "#0e0b14",     // dark fill inside every silhouette
+    yellow: "#eaff3d",  // weapons, canopies, tick marks
+    pale: "#dcdce6",    // dashed structural details (rotors, radar, hubs)
+  };
 
   function Renderer(canvas, game) {
     this.canvas = canvas;
@@ -162,61 +177,94 @@ var RENDER = (function () {
 
   /* --- units ------------------------------------------------------------ */
 
-  /* Original military silhouettes. Every role has a distinct profile and a
+  /* Original military silhouettes in the neon-wireframe style: every shape
+   * is a dark plate with a glowing faction-colored outline, ribbed hatch
+   * lines for structure, dashed pale details, and shared yellow accents on
+   * weapons and canopies. Every role keeps a distinct profile plus the
    * two-letter stencil badge (drawn below), so units remain readable when
    * zoomed out without using any original-game artwork. */
   function drawUnitBody(ctx, unit, u, colors) {
     var cls = unit.type.cls;
     var id = unit.typeId;
+    var edge = colors.edge, rib = colors.rib, hot = colors.hot;
     ctx.lineJoin = "round";
     ctx.lineCap = "round";
-    ctx.lineWidth = 1.6 * u;
-    ctx.strokeStyle = "#171714";
-    ctx.fillStyle = colors.body;
+
+    // Fill the current path with the dark plate, then glow-stroke it.
+    function shape(color, w) {
+      ctx.fillStyle = NEON.ink; ctx.fill();
+      ctx.shadowColor = color || edge; ctx.shadowBlur = 5 * u;
+      ctx.strokeStyle = color || edge; ctx.lineWidth = (w || 1.4) * u;
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
+    function line(x0, y0, x1, y1, color, w, dash) {
+      ctx.strokeStyle = color; ctx.lineWidth = w * u;
+      if (dash) ctx.setLineDash([dash[0] * u, dash[1] * u]);
+      ctx.beginPath(); ctx.moveTo(x0 * u, y0 * u); ctx.lineTo(x1 * u, y1 * u); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+
+    function dot(x, y, r, color) {
+      ctx.fillStyle = color;
+      ctx.beginPath(); ctx.arc(x * u, y * u, r * u, 0, Math.PI * 2); ctx.fill();
+    }
+
+    // Hatch n-1 rib lines between edge A (x0,y0)-(x1,y1) and edge B.
+    function ribs(x0, y0, x1, y1, x2, y2, x3, y3, n) {
+      ctx.strokeStyle = rib; ctx.lineWidth = 0.9 * u;
+      ctx.beginPath();
+      for (var i = 1; i < n; i++) {
+        var t = i / n;
+        ctx.moveTo((x0 + (x1 - x0) * t) * u, (y0 + (y1 - y0) * t) * u);
+        ctx.lineTo((x2 + (x3 - x2) * t) * u, (y2 + (y3 - y2) * t) * u);
+      }
+      ctx.stroke();
+    }
 
     function wheel(x, y, r) {
-      ctx.fillStyle = "#22221f";
-      ctx.beginPath(); ctx.arc(x * u, y * u, r * u, 0, Math.PI * 2); ctx.fill();
-      ctx.strokeStyle = colors.light; ctx.lineWidth = 0.7 * u;
-      ctx.beginPath(); ctx.arc(x * u, y * u, r * 0.45 * u, 0, Math.PI * 2); ctx.stroke();
-      ctx.strokeStyle = "#171714"; ctx.lineWidth = 1.6 * u;
+      ctx.beginPath(); ctx.arc(x * u, y * u, r * u, 0, Math.PI * 2);
+      shape(edge, 1.1);
+      dot(x, y, r * 0.35, NEON.pale);
     }
 
     function trackedHull(heavy) {
-      ctx.fillStyle = "#22221f";
-      roundRect(ctx, -12 * u, 2 * u, 24 * u, 8 * u, 3 * u); ctx.fill(); ctx.stroke();
-      for (var wi = -8; wi <= 8; wi += 4) wheel(wi, 6, 2.1);
-      ctx.fillStyle = colors.body;
+      roundRect(ctx, -12 * u, 2 * u, 24 * u, 8 * u, 3 * u);
+      shape(rib, 1.1);
+      for (var wi = -8; wi <= 8; wi += 4) dot(wi, 6, 1.1, NEON.pale);
       ctx.beginPath();
       ctx.moveTo(-10 * u, 2 * u); ctx.lineTo(-7 * u, -4 * u);
       ctx.lineTo((heavy ? 8 : 7) * u, -4 * u); ctx.lineTo(11 * u, 2 * u);
-      ctx.closePath(); ctx.fill(); ctx.stroke();
+      ctx.closePath();
+      shape(edge, 1.4);
+      ribs(-7, -4, (heavy ? 8 : 7), -4, -10, 2, 11, 2, 5);
     }
 
     switch (cls) {
       case "infantry":
-        // Helmet, field pack, torso and shouldered rifle.
-        ctx.fillStyle = colors.body;
-        ctx.beginPath(); ctx.arc(-1 * u, -7 * u, 4 * u, Math.PI, 0); ctx.fill(); ctx.stroke();
-        ctx.beginPath(); ctx.arc(-1 * u, -6 * u, 2.8 * u, 0, Math.PI); ctx.fill(); ctx.stroke();
-        roundRect(ctx, -5 * u, -3 * u, 8 * u, 10 * u, 2 * u); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = colors.dark; roundRect(ctx, -8 * u, -2 * u, 4 * u, 7 * u, 1 * u); ctx.fill(); ctx.stroke();
-        ctx.strokeStyle = colors.light; ctx.lineWidth = 2.1 * u;
-        ctx.beginPath(); ctx.moveTo(1 * u, -2 * u); ctx.lineTo(10 * u, -9 * u); ctx.stroke();
-        ctx.strokeStyle = "#171714"; ctx.lineWidth = 2.5 * u;
-        ctx.beginPath(); ctx.moveTo(-2 * u, 6 * u); ctx.lineTo(-6 * u, 12 * u);
-        ctx.moveTo(1 * u, 6 * u); ctx.lineTo(6 * u, 12 * u); ctx.stroke();
+        // Helmet with visor slit, field pack, torso and shouldered rifle.
+        roundRect(ctx, -5 * u, -3 * u, 8 * u, 10 * u, 2 * u);
+        shape(edge, 1.3);
+        ribs(-5, 0, 3, 0, -5, 4, 3, 4, 3);
+        ctx.beginPath(); ctx.arc(-1 * u, -7 * u, 4 * u, Math.PI, 0); ctx.closePath();
+        shape(edge, 1.3);
+        line(-4.4, -6.2, 2.4, -6.2, hot, 1.0);
+        roundRect(ctx, -8 * u, -2 * u, 4 * u, 7 * u, 1 * u);
+        shape(rib, 1.0);
+        line(-2, 6, -6, 12, edge, 1.6); line(1, 6, 6, 12, edge, 1.6);
+        line(1, -2, 10, -9, NEON.yellow, 1.6); dot(10, -9, 0.9, NEON.yellow);
         break;
       case "tank":
         trackedHull(id === "GIANT");
-        ctx.fillStyle = colors.body;
-        ctx.beginPath(); ctx.ellipse(-1 * u, -5 * u, id === "GIANT" ? 7 * u : 5.5 * u, 4 * u, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-        ctx.strokeStyle = colors.light; ctx.lineWidth = 2 * u;
-        ctx.beginPath(); ctx.moveTo(3 * u, -6 * u); ctx.lineTo(14 * u, -9 * u); ctx.stroke();
+        ctx.beginPath();
+        ctx.ellipse(-1 * u, -5 * u, (id === "GIANT" ? 7 : 5.5) * u, 4 * u, 0, 0, Math.PI * 2);
+        shape(edge, 1.4);
+        line(3, -6, 14, -9, NEON.yellow, 1.8); dot(14, -9, 1.0, NEON.yellow);
         if (id === "GIANT") {
-          ctx.beginPath(); ctx.moveTo(3 * u, -3 * u); ctx.lineTo(14 * u, -5 * u); ctx.stroke();
+          line(3, -3, 14, -5, NEON.yellow, 1.3); dot(14, -5, 0.8, NEON.yellow);
         }
-        ctx.fillStyle = colors.light; ctx.beginPath(); ctx.arc(-2 * u, -6 * u, 1.5 * u, 0, Math.PI * 2); ctx.fill();
+        dot(-2, -6, 1.3, hot);
         break;
       case "air":
         // Fighter planform. Falcon has swept wings; Hunter has a broad delta.
@@ -234,79 +282,105 @@ var RENDER = (function () {
         if (id === "HUNTER") ctx.lineTo(-13 * u, 8 * u);
         else if (id === "FALCON") ctx.lineTo(-12 * u, 7 * u);
         else ctx.lineTo(-13 * u, 2 * u);
-        ctx.lineTo(-3 * u, -2 * u); ctx.closePath(); ctx.fill(); ctx.stroke();
-        ctx.fillStyle = colors.light;
+        ctx.lineTo(-3 * u, -2 * u); ctx.closePath();
+        shape(edge, 1.4);
+        line(0, -13, 0, 10, rib, 0.9);
+        var tipX = id === "EAGLE" ? 13 : (id === "FALCON" ? 12 : 13);
+        var tipY = id === "EAGLE" ? 2 : (id === "FALCON" ? 7 : 8);
+        dot(tipX, tipY, 0.9, hot); dot(-tipX, tipY, 0.9, hot);
+        ctx.fillStyle = NEON.yellow;
         ctx.beginPath(); ctx.ellipse(0, -5 * u, 1.8 * u, 4 * u, 0, 0, Math.PI * 2); ctx.fill();
         break;
       case "artillery":
         trackedHull(false);
-        ctx.fillStyle = colors.body;
         ctx.beginPath(); ctx.moveTo(-7 * u, 0); ctx.lineTo(-4 * u, -6 * u);
-        ctx.lineTo(5 * u, -6 * u); ctx.lineTo(8 * u, 1 * u); ctx.closePath(); ctx.fill(); ctx.stroke();
-        ctx.strokeStyle = colors.light; ctx.lineWidth = 2.6 * u;
-        ctx.beginPath(); ctx.moveTo(1 * u, -5 * u); ctx.lineTo(13 * u, -14 * u); ctx.stroke();
-        ctx.strokeStyle = "#171714"; ctx.lineWidth = 1.3 * u;
-        ctx.beginPath(); ctx.moveTo(9 * u, -11 * u); ctx.lineTo(12 * u, -8 * u); ctx.stroke();
+        ctx.lineTo(5 * u, -6 * u); ctx.lineTo(8 * u, 1 * u); ctx.closePath();
+        shape(edge, 1.4);
+        // Dotted elevation arc around the barrel pivot, then the gun itself.
+        ctx.strokeStyle = NEON.pale; ctx.lineWidth = 0.8 * u;
+        ctx.setLineDash([1.2 * u, 2 * u]);
+        ctx.beginPath(); ctx.arc(1 * u, -5 * u, 7 * u, -1.7, -0.3); ctx.stroke();
+        ctx.setLineDash([]);
+        line(1, -5, 13, -14, NEON.yellow, 2.2);
+        line(9, -11, 12, -8, hot, 1.2);
         break;
       case "buggy":
         // Armored scout car with a four-tube missile rack.
-        ctx.fillStyle = colors.body;
         ctx.beginPath(); ctx.moveTo(-10 * u, 4 * u); ctx.lineTo(-7 * u, -3 * u);
-        ctx.lineTo(5 * u, -3 * u); ctx.lineTo(10 * u, 4 * u); ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.lineTo(5 * u, -3 * u); ctx.lineTo(10 * u, 4 * u); ctx.closePath();
+        shape(edge, 1.4);
+        ribs(-7, -3, 5, -3, -10, 4, 10, 4, 4);
         wheel(-7, 6, 3.2); wheel(7, 6, 3.2);
-        ctx.fillStyle = colors.light;
         for (var tube = 0; tube < 4; tube++) {
-          roundRect(ctx, (-7 + tube * 3.5) * u, -10 * u, 3 * u, 6 * u, 1 * u); ctx.fill(); ctx.stroke();
+          roundRect(ctx, (-7 + tube * 3.5) * u, -10 * u, 3 * u, 6 * u, 1 * u);
+          shape(NEON.yellow, 1.0);
+          dot(-5.5 + tube * 3.5, -10, 0.7, hot);
         }
         break;
       case "antiair":
         trackedHull(false);
-        ctx.strokeStyle = colors.light; ctx.lineWidth = 1.8 * u;
         if (id === "HAWKEYE") {
-          // Radar dish and missile rail identify the ranged AA system.
-          ctx.beginPath(); ctx.moveTo(-3 * u, -3 * u); ctx.lineTo(7 * u, -12 * u); ctx.stroke();
+          // Dashed radar sweep and a missile rail mark the ranged AA system.
+          ctx.strokeStyle = NEON.pale; ctx.lineWidth = 1.0 * u;
+          ctx.setLineDash([1.4 * u, 1.8 * u]);
           ctx.beginPath(); ctx.arc(-4 * u, -7 * u, 5 * u, -1.0, 1.0); ctx.stroke();
+          ctx.setLineDash([]);
+          line(-4, -7, -1, -5, rib, 1.0);
+          line(-3, -3, 7, -12, NEON.yellow, 1.6); dot(7, -12, 0.9, hot);
         } else {
-          ctx.beginPath(); ctx.moveTo(-3 * u, -2 * u); ctx.lineTo(4 * u, -13 * u); ctx.stroke();
-          ctx.beginPath(); ctx.moveTo(2 * u, -2 * u); ctx.lineTo(9 * u, -11 * u); ctx.stroke();
+          line(-3, -2, 4, -13, NEON.yellow, 1.6); dot(4, -13, 0.9, hot);
+          line(2, -2, 9, -11, NEON.yellow, 1.6); dot(9, -11, 0.9, hot);
         }
         break;
       case "transport":
         if (unit.type.moveType === "air") {
-          // Pelican: unmistakable helicopter side profile.
-          ctx.fillStyle = colors.body;
-          ctx.beginPath(); ctx.ellipse(-2 * u, 0, 9 * u, 6 * u, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+          // Pelican: unmistakable helicopter side profile, dashed rotor disc.
           ctx.beginPath(); ctx.moveTo(5 * u, -1 * u); ctx.lineTo(14 * u, -5 * u);
-          ctx.lineTo(14 * u, 1 * u); ctx.lineTo(6 * u, 2 * u); ctx.closePath(); ctx.fill(); ctx.stroke();
-          ctx.strokeStyle = "#171714"; ctx.lineWidth = 1.5 * u;
-          ctx.beginPath(); ctx.moveTo(-14 * u, -8 * u); ctx.lineTo(12 * u, -8 * u); ctx.stroke();
-          ctx.beginPath(); ctx.moveTo(-1 * u, -8 * u); ctx.lineTo(-1 * u, -5 * u); ctx.stroke();
+          ctx.lineTo(14 * u, 1 * u); ctx.lineTo(6 * u, 2 * u); ctx.closePath();
+          shape(rib, 1.1);
+          ctx.beginPath(); ctx.ellipse(-2 * u, 0, 9 * u, 6 * u, 0, 0, Math.PI * 2);
+          shape(edge, 1.4);
+          line(-1, -8, -1, -5, rib, 1.0);
+          line(-14, -8, 12, -8, NEON.pale, 1.1, [3, 2]);
+          ctx.strokeStyle = NEON.pale; ctx.lineWidth = 1.0 * u;
+          ctx.setLineDash([1.4 * u, 1.6 * u]);
           ctx.beginPath(); ctx.arc(14 * u, -4 * u, 3 * u, 0, Math.PI * 2); ctx.stroke();
-          ctx.fillStyle = colors.light; ctx.fillRect(-8 * u, -3 * u, 5 * u, 3 * u);
+          ctx.setLineDash([]);
+          ctx.fillStyle = NEON.yellow; ctx.fillRect(-8 * u, -3 * u, 5 * u, 3 * u);
         } else {
-          // Mule: six-wheel armored cargo truck with cab and box.
-          ctx.fillStyle = colors.body;
-          roundRect(ctx, -11 * u, -6 * u, 14 * u, 10 * u, 1 * u); ctx.fill(); ctx.stroke();
+          // Mule: six-wheel armored cargo truck with ribbed box and cab.
+          roundRect(ctx, -11 * u, -6 * u, 14 * u, 10 * u, 1 * u);
+          shape(edge, 1.4);
+          ribs(-11, -6, 3, -6, -11, 4, 3, 4, 4);
           ctx.beginPath(); ctx.moveTo(3 * u, -4 * u); ctx.lineTo(8 * u, -4 * u);
-          ctx.lineTo(11 * u, 3 * u); ctx.lineTo(3 * u, 3 * u); ctx.closePath(); ctx.fill(); ctx.stroke();
+          ctx.lineTo(11 * u, 3 * u); ctx.lineTo(3 * u, 3 * u); ctx.closePath();
+          shape(rib, 1.1);
           wheel(-7, 6, 2.8); wheel(0, 6, 2.8); wheel(8, 6, 2.8);
-          ctx.fillStyle = colors.light; ctx.fillRect(5 * u, -2 * u, 4 * u, 3 * u);
+          ctx.fillStyle = NEON.yellow; ctx.fillRect(5 * u, -2 * u, 4 * u, 3 * u);
         }
         break;
       case "mine":
-        // Raised anti-vehicle mine: toothed outer ring and pressure plate.
-        ctx.fillStyle = colors.dark;
-        ctx.beginPath(); ctx.arc(0, 1 * u, 8 * u, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-        ctx.strokeStyle = colors.light; ctx.lineWidth = 1.6 * u;
+        // Raised anti-vehicle mine: dashed proximity ring, toothed body,
+        // hot trigger cap.
+        ctx.strokeStyle = NEON.pale; ctx.lineWidth = 0.9 * u;
+        ctx.setLineDash([1.6 * u, 2.2 * u]);
+        ctx.beginPath(); ctx.arc(0, 1 * u, 12.5 * u, 0, Math.PI * 2); ctx.stroke();
+        ctx.setLineDash([]);
         for (var a = 0; a < 6; a++) {
-          var ang = a * Math.PI / 3;
-          ctx.beginPath(); ctx.moveTo(Math.cos(ang) * 7 * u, 1 * u + Math.sin(ang) * 7 * u);
-          ctx.lineTo(Math.cos(ang) * 12 * u, 1 * u + Math.sin(ang) * 12 * u); ctx.stroke();
+          var ang = a * Math.PI / 3 + Math.PI / 6;
+          line(Math.cos(ang) * 7, 1 + Math.sin(ang) * 7,
+               Math.cos(ang) * 10.5, 1 + Math.sin(ang) * 10.5, edge, 1.3);
         }
-        ctx.fillStyle = colors.light; ctx.beginPath(); ctx.arc(0, 1 * u, 3 * u, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(0, 1 * u, 8 * u, 0, Math.PI * 2);
+        shape(edge, 1.4);
+        ctx.strokeStyle = NEON.yellow; ctx.lineWidth = 1.0 * u;
+        ctx.beginPath(); ctx.arc(0, 1 * u, 4.6 * u, 0, Math.PI * 2); ctx.stroke();
+        dot(0, 1, 2.6, hot);
         break;
       default:
-        ctx.beginPath(); ctx.arc(0, 0, 8 * u, 0, 7); ctx.fill(); ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, 0, 8 * u, 0, Math.PI * 2);
+        shape(edge, 1.4);
+        dot(0, 0, 2, hot);
     }
   }
 
@@ -349,24 +423,24 @@ var RENDER = (function () {
 
     ctx.globalAlpha = 1;
     // Two-letter stencil makes individual chassis identifiable at a glance.
-    ctx.fillStyle = "rgba(18,18,16,0.92)";
+    ctx.fillStyle = "rgba(14,11,20,0.92)";
     ctx.fillRect(-15 * u, -16 * u, 11 * u, 7 * u);
-    ctx.fillStyle = "#f2eddc";
+    ctx.fillStyle = NEON.pale;
     ctx.font = "bold " + Math.max(5, Math.round(5.5 * u)) + "px monospace";
     ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.fillText(UNIT_MARKS[unit.typeId] || unit.typeId.slice(0, 2), -9.5 * u, -12.5 * u);
 
     // strength number (bottom-left, like the original's squad count)
-    ctx.fillStyle = "#111";
+    ctx.fillStyle = NEON.ink;
     ctx.fillRect(-15 * u, 5 * u, 10 * u, 11 * u);
-    ctx.fillStyle = unit.strength <= 2 ? "#ff8f6f" : "#ffe9a0";
+    ctx.fillStyle = unit.strength <= 2 ? "#ff3d4d" : NEON.yellow;
     ctx.font = "bold " + Math.round(9 * u) + "px monospace";
     ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.fillText("" + unit.strength, -10 * u, 10.5 * u);
 
     // experience pips (top-right)
     if (unit.exp > 0) {
-      ctx.fillStyle = "#ffd94a";
+      ctx.fillStyle = NEON.yellow;
       if (unit.exp >= 8) {
         drawStar(ctx, 11 * u, -11 * u, 4.5 * u);
       } else {
@@ -441,7 +515,7 @@ var RENDER = (function () {
     if (this.selected) {
       var sc = this.hexCenter(this.selected.col, this.selected.row);
       pathHex(ctx, sc.x, sc.y, this.hexSize * this.zoom);
-      ctx.strokeStyle = "#ffe9a0"; ctx.lineWidth = 2.5;
+      ctx.strokeStyle = NEON.yellow; ctx.lineWidth = 2.5;
       ctx.stroke();
     }
 
