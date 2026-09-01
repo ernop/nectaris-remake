@@ -16,11 +16,13 @@ if (typeof module !== "undefined") {
 
 var AI = (function () {
 
+  function isRangedType(t) { return (t.rngG || 0) > 1 || (t.rngA || 0) > 1; }
+
   function unitValue(u) {
     var t = u.type;
     var v = (t.atkG + t.atkA + t.def) / 3 + t.move;
     if (t.capture) v += 25;                // capturers are precious
-    if (t.rmax > 1) v += 15;
+    if (isRangedType(t)) v += 15;
     return v * (u.strength / 8);
   }
 
@@ -43,7 +45,7 @@ var AI = (function () {
     var score = trade.out * defVal - trade.in_ * atkVal;
     if (trade.out >= defender.strength) score += defVal * 4; // likely kill
     if (defender.type.capture) score += 10;                  // stop captures
-    if (defender.type.rmax > 1) score += 6;                  // silence artillery
+    if (isRangedType(defender.type)) score += 6;             // silence artillery
     return score;
   }
 
@@ -105,19 +107,21 @@ var AI = (function () {
     return bestKey ? range[bestKey] : null;
   }
 
-  /* Best (destination, target) attack plan for a unit. Ranged units attack
-   * from where they stand. */
+  /* Best (destination, target) attack plan for a unit. Move-or-fire units
+   * attack from where they stand; everything else (including the Lynx, whose
+   * ground band is exactly 2) searches move destinations, with attackTargets
+   * applying the per-domain range bands at each candidate hex. */
   function bestAttackPlan(game, unit) {
     var plans = [];
     var i, t, targets, trade;
-    if (unit.type.rmax > 1) {
+    if (unit.type.moveOrFire) {
       targets = game.attackTargets(unit);
       for (i = 0; i < targets.length; i++) {
         t = targets[i];
         trade = expectedTrade(game, unit, t);
         plans.push({ dest: null, target: t, trade: trade, score: scoreAttack(game, unit, t, trade) });
       }
-    } else if (unit.type.rmax === 1) {
+    } else if (unit.type.rngG || unit.type.rngA) {
       var range = game.movementRange(unit);
       for (var k in range) {
         var rec = range[k];
@@ -178,7 +182,7 @@ var AI = (function () {
     // No good attack: advance.
     var goal = nearestGoal(game, unit);
     if (goal && unit.type.move > 0) {
-      var step = bestStepToward(game, unit, range, goal, unit.type.rmax > 1);
+      var step = bestStepToward(game, unit, range, goal, unit.type.moveOrFire);
       if (step) {
         var res = game.moveUnit(unit, step.col, step.row, range);
         events.push({ t: "move", unit: unit });
@@ -229,7 +233,7 @@ var AI = (function () {
     var units = game.playerUnits(player).slice();
     units.sort(function (a, b) {
       function rank(u) {
-        if (u.type.rmax > 1) return 0;
+        if (u.type.moveOrFire || isRangedType(u.type)) return 0;
         if (u.type.capture) return 2;
         return 1;
       }

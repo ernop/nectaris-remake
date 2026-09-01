@@ -62,5 +62,79 @@ archive whose terms permit copying those map files into this repository:
   redistribution permission for the commercial map data, so those binaries
   are not imported here.
 
+Further research 2026-09-01 — where the user-map scene and its discussions
+live:
+
+- **BASE NECTARIS downloads are still live** (2004–2005 uploads): 13
+  unit-placed original maps (`bn_a001.nmd` … `bn_d001.nmd`, map names taken
+  from C standard library functions — ASSERT, WCSTOL, MALLOC, SETJMP…) at
+  [stage.htm](http://www.max.hi-ho.ne.jp/summoner/nectaris/down/stage.htm),
+  with per-map author hints and design commentary at
+  [bn_map/](http://www.max.hi-ho.ne.jp/summoner/nectaris/down/bn_map/index.htm),
+  plus blank terrain maps and save data that unlock the Windows version's
+  hidden 2-player and preview modes.
+- **The BASE NECTARIS BBS** (`max.hi-ho.ne.jp/cgi-bin/user/summoner/nec_bbs.cgi`)
+  is offline, but the Wayback Machine holds ~30 captures spanning 2006–2017
+  with full period threads: map release announcements, playthrough reports,
+  turn-by-turn strategy exchanges, and map-design advice from the site
+  admin (Crescent). Example capture:
+  [2006-05-03](http://web.archive.org/web/20060503211807/http://www.max.hi-ho.ne.jp:80/cgi-bin/user/summoner/nec_bbs.cgi).
+- **NECTARIS' website** (Naoto's Geocities site, terrain-edited original
+  maps plus DOS-Nectaris map guides) died with Yahoo! Geocities Japan
+  (2019-03) but is archived:
+  [2018-11 snapshot](http://web.archive.org/web/20181104001653/http://www.geocities.jp/naoto19690803/index.htm).
+  Naoto's maps are the ones dissected in the BASE NECTARIS BBS threads.
+- **Nectaris atwiki** ([w.atwiki.jp/nectaris](https://w.atwiki.jp/nectaris/))
+  is active: working download links for the Win95/Win98 freeware and
+  modern-OS install guides (winevdm for the 16-bit installer, DOSBox Pure,
+  Wine, Steam Deck).
+- Series history summary with distribution notes:
+  [ミリタリー・まとめネス](https://www.ne.jp/asahi/krk/kct/misc/nectaris.htm)
+  (notes that Hudson also published PS/GB and Neo-Nectaris-equivalent map
+  packs for the Windows version on its own site, now gone).
+
+## Included pack: Base Nectaris Terrain (added 2026-09-01)
+
+`js/data-basenectaris-maps.js` holds twelve scenarios whose hex layouts come
+from BASE NECTARIS's **unit-free** map files. That page grants exactly the
+permission the pack relies on:
+
+> これらのマップデータにユニットを配置して、他のサイトなどに投稿していたただいてもかまいません。
+> ("You may place units on this map data and post it to other sites.")
+
+This is narrower than it looks, so the boundary matters:
+
+| Asset | Status | What we did |
+|---|---|---|
+| Unit-free terrain (`bnm_*.nmd`) | Explicit grant above | Converted the layouts; ship the derived levels |
+| The raw `.nmd` files | Not covered | Not committed; the converter reads files you download |
+| Unit-placed scenarios (`bn_*.nmd`) | Site-wide "無断転載禁止" | Not converted, not shipped |
+| Crescent's per-map hints and commentary | Same | Not reproduced; our briefings are newly written |
+| Windows-edition BMP sprites/tilesets | Hudson/Konami copyright | Not used; the pixel style is original art in the era's idiom |
+
+So the layouts are Crescent's; the rosters, deployments, camp/factory
+assignment, turn limits, map names and bilingual briefings are this project's.
+`CREALF` (`bnm_d001.nmd`, 32×22) is **excluded**: one of its cells uses tile
+index `0x5b`, which appears in no published screenshot, and the converter
+raises an error rather than guessing a terrain for it.
+
+### How the format was decoded
+
+`tools/nmd-to-level.js` documents the header layout, which matches the
+independent GPL-3.0 tool at
+[SourceK78/nectaris_gb_map_converter](https://github.com/SourceK78/nectaris_gb_map_converter).
+The hard part was the tile table: a `.nmd` cell stores a *scenery* index, not
+a terrain type, and the tileset carries many edge-transition variants per
+terrain (195 distinct indices across these maps). The mapping was recovered by
+fitting the 32×32 tile grid to the site's published map screenshots, taking a
+majority-vote image per index across 13 maps, and reading the terrain off each
+tile's centre — edges blend into neighbours, the centre does not. The result
+was checked by re-rendering each map as false colour beside its screenshot.
+The resulting table is functional data about a file format, in the same
+category as the stat and terrain tables described above; no tile artwork is
+copied into this repository.
+
+## Publishing your own
+
 An author can submit or publish a level under terms that allow redistribution;
 its source URL and author should remain attached to the level object.

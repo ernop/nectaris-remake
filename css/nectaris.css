@@ -101,8 +101,18 @@ select, input[type="url"] {
   cursor: pointer;
 }
 .level-card:hover { background: #2b261c; border-color: #756b50; }
-.level-card-heading { color: #ffd94a; font-weight: 700; letter-spacing: 1px; }
-.level-card p { margin: 6px 0; font-size: 13px; line-height: 1.35; color: #c5bea9; }
+.level-card-heading { color: #ffd94a; font-weight: 700; font-size: 16px; letter-spacing: 1px; }
+/* Size and turn budget are the numbers a player scans for, so they get
+   tabular figures and brighter ink than the prose below them. */
+.level-card-meta {
+  margin-top: 3px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #f0e7cd;
+  font-variant-numeric: tabular-nums;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.level-card p { margin: 6px 0; font-size: 13px; line-height: 1.45; color: #c5bea9; }
 .level-card .level-special { color: #9fb8cc; }
 .level-card-footer {
   display: flex;

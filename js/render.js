@@ -52,6 +52,18 @@ var RENDER = (function () {
         pip: "#eaff3d", select: "#eaff3d",
       },
     },
+    pixel: {
+      playerColors: [
+        { body: "#3a72c8", dark: "#1d3f7a", light: "#7fb8ff", name: "Union (blue)" },
+        { body: "#c8402f", dark: "#7a1f22", light: "#ff9a72", name: "Xenon (red)" },
+        { body: "#8a8a95", dark: "#4a4a52", light: "#d0d0da", name: "Neutral" },
+      ],
+      chrome: {
+        stencilBg: "rgba(15,11,18,0.92)", stencilText: "#e8e4d8",
+        strengthBg: "#0f0b12", strengthLow: "#ff6a4a", strengthOk: "#ffd23d",
+        pip: "#ffd23d", select: "#ffffff",
+      },
+    },
   };
   (function () { for (var k in THEMES) THEMES[k].id = k; })();
 
@@ -228,7 +240,184 @@ var RENDER = (function () {
    * the same geometry per role; only the rendering treatment differs. */
   function drawUnitBody(ctx, unit, u, colors) {
     if (theme.id === "classic") drawUnitBodyClassic(ctx, unit, u, colors);
+    else if (theme.id === "pixel") drawUnitBodyPixel(ctx, unit, u, colors);
     else drawUnitBodyNeon(ctx, unit, u, colors);
+  }
+
+  /* Pixel style: original 16-wide sprites drawn in the idiom of late-80s
+   * console strategy art -- hard outline, a three-tone ramp per faction, a
+   * white specular on the upper surfaces, and shared yellow for weapons.
+   * The artwork is ours: these matrices were drawn for this project, not
+   * traced or extracted from any release of the original game.
+   *
+   * Colour codes: o outline · d body dark · m body mid · l body light
+   *               h specular · a weapon accent · g canopy glass
+   *               t track · s wheel/steel
+   */
+  var PIXEL_SPRITES = {
+    infantry: [
+      "................",
+      "......oooo......",
+      ".....ohhhho.....",
+      ".....ommmmo.....",
+      "......oooo......",
+      "....oommmmoo..a.",
+      "...ommmmmmmo.a..",
+      "...omllllllo.a..",
+      "...ommmmmmmo....",
+      "....oo.mm.oo....",
+      "....o..oo..o....",
+      "...oo......oo...",
+    ],
+    tank: [
+      "................",
+      "................",
+      ".....oooooo.....",
+      "....ommmmmmo....",
+      "....omhmmmmoaaaa",
+      "...oooooooooo...",
+      "..ommmmmmmmmmo..",
+      "..omllllllllmo..",
+      "..otttttttttto..",
+      "..osoosoosoosso.",
+      "..oooooooooooo..",
+      "................",
+    ],
+    air: [
+      ".......oo.......",
+      "......ohho......",
+      "......oggo......",
+      "......ommo......",
+      ".....ommmmo.....",
+      "oooooommmmoooooo",
+      "ommmmmmmmmmmmmmo",
+      "ollllmmmmmmllllo",
+      "oooooommmmoooooo",
+      ".....ommmmo.....",
+      "......ommo......",
+      ".....ommmmo.....",
+      "....oo.oo.oo....",
+      "................",
+    ],
+    artillery: [
+      "..............aa",
+      "............aa..",
+      "..........aa....",
+      ".....oooaa......",
+      "....ommmmo......",
+      "...ommhmmmo.....",
+      "..oooooooooo....",
+      ".ommmmmmmmmmo...",
+      ".omllllllllmo...",
+      ".otttttttttto...",
+      ".osoosoosooso...",
+      ".oooooooooooo...",
+    ],
+    buggy: [
+      "................",
+      "................",
+      "...aa.aa.aa.aa..",
+      "...oaooaooaooao.",
+      "...oooooooooooo.",
+      "..ommmmmmmmmmmo.",
+      "..omhllllllllmo.",
+      "..ommmmmmmmmmmo.",
+      "..oooooooooooooo",
+      "...oso.....oso..",
+      "...oso.....oso..",
+      "................",
+    ],
+    antiair: [
+      "...........aa...",
+      "..........aa....",
+      ".......a.aa.....",
+      "......aaa.......",
+      ".....oooo.......",
+      "....ommmmo......",
+      "..oooooooooo....",
+      ".ommmmmmmmmmo...",
+      ".omhlllllllmo...",
+      ".otttttttttto...",
+      ".osoosoosooso...",
+      ".oooooooooooo...",
+    ],
+    transport: [
+      "................",
+      "................",
+      "...oooooo.......",
+      "...ommmmoooooo..",
+      "...omhlmommmmo..",
+      "..ooooooommmmo..",
+      "..ommmmmmmmmmo..",
+      "..omllllllllmo..",
+      "..oooooooooooo..",
+      "...oso....oso...",
+      "...oso....oso...",
+      "................",
+    ],
+    helicopter: [
+      "................",
+      "..oooooooooooo..",
+      "..ssssssssssss..",
+      ".......oo.......",
+      ".....oooooo.....",
+      "....ommmmmmo....",
+      "...ommggmmmmoooo",
+      "...ommmmmmmmmmmo",
+      "...ommllmmmmoooo",
+      "....oooooooo....",
+      "....o......o....",
+      "...ooo....ooo...",
+    ],
+    mine: [
+      "................",
+      "......a..a......",
+      "....oooooooo....",
+      "...odddddddo....",
+      "..odmmmmmmmdo...",
+      "..odmmhhmmmdo...",
+      "..odmmhhmmmdo...",
+      "..odmmmmmmmdo...",
+      "...odddddddo....",
+      "....oooooooo....",
+      "......a..a......",
+      "................",
+    ],
+  };
+
+  function pixelSpriteFor(unit) {
+    var cls = unit.type.cls;
+    if (cls === "transport" && unit.type.moveType === "air") return PIXEL_SPRITES.helicopter;
+    return PIXEL_SPRITES[cls];
+  }
+
+  function drawUnitBodyPixel(ctx, unit, u, colors) {
+    var art = pixelSpriteFor(unit);
+    if (!art) {
+      throw new Error("Pixel style has no sprite for unit class '" + unit.type.cls +
+        "' (unit " + unit.typeId + "). Add one to PIXEL_SPRITES in js/render.js.");
+    }
+    var pal = {
+      o: "#0f0b12", d: colors.dark, m: colors.body, l: colors.light,
+      h: "#ffffff", a: "#ffd23d", g: "#9fe8ff", t: "#26262c", s: "#7a7a86",
+    };
+    var px = 1.95 * u;
+    var w = art[0].length, h = art.length;
+    var ox = -w * px / 2, oy = -h * px / 2;
+    for (var r = 0; r < h; r++) {
+      var row = art[r];
+      for (var c = 0; c < row.length; c++) {
+        var code = row.charAt(c);
+        if (code === ".") continue;
+        var fill = pal[code];
+        if (!fill) {
+          throw new Error("Unknown pixel-sprite colour code '" + code + "' at row " + r);
+        }
+        ctx.fillStyle = fill;
+        // Half-pixel overdraw keeps the grid seam-free at fractional zoom.
+        ctx.fillRect(ox + c * px, oy + r * px, px + 0.5, px + 0.5);
+      }
+    }
   }
 
   /* Neon style: every shape is a dark plate with a glowing faction-colored

@@ -39,7 +39,8 @@
     $("gameover-panel").classList.add("hidden");
     $("map-title").textContent = mapDef.name;
     $("map-jump").value = opts.campaignIndex !== undefined ? "c:" + opts.campaignIndex :
-      (opts.expansionIndex !== undefined ? "e:" + opts.expansionIndex : "");
+      (opts.expansionIndex !== undefined ? "e:" + opts.expansionIndex :
+      (opts.baseNecIndex !== undefined ? "b:" + opts.baseNecIndex : ""));
 
     var game = new ENGINE.Game(mapDef, { seed: opts.seed });
     currentUI = new UI.GameUI($("game-canvas"), game, {
@@ -76,7 +77,71 @@
     buildMenu();
   }
 
+  var LANG_KEY = "nectaris-lang";
+  /* Briefing language. Levels may carry Japanese variants (nameJa, descriptionJa,
+   * ...); a level without them shows its English text in either setting, which
+   * is a real absence of a translation, not a failure. */
+  function lang() {
+    var v = localStorage.getItem(LANG_KEY);
+    return v === "ja" ? "ja" : "en";
+  }
+  function tr(lv, field) {
+    var ja = lv[field + "Ja"];
+    return (lang() === "ja" && ja) ? ja : lv[field];
+  }
+
+  var CARD_LABELS = {
+    en: { special: "Special: ", source: "Terrain source", turns: " turns" },
+    ja: { special: "特徴: ", source: "地形の出典", turns: "ターン" },
+  };
+
+  function renderLevelCards(host, levels, onPick) {
+    var L = CARD_LABELS[lang()];
+    host.innerHTML = "";
+    levels.forEach(function (lv, i) {
+      var card = document.createElement("article");
+      card.className = "level-card";
+      var heading = document.createElement("div");
+      heading.className = "level-card-heading";
+      heading.textContent = String(i + 1).padStart(2, "0") + " · " + tr(lv, "name");
+      var meta = document.createElement("div");
+      meta.className = "level-card-meta";
+      meta.textContent = lv.grid[0].length + "×" + lv.grid.length + " · " +
+        lv.turnLimit + L.turns;
+      var description = document.createElement("p");
+      description.textContent = tr(lv, "description");
+      var special = document.createElement("p");
+      special.className = "level-special";
+      special.textContent = L.special + tr(lv, "special");
+      var footer = document.createElement("div");
+      footer.className = "level-card-footer";
+      var tags = document.createElement("span");
+      tags.textContent = (tr(lv, "tags") || []).join(" · ");
+      var source = document.createElement("a");
+      source.href = lv.source;
+      source.target = "_blank";
+      source.rel = "noopener";
+      source.textContent = L.source;
+      source.onclick = function (event) { event.stopPropagation(); };
+      footer.appendChild(tags);
+      footer.appendChild(source);
+      card.appendChild(heading);
+      card.appendChild(meta);
+      card.appendChild(description);
+      card.appendChild(special);
+      card.appendChild(footer);
+      card.onclick = function () { onPick(lv, i); };
+      host.appendChild(card);
+    });
+  }
+
   function buildMenu() {
+    var sel = $("lang-select");
+    sel.value = lang();
+    sel.onchange = function () {
+      localStorage.setItem(LANG_KEY, sel.value);
+      buildMenu();
+    };
     var p = getProgress();
     var list = $("mission-list");
     list.innerHTML = "";
@@ -93,39 +158,11 @@
       list.appendChild(div);
     });
 
-    var expansion = $("expansion-list");
-    expansion.innerHTML = "";
-    EXPANSION_LEVELS.forEach(function (lv, i) {
-      var card = document.createElement("article");
-      card.className = "level-card";
-      var heading = document.createElement("div");
-      heading.className = "level-card-heading";
-      heading.textContent = String(i + 1).padStart(2, "0") + " · " + lv.name;
-      var description = document.createElement("p");
-      description.textContent = lv.description;
-      var special = document.createElement("p");
-      special.className = "level-special";
-      special.textContent = "Special: " + lv.special;
-      var footer = document.createElement("div");
-      footer.className = "level-card-footer";
-      var tags = document.createElement("span");
-      tags.textContent = lv.tags.join(" · ");
-      var source = document.createElement("a");
-      source.href = lv.source;
-      source.target = "_blank";
-      source.rel = "noopener";
-      source.textContent = "Source";
-      source.onclick = function (event) { event.stopPropagation(); };
-      footer.appendChild(tags);
-      footer.appendChild(source);
-      card.appendChild(heading);
-      card.appendChild(description);
-      card.appendChild(special);
-      card.appendChild(footer);
-      card.onclick = function () {
-        startGame(lv, { expansionIndex: i, hotseat: $("chk-hotseat").checked });
-      };
-      expansion.appendChild(card);
+    renderLevelCards($("expansion-list"), EXPANSION_LEVELS, function (lv, i) {
+      startGame(lv, { expansionIndex: i, hotseat: $("chk-hotseat").checked });
+    });
+    renderLevelCards($("basenec-list"), BASE_NECTARIS_LEVELS, function (lv, i) {
+      startGame(lv, { baseNecIndex: i, hotseat: $("chk-hotseat").checked });
     });
 
     var clist = $("custom-list");
@@ -225,12 +262,23 @@
       expansionGroup.appendChild(option);
     });
     jump.appendChild(expansionGroup);
+    var baseNecGroup = document.createElement("optgroup");
+    baseNecGroup.label = "Base Nectaris Terrain";
+    BASE_NECTARIS_LEVELS.forEach(function (m, i) {
+      var option = document.createElement("option");
+      option.value = "b:" + i;
+      option.textContent = String(i + 1).padStart(2, "0") + " · " + m.name;
+      baseNecGroup.appendChild(option);
+    });
+    jump.appendChild(baseNecGroup);
     jump.onchange = function () {
       if (this.value === "") return;
       var parts = this.value.split(":");
       var i = +parts[1];
       if (parts[0] === "c") {
         startGame(CAMPAIGN[i], { campaignIndex: i, hotseat: !!currentOptions.hotseat });
+      } else if (parts[0] === "b") {
+        startGame(BASE_NECTARIS_LEVELS[i], { baseNecIndex: i, hotseat: !!currentOptions.hotseat });
       } else {
         startGame(EXPANSION_LEVELS[i], { expansionIndex: i, hotseat: !!currentOptions.hotseat });
       }

@@ -30,6 +30,12 @@
   </section>
 
   <section class="menu-section">
+    <h2 id="basenec-heading">Terrain pack · Base Nectaris</h2>
+    <p class="section-note" id="basenec-note">Twelve scenarios laid out on the unit-free terrain files published by BASE NECTARIS for the Windows edition, whose download page permits placing units on them and reposting the result. Terrain by Crescent; rosters, deployments and briefings are this project's.</p>
+    <div id="basenec-list" class="level-library"></div>
+  </section>
+
+  <section class="menu-section">
     <h2>Custom levels</h2>
     <div id="custom-list" class="mission-grid"></div>
     <div class="menu-controls">
@@ -46,6 +52,12 @@
 
   <section class="menu-section menu-options">
     <label><input type="checkbox" id="chk-hotseat"> Two players (hotseat)</label>
+    <label>Briefing language / 表示言語
+      <select id="lang-select">
+        <option value="en">English</option>
+        <option value="ja">日本語</option>
+      </select>
+    </label>
     <span>All campaign maps are available from the start.</span>
   </section>
 
@@ -66,6 +78,7 @@
     <span id="status-units"></span>
     <select id="style-select" aria-label="Visual style">
       <option value="neon">Neon style</option>
+      <option value="pixel">Pixel style</option>
       <option value="classic">Classic style</option>
     </select>
     <button id="btn-music" aria-pressed="false">Music: Off</button>
@@ -117,6 +130,7 @@
 <script src="js/ai.js"></script>
 <script src="js/data-maps.js"></script>
 <script src="js/data-expansion-maps.js"></script>
+<script src="js/data-basenectaris-maps.js"></script>
 <script src="js/render.js"></script>
 <script src="js/music.js"></script>
 <script src="js/ui.js"></script>

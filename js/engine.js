@@ -159,7 +159,9 @@ var ENGINE = (function () {
     var ns = HEX.neighbors(unit.col, unit.row);
     for (var i = 0; i < ns.length; i++) {
       var n = ns[i];
-      if (!this.inBounds(n.col, n.row)) continue;
+      // Off-map hexes carry no ZOC, so a unit against the map edge can
+      // never be surrounded (the original is explicit about this).
+      if (!this.inBounds(n.col, n.row)) return false;
       var occ = this.unitAt(n.col, n.row);
       if (occ && occ.player !== unit.player) continue;
       if (this.inEnemyZOC(n.col, n.row, unit.player)) continue;
@@ -207,9 +209,17 @@ var ENGINE = (function () {
         var n = ns[i];
         if (!this.inBounds(n.col, n.row)) continue;
         var terr = this.terrainAt(n.col, n.row);
-        var stepCost = startInZOC ? 1 : terrainCost(terr, unit.type.moveType);
-        if (stepCost === null) continue; // impassable for this chassis
-        if (startInZOC && terrainCost(terr, unit.type.moveType) === null) continue;
+        var baseCost = terrainCost(terr, unit.type.moveType, unit.type);
+        if (baseCost === null) continue; // impassable for this chassis
+        var stepCost = startInZOC ? 1 : baseCost;
+        /* Valley: a unit that can enter at all does so by spending everything
+         * it has left, so it always ends its move there. Air is unaffected —
+         * terrainCost already flattens every hex to 1 for aircraft. */
+        var drains = !!terr.costsAllMovement && unit.type.moveType !== "air" && !startInZOC;
+        if (drains) {
+          stepCost = budget - cur.cost;
+          if (stepCost < 1) continue;
+        }
         var occ = this.unitAt(n.col, n.row);
         var isLoad = false;
         if (occ) {
@@ -228,7 +238,7 @@ var ENGINE = (function () {
         if (!rec || newCost < rec.cost) {
           result[k] = {
             col: n.col, row: n.row, cost: newCost,
-            stop: enteringZOC,                       // move ends here
+            stop: enteringZOC || drains,             // move ends here
             canStop: !occ || isLoad,                 // can end move on hex
             load: isLoad,
             prev: curKey,
@@ -243,13 +253,12 @@ var ENGINE = (function () {
   /* Hexes the unit could attack from its current position. */
   Game.prototype.attackTargets = function (unit) {
     var out = [];
-    if (unit.type.rmax < 1) return out;
+    if (!unit.type.rngG && !unit.type.rngA) return out;
     for (var i = 0; i < this.units.length; i++) {
       var e = this.units[i];
       if (e.player === unit.player || e.carriedBy || e.inFactory) continue;
       var d = HEX.distance(unit.col, unit.row, e.col, e.row);
-      if (d < unit.type.rmin || d > unit.type.rmax) continue;
-      if (COMBAT.atkStat(unit.type, COMBAT.isAir(e)) <= 0) continue;
+      if (!COMBAT.canAttackAt(unit.type, COMBAT.isAir(e), d)) continue;
       out.push(e);
     }
     return out;
@@ -261,7 +270,7 @@ var ENGINE = (function () {
     range = range || this.movementRange(unit);
     var rec = range[HEX.key(col, row)];
     if (!rec || !rec.canStop) throw new Error("Illegal move");
-    if (unit.type.rmax > 1 && rec.cost > 0) unit.attackSpent = true; // ranged: move OR attack
+    if (unit.type.moveOrFire && rec.cost > 0) unit.attackSpent = true; // SP guns/Hawkeye: move OR fire
     unit.movePointsLeft -= rec.cost;
     if (rec.load) {
       var transport = this.unitAt(col, row);
@@ -291,6 +300,11 @@ var ENGINE = (function () {
         for (var i = 0; i < b.stored.length; i++) b.stored[i].player = unit.player;
         events.push({ t: "capture", kind: b.kind });
         this.log.push({ t: "capture", unit: unit.id, col: unit.col, row: unit.row });
+        // Published rule: capturing a factory earns the infantry +4 EXP.
+        // (Base capture wins the map outright, so no award matters there.)
+        if (b.kind !== "base") {
+          unit.exp = Math.min(COMBAT.MAX_EXP, unit.exp + 4);
+        }
         if (b.kind === "base" && this.enemyBaseCaptured(unit.player, b)) {
           this.winner = unit.player;
           this.winReason = "base";
@@ -320,7 +334,7 @@ var ENGINE = (function () {
   };
 
   Game.prototype.attack = function (attacker, defender) {
-    if (attacker.type.rmax > 1 && attacker.attackSpent) throw new Error("Ranged unit already moved");
+    if (attacker.type.moveOrFire && attacker.attackSpent) throw new Error("Move-or-fire unit already moved");
     var result = COMBAT.resolve(this, attacker, defender, this.rng);
     this.log.push({
       t: "battle", a: attacker.id, d: defender.id,
@@ -366,7 +380,14 @@ var ENGINE = (function () {
     if (HEX.distance(transport.col, transport.row, col, row) !== 1) throw new Error("Must unload adjacent");
     if (this.unitAt(col, row)) throw new Error("Hex occupied");
     var terr = this.terrainAt(col, row);
-    if (!terr || terrainCost(terr, cargoUnit.type.moveType) === null) throw new Error("Impassable for cargo");
+    if (!terr || terrainCost(terr, cargoUnit.type.moveType, cargoUnit.type) === null) {
+      throw new Error("Impassable for cargo");
+    }
+    /* Mines and the Atlas gun are set down rather than driven off, so they
+     * need firm ground: plains, road, bridge or a factory floor. */
+    if (cargoUnit.type.placeByTransport && !terr.deployable) {
+      throw new Error(cargoUnit.type.name + " cannot be set down on " + terr.name);
+    }
     cargoUnit.carriedBy = null;
     cargoUnit.col = col; cargoUnit.row = row;
     cargoUnit.moved = true; cargoUnit.movePointsLeft = 0;
@@ -384,7 +405,7 @@ var ENGINE = (function () {
     if (!onFactory && HEX.distance(building.col, building.row, col, row) !== 1) throw new Error("Deploy adjacent or on factory");
     if (this.unitAt(col, row)) throw new Error("Hex occupied");
     var terr = this.terrainAt(col, row);
-    if (terrainCost(terr, storedUnit.type.moveType) === null) throw new Error("Impassable");
+    if (terrainCost(terr, storedUnit.type.moveType, storedUnit.type) === null) throw new Error("Impassable");
     // Immobile units (Atlas, Trigger) may only be deployed onto a transport…
     // which is handled by loading: they can also deploy to the factory hex.
     if (storedUnit.type.placeByTransport && !onFactory) {

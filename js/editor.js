@@ -380,7 +380,7 @@
         // sanity: construct requires numeric core fields
         for (var k in cu) {
           var d = cu[k];
-          ["move", "rmax", "atkG", "atkA", "def"].forEach(function (f) {
+          ["move", "rmax", "rngG", "rngA", "atkG", "atkA", "def"].forEach(function (f) {
             if (d[f] !== undefined && typeof d[f] !== "number") throw new Error(k + "." + f + " must be a number");
           });
           if (!d.moveType) d.moveType = "treads";
