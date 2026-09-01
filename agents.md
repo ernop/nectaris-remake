@@ -1,8 +1,9 @@
 # Nectaris remake — agent notes
 
 JavaScript remake of the TG-16 hex-tactics game (Nectaris / Military
-Madness). Start with `README.md` (usage, deployment, modding) and
-`MECHANICS.md` (rules reconstruction with sources).
+Madness). Start with `README.md` (usage, deployment, modding),
+`PRODUCT.md` (settled UI/product decisions), and `MECHANICS.md`
+(rules reconstruction with sources).
 
 Facts wei need across sessions:
 

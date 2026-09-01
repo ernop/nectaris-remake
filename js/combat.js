@@ -182,6 +182,8 @@ var COMBAT = (function () {
     atkStat: atkStat, isAir: isAir,
     MAX_EXP: MAX_EXP, MAX_STRENGTH: MAX_STRENGTH,
     EXP_ATK: EXP_ATK, EXP_DEF: EXP_DEF,
+    /* Full strength is the default squad size; UI must not print it. */
+    strengthCaption: function (n) { return n < MAX_STRENGTH ? String(n) : null; },
   };
 })();
 

@@ -153,6 +153,9 @@ for (var k in range2) {
 ok(maxDist === 1, "unit starting in enemy ZOC moves at most 1 hex (got " + maxDist + ")");
 
 section("combat calculator");
+ok(COMBAT.strengthCaption(8) === null, "full strength is not captioned");
+ok(COMBAT.strengthCaption(7) === "7", "damaged strength is captioned");
+ok(COMBAT.strengthCaption(1) === "1", "1-strength is captioned");
 // experience table endpoints from the documented tiers
 ok(COMBAT.EXP_ATK[7] === 100 && COMBAT.EXP_DEF[8] === 100, "experience tiers cap at +100%");
 // terrain bonus: BISON (def 40) at full strength on hills (+20%)

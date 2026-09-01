@@ -11,7 +11,8 @@ to observed behavior. Everything here is data-driven: the tables live in
 ## Units
 
 Each unit is a squad with a **strength** of 1–8 (the original's sub-unit
-count). Combat power scales linearly with strength. Roster and stats are in
+count). Combat power scales linearly with strength. The UI omits the
+number at 8 (the default); damaged units show 1–7. Roster and stats are in
 `js/data-units.js` — 22 types: 3 infantry (the only capturers), 7 tanks,
 3 aircraft, 3 artillery, 2 missile buggies, 2 anti-air, 2 transports, 1 mine.
 

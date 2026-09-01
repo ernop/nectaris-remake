@@ -125,10 +125,11 @@ var UI = (function () {
     if (!unit) { el.innerHTML = ""; return; }
     var t = unit.type;
     var terr = this.game.terrainAt(unit.col, unit.row);
+    var strCap = COMBAT.strengthCaption(unit.strength);
     el.innerHTML =
       "<div class='ui-name'>" + t.name + "</div>" +
       "<table class='ui-stats'>" +
-      "<tr><td>Strength</td><td>" + unit.strength + " / 8</td></tr>" +
+      (strCap ? "<tr><td>Strength</td><td>" + strCap + "</td></tr>" : "") +
       "<tr><td>Experience</td><td>" + unit.exp + (unit.exp >= 8 ? " ★" : "") + "</td></tr>" +
       "<tr><td>Atk G / A</td><td>" + (t.atkG || "—") + " / " + (t.atkA || "—") + "</td></tr>" +
       "<tr><td>Defense</td><td>" + t.def + "</td></tr>" +
@@ -208,7 +209,8 @@ var UI = (function () {
     building.stored.forEach(function (su) {
       var row = document.createElement("div");
       row.className = "factory-row";
-      row.innerHTML = "<span>" + su.type.name + " (str " + su.strength + ")</span>";
+      var storedCap = COMBAT.strengthCaption(su.strength);
+      row.innerHTML = "<span>" + su.type.name + (storedCap ? " (str " + storedCap + ")" : "") + "</span>";
       var btn = document.createElement("button");
       btn.textContent = "Deploy";
       var occupied = !!g.unitAt(building.col, building.row);
@@ -262,8 +264,9 @@ var UI = (function () {
       var rows = calc.steps.map(function (s) {
         return "<tr><td>" + s.label + "</td><td>" + s.ap + "</td><td>" + s.da + "</td></tr>";
       }).join("");
+      var bcap = COMBAT.strengthCaption(unit.strength);
       return "<div class='battle-side'><div class='ui-name'>" + label + ": " + unit.type.name +
-        " (str " + unit.strength + ")</div>" +
+        (bcap ? " (str " + bcap + ")" : "") + "</div>" +
         "<table class='battle-steps'><tr><th></th><th>ATK</th><th>DEF</th></tr>" + rows + "</table></div>";
     }
     $("battle-detail").innerHTML =

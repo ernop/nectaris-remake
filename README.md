@@ -15,6 +15,7 @@ an original procedural chiptune score, and a level editor with URL sharing.
 |---|---|
 | `index.html` | The game: mission menu, campaign, custom levels, hotseat |
 | `editor.html` | Level editor: terrain, units, factories, custom unit types |
+| `PRODUCT.md` | Settled UI/product decisions |
 | `MECHANICS.md` | Full rules reconstruction, with sources |
 | `js/hex.js` | Hex math (flat-top, odd-q offset, cube internals) |
 | `js/data-terrain.js` | Terrain data: defense %, per-chassis movement costs |
@@ -47,6 +48,8 @@ state (campaign progress, custom levels, custom units) lives in
   auto-stepping to the best adjacent hex first.
 - Right-click or Esc: cancel. Mouse wheel: zoom. Middle/right-drag: pan.
   `E`: end turn.
+- Unit chrome shows remaining strength only when damaged (1–7). Full
+  strength (8) is omitted — see `PRODUCT.md`.
 - Click an own factory (with stored units, unoccupied): deploy panel.
 - Battle preview shows the original-style calculator: EXP → SURROUND →
   SUPPORT → TERRAIN rows for both sides, before you commit to the attack.

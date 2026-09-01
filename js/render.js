@@ -627,13 +627,16 @@ var RENDER = (function () {
     ctx.textAlign = "center"; ctx.textBaseline = "middle";
     ctx.fillText(UNIT_MARKS[unit.typeId] || unit.typeId.slice(0, 2), -9.5 * u, -12.5 * u);
 
-    // strength number (bottom-left, like the original's squad count)
-    ctx.fillStyle = theme.chrome.strengthBg;
-    ctx.fillRect(-15 * u, 5 * u, 10 * u, 11 * u);
-    ctx.fillStyle = unit.strength <= 2 ? theme.chrome.strengthLow : theme.chrome.strengthOk;
-    ctx.font = "bold " + Math.round(9 * u) + "px monospace";
-    ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.fillText("" + unit.strength, -10 * u, 10.5 * u);
+    // Strength is omitted at 8 (the default). Damaged 1–7 stay bottom-left.
+    var strCap = COMBAT.strengthCaption(unit.strength);
+    if (strCap) {
+      ctx.fillStyle = theme.chrome.strengthBg;
+      ctx.fillRect(-15 * u, 5 * u, 10 * u, 11 * u);
+      ctx.fillStyle = unit.strength <= 2 ? theme.chrome.strengthLow : theme.chrome.strengthOk;
+      ctx.font = "bold " + Math.round(9 * u) + "px monospace";
+      ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.fillText(strCap, -10 * u, 10.5 * u);
+    }
 
     // experience pips (top-right)
     if (unit.exp > 0) {
