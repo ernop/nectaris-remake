@@ -143,8 +143,10 @@ without them shows its English text in either setting.
   terrain table) — see `MECHANICS.md` for the details and the one place
   where reconstruction was necessary (the damage roll, whose exact formula
   was never published).
-- **Unit names and stats** follow the documented original tables
-  (functional game data).
+- **Unit names, stats and per-chassis movement costs** follow the documented
+  original tables (functional game data). The movement costs stopped being a
+  reconstruction on 2026-09-01; see `MECHANICS.md` for the source and the one
+  item still outstanding.
 - **Art and sounds are original to this project**, including every unit
   sprite in all three visual styles. No bitmap, tileset, or audio file from
   any release of the original game is bundled, traced, or extracted.

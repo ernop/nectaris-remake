@@ -37,34 +37,87 @@ Special behaviors (all documented):
 - Per-terrain, per-chassis costs (`js/data-terrain.js`). The defense
   percentages are the manual's published values (plains 5%, road 0%,
   wasteland 30%, hills 20%, mountains 40%, valley/bridge 0%, base 35%).
-  Mountains and valleys are foot/air only. The cost numbers themselves are
-  reconstructed and are plain data for modders to override.
+  Mountains are foot/air only; valleys can be entered on foot only by
+  spending every remaining movement point. The cost numbers are the published
+  per-chassis table (below) and are plain data for modders to override.
 
-### Open: our movement costs disagree with a published table (2026-09-01)
+### Movement costs are now sourced, not reconstructed (2026-09-01)
 
-While researching the archive map sources, a per-chassis cost table did turn
-up, on BASE NECTARIS's [terrain page](http://www.max.hi-ho.ne.jp/summoner/nectaris/tactics/chikei/index.htm).
-Its defense percentages match ours exactly, which is good evidence the page is
-reliable; its movement costs do not. It groups chassis differently from us —
-tanks, light armed vehicles (our buggies), self-propelled guns and AA vehicles
-share one column, the two infantry types a second, and the wheeled transports a
-third — where our `moveType` puts buggies and transports together under
-`wheels`. Mapping its columns onto ours, it disagrees on:
+The costs were a reconstruction until a per-chassis table turned up on BASE
+NECTARIS's [terrain page](http://www.max.hi-ho.ne.jp/summoner/nectaris/tactics/chikei/index.htm)
+during the archive-map research. Two things made it worth trusting: its
+defense column matches ours value for value, and its
+[unit page](http://www.max.hi-ho.ne.jp/summoner/nectaris/tactics/unit/index.htm)
+lists all 23 units with model codes (GX-77, S-61, MB-4 …) that match our
+roster one for one, so its chassis groupings map onto ours without guesswork.
 
-| Terrain | Ours | That table |
+Those groupings turned out to be *our* groupings, with one unit-level error on
+our side. The original has three ground classes: the two capturing infantry;
+the fighting vehicles (tanks, missile buggies, self-propelled guns, anti-air);
+and the two carriers, Panther and Mule. Our `foot`/`treads`/`wheels` already
+matched that, except that the missile buggies were filed with the carriers.
+
+Adopted:
+
+| Rule | Was | Now |
 |---|---|---|
-| Wasteland | wheels 4, treads 2 | transports cannot enter; vehicles 3 (Giant cannot enter) |
-| Hills | foot 2, wheels 3 | foot 1, transports 4 |
-| Mountains | foot 3 | foot 2 |
-| Valley | foot 2 | costs the unit's entire movement allowance |
+| Buggies (Rabbit, Lynx) | carrier rates | fighting-vehicle rates |
+| Wasteland, carriers | 4 | cannot enter |
+| Wasteland, vehicles | 2 | 3 |
+| Wasteland, Giant | 2 | cannot enter (`cannotEnter`, per-unit) |
+| Hills, foot | 2 | 1 |
+| Hills, carriers | 3 | 4 |
+| Mountains, foot | 3 | 2 |
+| Valley, foot | 2 | spends all remaining movement (`costsAllMovement`) |
+| Setting down a mine or Atlas | any passable hex | plains, road, bridge or factory (`deployable`) |
 
-Deliberately **not** applied yet. Adopting it is not a table edit: the valley
-rule is not a fixed cost, "Giant cannot enter wasteland" is a per-unit
-exception rather than a per-chassis one, and matching the source's chassis
-grouping means splitting `wheels` into a vehicle class and a transport class
-across `js/data-units.js`, `js/data-terrain.js` and the movement code. That
-would also re-balance all 40 shipped maps at once. Recorded here so the next
-session starts from the evidence rather than rediscovering it.
+Also corrected from the unit page: Kilroy's designation is GX-78, not GX-87.
+
+Each row above has a test in `test/run-tests.js` under "per-chassis terrain
+costs". The change moved AI-vs-AI self-play from 17/40 to 11/40 wins for
+player 0 — see "Balance after the cost change" below.
+
+### Open: Lynx is a ranged unit that can still move (2026-09-01)
+
+The same unit page gives Lynx (MB-4) a **ground range of 2 and an air range of
+1**, and its description is explicit that it fires indirectly *and* re-moves
+afterwards: 「間接攻撃後の再移動をうまく使えば、敵のZOCを安全に突き進めます」.
+Ours has range 1 for both.
+
+Not adopted, because it is a model change rather than a number:
+
+1. This engine treats `rmax > 1` as the definition of "artillery" — move or
+   fire, never both, no counterattacks — in about a dozen places across
+   `engine.js`, `combat.js`, `ai.js` and `ui.js`. Giving Lynx range 2 under
+   that rule would silently take away the move-after-attack that its
+   description calls its whole point. Separating the two needs an explicit
+   `indirect` flag on the self-propelled guns and Hawkeye instead.
+2. A single `rmin`/`rmax` pair cannot express range 2 against ground and 1
+   against air. That needs per-target ranges through target selection and the
+   combat preview.
+
+Both are tractable and well-evidenced; neither is a one-line edit, and each
+changes how a unit plays rather than correcting a wrong number.
+
+### Balance after the cost change
+
+Self-play is one deterministic AI-vs-AI game per map with a fixed seed and the
+same AI on both sides, so per-map results mostly reflect starting-position
+asymmetry rather than skill. Adopting the table moved the totals from 17/40 to
+11/40 for player 0, and the shift is concentrated in the older maps, which were
+tuned against the reconstructed costs:
+
+| Group | Before | After |
+|---|---|---|
+| Campaign (16) | 8 / 8 | 4 / 12 |
+| Lunar Frontiers (12) | 3 / 9 | 2 / 10 |
+| Base Nectaris (12) | 6 / 6 | 5 / 7 |
+
+Turn-limit stalls went from 3 to 2. Nothing became unplayable and no map
+validation broke, but the campaign is now noticeably friendlier to player 1
+under AI play. Whether to retune those maps against the corrected costs is an
+open design question, deliberately left alone here: the rules are the thing
+with a source, the maps are ours to tune.
 - **Zone of Control** (documented): the six hexes around every unit. A unit
   starting inside an enemy ZOC may move only 1 hex; entering an enemy-ZOC hex
   ends the move. ZOC is cross-domain: aircraft block tanks and vice versa.

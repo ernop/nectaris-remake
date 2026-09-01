@@ -153,6 +153,65 @@ for (var k in range2) {
 }
 ok(maxDist === 1, "unit starting in enemy ZOC moves at most 1 hex (got " + maxDist + ")");
 
+section("per-chassis terrain costs");
+/* The published per-chassis table (see MECHANICS.md). Each row is checked
+ * against a one-row map so a cost regression names the exact terrain. */
+function costMap(grid, units) {
+  return new ENGINE.Game({
+    name: "C", turnLimit: 50, grid: grid,
+    buildings: [{ col: 0, row: 0, owner: 0 }, { col: grid[0].length - 1, row: 0, owner: 1 }],
+    units: units,
+  }, { seed: 3 });
+}
+function costOf(game, unit, col, row) {
+  var rec = game.movementRange(unit)[HEX.key(col, row)];
+  return rec ? rec.cost : null;
+}
+var gc = costMap(["B.wh.Mv..B"], [{ t: "CHARLIE", o: 0, x: 1, y: 0 }]);
+var foot = gc.unitAt(1, 0);
+ok(costOf(gc, foot, 2, 0) === 2, "foot pays 2 for wasteland (got " + costOf(gc, foot, 2, 0) + ")");
+ok(costOf(gc, foot, 3, 0) === 3, "foot pays 1 for hills (got " + costOf(gc, foot, 3, 0) + ")");
+
+var gv = costMap(["B..v.....B"], [{ t: "CHARLIE", o: 0, x: 1, y: 0 }]);
+var vfoot = gv.unitAt(1, 0);
+var vrec = gv.movementRange(vfoot)[HEX.key(3, 0)];
+ok(!!vrec, "foot can enter a valley");
+ok(vrec && vrec.cost === vfoot.movePointsLeft,
+   "entering a valley spends every remaining movement point");
+ok(vrec && vrec.stop === true, "a unit entering a valley ends its move there");
+
+var gt = costMap(["B.w......B"], [{ t: "BISON", o: 0, x: 1, y: 0 }, { t: "GIANT", o: 1, x: 8, y: 0 }]);
+ok(costOf(gt, gt.unitAt(1, 0), 2, 0) === 3, "tracked vehicles pay 3 for wasteland");
+ok(terrainCost(TERRAIN.waste, "treads", UNIT_TYPES.GIANT) === null, "the Giant cannot enter wasteland");
+ok(terrainCost(TERRAIN.waste, "treads", UNIT_TYPES.BISON) === 3, "other tracked vehicles can");
+ok(terrainCost(TERRAIN.waste, "wheels") === null, "carriers cannot enter wasteland");
+ok(terrainCost(TERRAIN.hill, "wheels") === 4, "carriers pay 4 for hills");
+ok(terrainCost(TERRAIN.mountain, "foot") === 2, "foot pays 2 for mountains");
+ok(terrainCost(TERRAIN.mountain, "treads") === null, "vehicles cannot enter mountains");
+ok(terrainCost(TERRAIN.waste, "air") === 1, "aircraft ignore terrain cost");
+ok(UNIT_TYPES.RABBIT.moveType === "treads" && UNIT_TYPES.LYNX.moveType === "treads",
+   "missile buggies use the fighting-vehicle rates");
+
+// Mines and Atlas are set down, not driven off: firm ground only.
+var gd = new ENGINE.Game({
+  name: "D", turnLimit: 50, grid: ["BF.h..", "......", ".....B"],
+  buildings: [
+    { col: 0, row: 0, owner: 0 },
+    { col: 5, row: 2, owner: 1 },
+    { col: 1, row: 0, owner: 0, stored: ["TRIGGER"] },
+  ],
+  units: [{ t: "MULE", o: 0, x: 2, y: 0 }],
+}, { seed: 3 });
+var gdFactory = gd.buildingAt(1, 0);
+var gdMule = gd.unitAt(2, 0);
+var gdMine = gd.loadFromFactory(gdFactory, gdFactory.stored[0], gdMule);
+var threw = false;
+try { gd.unload(gdMule, gdMine, 3, 0); } catch (e) { threw = true; }
+ok(threw, "a mine cannot be set down on hills");
+threw = false;
+try { gd.unload(gdMule, gdMine, 2, 1); } catch (e) { threw = true; }
+ok(!threw, "a mine can be set down on plains");
+
 section("combat calculator");
 // experience table endpoints from the documented tiers
 ok(COMBAT.EXP_ATK[7] === 100 && COMBAT.EXP_DEF[8] === 100, "experience tiers cap at +100%");

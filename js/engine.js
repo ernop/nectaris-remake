@@ -207,9 +207,17 @@ var ENGINE = (function () {
         var n = ns[i];
         if (!this.inBounds(n.col, n.row)) continue;
         var terr = this.terrainAt(n.col, n.row);
-        var stepCost = startInZOC ? 1 : terrainCost(terr, unit.type.moveType);
-        if (stepCost === null) continue; // impassable for this chassis
-        if (startInZOC && terrainCost(terr, unit.type.moveType) === null) continue;
+        var baseCost = terrainCost(terr, unit.type.moveType, unit.type);
+        if (baseCost === null) continue; // impassable for this chassis
+        var stepCost = startInZOC ? 1 : baseCost;
+        /* Valley: a unit that can enter at all does so by spending everything
+         * it has left, so it always ends its move there. Air is unaffected —
+         * terrainCost already flattens every hex to 1 for aircraft. */
+        var drains = !!terr.costsAllMovement && unit.type.moveType !== "air" && !startInZOC;
+        if (drains) {
+          stepCost = budget - cur.cost;
+          if (stepCost < 1) continue;
+        }
         var occ = this.unitAt(n.col, n.row);
         var isLoad = false;
         if (occ) {
@@ -228,7 +236,7 @@ var ENGINE = (function () {
         if (!rec || newCost < rec.cost) {
           result[k] = {
             col: n.col, row: n.row, cost: newCost,
-            stop: enteringZOC,                       // move ends here
+            stop: enteringZOC || drains,             // move ends here
             canStop: !occ || isLoad,                 // can end move on hex
             load: isLoad,
             prev: curKey,
@@ -366,7 +374,14 @@ var ENGINE = (function () {
     if (HEX.distance(transport.col, transport.row, col, row) !== 1) throw new Error("Must unload adjacent");
     if (this.unitAt(col, row)) throw new Error("Hex occupied");
     var terr = this.terrainAt(col, row);
-    if (!terr || terrainCost(terr, cargoUnit.type.moveType) === null) throw new Error("Impassable for cargo");
+    if (!terr || terrainCost(terr, cargoUnit.type.moveType, cargoUnit.type) === null) {
+      throw new Error("Impassable for cargo");
+    }
+    /* Mines and the Atlas gun are set down rather than driven off, so they
+     * need firm ground: plains, road, bridge or a factory floor. */
+    if (cargoUnit.type.placeByTransport && !terr.deployable) {
+      throw new Error(cargoUnit.type.name + " cannot be set down on " + terr.name);
+    }
     cargoUnit.carriedBy = null;
     cargoUnit.col = col; cargoUnit.row = row;
     cargoUnit.moved = true; cargoUnit.movePointsLeft = 0;
@@ -384,7 +399,7 @@ var ENGINE = (function () {
     if (!onFactory && HEX.distance(building.col, building.row, col, row) !== 1) throw new Error("Deploy adjacent or on factory");
     if (this.unitAt(col, row)) throw new Error("Hex occupied");
     var terr = this.terrainAt(col, row);
-    if (terrainCost(terr, storedUnit.type.moveType) === null) throw new Error("Impassable");
+    if (terrainCost(terr, storedUnit.type.moveType, storedUnit.type) === null) throw new Error("Impassable");
     // Immobile units (Atlas, Trigger) may only be deployed onto a transport…
     // which is handled by loading: they can also deploy to the factory hex.
     if (storedUnit.type.placeByTransport && !onFactory) {

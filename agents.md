@@ -31,10 +31,12 @@ Facts wei need across sessions:
   `LEVEL_SOURCES.md`. Read that table before adding anything else from an
   archive. Hudson/Konami sprite and tile bitmaps remain off-limits: the
   pixel visual style imitates the era's idiom with original art.
-- **Open question with evidence already gathered:** our per-chassis movement
-  costs disagree with a published table; see "Open: our movement costs
-  disagree with a published table" in `MECHANICS.md` before touching
-  `js/data-terrain.js`.
+- **Movement costs are sourced, not guessed** (since 2026-09-01): they come
+  from a published per-chassis table, each row has a test, and the derivation
+  is in `MECHANICS.md`. Do not "simplify" them back. One documented item is
+  still open there — Lynx's range-2 indirect fire, which needs `rmax > 1` to
+  stop meaning "artillery" — plus the question of whether to retune the
+  campaign maps against the corrected costs.
 - **Rule constants live in data files**, not code: terrain costs/defense in
   `js/data-terrain.js`, roster in `js/data-units.js`, experience tiers in
   `js/combat.js` (top). The damage roll (`AP/(AP+DA)` per strength die) is a

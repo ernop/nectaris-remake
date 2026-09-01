@@ -26,7 +26,7 @@
 var UNIT_TYPES = {
   // Infantry — the only capturers.
   CHARLIE: { name: "Charlie GX-77", cls: "infantry", move: 3, moveType: "foot",   rmin: 1, rmax: 1, atkG: 10, atkA: 10, def: 4,  capture: true },
-  KILROY:  { name: "Kilroy GX-87",  cls: "infantry", move: 2, moveType: "foot",   rmin: 1, rmax: 1, atkG: 40, atkA: 10, def: 10, capture: true },
+  KILROY:  { name: "Kilroy GX-78",  cls: "infantry", move: 2, moveType: "foot",   rmin: 1, rmax: 1, atkG: 40, atkA: 10, def: 10, capture: true },
   PANTHER: { name: "Panther CBX-1", cls: "infantry", move: 9, moveType: "wheels", rmin: 1, rmax: 1, atkG: 10, atkA: 10, def: 8,  capture: true },
 
   // Tanks / armored ground.
@@ -36,7 +36,7 @@ var UNIT_TYPES = {
   GRIZZLY: { name: "Grizzly T-79",  cls: "tank", move: 4, moveType: "treads", rmin: 1, rmax: 1, atkG: 70, atkA: 0,  def: 50 },
   SLAGGER: { name: "Slagger GS-81", cls: "tank", move: 7, moveType: "treads", rmin: 1, rmax: 1, atkG: 50, atkA: 0,  def: 50 },
   TITAN:   { name: "Titan GT-86",   cls: "tank", move: 5, moveType: "treads", rmin: 1, rmax: 1, atkG: 60, atkA: 0,  def: 50 },
-  GIANT:   { name: "Giant HMB-2",   cls: "tank", move: 2, moveType: "treads", rmin: 1, rmax: 1, atkG: 90, atkA: 40, def: 80 },
+  GIANT:   { name: "Giant HMB-2",   cls: "tank", move: 2, moveType: "treads", rmin: 1, rmax: 1, atkG: 90, atkA: 40, def: 80, cannotEnter: ["waste"] },
 
   // Aircraft — cost 1 per hex, no terrain defense.
   EAGLE:   { name: "Eagle AX-87",   cls: "air", move: 10, moveType: "air", rmin: 1, rmax: 1, atkG: 70, atkA: 20, def: 30 },
@@ -48,9 +48,10 @@ var UNIT_TYPES = {
   OCTOPUS: { name: "Octopus MR-22", cls: "artillery", move: 4, moveType: "treads", rmin: 2, rmax: 4, atkG: 60, atkA: 0, def: 30 },
   ATLAS:   { name: "Atlas SS-80",   cls: "artillery", move: 0, moveType: "treads", rmin: 2, rmax: 6, atkG: 90, atkA: 0, def: 20, placeByTransport: true },
 
-  // Missile buggies — may keep moving after attacking.
-  RABBIT:  { name: "Rabbit MB-5",   cls: "buggy", move: 8, moveType: "wheels", rmin: 1, rmax: 1, atkG: 70, atkA: 10, def: 20, moveAfterAttack: true },
-  LYNX:    { name: "Lynx MB-4",     cls: "buggy", move: 6, moveType: "wheels", rmin: 1, rmax: 1, atkG: 40, atkA: 10, def: 20, moveAfterAttack: true },
+  // Missile buggies — may keep moving after attacking. They ride on wheels
+  // but the original rates them with the fighting vehicles, not the carriers.
+  RABBIT:  { name: "Rabbit MB-5",   cls: "buggy", move: 8, moveType: "treads", rmin: 1, rmax: 1, atkG: 70, atkA: 10, def: 20, moveAfterAttack: true },
+  LYNX:    { name: "Lynx MB-4",     cls: "buggy", move: 6, moveType: "treads", rmin: 1, rmax: 1, atkG: 40, atkA: 10, def: 20, moveAfterAttack: true },
 
   // Anti-air.
   SEEKER:  { name: "Seeker AAG-4",  cls: "antiair", move: 6, moveType: "treads", rmin: 1, rmax: 1, atkG: 30, atkA: 65, def: 30 },
@@ -68,6 +69,8 @@ var UNIT_TYPES = {
 
 /* Merge user-defined unit types (from the editor / custom JSON) over the
  * stock roster. Unknown fields pass through untouched. */
+var MOVE_TYPES = ["foot", "wheels", "treads", "air"];
+
 function mergeUnitTypes(customObj) {
   for (var k in customObj) {
     var id = k.toUpperCase();
@@ -75,6 +78,13 @@ function mergeUnitTypes(customObj) {
     def.id = id;
     if (!def.name) def.name = id;
     if (!def.cls) def.cls = "tank";
+    if (!def.moveType) def.moveType = "treads";
+    // A misspelled movement class would otherwise produce a unit that can
+    // enter no hex at all, which reads as a map bug rather than a typo.
+    if (MOVE_TYPES.indexOf(def.moveType) < 0) {
+      throw new Error("Custom unit " + id + ' has unknown moveType "' + def.moveType +
+        '". Use one of: ' + MOVE_TYPES.join(", ") + ".");
+    }
     if (def.rmin === undefined) def.rmin = def.rmax > 0 ? 1 : 0;
     UNIT_TYPES[id] = def;
   }
