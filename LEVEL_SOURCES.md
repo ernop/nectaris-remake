@@ -62,5 +62,36 @@ archive whose terms permit copying those map files into this repository:
   redistribution permission for the commercial map data, so those binaries
   are not imported here.
 
+Further research 2026-09-01 — where the user-map scene and its discussions
+live:
+
+- **BASE NECTARIS downloads are still live** (2004–2005 uploads): 13
+  unit-placed original maps (`bn_a001.nmd` … `bn_d001.nmd`, map names taken
+  from C standard library functions — ASSERT, WCSTOL, MALLOC, SETJMP…) at
+  [stage.htm](http://www.max.hi-ho.ne.jp/summoner/nectaris/down/stage.htm),
+  with per-map author hints and design commentary at
+  [bn_map/](http://www.max.hi-ho.ne.jp/summoner/nectaris/down/bn_map/index.htm),
+  plus blank terrain maps and save data that unlock the Windows version's
+  hidden 2-player and preview modes.
+- **The BASE NECTARIS BBS** (`max.hi-ho.ne.jp/cgi-bin/user/summoner/nec_bbs.cgi`)
+  is offline, but the Wayback Machine holds ~30 captures spanning 2006–2017
+  with full period threads: map release announcements, playthrough reports,
+  turn-by-turn strategy exchanges, and map-design advice from the site
+  admin (Crescent). Example capture:
+  [2006-05-03](http://web.archive.org/web/20060503211807/http://www.max.hi-ho.ne.jp:80/cgi-bin/user/summoner/nec_bbs.cgi).
+- **NECTARIS' website** (Naoto's Geocities site, terrain-edited original
+  maps plus DOS-Nectaris map guides) died with Yahoo! Geocities Japan
+  (2019-03) but is archived:
+  [2018-11 snapshot](http://web.archive.org/web/20181104001653/http://www.geocities.jp/naoto19690803/index.htm).
+  Naoto's maps are the ones dissected in the BASE NECTARIS BBS threads.
+- **Nectaris atwiki** ([w.atwiki.jp/nectaris](https://w.atwiki.jp/nectaris/))
+  is active: working download links for the Win95/Win98 freeware and
+  modern-OS install guides (winevdm for the 16-bit installer, DOSBox Pure,
+  Wine, Steam Deck).
+- Series history summary with distribution notes:
+  [ミリタリー・まとめネス](https://www.ne.jp/asahi/krk/kct/misc/nectaris.htm)
+  (notes that Hudson also published PS/GB and Neo-Nectaris-equivalent map
+  packs for the Windows version on its own site, now gone).
+
 An author can submit or publish a level under terms that allow redistribution;
 its source URL and author should remain attached to the level object.
