@@ -24,6 +24,8 @@ an original procedural chiptune score, and a level editor with URL sharing.
 | `js/ai.js` | Computer opponent |
 | `js/data-maps.js` | 16-mission campaign (original layouts, classic structure) |
 | `js/data-expansion-maps.js` | 12-map Lunar Frontiers online expansion |
+| `js/data-basenectaris-maps.js` | 12-map Base Nectaris terrain pack (bilingual briefings) |
+| `tools/nmd-to-level.js` | Converts a Windows-edition `.nmd` map file to a level |
 | `js/render.js` | Canvas renderer (all art procedural and original) |
 | `js/music.js` | Original synthesized military chiptune (Web Audio; no audio files) |
 | `js/ui.js`, `js/main.js` | Game UI and boot/menu |
@@ -103,21 +105,36 @@ automatically get the artillery rules: move or fire, no counters.
 
 ## Art style
 
-Two selectable visual styles, switched with the dropdown in the game's top
+Three selectable visual styles, switched with the dropdown in the game's top
 bar and persisted in `localStorage` under `nectaris-style` (decision
-2026-08-30; the editor follows the stored choice on load):
+2026-08-30, extended 2026-09-01; the editor follows the stored choice on
+load):
 
 - **Neon** (default): procedural neon wireframes from a reference palette
   image — dark plates with glowing faction-colored outlines, rib hatching,
   dashed pale details, and shared neon-yellow accents on weapons/canopies.
   Union = violet/magenta, Xenon = red, neutral = pale gray (the palette
   has no blue, so Union moved from blue to the magenta-violet band).
-- **Classic**: the remake's original look — solid painted silhouettes with
+- **Pixel**: original 16-wide sprite matrices drawn in the idiom of late-80s
+  console strategy art — hard outline, a three-tone ramp per faction, a white
+  specular on upper surfaces, yellow weapons. The *idiom* is borrowed from the
+  era; the sprites are ours, drawn as character matrices in `PIXEL_SPRITES`.
+  No bitmap from any release of the original game is used, traced or extracted
+  — see "Fidelity and originality" below.
+- **Classic**: the remake's first look — solid painted silhouettes with
   dark outlines. Union = blue, Xenon = red.
 
-Both styles share the same silhouette geometry per unit role. The palettes
-live at the top of `js/render.js` (`THEMES` + `NEON`); buildings tint from
-the same faction entries so ownership reads consistently in either style.
+The palettes live at the top of `js/render.js` (`THEMES` + `NEON`); buildings
+tint from the same faction entries so ownership reads consistently in every
+style.
+
+## Briefing language
+
+Level cards render in English or Japanese, chosen with the **Briefing
+language / 表示言語** selector on the mission menu and stored under
+`nectaris-lang`. A level supplies Japanese by adding `nameJa`,
+`descriptionJa`, `specialJa` and `tagsJa` beside the English fields; a level
+without them shows its English text in either setting.
 
 ## Fidelity and originality
 
@@ -128,9 +145,15 @@ the same faction entries so ownership reads consistently in either style.
   was never published).
 - **Unit names and stats** follow the documented original tables
   (functional game data).
-- **Art, sounds, and map layouts are original to this project.** The 16
-  campaign missions are new designs that follow the original campaign's
-  structure and difficulty curve, not copies of its map data. The 12-map
-  expansion is original too. Historical fan-map archives are linked but not
-  copied where their terms prohibit republication or map-data rights are
-  unclear.
+- **Art and sounds are original to this project**, including every unit
+  sprite in all three visual styles. No bitmap, tileset, or audio file from
+  any release of the original game is bundled, traced, or extracted.
+- **Map layouts** are original except for the Base Nectaris terrain pack,
+  whose hex layouts come from the unit-free `.nmd` files that BASE NECTARIS
+  published under an explicit grant to place units on them and repost the
+  result. The 16 campaign missions are new designs that follow the original
+  campaign's structure and difficulty curve, not copies of its map data; the
+  12-map Lunar Frontiers expansion is original too. Other historical fan-map
+  archives are linked but not copied where their terms prohibit republication
+  or map-data rights are unclear. See
+  [`LEVEL_SOURCES.md`](LEVEL_SOURCES.md).

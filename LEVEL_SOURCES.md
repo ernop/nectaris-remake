@@ -93,5 +93,48 @@ live:
   (notes that Hudson also published PS/GB and Neo-Nectaris-equivalent map
   packs for the Windows version on its own site, now gone).
 
+## Included pack: Base Nectaris Terrain (added 2026-09-01)
+
+`js/data-basenectaris-maps.js` holds twelve scenarios whose hex layouts come
+from BASE NECTARIS's **unit-free** map files. That page grants exactly the
+permission the pack relies on:
+
+> これらのマップデータにユニットを配置して、他のサイトなどに投稿していたただいてもかまいません。
+> ("You may place units on this map data and post it to other sites.")
+
+This is narrower than it looks, so the boundary matters:
+
+| Asset | Status | What we did |
+|---|---|---|
+| Unit-free terrain (`bnm_*.nmd`) | Explicit grant above | Converted the layouts; ship the derived levels |
+| The raw `.nmd` files | Not covered | Not committed; the converter reads files you download |
+| Unit-placed scenarios (`bn_*.nmd`) | Site-wide "無断転載禁止" | Not converted, not shipped |
+| Crescent's per-map hints and commentary | Same | Not reproduced; our briefings are newly written |
+| Windows-edition BMP sprites/tilesets | Hudson/Konami copyright | Not used; the pixel style is original art in the era's idiom |
+
+So the layouts are Crescent's; the rosters, deployments, camp/factory
+assignment, turn limits, map names and bilingual briefings are this project's.
+`CREALF` (`bnm_d001.nmd`, 32×22) is **excluded**: one of its cells uses tile
+index `0x5b`, which appears in no published screenshot, and the converter
+raises an error rather than guessing a terrain for it.
+
+### How the format was decoded
+
+`tools/nmd-to-level.js` documents the header layout, which matches the
+independent GPL-3.0 tool at
+[SourceK78/nectaris_gb_map_converter](https://github.com/SourceK78/nectaris_gb_map_converter).
+The hard part was the tile table: a `.nmd` cell stores a *scenery* index, not
+a terrain type, and the tileset carries many edge-transition variants per
+terrain (195 distinct indices across these maps). The mapping was recovered by
+fitting the 32×32 tile grid to the site's published map screenshots, taking a
+majority-vote image per index across 13 maps, and reading the terrain off each
+tile's centre — edges blend into neighbours, the centre does not. The result
+was checked by re-rendering each map as false colour beside its screenshot.
+The resulting table is functional data about a file format, in the same
+category as the stat and terrain tables described above; no tile artwork is
+copied into this repository.
+
+## Publishing your own
+
 An author can submit or publish a level under terms that allow redistribution;
 its source URL and author should remain attached to the level object.

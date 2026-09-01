@@ -21,10 +21,20 @@ Facts wei need across sessions:
   the former nested copy in `mybrowser` was removed after its newest changes
   were transferred here.
 - **IP posture (keep it this way):** mechanics/stat tables are functional
-  game data reimplemented from community documentation; art, music, and all
-  28 included map layouts are original. Do not import original assets,
-  sounds, ripped map data, or community archive files without explicit
-  redistribution permission. See `LEVEL_SOURCES.md` for archive research.
+  game data reimplemented from community documentation; art, music, and the
+  28 campaign + Lunar Frontiers map layouts are original. Do not import
+  original assets, sounds, ripped map data, or community archive files
+  without explicit redistribution permission. The one archive-derived
+  exception is the Base Nectaris terrain pack, which rests on a specific
+  written grant covering only the unit-free terrain files — the boundary of
+  what that grant does and does not cover is tabulated in
+  `LEVEL_SOURCES.md`. Read that table before adding anything else from an
+  archive. Hudson/Konami sprite and tile bitmaps remain off-limits: the
+  pixel visual style imitates the era's idiom with original art.
+- **Open question with evidence already gathered:** our per-chassis movement
+  costs disagree with a published table; see "Open: our movement costs
+  disagree with a published table" in `MECHANICS.md` before touching
+  `js/data-terrain.js`.
 - **Rule constants live in data files**, not code: terrain costs/defense in
   `js/data-terrain.js`, roster in `js/data-units.js`, experience tiers in
   `js/combat.js` (top). The damage roll (`AP/(AP+DA)` per strength die) is a

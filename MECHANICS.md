@@ -38,8 +38,33 @@ Special behaviors (all documented):
   percentages are the manual's published values (plains 5%, road 0%,
   wasteland 30%, hills 20%, mountains 40%, valley/bridge 0%, base 35%).
   Mountains and valleys are foot/air only. The cost numbers themselves are
-  reconstructed (the original's exact cost tables were not published) and are
-  plain data for modders to override.
+  reconstructed and are plain data for modders to override.
+
+### Open: our movement costs disagree with a published table (2026-09-01)
+
+While researching the archive map sources, a per-chassis cost table did turn
+up, on BASE NECTARIS's [terrain page](http://www.max.hi-ho.ne.jp/summoner/nectaris/tactics/chikei/index.htm).
+Its defense percentages match ours exactly, which is good evidence the page is
+reliable; its movement costs do not. It groups chassis differently from us —
+tanks, light armed vehicles (our buggies), self-propelled guns and AA vehicles
+share one column, the two infantry types a second, and the wheeled transports a
+third — where our `moveType` puts buggies and transports together under
+`wheels`. Mapping its columns onto ours, it disagrees on:
+
+| Terrain | Ours | That table |
+|---|---|---|
+| Wasteland | wheels 4, treads 2 | transports cannot enter; vehicles 3 (Giant cannot enter) |
+| Hills | foot 2, wheels 3 | foot 1, transports 4 |
+| Mountains | foot 3 | foot 2 |
+| Valley | foot 2 | costs the unit's entire movement allowance |
+
+Deliberately **not** applied yet. Adopting it is not a table edit: the valley
+rule is not a fixed cost, "Giant cannot enter wasteland" is a per-unit
+exception rather than a per-chassis one, and matching the source's chassis
+grouping means splitting `wheels` into a vehicle class and a transport class
+across `js/data-units.js`, `js/data-terrain.js` and the movement code. That
+would also re-balance all 40 shipped maps at once. Recorded here so the next
+session starts from the evidence rather than rediscovering it.
 - **Zone of Control** (documented): the six hexes around every unit. A unit
   starting inside an enemy ZOC may move only 1 hex; entering an enemy-ZOC hex
   ends the move. ZOC is cross-domain: aircraft block tanks and vice versa.
