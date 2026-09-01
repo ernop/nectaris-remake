@@ -159,7 +159,9 @@ var ENGINE = (function () {
     var ns = HEX.neighbors(unit.col, unit.row);
     for (var i = 0; i < ns.length; i++) {
       var n = ns[i];
-      if (!this.inBounds(n.col, n.row)) continue;
+      // Off-map hexes carry no ZOC, so a unit against the map edge can
+      // never be surrounded (the original is explicit about this).
+      if (!this.inBounds(n.col, n.row)) return false;
       var occ = this.unitAt(n.col, n.row);
       if (occ && occ.player !== unit.player) continue;
       if (this.inEnemyZOC(n.col, n.row, unit.player)) continue;
@@ -251,13 +253,12 @@ var ENGINE = (function () {
   /* Hexes the unit could attack from its current position. */
   Game.prototype.attackTargets = function (unit) {
     var out = [];
-    if (unit.type.rmax < 1) return out;
+    if (!unit.type.rngG && !unit.type.rngA) return out;
     for (var i = 0; i < this.units.length; i++) {
       var e = this.units[i];
       if (e.player === unit.player || e.carriedBy || e.inFactory) continue;
       var d = HEX.distance(unit.col, unit.row, e.col, e.row);
-      if (d < unit.type.rmin || d > unit.type.rmax) continue;
-      if (COMBAT.atkStat(unit.type, COMBAT.isAir(e)) <= 0) continue;
+      if (!COMBAT.canAttackAt(unit.type, COMBAT.isAir(e), d)) continue;
       out.push(e);
     }
     return out;
@@ -269,7 +270,7 @@ var ENGINE = (function () {
     range = range || this.movementRange(unit);
     var rec = range[HEX.key(col, row)];
     if (!rec || !rec.canStop) throw new Error("Illegal move");
-    if (unit.type.rmax > 1 && rec.cost > 0) unit.attackSpent = true; // ranged: move OR attack
+    if (unit.type.moveOrFire && rec.cost > 0) unit.attackSpent = true; // SP guns/Hawkeye: move OR fire
     unit.movePointsLeft -= rec.cost;
     if (rec.load) {
       var transport = this.unitAt(col, row);
@@ -299,6 +300,11 @@ var ENGINE = (function () {
         for (var i = 0; i < b.stored.length; i++) b.stored[i].player = unit.player;
         events.push({ t: "capture", kind: b.kind });
         this.log.push({ t: "capture", unit: unit.id, col: unit.col, row: unit.row });
+        // Published rule: capturing a factory earns the infantry +4 EXP.
+        // (Base capture wins the map outright, so no award matters there.)
+        if (b.kind !== "base") {
+          unit.exp = Math.min(COMBAT.MAX_EXP, unit.exp + 4);
+        }
         if (b.kind === "base" && this.enemyBaseCaptured(unit.player, b)) {
           this.winner = unit.player;
           this.winReason = "base";
@@ -328,7 +334,7 @@ var ENGINE = (function () {
   };
 
   Game.prototype.attack = function (attacker, defender) {
-    if (attacker.type.rmax > 1 && attacker.attackSpent) throw new Error("Ranged unit already moved");
+    if (attacker.type.moveOrFire && attacker.attackSpent) throw new Error("Move-or-fire unit already moved");
     var result = COMBAT.resolve(this, attacker, defender, this.rng);
     this.log.push({
       t: "battle", a: attacker.id, d: defender.id,

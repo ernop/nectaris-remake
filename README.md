@@ -99,9 +99,14 @@ New unit types are plain data — no code needed. Define them in the editor's
 the palette and work everywhere: `cls` picks the drawn silhouette
 (`infantry`, `tank`, `air`, `artillery`, `buggy`, `antiair`, `transport`,
 `mine`), `moveType` picks movement costs (`foot`, `wheels`, `treads`,
-`air`), and flags (`capture`, `moveAfterAttack`, `cargo`,
-`placeByTransport`) enable the special behaviors. Ranged units (`rmax` > 1)
-automatically get the artillery rules: move or fire, no counters.
+`air`), and flags (`capture`, `moveAfterAttack`, `moveOrFire`, `cargo`,
+`placeByTransport`) enable the special behaviors. Attack ranges are per
+target domain: `rngG` hexes against ground, `rngA` against air, and a range
+above 1 is indirect fire (band 2..range — it cannot hit an adjacent hex,
+and draws no counterattack). `moveOrFire` is a separate flag, not implied
+by range: the stock Lynx fires indirectly and still re-moves. Older custom
+units that specify a single `rmax` keep working; it is translated to both
+domains the unit can attack.
 
 ## Art style
 
@@ -143,10 +148,12 @@ without them shows its English text in either setting.
   terrain table) — see `MECHANICS.md` for the details and the one place
   where reconstruction was necessary (the damage roll, whose exact formula
   was never published).
-- **Unit names, stats and per-chassis movement costs** follow the documented
-  original tables (functional game data). The movement costs stopped being a
-  reconstruction on 2026-09-01; see `MECHANICS.md` for the source and the one
-  item still outstanding.
+- **Unit names, stats, ranges and per-chassis movement costs** follow the
+  documented original tables (functional game data). The movement costs,
+  per-domain attack ranges, surround/counterattack rules and experience
+  awards all stopped being reconstructions on 2026-09-01; the one remaining
+  reconstruction is the casualty roll, whose exact formula was never
+  published. See `MECHANICS.md`.
 - **Art and sounds are original to this project**, including every unit
   sprite in all three visual styles. No bitmap, tileset, or audio file from
   any release of the original game is bundled, traced, or extracted.

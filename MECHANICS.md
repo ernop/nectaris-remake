@@ -77,27 +77,23 @@ Each row above has a test in `test/run-tests.js` under "per-chassis terrain
 costs". The change moved AI-vs-AI self-play from 17/40 to 11/40 wins for
 player 0 — see "Balance after the cost change" below.
 
-### Open: Lynx is a ranged unit that can still move (2026-09-01)
+### Adopted: per-domain ranges and the Lynx (2026-09-01, same day)
 
-The same unit page gives Lynx (MB-4) a **ground range of 2 and an air range of
-1**, and its description is explicit that it fires indirectly *and* re-moves
-afterwards: 「間接攻撃後の再移動をうまく使えば、敵のZOCを安全に突き進めます」.
-Ours has range 1 for both.
+The Lynx item above was adopted the same day, on the instruction that the
+original's behavior is the spec. The single `rmin`/`rmax` pair was replaced
+with per-domain maximum ranges `rngG`/`rngA` (band 2..range when above 1),
+"move or fire" became the explicit `moveOrFire` flag on the three
+self-propelled guns and the Hawkeye, and counterattack eligibility now falls
+out of the defender's own band — no special artillery case remains. Verified
+against BASE NECTARIS's unit page, StrategyWiki's US tables, and the TG-16
+and PlayStation FAQs, which agree with each other. Custom units written
+against the old `rmin`/`rmax` schema still load: `mergeUnitTypes` translates
+the legacy fields.
 
-Not adopted, because it is a model change rather than a number:
-
-1. This engine treats `rmax > 1` as the definition of "artillery" — move or
-   fire, never both, no counterattacks — in about a dozen places across
-   `engine.js`, `combat.js`, `ai.js` and `ui.js`. Giving Lynx range 2 under
-   that rule would silently take away the move-after-attack that its
-   description calls its whole point. Separating the two needs an explicit
-   `indirect` flag on the self-propelled guns and Hawkeye instead.
-2. A single `rmin`/`rmax` pair cannot express range 2 against ground and 1
-   against air. That needs per-target ranges through target selection and the
-   combat preview.
-
-Both are tractable and well-evidenced; neither is a one-line edit, and each
-changes how a unit plays rather than correcting a wrong number.
+Adopted from the same sweep (special-effects and EXP pages): surround
+penalizes only the defender and never at the map edge; combat powers ceiling
+at 999; defender experience awards +2 when its counterattack destroys the
+attacker; infantry earns +4 experience for capturing a factory.
 
 ### Balance after the cost change
 
@@ -131,30 +127,53 @@ Both sides' values are computed through four steps, flooring after each step
 1. **Experience.** Per-strength base attack/defense are raised by the tier
    table: +4%/+5% (level 1), +10%, +20%, +30%, +40%, +60%, +100% (levels 7
    and 8). Attack Power = strength × modified base attack.
-2. **Surround** (direct combat only). A unit is surrounded when all six
-   adjacent hexes are occupied by, or adjacent to, enemy units; its attack
-   and defense are halved. Off-map hexes count toward the surround (map
-   edges help the surrounder).
+2. **Surround** (direct combat only, defender only — corrected 2026-09-01
+   against the published special-effects page). A unit is surrounded when
+   all six adjacent hexes are occupied by, or adjacent to, enemy units; when
+   *attacked* in that state its attack and defense are halved. A surrounded
+   unit that itself attacks suffers nothing, and a unit against the map edge
+   can never be surrounded, because off-map hexes carry no ZOC.
 3. **Support** (direct combat only). The attacker adds 50% of each adjacent
    ally-of-the-attacker-next-to-the-defender's attack power; the defender
    adds 50% of each ally-next-to-the-attacker's defense power, capped at 2×
-   the defender's post-experience defense. Support uses the ally's relevant
-   stat: an ally with no air attack contributes nothing against an air
-   target.
+   the defender's post-experience defense. Attack support uses the ally's
+   relevant stat (an ally with no air attack contributes nothing against an
+   air target); defense support flows from any adjacent ally. The published
+   page's worked examples (Seeker +680 from two Hawkeyes, +320 from two
+   Bisons) reproduce exactly under these formulas.
 4. **Terrain.** The defender's defense rises by the terrain percentage
    (ground units only). If the bonus rounds down to zero, nothing is added.
+
+Both final powers ceiling at 999, the original calculator's three-digit top.
+
+**Ranges are per target domain** (corrected 2026-09-01): `rngG` hexes against
+ground targets, `rngA` against air, and any range above 1 is indirect fire
+with a band of 2..range — it cannot hit an adjacent hex. So the Lynx (ground
+2 / air 1) shoots ground targets only at exactly two hexes yet must be
+adjacent to hit aircraft, and it keeps its move-after-attack; the Hawkeye
+(air 2–5) cannot shoot an adjacent aircraft. "Move or fire, never both" is a
+separate flag (`moveOrFire`) carried by the three self-propelled guns and the
+Hawkeye — it is not implied by being ranged, which is exactly the Lynx's
+trick. A defender counterattacks only in adjacent combat and only when its
+own band against the attacker's domain includes distance 1, which is why
+indirect exchanges involve no counterattack at all, in either direction.
 
 **Damage roll (reconstructed).** The original's exact casualty formula was
 never published. This remake rolls one die per attacker strength point with
 kill probability `AP / (AP + DA)`; both sides fire simultaneously in direct
-combat, computed from pre-battle strengths. Ranged attacks draw no counter.
+combat, computed from pre-battle strengths.
 The result matches the original's observed feel: even fights at full strength
 cost the defender ~3–5 points, outmatched attacks bounce off. Seedable RNG
 (`COMBAT.makeRng`) keeps tests and replays deterministic.
 
-**Experience awards (documented):** destroy the defender → attacker +2;
-damage without destroying → both +1; fail to damage → defender +2. Max 8;
-7–8 stars mean double stats.
+**Experience awards (published table):** attacking — no damage +0, damage +1,
+kill +2. Defending — unhurt +2, hurt +1, counterattack destroys the attacker
++2. Infantry earns +4 for capturing a factory. Max 8; the 7→8 step adds no
+stats, so 7 is the effective ceiling.
+
+One naming note: the Japanese unit page designates the heavy infantry GX-78
+(ダーベック); the US release, whose English names this remake uses, prints
+GX-87 Kilroy. We follow the US designation to match the names.
 
 ## Factories and bases
 

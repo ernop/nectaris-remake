@@ -285,24 +285,85 @@ var pv7 = COMBAT.preview(g7, atk7, def7);
 // support step: 400 + floor(0.5*50*8)=+200 => 600
 ok(pv7.attacker.steps[2].ap === 600, "support fire adds 50% of ally power (600), got " + pv7.attacker.steps[2].ap);
 
-// Surround: enemy on both sides + ZOC covering all adjacents halves defender.
+// Surround: sandwiching so friendly ZOC covers every adjacent hex halves the
+// defender — away from the map edge, since off-map hexes carry no ZOC.
 var g8 = new ENGINE.Game({
   name: "T8", turnLimit: 50,
+  grid: ["........", "........", "........", "B......B"],
+  buildings: [{ col: 0, row: 3, owner: 0 }, { col: 7, row: 3, owner: 1 }],
+  units: [
+    { t: "BISON", o: 1, x: 3, y: 1 },   // defender, one row in from the edge
+    { t: "BISON", o: 0, x: 2, y: 1 },
+    { t: "BISON", o: 0, x: 4, y: 1 },
+    { t: "BISON", o: 0, x: 3, y: 0 },
+    { t: "BISON", o: 0, x: 3, y: 2 },
+    { t: "BISON", o: 0, x: 2, y: 2 },
+    { t: "BISON", o: 0, x: 4, y: 2 },
+  ],
+}, { seed: 1 });
+var def8 = g8.unitAt(3, 1);
+ok(g8.isSurrounded(def8) === true, "defender with all adjacents covered is surrounded");
+var pv8 = COMBAT.preview(g8, g8.unitAt(2, 1), def8);
+ok(pv8.defender.steps[1].da === Math.floor(40 / 2) * 8, "surrounded defender DEF halved, got " + pv8.defender.steps[1].da);
+// Only the defender suffers: the same surrounded unit attacking loses nothing.
+var pv8r = COMBAT.preview(g8, def8, g8.unitAt(2, 1));
+ok(pv8r.attacker.steps[1].ap === pv8r.attacker.steps[0].ap,
+   "a surrounded unit's own attack is not halved");
+// Map edge: an identical sandwich against the top edge is not a surround.
+var g8e = new ENGINE.Game({
+  name: "T8E", turnLimit: 50,
   grid: ["........", "........", "B......B"],
   buildings: [{ col: 0, row: 2, owner: 0 }, { col: 7, row: 2, owner: 1 }],
   units: [
-    { t: "BISON", o: 1, x: 3, y: 0 },   // defender
+    { t: "BISON", o: 1, x: 3, y: 0 },
     { t: "BISON", o: 0, x: 2, y: 0 },
     { t: "BISON", o: 0, x: 4, y: 0 },
     { t: "BISON", o: 0, x: 3, y: 1 },
-    { t: "BISON", o: 0, x: 2, y: 1 },   // wait — need coverage of all six
+    { t: "BISON", o: 0, x: 2, y: 1 },
     { t: "BISON", o: 0, x: 4, y: 1 },
   ],
 }, { seed: 1 });
-var def8 = g8.unitAt(3, 0);
-ok(g8.isSurrounded(def8) === true, "defender with all adjacents covered is surrounded");
-var pv8 = COMBAT.preview(g8, g8.unitAt(2, 0), def8);
-ok(pv8.defender.steps[1].da === Math.floor(40 / 2) * 8, "surrounded defender DEF halved, got " + pv8.defender.steps[1].da);
+ok(g8e.isSurrounded(g8e.unitAt(3, 0)) === false,
+   "a unit against the map edge can never be surrounded");
+
+section("per-domain ranges and move-or-fire");
+// Lynx: ground targets only at exactly two hexes, air only adjacent,
+// re-move preserved; artillery may move or fire but not both.
+var g9r = new ENGINE.Game({
+  name: "T9R", turnLimit: 50,
+  grid: ["..........", "..........", "B........B"],
+  buildings: [{ col: 0, row: 2, owner: 0 }, { col: 9, row: 2, owner: 1 }],
+  units: [
+    { t: "LYNX", o: 0, x: 2, y: 0 },
+    { t: "BISON", o: 1, x: 3, y: 0 },    // adjacent ground: NOT attackable
+    { t: "LENET", o: 1, x: 4, y: 0 },    // two hexes out: attackable
+    { t: "HUNTER", o: 1, x: 2, y: 1 },   // adjacent air: attackable
+    { t: "HADRIAN", o: 0, x: 6, y: 2 },
+    { t: "GRIZZLY", o: 1, x: 8, y: 2 },
+  ],
+}, { seed: 5 });
+var lynx = g9r.unitAt(2, 0);
+var lynxTargets = g9r.attackTargets(lynx).map(function (u) { return u.typeId; }).sort();
+ok(lynxTargets.join(",") === "HUNTER,LENET",
+   "Lynx hits ground at 2 and air at 1, never adjacent ground (got " + lynxTargets.join(",") + ")");
+ok(COMBAT.rangeBand(UNIT_TYPES.LYNX, false).min === 2, "Lynx ground band starts at 2");
+var pvLynx = COMBAT.preview(g9r, lynx, g9r.unitAt(4, 0));
+ok(pvLynx.counter === false, "no counterattack against Lynx indirect fire");
+var pvOnLynx = COMBAT.preview(g9r, g9r.unitAt(3, 0), lynx);
+ok(pvOnLynx.counter === false, "Lynx cannot counter an adjacent ground attack");
+var pvAirOnLynx = COMBAT.preview(g9r, g9r.unitAt(2, 1), lynx);
+ok(pvAirOnLynx.counter === true, "Lynx counters an adjacent air attack");
+ok(!UNIT_TYPES.LYNX.moveOrFire && UNIT_TYPES.LYNX.moveAfterAttack,
+   "Lynx keeps its move-after-attack despite firing indirectly");
+// Artillery: firing after moving is rejected; artillery never counters.
+var had = g9r.unitAt(6, 2);
+var hadRange = g9r.movementRange(had);
+g9r.moveUnit(had, 5, 2, hadRange);
+ok(had.attackSpent === true, "artillery that moved cannot fire this turn");
+var pvOnHad = COMBAT.preview(g9r, g9r.unitAt(8, 2), had);
+ok(pvOnHad.counter === false, "artillery cannot counter adjacent attacks");
+ok(COMBAT.canAttackAt(UNIT_TYPES.HAWKEYE, true, 2) && !COMBAT.canAttackAt(UNIT_TYPES.HAWKEYE, true, 1),
+   "Hawkeye reaches air at 2-5 but never adjacent");
 
 section("factories, capture, repair");
 var g9 = new ENGINE.Game({
@@ -368,6 +429,40 @@ var gz = g12.unitAt(2, 0), chd = g12.unitAt(3, 0);
 var res12 = g12.attack(gz, chd);
 ok(res12.defenderDead, "grizzly kills 1-strength charlie");
 ok(gz.exp === 2, "attacker gains 2 exp for a kill, got " + gz.exp);
+
+// A defender whose counterattack destroys the attacker outright earns +2.
+var g13 = new ENGINE.Game({
+  name: "T13", turnLimit: 50,
+  grid: ["........", "........", "B......B"],
+  buildings: [{ col: 0, row: 2, owner: 0 }, { col: 7, row: 2, owner: 1 }],
+  units: [{ t: "CHARLIE", o: 0, x: 2, y: 0, str: 1 }, { t: "POLAR", o: 1, x: 3, y: 0 }],
+}, { seed: 11 });
+var ch13 = g13.unitAt(2, 0), po13 = g13.unitAt(3, 0);
+var res13 = g13.attack(ch13, po13);
+if (res13.attackerDead && !res13.defenderDead) {
+  ok(po13.exp === 2, "defender whose counter kills the attacker gains 2 exp, got " + po13.exp);
+} else {
+  ok(po13.exp === (res13.dmgToDefender > 0 ? 1 : 2),
+     "defender exp follows the published table, got " + po13.exp);
+}
+
+// Capturing a factory earns the infantry +4 EXP; the flag and repair still work.
+var g14 = new ENGINE.Game({
+  name: "T14", turnLimit: 50,
+  grid: ["B.F....B"],
+  buildings: [
+    { col: 0, row: 0, owner: 0 },
+    { col: 7, row: 0, owner: 1 },
+    { col: 2, row: 0, owner: -1 },
+  ],
+  units: [{ t: "CHARLIE", o: 0, x: 1, y: 0 }],
+}, { seed: 2 });
+var cap = g14.unitAt(1, 0);
+var capRange = g14.movementRange(cap);
+g14.moveUnit(cap, 2, 0, capRange);
+g14.finishUnit(cap);
+ok(g14.buildingAt(2, 0).owner === 0, "infantry captures the neutral factory");
+ok(cap.exp === 4, "factory capture awards +4 exp, got " + cap.exp);
 
 /* ---------- 3. AI self-play ---------- */
 

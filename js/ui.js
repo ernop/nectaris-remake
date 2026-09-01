@@ -14,6 +14,13 @@ var UI = (function () {
 
   function $(id) { return document.getElementById(id); }
 
+  /* Human-readable attack band vs one domain, e.g. "1", "2–5", or "—". */
+  function bandText(unitType, targetIsAir) {
+    var band = COMBAT.rangeBand(unitType, targetIsAir);
+    if (!band) return "—";
+    return band.min === band.max ? "" + band.max : band.min + "–" + band.max;
+  }
+
   function GameUI(canvas, game, options) {
     var self = this;
     this.canvas = canvas;
@@ -133,11 +140,11 @@ var UI = (function () {
       "<tr><td>Atk G / A</td><td>" + (t.atkG || "—") + " / " + (t.atkA || "—") + "</td></tr>" +
       "<tr><td>Defense</td><td>" + t.def + "</td></tr>" +
       "<tr><td>Move</td><td>" + (t.move || "—") + " (" + t.moveType + ")</td></tr>" +
-      "<tr><td>Range</td><td>" + (t.rmax ? t.rmin + "–" + t.rmax : "—") + "</td></tr>" +
+      "<tr><td>Range G / A</td><td>" + bandText(t, false) + " / " + bandText(t, true) + "</td></tr>" +
       "<tr><td>Terrain</td><td>" + terr.name + " +" + (t.moveType === "air" ? 0 : terr.def) + "%</td></tr>" +
       (t.capture ? "<tr><td colspan='2'>Can capture buildings</td></tr>" : "") +
       (t.moveAfterAttack ? "<tr><td colspan='2'>May move after attacking</td></tr>" : "") +
-      (t.rmax > 1 ? "<tr><td colspan='2'>Ranged: move or fire, no counters</td></tr>" : "") +
+      (t.moveOrFire ? "<tr><td colspan='2'>May move or fire, never both</td></tr>" : "") +
       "</table>";
   };
 
@@ -161,7 +168,7 @@ var UI = (function () {
     var menu = $("action-menu");
     menu.innerHTML = "";
     var targets = g.attackTargets(unit);
-    var canAttack = targets.length > 0 && !(unit.type.rmax > 1 && unit.attackSpent) && !unit.attacked;
+    var canAttack = targets.length > 0 && !(unit.type.moveOrFire && unit.attackSpent) && !unit.attacked;
 
     function add(label, enabled, fn) {
       var b = document.createElement("button");
@@ -319,23 +326,26 @@ var UI = (function () {
   };
 
   GameUI.prototype.previewTargets = function (unit) {
-    // direct attackers: any enemy adjacent to a reachable stop hex
+    // mobile attackers: any enemy in firing range of a reachable stop hex
     var g = this.game, out = [], seen = {};
-    if (unit.type.rmax > 1) {
+    if (unit.type.moveOrFire) {
       if (!unit.attackSpent && !unit.attacked) return g.attackTargets(unit);
       return [];
     }
     if (unit.attacked) return [];
+    var enemies = g.playerUnits(1 - unit.player).filter(function (e) {
+      return !e.carriedBy && !e.inFactory;
+    });
     for (var k in this.range) {
       var rec = this.range[k];
       if (!rec.canStop || rec.load) continue;
       var occ = g.unitAt(rec.col, rec.row);
       if (occ && occ !== unit) continue;
-      var ns = HEX.neighbors(rec.col, rec.row);
-      for (var i = 0; i < ns.length; i++) {
-        var e = g.unitAt(ns[i].col, ns[i].row);
-        if (e && e.player !== unit.player && !seen[e.id] &&
-            COMBAT.atkStat(unit.type, COMBAT.isAir(e)) > 0) {
+      for (var i = 0; i < enemies.length; i++) {
+        var e = enemies[i];
+        if (!seen[e.id] &&
+            COMBAT.canAttackAt(unit.type, COMBAT.isAir(e),
+              HEX.distance(rec.col, rec.row, e.col, e.row))) {
           seen[e.id] = true; out.push(e);
         }
       }
@@ -372,7 +382,7 @@ var UI = (function () {
     }
     var targets = this.game.attackTargets(unit);
     var canAttack = targets.length > 0 &&
-      !(unit.type.rmax > 1 && unit.attackSpent) && !unit.attacked;
+      !(unit.type.moveOrFire && unit.attackSpent) && !unit.attacked;
     var canUnload = unit.cargo && unit.cargo.length &&
       this.hasUnloadDestination(unit, unit.cargo[0]);
     // No decision remains: commit immediately. This removes the redundant
@@ -593,8 +603,9 @@ var UI = (function () {
 
   GameUI.prototype.quickAttack = function (unit, enemy) {
     var g = this.game, self = this;
+    var enemyAir = COMBAT.isAir(enemy);
     var d = HEX.distance(unit.col, unit.row, enemy.col, enemy.row);
-    if (d >= unit.type.rmin && d <= unit.type.rmax) {
+    if (COMBAT.canAttackAt(unit.type, enemyAir, d)) {
       this.renderer.highlights = null;
       this.showBattle(unit, enemy, function (result) {
         if (result && g.units.indexOf(unit) >= 0 && unit.type.moveAfterAttack && unit.movePointsLeft > 0 && !unit.moved) self.selectUnit(unit);
@@ -603,15 +614,15 @@ var UI = (function () {
       });
       return;
     }
-    if (unit.type.rmax !== 1) { this.toast("Out of range"); return; }
-    // find cheapest reachable stop adjacent to the enemy
+    if (unit.type.moveOrFire) { this.toast("Out of range"); return; }
+    // find the cheapest reachable stop inside firing range of the enemy
     var best = null;
     for (var k in this.range) {
       var rec = this.range[k];
       if (!rec.canStop || rec.load) continue;
       var occ = g.unitAt(rec.col, rec.row);
       if (occ && occ !== unit) continue;
-      if (HEX.distance(rec.col, rec.row, enemy.col, enemy.row) === 1) {
+      if (COMBAT.canAttackAt(unit.type, enemyAir, HEX.distance(rec.col, rec.row, enemy.col, enemy.row))) {
         if (!best || rec.cost < best.cost) best = rec;
       }
     }
