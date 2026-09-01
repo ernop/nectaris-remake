@@ -21,7 +21,8 @@ global.ENGINE = ENGINE;
 var AI = require(path.join(__dirname, "../js/ai.js"));
 var CAMPAIGN = require(path.join(__dirname, "../js/data-maps.js"));
 var EXPANSION_LEVELS = require(path.join(__dirname, "../js/data-expansion-maps.js"));
-var ALL_MAPS = CAMPAIGN.concat(EXPANSION_LEVELS);
+var BASE_NECTARIS_LEVELS = require(path.join(__dirname, "../js/data-basenectaris-maps.js")).BASE_NECTARIS_LEVELS;
+var ALL_MAPS = CAMPAIGN.concat(EXPANSION_LEVELS, BASE_NECTARIS_LEVELS);
 
 var failures = 0, checks = 0;
 function ok(cond, msg) {
