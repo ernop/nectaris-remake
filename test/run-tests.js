@@ -381,15 +381,62 @@ g9.finishUnit(ch9);
 var fac9 = g9.buildingAt(0, 0);
 ok(fac9.owner === 0, "infantry captured neutral factory");
 ok(fac9.stored[0].player === 0, "stored unit defected to captor");
-// deploy blocked while captor stands on the factory
+ok(g9.unitAt(0, 0) === ch9, "the capturer stays on the factory hex");
+// deploying never targets the factory hex — an exit hex is chosen instead
 var threw = false;
 try { g9.deployFromFactory(fac9, fac9.stored[0], 0, 0); } catch (e) { threw = true; }
-ok(threw, "cannot deploy onto occupied factory hex");
-// repair on entering own building
-ch9.strength = 2;
-ch9.moved = false; ch9.movePointsLeft = ch9.type.move;
-g9.finishUnit(ch9);
-ok(ch9.strength === 8, "unit repaired to full on own building");
+ok(threw, "cannot deploy onto the factory hex itself");
+var lynx9 = fac9.stored[0];
+g9.deployFromFactory(fac9, lynx9, 1, 0);
+ok(g9.unitAt(1, 0) === lynx9 && lynx9.moved, "deploys to a chosen adjacent hex, turn spent");
+
+// Storage: stopping on a factory you already own takes the unit inside,
+// repairs it to full, and holds it until at least the next turn.
+var g9b = new ENGINE.Game({
+  name: "T9B", turnLimit: 50,
+  grid: ["Fh......", "........", "B......B"],
+  buildings: [
+    { col: 0, row: 0, owner: 0 },
+    { col: 0, row: 2, owner: 0 }, { col: 7, row: 2, owner: 1 },
+  ],
+  units: [{ t: "BISON", o: 0, x: 2, y: 0, str: 2 }, { t: "BISON", o: 1, x: 7, y: 0 }],
+}, { seed: 1 });
+var fac9b = g9b.buildingAt(0, 0);
+var bi9 = g9b.unitAt(2, 0);
+g9b.moveUnit(bi9, 0, 0);
+g9b.finishUnit(bi9);
+ok(!g9b.unitAt(0, 0), "unit stopping on its own factory goes inside");
+ok(fac9b.stored.indexOf(bi9) >= 0 && bi9.strength === 8, "stored unit is repaired to full");
+threw = false;
+try { g9b.deployFromFactory(fac9b, bi9, 0, 1); } catch (e) { threw = true; }
+ok(threw, "a unit stored this turn cannot come back out");
+g9b.endTurn(); g9b.endTurn();  // back to player 0
+threw = false;
+try { g9b.deployFromFactory(fac9b, bi9, 1, 0); } catch (e) { threw = true; }
+ok(threw, "cannot deploy onto hills — exits are plains, road or bridge");
+g9b.deployFromFactory(fac9b, bi9, 0, 1);
+ok(g9b.unitAt(0, 1) === bi9 && bi9.strength === 8, "repaired unit deploys the next turn");
+
+// A non-capturing unit can pass through but never stop on a factory it
+// does not own.
+var g9c = new ENGINE.Game({
+  name: "T9C", turnLimit: 50,
+  grid: [".F......", "........", "B......B"],
+  buildings: [
+    { col: 1, row: 0, owner: -1 },
+    { col: 0, row: 2, owner: 0 }, { col: 7, row: 2, owner: 1 },
+  ],
+  units: [{ t: "BISON", o: 0, x: 0, y: 0 }, { t: "CHARLIE", o: 0, x: 0, y: 1 }],
+}, { seed: 1 });
+var bi9c = g9c.unitAt(0, 0);
+var range9c = g9c.movementRange(bi9c);
+var recF = range9c[HEX.key(1, 0)];
+ok(recF && !recF.canStop, "tank cannot stop on a factory it does not own");
+ok(!!range9c[HEX.key(3, 0)], "…but passes through it freely");
+var ch9c = g9c.unitAt(0, 1);
+var rangeCh = g9c.movementRange(ch9c);
+var recFCh = rangeCh[HEX.key(1, 0)];
+ok(recFCh && recFCh.canStop, "infantry may stop there (that is the capture)");
 // base capture wins
 var g10 = new ENGINE.Game({
   name: "T10", turnLimit: 50,

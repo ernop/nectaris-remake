@@ -34,11 +34,12 @@ Facts wei need across sessions:
 - **Rules are sourced, not guessed** (since 2026-09-01): movement costs,
   per-domain attack ranges (`rngG`/`rngA`, indirect band 2..range),
   `moveOrFire`, surround (defender-only, never at the map edge), counter
-  eligibility, the 999 power ceiling, and the experience table all follow the
-  published documentation, each with tests. Do not "simplify" them back. The
-  one remaining reconstruction is the casualty roll (formula never
-  published). Open design question: whether to retune the campaign maps,
-  which were built against the old reconstructed rules.
+  eligibility, the 999 power ceiling, the experience table, and the factory
+  model (store-to-repair, adjacent-exit deployment, no stopping on unowned
+  factories) all follow the published documentation, each with tests. Do not
+  "simplify" them back. The one remaining reconstruction is the casualty
+  roll (formula never published). Open design question: whether to retune
+  the campaign maps, which were built against the old reconstructed rules.
 - **Rule constants live in data files**, not code: terrain costs/defense in
   `js/data-terrain.js`, roster in `js/data-units.js`, experience tiers in
   `js/combat.js` (top). The damage roll (`AP/(AP+DA)` per strength die) is a
