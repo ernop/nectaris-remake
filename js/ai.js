@@ -108,6 +108,33 @@ var AI = (function () {
     return bestKey ? range[bestKey] : null;
   }
 
+  /* Missile buggies use their remaining movement to increase separation from
+   * the nearest enemy, breaking ties in favor of defensive terrain. */
+  function bestPostAttackStep(game, unit, range) {
+    var foes = game.playerUnits(1 - unit.player);
+    var best = null, bestScore = -Infinity;
+    for (var k in range) {
+      var rec = range[k];
+      if (!rec.canStop || rec.load) continue;
+      if (rec.col === unit.col && rec.row === unit.row) continue;
+      var occ = game.unitAt(rec.col, rec.row);
+      if (occ && occ !== unit) continue;
+      var nearest = Infinity;
+      for (var i = 0; i < foes.length; i++) {
+        nearest = Math.min(nearest,
+          HEX.distance(rec.col, rec.row, foes[i].col, foes[i].row));
+      }
+      var terrainDefense = unit.type.moveType === "air" ?
+        0 : game.terrainAt(rec.col, rec.row).def;
+      var score = nearest * 10 + terrainDefense * 0.05;
+      if (score > bestScore) {
+        bestScore = score;
+        best = rec;
+      }
+    }
+    return best;
+  }
+
   /* Best (destination, target) attack plan for a unit. Move-or-fire units
    * attack from where they stand; everything else (including the Lynx, whose
    * ground band is exactly 2) searches move destinations, with attackTargets
@@ -234,6 +261,27 @@ var AI = (function () {
     var unitIndex = 0;
     var pending = [];
 
+    function queuePostAttackMove(unit) {
+      pending.push(function () {
+        var range = game.movementRange(unit);
+        var dest = bestPostAttackStep(game, unit, range);
+        if (!dest) {
+          var finishEffects = game.finishUnit(unit);
+          return finishEffects.length ?
+            { t: "finish", unit: unit, effects: finishEffects } :
+            { t: "wait", unit: unit };
+        }
+        var from = { col: unit.col, row: unit.row };
+        game.moveUnit(unit, dest.col, dest.row, range);
+        var effects = game.finishUnit(unit);
+        return {
+          t: "move", unit: unit, from: from,
+          to: { col: dest.col, row: dest.row },
+          reason: "post-attack", effects: effects,
+        };
+      });
+    }
+
     function queueAction(unit, action) {
       if (action.kind === "finish") {
         pending.push(function () {
@@ -282,7 +330,14 @@ var AI = (function () {
       });
       pending.push(function () {
         var result = game.attack(unit, action.target);
-        if (game.units.indexOf(unit) >= 0 && !unit.moved) game.finishUnit(unit);
+        if (game.units.indexOf(unit) >= 0 && !unit.moved) {
+          if (unit.type.moveAfterAttack && unit.movePointsLeft > 0 &&
+              game.winner === null) {
+            queuePostAttackMove(unit);
+          } else {
+            game.finishUnit(unit);
+          }
+        }
         return {
           t: "battle", attacker: unit, defender: action.target,
           attackerBefore: attackerBefore, defenderBefore: defenderBefore,

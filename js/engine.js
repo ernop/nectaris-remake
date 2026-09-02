@@ -360,6 +360,8 @@ var ENGINE = (function () {
   };
 
   Game.prototype.attack = function (attacker, defender) {
+    if (attacker.attacked) throw new Error("Unit already attacked this turn");
+    if (attacker.moved) throw new Error("Unit already finished its turn");
     if (attacker.type.moveOrFire && attacker.attackSpent) throw new Error("Move-or-fire unit already moved");
     var result = COMBAT.resolve(this, attacker, defender, this.rng);
     this.log.push({
@@ -369,8 +371,9 @@ var ENGINE = (function () {
     if (result.defenderDead) this.removeUnit(defender);
     if (result.attackerDead) this.removeUnit(attacker);
     if (!result.attackerDead) {
+      attacker.attacked = true;
       if (attacker.type.moveAfterAttack && attacker.movePointsLeft > 0) {
-        attacker.attacked = true; // may still move; UI decides when to finish
+        // The activation remains open so the remaining movement can be spent.
       } else {
         this.finishUnit(attacker);
       }

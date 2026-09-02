@@ -98,14 +98,6 @@ ok(ns.length === 6, "6 neighbors");
 ns.forEach(function (n) {
   ok(HEX.distance(4, 4, n.col, n.row) === 1, "neighbor at distance 1: " + n.col + "," + n.row);
 });
-var exitsEven = HEX.neighborsClockwiseFromLowerLeft(2, 2);
-ok(exitsEven.map(function (n) { return n.col + "," + n.row; }).join(" ") ===
-  "1,2 1,1 2,1 3,1 3,2 2,3",
-  "even-column factory exits start lower-left and proceed clockwise");
-var exitsOdd = HEX.neighborsClockwiseFromLowerLeft(3, 2);
-ok(exitsOdd.map(function (n) { return n.col + "," + n.row; }).join(" ") ===
-  "2,3 2,2 3,1 4,2 4,3 3,3",
-  "odd-column factory exits start lower-left and proceed clockwise");
 // pixel round-trip
 for (var c = 0; c < 8; c++) {
   for (var r = 0; r < 8; r++) {
@@ -167,6 +159,21 @@ RENDER.drawUnitIcon({
 }, { typeId: "BISON", type: UNIT_TYPES.BISON, player: 1 });
 ok(thumbnailScales.some(function (scale) { return scale[0] === -1 && scale[1] === 1; }),
   "Xenon unit silhouettes are reflected to face left");
+var mapUnitDraws = true;
+try {
+  ["neon", "pixel", "classic"].forEach(function (style) {
+    RENDER.setStyle(style);
+    renderer.ctx = thumbnailContext;
+    renderer.drawUnit({
+      id: "renderer-test", typeId: "BISON", type: UNIT_TYPES.BISON,
+      player: 0, col: 1, row: 1, moved: false, strength: 8, exp: 0, cargo: [],
+    });
+  });
+} catch (err) {
+  mapUnitDraws = false;
+}
+RENDER.setStyle("neon");
+ok(mapUnitDraws, "map unit chrome renders in neon, pixel, and classic styles");
 
 section("movement and ZOC");
 var testMap = {
@@ -273,6 +280,47 @@ ok(threw, "a mine cannot be set down on hills");
 threw = false;
 try { gd.unload(gdMule, gdMine, 2, 1); } catch (e) { threw = true; }
 ok(!threw, "a mine can be set down on plains");
+
+section("missile buggy move after attack");
+ok(UNIT_TYPES.RABBIT.moveAfterAttack && UNIT_TYPES.LYNX.moveAfterAttack,
+  "Rabbit and Lynx both declare move-after-attack");
+var buggyGame = new ENGINE.Game({
+  name: "Buggy movement", turnLimit: 20,
+  grid: ["..........", "..........", "B........B"],
+  buildings: [{ col: 0, row: 2, owner: 0 }, { col: 9, row: 2, owner: 1 }],
+  units: [
+    { t: "RABBIT", o: 0, x: 2, y: 1 },
+    { t: "HADRIAN", o: 1, x: 3, y: 1, str: 1 },
+    { t: "BISON", o: 1, x: 9, y: 0 },
+  ],
+}, { seed: 1 });
+buggyGame.rng = function () { return 0; };
+var rabbit = buggyGame.unitAt(2, 1);
+var buggyTarget = buggyGame.unitAt(3, 1);
+var buggyResult = buggyGame.attack(rabbit, buggyTarget);
+ok(buggyResult.defenderDead && rabbit.attacked && !rabbit.moved,
+  "surviving Rabbit keeps its activation open after one attack");
+ok(rabbit.movePointsLeft === UNIT_TYPES.RABBIT.move,
+  "attacking before moving preserves Rabbit's full movement allowance");
+var secondBuggyAttackRejected = false;
+try { buggyGame.attack(rabbit, buggyGame.unitAt(9, 0)); }
+catch (err) { secondBuggyAttackRejected = /already attacked/.test(err.message); }
+ok(secondBuggyAttackRejected, "engine rejects a second Rabbit attack in the same turn");
+var buggyRange = buggyGame.movementRange(rabbit);
+var buggyStep = null;
+for (var buggyKey in buggyRange) {
+  var candidate = buggyRange[buggyKey];
+  if (candidate.canStop && !candidate.load && candidate.cost > 0 &&
+      (!buggyStep || candidate.cost > buggyStep.cost)) buggyStep = candidate;
+}
+ok(!!buggyStep, "Rabbit receives legal destinations after attacking");
+var buggyMovementBefore = rabbit.movePointsLeft;
+buggyGame.moveUnit(rabbit, buggyStep.col, buggyStep.row, buggyRange);
+ok(rabbit.movePointsLeft === buggyMovementBefore - buggyStep.cost,
+  "post-attack movement spends the same turn's remaining allowance");
+buggyGame.finishUnit(rabbit);
+ok(rabbit.moved && rabbit.movePointsLeft === 0,
+  "finishing post-attack movement closes the Rabbit activation");
 
 section("combat calculator");
 ok(COMBAT.strengthCaption(8) === null, "full strength is not captioned");
@@ -639,6 +687,47 @@ var watchBattle = watchedTurn.next();
 ok(watchBattle.t === "battle", "watched AI resolves combat in a later step");
 ok(watchedTarget.strength === 8 - watchBattle.result.dmgToDefender,
   "battle result damage matches the defender's new strength");
+
+var buggyAIMap = {
+  name: "BUGGY AI", turnLimit: 20,
+  grid: [
+    "....................",
+    "B..................B",
+    "....................",
+  ],
+  buildings: [{ col: 0, row: 1, owner: 0 }, { col: 19, row: 1, owner: 1 }],
+  units: [
+    { t: "BISON", o: 0, x: 0, y: 0 },
+    { t: "HADRIAN", o: 0, x: 13, y: 1, str: 1 },
+    { t: "RABBIT", o: 1, x: 14, y: 1 },
+  ],
+};
+var buggyAIGame = new ENGINE.Game(buggyAIMap, { seed: 1 });
+buggyAIGame.rng = function () { return 0; };
+buggyAIGame.endTurn();
+var aiRabbit = buggyAIGame.playerUnits(1)[0];
+var buggyAITurn = AI.createTurn(buggyAIGame, 1);
+var buggyAIEvent;
+do { buggyAIEvent = buggyAITurn.next(); }
+while (buggyAIEvent && buggyAIEvent.t !== "battle");
+ok(buggyAIEvent && buggyAIEvent.t === "battle",
+  "AI Rabbit completes its attack before repositioning");
+var distanceBeforeReposition = HEX.distance(
+  aiRabbit.col, aiRabbit.row,
+  buggyAIGame.playerUnits(0)[0].col, buggyAIGame.playerUnits(0)[0].row
+);
+var buggyAIReposition = buggyAITurn.next();
+ok(buggyAIReposition && buggyAIReposition.t === "move" &&
+  buggyAIReposition.reason === "post-attack",
+  "AI Rabbit emits a post-attack movement step");
+var distanceAfterReposition = HEX.distance(
+  aiRabbit.col, aiRabbit.row,
+  buggyAIGame.playerUnits(0)[0].col, buggyAIGame.playerUnits(0)[0].row
+);
+ok(distanceAfterReposition > distanceBeforeReposition,
+  "AI Rabbit uses leftover movement to increase enemy separation");
+ok(aiRabbit.moved && aiRabbit.movePointsLeft === 0,
+  "AI closes the Rabbit activation after post-attack movement");
 
 /* ---------- 3. AI self-play ---------- */
 

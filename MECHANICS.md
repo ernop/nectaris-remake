@@ -21,8 +21,10 @@ Special behaviors (all documented):
 - **Ranged units** (artillery, Hawkeye): may move *or* fire each turn, never
   both; their attacks receive no counterattack, and they cannot counterattack.
   Minimum range 2 — adjacent enemies are safe from them.
-- **Missile buggies** (Rabbit, Lynx) may spend leftover movement after
-  attacking.
+- **Missile buggies** (Rabbit, Lynx) may split one movement allowance around
+  one attack: move, attack once, then spend any remaining movement. A second
+  attack in the same turn is rejected. The enemy AI uses its remaining
+  movement to increase distance from the nearest opposing unit.
 - **Transports** (Mule ground, Pelican air) carry one ground unit. Loading:
   the passenger moves onto the transport's hex. Unloading: to an adjacent
   passable, empty hex; the passenger's turn is spent.
@@ -165,6 +167,20 @@ combat, computed from pre-battle strengths.
 The result matches the original's observed feel: even fights at full strength
 cost the defender ~3–5 points, outmatched attacks bounce off. Seedable RNG
 (`COMBAT.makeRng`) keeps tests and replays deterministic.
+
+**Community-recovered internals.** Japanese community analysis summarized by
+[戦闘結果計算式](http://anka.sakura.ne.jp/nectaris/d3.html) reports a different
+original calculation. Its author says the page reconstructs analysis posted
+by contributors to a 2ch Nectaris thread: per-machine attack and defense cap
+at 100; unit damage is `attack × (100 − defense) / 100`; total damage then
+applies experience, attacker strength, and a random coefficient from 0.2 to
+4.0. Squads at strength 2–8 use temporary HP of `strength × 100 + 50`, while
+strength 1 gets no extra 50 HP, with integer truncation at each internal step.
+
+That source does not provide the random coefficient's probability table. The
+remake therefore keeps its documented binomial roll until the table has a
+citable copy; the current and recovered formulas must not be described as the
+same damage system.
 
 **Experience awards (published table):** attacking — no damage +0, damage +1,
 kill +2. Defending — unhurt +2, hurt +1, counterattack destroys the attacker

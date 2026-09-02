@@ -471,6 +471,16 @@ var RENDER = (function () {
     GIANT:   { hull: 29, turret: "angular", turretW: 8.4, barrel: 18, barrelWidth: 2.9, barrels: 2, skirts: true },
   };
 
+  var UNIT_MARKS = {
+    CHARLIE: "CH", KILROY: "KI", PANTHER: "PA",
+    BISON: "BI", LENET: "LE", POLAR: "PO", GRIZZLY: "GR",
+    SLAGGER: "SL", TITAN: "TI", GIANT: "GI",
+    EAGLE: "EA", FALCON: "FA", HUNTER: "HU",
+    HADRIAN: "HA", OCTOPUS: "OC", ATLAS: "AT",
+    RABBIT: "RA", LYNX: "LY", SEEKER: "SE", HAWKEYE: "HW",
+    MULE: "MU", PELICAN: "PE", TRIGGER: "TR",
+  };
+
   function drawUnitBody(ctx, unit, u, colors) {
     ctx.save();
     if (unit.player === 1) ctx.scale(-1, 1);

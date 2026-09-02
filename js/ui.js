@@ -188,6 +188,7 @@ var UI = (function () {
       attack: "moving into firing position",
       repair: "retreating for repairs",
       advance: "advancing",
+      "post-attack": "repositioning after its attack",
     };
     var action = event.t === "deploy" ? "deployed from a factory" : (reasons[event.reason] || "moving");
     if (event.effects && event.effects.length) {

@@ -35,20 +35,6 @@ var HEX = (function () {
     return out;
   }
 
-  // Original enemy factories try exits from lower-left, then clockwise.
-  function neighborsClockwiseFromLowerLeft(col, row) {
-    var center = toPixel(col, row, 1);
-    var start = Math.PI * 5 / 6;
-    return neighbors(col, row).sort(function (a, b) {
-      function turnFromStart(hex) {
-        var p = toPixel(hex.col, hex.row, 1);
-        var angle = Math.atan2(p.y - center.y, p.x - center.x);
-        return (angle - start + Math.PI * 2) % (Math.PI * 2);
-      }
-      return turnFromStart(a) - turnFromStart(b);
-    });
-  }
-
   function distance(c1, r1, c2, r2) {
     var a = toCube(c1, r1), b = toCube(c2, r2);
     return Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y), Math.abs(a.z - b.z));
@@ -91,7 +77,6 @@ var HEX = (function () {
 
   return {
     toCube: toCube, toOffset: toOffset, neighbors: neighbors,
-    neighborsClockwiseFromLowerLeft: neighborsClockwiseFromLowerLeft,
     distance: distance, toPixel: toPixel, fromPixel: fromPixel,
     corners: corners, key: key,
   };
