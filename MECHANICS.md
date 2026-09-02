@@ -178,12 +178,26 @@ GX-87 Kilroy. We follow the US designation to match the names.
 
 ## Factories and bases
 
+(Corrected 2026-09-02 against the published factory rules — the terrain page's
+「工場の上にユニットを停止させれば自動的に格納されます」 and the TG-16 FAQ's
+"deploy the unit onto the space the transport occupies".)
+
 - Factories hold **stored units** — the original's hidden reinforcements.
-  Deploy one to the factory hex (if empty); immobile units need a transport.
-- Capturing a factory or base (infantry only) transfers it *and its stored
-  units* to the captor.
-- Moving onto an own building repairs the unit to full strength (its turn is
-  spent). Experience is kept.
+  Deploying places the unit on a **chosen hex adjacent to the factory**,
+  never on the factory hex itself; ground units exit only onto open plains,
+  road or bridge, and the deployed unit's turn is spent. Mines and the Atlas
+  leave only aboard a transport parked on or next to the factory.
+- **Stopping a ground unit on a factory you already own stores it**: it
+  leaves the field, is repaired to full (experience kept), and can deploy
+  again from your next turn on — so a repair costs the two turns of entering
+  and leaving, as in the original. There is no on-hex repair, and bases never
+  store or repair.
+- A factory you do not own can be passed through but not stopped on —
+  except by infantry, whose stopping there *is* the capture. The capturer
+  stays on the hex; capturing transfers the factory *and its stored units*,
+  and awards the infantry +4 experience.
+- A transport carrying cargo cannot stop on its own factory (it will not
+  fit); unloading cargo onto your factory hex stores the cargo directly.
 
 ## Victory
 

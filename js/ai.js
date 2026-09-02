@@ -78,10 +78,11 @@ var AI = (function () {
   }
 
   function nearestOwnedRepair(game, unit) {
+    // Only factories repair (by storing the unit for a turn); bases do not.
     var best = null, bestD = Infinity;
     for (var k in game.buildings) {
       var b = game.buildings[k];
-      if (b.owner !== unit.player) continue;
+      if (b.owner !== unit.player || b.kind !== "factory") continue;
       var d = HEX.distance(unit.col, unit.row, b.col, b.row);
       if (d < bestD) { bestD = d; best = b; }
     }
@@ -201,22 +202,26 @@ var AI = (function () {
     var facs = game.playerFactories(player);
     for (var i = 0; i < facs.length; i++) {
       var b = facs[i];
-      // Deploy as many stored (mobile) units as fit around the factory.
+      // Deploy one stored (mobile) unit per factory per turn, onto the
+      // open exit hex nearest the enemy base.
       for (var s = b.stored.length - 1; s >= 0; s--) {
         var su = b.stored[s];
         if (su.type.placeByTransport) continue; // AI skips Atlas/Trigger logistics
-        var spots = [{ col: b.col, row: b.row }].concat(HEX.neighbors(b.col, b.row));
-        for (var j = 0; j < spots.length; j++) {
-          var sp = spots[j];
-          if (!game.inBounds(sp.col, sp.row)) continue;
-          if (game.unitAt(sp.col, sp.row)) continue;
-          if (sp.col !== b.col || sp.row !== b.row) {
-            if (terrainCost(game.terrainAt(sp.col, sp.row), su.type.moveType) === null) continue;
-            continue; // AI deploys onto the factory hex only, one per turn
+        if (su.moved) continue;                 // stored this turn
+        var exits = game.deployTargets(b, su);
+        if (exits.length) {
+          var goal = null;
+          for (var k in game.buildings) {
+            var eb = game.buildings[k];
+            if (eb.kind === "base" && eb.owner === 1 - player) { goal = eb; break; }
           }
-          game.deployFromFactory(b, su, sp.col, sp.row);
+          exits.sort(function (p, q) {
+            if (!goal) return 0;
+            return HEX.distance(p.col, p.row, goal.col, goal.row) -
+                   HEX.distance(q.col, q.row, goal.col, goal.row);
+          });
+          game.deployFromFactory(b, su, exits[0].col, exits[0].row);
           events.push({ t: "deploy", unit: su });
-          break;
         }
         break; // one deployment per factory per turn
       }

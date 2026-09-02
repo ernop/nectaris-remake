@@ -220,9 +220,10 @@ var UI = (function () {
       row.innerHTML = "<span>" + su.type.name + (storedCap ? " (str " + storedCap + ")" : "") + "</span>";
       var btn = document.createElement("button");
       btn.textContent = "Deploy";
-      var occupied = !!g.unitAt(building.col, building.row);
-      var canDeployHere = !occupied;
-      btn.disabled = !canDeployHere && !su.type.placeByTransport;
+      if (su.moved) {
+        btn.disabled = true;
+        btn.title = "Stored this turn — can leave from the next turn";
+      }
       btn.onclick = function () {
         try {
           if (su.type.placeByTransport) {
@@ -230,11 +231,21 @@ var UI = (function () {
             var tr = self.findAdjacentTransport(building);
             if (!tr) { self.toast(su.type.name + " needs a transport on/next to the factory"); return; }
             g.loadFromFactory(building, su, tr);
-          } else {
-            g.deployFromFactory(building, su, building.col, building.row);
+            self.closeFactoryPanel();
+            self.refreshStatus();
+            self.draw();
+            return;
           }
+          // Units leave to a hex you pick next to the factory.
+          var exits = g.deployTargets(building, su);
+          if (!exits.length) { self.toast("No open exit hex next to the factory"); return; }
           self.closeFactoryPanel();
-          self.refreshStatus();
+          self.mode = "deployPick";
+          self.deployPending = { building: building, unit: su };
+          var hl = {};
+          exits.forEach(function (p) { hl[HEX.key(p.col, p.row)] = "rgba(130,220,130,0.45)"; });
+          self.renderer.highlights = hl;
+          self.toast("Choose an exit hex for " + su.type.name);
           self.draw();
         } catch (err) { self.toast(err.message); }
       };
@@ -513,6 +524,7 @@ var UI = (function () {
     if (this.mode === "moved" && this.selected) this.cancelMove(this.selected);
     else if (this.mode === "pickTarget" && this.selected) { this.openActionMenu(this.selected); this.mode = "moved"; this.renderer.highlights = null; this.draw(); }
     else if (this.mode === "unload" && this.selected) { this.openActionMenu(this.selected); this.mode = "moved"; this.renderer.highlights = null; this.draw(); }
+    else if (this.mode === "deployPick") { this.deployPending = null; this.deselect(); }
     else this.deselect();
   };
 
@@ -565,6 +577,21 @@ var UI = (function () {
         g.unload(t, this.unloadCargo, col, row);
         this.commitUnit(t);
       } catch (err) { this.toast(err.message); }
+      return;
+    }
+
+    if (this.mode === "deployPick") {
+      var pend = this.deployPending;
+      var chosen = this.renderer.highlights && this.renderer.highlights[HEX.key(col, row)];
+      this.renderer.highlights = null;
+      this.deployPending = null;
+      this.mode = "idle";
+      if (pend && chosen) {
+        try { g.deployFromFactory(pend.building, pend.unit, col, row); }
+        catch (err) { this.toast(err.message); }
+        this.refreshStatus();
+      }
+      this.draw();
       return;
     }
 
