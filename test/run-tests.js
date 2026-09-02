@@ -326,16 +326,18 @@ section("combat calculator");
 ok(COMBAT.strengthCaption(8) === null, "full strength is not captioned");
 ok(COMBAT.strengthCaption(7) === "7", "damaged strength is captioned");
 ok(COMBAT.strengthCaption(1) === "1", "1-strength is captioned");
-// experience table endpoints from the documented tiers
-ok(COMBAT.EXP_ATK[7] === 100 && COMBAT.EXP_DEF[8] === 100, "experience tiers cap at +100%");
-ok(COMBAT.experienceBonus(3).attack === 20 &&
-  COMBAT.experienceBonus(3).defense === 20, "three stars expose their +20% combat effect");
+// Experience multiplies damage only; it does not change defense.
+ok(COMBAT.EXP_DAMAGE[1] === 105 && COMBAT.EXP_DAMAGE[7] === 200,
+  "experience coefficients run from 1.00 through 2.00");
+ok(COMBAT.experienceBonus(3).damage === 20,
+  "three stars expose their +20% damage effect");
 ok(COMBAT.experienceBonus(8).general === true &&
-  COMBAT.experienceBonus(8).attack === 100, "level eight exposes General rank and +100% attack");
+  COMBAT.experienceBonus(8).damage === 100,
+  "level eight exposes General rank and +100% damage");
 var badExperienceRejected = false;
 try { COMBAT.experienceBonus(9); } catch (err) { badExperienceRejected = true; }
 ok(badExperienceRejected, "experience display rejects levels beyond General");
-// terrain bonus: BISON (def 40) at full strength on hills (+20%)
+// Terrain adds directly to per-machine defense: Bison 40 + hills 20 = 60.
 var g3 = new ENGINE.Game({
   name: "T3", turnLimit: 50,
   grid: ["......", ".h....", "B....B"],
@@ -344,10 +346,15 @@ var g3 = new ENGINE.Game({
 }, { seed: 1 });
 var atk = g3.unitAt(2, 1), def = g3.unitAt(1, 1);
 var pv = COMBAT.preview(g3, atk, def);
-// defender: BuD 40 x 8 = 320, hills +20% => 384
-ok(pv.defender.steps[3].da === 384, "hill terrain bonus: expected 384, got " + pv.defender.steps[3].da);
-ok(pv.attacker.steps[0].ap === 400, "bison base AP 400, got " + pv.attacker.steps[0].ap);
+ok(pv.defender.da === 60, "hill defense is additive: expected 60, got " + pv.defender.da);
+ok(pv.attacker.steps[0].ap === 50, "Bison per-machine attack is 50, got " + pv.attacker.steps[0].ap);
 ok(pv.counter === true, "tank vs tank direct combat draws counterattack");
+var lowRollResult = COMBAT.resolve(g3, atk, def, function () { return 0; });
+ok(lowRollResult.attackDamage.coefficient === 0.2 &&
+  lowRollResult.attackDamage.unitDamage === 20 &&
+  lowRollResult.attackDamage.totalDamage === 32 &&
+  lowRollResult.dmgToDefender === 0,
+  "minimum coefficient preserves the documented 0.2 multiplier and 50 HP buffer");
 var overkillGame = new ENGINE.Game({
   name: "Overkill clamp", turnLimit: 10,
   grid: ["......", "B....B"],
@@ -356,9 +363,33 @@ var overkillGame = new ENGINE.Game({
 }, { seed: 1 });
 var overkillAttacker = overkillGame.unitAt(2, 0);
 var overkillDefender = overkillGame.unitAt(3, 0);
-var overkillResult = COMBAT.resolve(overkillGame, overkillAttacker, overkillDefender, function () { return 0; });
+var overkillResult = COMBAT.resolve(
+  overkillGame, overkillAttacker, overkillDefender,
+  function () { return 0.999999; }
+);
 ok(overkillResult.dmgToDefender === 5 && overkillDefender.strength === 0,
   "reported casualties stop at the defender's pre-battle strength");
+ok(overkillResult.attackDamage.coefficient === 4 &&
+  overkillResult.attackDamage.unitDamage === 27 &&
+  overkillResult.attackDamage.totalDamage === 864,
+  "maximum coefficient follows unit-damage × strength × random formula");
+
+var invulnerableGame = new ENGINE.Game({
+  name: "Defense cap", turnLimit: 10,
+  grid: [".M....", "B....B"],
+  buildings: [{ col: 0, row: 1, owner: 0 }, { col: 5, row: 1, owner: 1 }],
+  units: [{ t: "BISON", o: 0, x: 2, y: 0 }, { t: "GIANT", o: 1, x: 1, y: 0 }],
+}, { seed: 1 });
+var invulnerableAttacker = invulnerableGame.unitAt(2, 0);
+var invulnerableDefender = invulnerableGame.unitAt(1, 0);
+var invulnerableResult = COMBAT.resolve(
+  invulnerableGame, invulnerableAttacker, invulnerableDefender,
+  function () { return 0.999999; }
+);
+ok(invulnerableResult.preview.defender.da === 100 &&
+  invulnerableResult.attackDamage.totalDamage === 0 &&
+  invulnerableResult.dmgToDefender === 0,
+  "modified defense caps at 100 and prevents all damage");
 
 // air unit gets no terrain bonus, cannot be hit by ground-only attacker
 var g4 = new ENGINE.Game({
@@ -400,7 +431,7 @@ var g6 = new ENGINE.Game({
 ok(g6.attackTargets(g6.unitAt(1, 0)).length === 0, "artillery cannot hit adjacent enemy");
 
 section("support and surround");
-// Support: ally adjacent to defender boosts attacker AP by 50% of ally power.
+// Support is per machine and divided by twice the attacker's strength.
 var g7 = new ENGINE.Game({
   name: "T7", turnLimit: 50,
   grid: ["........", "........", "B......B"],
@@ -413,8 +444,27 @@ var g7 = new ENGINE.Game({
 }, { seed: 1 });
 var atk7 = g7.unitAt(2, 0), def7 = g7.unitAt(3, 0);
 var pv7 = COMBAT.preview(g7, atk7, def7);
-// support step: 400 + floor(0.5*50*8)=+200 => 600
-ok(pv7.attacker.steps[2].ap === 600, "support fire adds 50% of ally power (600), got " + pv7.attacker.steps[2].ap);
+// floor((50 attack × 8 machines) / (8 attackers × 2)) = 25.
+ok(pv7.attacker.ap === 75,
+  "attack support raises Bison attack from 50 to 75, got " + pv7.attacker.ap);
+
+var defenseSupportGame = new ENGINE.Game({
+  name: "Defense support", turnLimit: 50,
+  grid: ["........", "........", "B......B"],
+  buildings: [{ col: 0, row: 2, owner: 0 }, { col: 7, row: 2, owner: 1 }],
+  units: [
+    { t: "BISON", o: 0, x: 2, y: 0, str: 4 },
+    { t: "BISON", o: 1, x: 3, y: 0 },
+    { t: "BISON", o: 1, x: 1, y: 0 },
+  ],
+}, { seed: 1 });
+var defenseSupportPreview = COMBAT.preview(
+  defenseSupportGame,
+  defenseSupportGame.unitAt(2, 0),
+  defenseSupportGame.unitAt(3, 0)
+);
+ok(defenseSupportPreview.defender.da === 85,
+  "four attackers give an eight-Bison ally +40 defense support before plains +5");
 
 // Surround: sandwiching so friendly ZOC covers every adjacent hex halves the
 // defender — away from the map edge, since off-map hexes carry no ZOC.
@@ -435,11 +485,14 @@ var g8 = new ENGINE.Game({
 var def8 = g8.unitAt(3, 1);
 ok(g8.isSurrounded(def8) === true, "defender with all adjacents covered is surrounded");
 var pv8 = COMBAT.preview(g8, g8.unitAt(2, 1), def8);
-ok(pv8.defender.steps[1].da === Math.floor(40 / 2) * 8, "surrounded defender DEF halved, got " + pv8.defender.steps[1].da);
+ok(pv8.defender.da === Math.floor((40 + 5) / 2),
+  "surround halves defense after terrain, got " + pv8.defender.da);
+ok(pv8.defender.ap === Math.floor(50 / 2),
+  "surround halves the defender's counterattack, got " + pv8.defender.ap);
 // Only the defender suffers: the same surrounded unit attacking loses nothing.
 var pv8r = COMBAT.preview(g8, def8, g8.unitAt(2, 1));
-ok(pv8r.attacker.steps[1].ap === pv8r.attacker.steps[0].ap,
-   "a surrounded unit's own attack is not halved");
+ok(pv8r.attacker.ap >= pv8r.attacker.steps[0].ap,
+   "a surrounded unit's own attack is not halved when it initiates combat");
 // Map edge: an identical sandwich against the top edge is not a surround.
 var g8e = new ENGINE.Game({
   name: "T8E", turnLimit: 50,

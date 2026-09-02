@@ -39,8 +39,7 @@ var UI = (function () {
 
   function experienceEffectHtml(level) {
     var bonus = COMBAT.experienceBonus(level);
-    return "<div class='exp-effect'>Attack +" + bonus.attack +
-      "% · Defense +" + bonus.defense + "%</div>";
+    return "<div class='exp-effect'>Damage +" + bonus.damage + "%</div>";
   }
 
   /* Human-readable attack band vs one domain, e.g. "1", "2–5", or "—". */
@@ -323,7 +322,7 @@ var UI = (function () {
       "<tr><td>Defense</td><td>" + t.def + "</td></tr>" +
       "<tr><td>Move</td><td>" + (t.move || "—") + " (" + t.moveType + ")</td></tr>" +
       "<tr><td>Range G / A</td><td>" + bandText(t, false) + " / " + bandText(t, true) + "</td></tr>" +
-      "<tr><td>Terrain</td><td>" + terr.name + " +" + (t.moveType === "air" ? 0 : terr.def) + "%</td></tr>" +
+      "<tr><td>Terrain</td><td>" + terr.name + " +" + (t.moveType === "air" ? 0 : terr.def) + " DEF</td></tr>" +
       (t.capture ? "<tr><td colspan='2'>Can capture buildings</td></tr>" : "") +
       (t.moveAfterAttack ? "<tr><td colspan='2'>May move after attacking</td></tr>" : "") +
       (t.moveOrFire ? "<tr><td colspan='2'>May move or fire, never both</td></tr>" : "") +
@@ -334,7 +333,7 @@ var UI = (function () {
     var terr = this.game.terrainAt(col, row);
     var b = this.game.buildingAt(col, row);
     var el = $("hex-info");
-    var txt = terr.name + " · defense +" + terr.def + "%";
+    var txt = terr.name + " · defense +" + terr.def;
     if (b) {
       var owner = b.owner < 0 ? "Neutral" : RENDER.PLAYER_COLORS[b.owner].name;
       txt += "<br>" + (b.kind === "base" ? "Base" : "Factory") + " — " + owner;
@@ -509,8 +508,7 @@ var UI = (function () {
       var rank = bonus.general ? "GENERAL" : unit.exp + " / 8 stars";
       return "<div class='battle-side'><div class='ui-name'>" + label + ": " + unit.type.name +
         (bcap ? " (str " + bcap + ")" : "") + "</div>" +
-        "<div class='battle-exp'>" + rank + " · attack +" + bonus.attack +
-        "% · defense +" + bonus.defense + "%</div>" +
+        "<div class='battle-exp'>" + rank + " · damage +" + bonus.damage + "%</div>" +
         "<table class='battle-steps'><tr><th></th><th>ATK</th><th>DEF</th></tr>" + rows + "</table></div>";
     }
     $("battle-detail").innerHTML =

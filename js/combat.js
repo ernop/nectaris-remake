@@ -1,43 +1,20 @@
 /* Nectaris remake — combat resolution.
  *
- * Reimplements the original 4-step combat calculator from the published
- * documentation (BASE NECTARIS's special-effects and EXP pages, StrategyWiki
- * "Military Madness/Combat", player FAQs):
+ * Implements the Japanese community reconstruction of the original combat
+ * arithmetic. Support is divided by twice the attacker's strength; terrain
+ * adds directly to per-machine defense; surround halves the defender after
+ * support and terrain; modified attack and defense cap at 100. Damage is:
  *
- *   step 1  experience:  per-strength base attack (BuA) and defense (BuD)
- *           are raised by the experience tier table; results floored.
- *   step 2  surround:    direct combat only, and it penalizes only the
- *           DEFENDER: a surrounded unit that itself attacks suffers nothing.
- *           A unit is surrounded when every hex adjacent to it is occupied
- *           by, or adjacent to, enemy units — and never at the map edge,
- *           because off-map hexes carry no ZOC. Halves BuA and BuD (floored).
- *   step 3  support:     direct combat only. The attacker gains attack power
- *           equal to 50% of the (unmodified) relevant attack power of each
- *           of its allies adjacent to the defender; the defender gains
- *           defense power equal to 50% of the base defense power of each of
- *           its allies adjacent to the attacker (whether or not those allies
- *           could attack). Defender's total defense is capped at 2x its
- *           post-experience value.
- *   step 4  terrain:     defender's defense is raised by the terrain defense
- *           percentage (ground units only; air units get no terrain bonus).
- *           If the bonus doesn't amount to a whole point, nothing is added.
+ *   unit damage = attack × (100 - defense) / 100
+ *   total damage = unit damage × experience × strength × random coefficient
  *
- * Final combat power:  Attack Power = strength x BuA (+support),
- *                      Defense Ability = strength x BuD (+support, terrain),
- *                      each ceilinged at 999 like the original's calculator.
+ * Squads use strength × 100 temporary HP, plus 50 HP at strengths 2–8.
+ * Intermediate fractions are discarded. Indirect fire receives no support
+ * or surround effects and draws no counterattack.
  *
- * Ranges are per target domain: rngG hexes against ground, rngA against air,
- * and a range above 1 is indirect fire with a band of 2..rng (it cannot hit
- * an adjacent hex). A defender counterattacks only in adjacent combat, and
- * only when its own band against the attacker's domain includes distance 1 —
- * which is exactly why indirect exchanges involve no counterattack at all.
- *
- * Casualties: the exact original damage roll was never published. This
- * reconstruction rolls one die per attacker strength point with kill
- * probability AP / (AP + DA), which reproduces the original's observed feel
- * (even fights at full strength cost the defender 3-5 points; badly
- * outmatched attacks bounce off). Both sides fire simultaneously in direct
- * combat, computed from pre-battle strengths.
+ * The source establishes random-coefficient bounds of 0.2–4.0 but omits the
+ * original lookup-table distribution. This implementation samples every
+ * integer hundredth in that documented interval uniformly.
  *
  * Experience awards (published table):
  *   attacking:  no damage dealt +0 · damage dealt +1 · target destroyed +2
@@ -48,19 +25,20 @@
 "use strict";
 
 var COMBAT = (function () {
-  // Experience tier table: [atk%, def%] added at each level 0..8.
-  var EXP_ATK = [0, 4, 10, 20, 30, 40, 60, 100, 100];
-  var EXP_DEF = [0, 5, 10, 20, 30, 40, 60, 100, 100];
+  // Damage coefficients as integer percentages for experience levels 0..8.
+  var EXP_DAMAGE = [100, 105, 110, 120, 130, 140, 160, 200, 200];
   var MAX_EXP = 8;
   var MAX_STRENGTH = 8;
+  var STAT_CAP = 100;
+  var RANDOM_MIN = 20;
+  var RANDOM_MAX = 400;
 
   function experienceBonus(level) {
     if (!Number.isInteger(level) || level < 0 || level > MAX_EXP) {
       throw new Error("Experience level must be an integer from 0 to " + MAX_EXP);
     }
     return {
-      attack: EXP_ATK[level],
-      defense: EXP_DEF[level],
+      damage: EXP_DAMAGE[level] - 100,
       general: level === MAX_EXP,
     };
   }
@@ -98,95 +76,115 @@ var COMBAT = (function () {
     return !!band && dist >= band.min && dist <= band.max;
   }
 
-  var POWER_CAP = 999; // the original calculator tops out at three digits
-
-  /* Compute one side's combat values through the 4 steps.
-   * ctx: { game, attacker, defender, ranged }
-   * side: "attacker" | "defender"
-   * Returns { steps:[{ap,da,label}...], ap, da } — steps power the original-style
-   * flashing battle preview. */
-  function computeSide(ctx, side) {
-    var game = ctx.game;
-    var me = side === "attacker" ? ctx.attacker : ctx.defender;
-    var foe = side === "attacker" ? ctx.defender : ctx.attacker;
-    var t = me.type;
-    var foeAir = isAir(foe);
-
-    var steps = [];
-    // Step 1: experience.
-    var buA = Math.floor(atkStat(t, foeAir) * (1 + EXP_ATK[me.exp] / 100));
-    var buD = Math.floor(t.def * (1 + EXP_DEF[me.exp] / 100));
-    var ap = buA * me.strength;
-    var da = buD * me.strength;
-    steps.push({ ap: ap, da: da, label: "EXP" });
-
-    // Step 2: surround. Direct combat only, and only the defender suffers:
-    // being surrounded does not weaken a unit on its own attack.
-    if (!ctx.ranged && side === "defender") {
-      if (game.isSurrounded(me)) {
-        buA = Math.floor(buA / 2);
-        buD = Math.floor(buD / 2);
-        ap = buA * me.strength;
-        da = buD * me.strength;
-      }
-    }
-    steps.push({ ap: ap, da: da, label: "SURROUND" });
-
-    // Step 3: support (direct combat only).
-    var expDa = da; // post-experience/surround defense: cap reference
-    if (!ctx.ranged) {
-      var i, ally;
-      if (side === "attacker") {
-        var allies = game.adjacentAllies(foe.col, foe.row, me.player, me);
-        for (i = 0; i < allies.length; i++) {
-          ally = allies[i];
-          ap += Math.floor(0.5 * atkStat(ally.type, foeAir) * ally.strength);
-        }
-      } else {
-        var backers = game.adjacentAllies(foe.col, foe.row, me.player, me);
-        for (i = 0; i < backers.length; i++) {
-          ally = backers[i];
-          da += Math.floor(0.5 * ally.type.def * ally.strength);
-        }
-        if (da > expDa * 2) da = expDa * 2;
-      }
-    }
-    steps.push({ ap: ap, da: da, label: "SUPPORT" });
-
-    // Step 4: terrain (defense only; never for air units).
-    if (!isAir(me)) {
-      var terr = game.terrainAt(me.col, me.row);
-      var bonus = Math.floor(da * terr.def / 100);
-      da += bonus;
-    }
-    if (ap > POWER_CAP) ap = POWER_CAP;
-    if (da > POWER_CAP) da = POWER_CAP;
-    steps.push({ ap: ap, da: da, label: "TERRAIN" });
-
-    return { steps: steps, ap: ap, da: da };
+  function capStat(value) {
+    return Math.min(STAT_CAP, Math.max(0, Math.floor(value)));
   }
 
-  /* Full battle preview: both sides' step tables plus whether the defender
-   * will counterattack. */
+  function terrainValue(game, unit) {
+    return isAir(unit) ? 0 : game.terrainAt(unit.col, unit.row).def;
+  }
+
+  function attackSupport(game, attacker, defender) {
+    var allies = game.adjacentAllies(
+      defender.col, defender.row, attacker.player, attacker
+    );
+    var total = 0;
+    for (var i = 0; i < allies.length; i++) {
+      total += atkStat(allies[i].type, isAir(defender)) * allies[i].strength;
+    }
+    return Math.floor(total / (attacker.strength * 2));
+  }
+
+  function defenseSupport(game, attacker, defender) {
+    var allies = game.adjacentAllies(
+      attacker.col, attacker.row, defender.player, defender
+    );
+    var total = 0;
+    for (var i = 0; i < allies.length; i++) {
+      total += allies[i].type.def * allies[i].strength;
+    }
+    return Math.floor(total / (attacker.strength * 2));
+  }
+
+  function sideRecord(baseAttack, baseDefense, supportAttack, supportDefense,
+                      terrain, surrounded, attackDisabled) {
+    var supportedAttack = baseAttack + supportAttack;
+    var supportedDefense = baseDefense + supportDefense;
+    var terrainDefense = supportedDefense + terrain;
+    var finalAttack = attackDisabled ? 0 :
+      (surrounded ? Math.floor(baseAttack / 2) : supportedAttack);
+    var finalDefense = surrounded ?
+      Math.floor(terrainDefense / 2) : terrainDefense;
+    finalAttack = capStat(finalAttack);
+    finalDefense = capStat(finalDefense);
+    return {
+      steps: [
+        { ap: baseAttack, da: baseDefense, label: "BASE" },
+        { ap: supportedAttack, da: supportedDefense, label: "SUPPORT" },
+        { ap: supportedAttack, da: terrainDefense, label: "TERRAIN" },
+        { ap: finalAttack, da: finalDefense, label: "FINAL" },
+      ],
+      ap: finalAttack,
+      da: finalDefense,
+    };
+  }
+
+  /* Full battle preview using per-machine modified attack and defense. */
   function preview(game, attacker, defender) {
     var dist = HEX.distance(attacker.col, attacker.row, defender.col, defender.row);
     var ranged = dist > 1;
-    var ctx = { game: game, attacker: attacker, defender: defender, ranged: ranged };
-    var a = computeSide(ctx, "attacker");
-    var d = computeSide(ctx, "defender");
-    // Counterattacks happen only in adjacent combat, and only when the
-    // defender's own band vs. the attacker's domain reaches distance 1 —
-    // so artillery and the Lynx (vs. ground) never counter.
     var counter = !ranged && canAttackAt(defender.type, isAir(attacker), dist);
+    var aSupport = ranged ? 0 : attackSupport(game, attacker, defender);
+    var dSupport = ranged ? 0 : defenseSupport(game, attacker, defender);
+    var surrounded = !ranged && game.isSurrounded(defender);
+    var a = sideRecord(
+      atkStat(attacker.type, isAir(defender)), attacker.type.def,
+      aSupport, 0, terrainValue(game, attacker), false, false
+    );
+    var d = sideRecord(
+      atkStat(defender.type, isAir(attacker)), defender.type.def,
+      0, dSupport, terrainValue(game, defender), surrounded, !counter
+    );
     return { attacker: a, defender: d, ranged: ranged, counter: counter, dist: dist };
   }
 
-  function rollKills(rng, shooters, ap, da) {
-    if (ap <= 0) return 0;
-    var p = ap / (ap + da);
-    var kills = 0;
-    for (var i = 0; i < shooters; i++) if (rng() < p) kills++;
-    return kills;
+  function randomCoefficient(rng) {
+    var roll = rng();
+    if (typeof roll !== "number" || roll < 0 || roll >= 1) {
+      throw new Error("Combat RNG must return a number from 0 up to but not including 1");
+    }
+    return RANDOM_MIN + Math.floor(roll * (RANDOM_MAX - RANDOM_MIN + 1));
+  }
+
+  function damageResult(shooter, target, modifiedAttack, modifiedDefense,
+                        coefficient) {
+    var unitDamage = Math.floor(
+      modifiedAttack * (STAT_CAP - modifiedDefense) / STAT_CAP
+    );
+    var experiencedDamage = Math.floor(
+      unitDamage * EXP_DAMAGE[shooter.exp] / 100
+    );
+    var totalDamage = Math.floor(
+      experiencedDamage * shooter.strength * coefficient / 100
+    );
+    var hitPoints = target.strength * 100 + (target.strength > 1 ? 50 : 0);
+    var remaining = Math.floor(Math.max(0, hitPoints - totalDamage) / 100);
+    return {
+      casualties: target.strength - remaining,
+      unitDamage: unitDamage,
+      totalDamage: totalDamage,
+      coefficient: coefficient / 100,
+    };
+  }
+
+  function expectedCasualties(shooter, target, modifiedAttack, modifiedDefense) {
+    var total = 0;
+    for (var coefficient = RANDOM_MIN; coefficient <= RANDOM_MAX; coefficient++) {
+      total += damageResult(
+        shooter, target, modifiedAttack, modifiedDefense, coefficient
+      ).casualties;
+    }
+    return total / (RANDOM_MAX - RANDOM_MIN + 1);
   }
 
   /* Resolve a battle. Mutates unit strengths/experience; removal of dead
@@ -195,13 +193,15 @@ var COMBAT = (function () {
     var pv = preview(game, attacker, defender);
     var aStr0 = attacker.strength, dStr0 = defender.strength;
 
-    // Simultaneous fire from pre-battle strengths.
-    var dmgToDefender = Math.min(
-      dStr0, rollKills(rng, aStr0, pv.attacker.ap, pv.defender.da)
+    // Both damage totals use pre-battle strengths.
+    var attackDamage = damageResult(
+      attacker, defender, pv.attacker.ap, pv.defender.da, randomCoefficient(rng)
     );
-    var dmgToAttacker = pv.counter ? Math.min(
-      aStr0, rollKills(rng, dStr0, pv.defender.ap, pv.attacker.da)
-    ) : 0;
+    var counterDamage = pv.counter ? damageResult(
+      defender, attacker, pv.defender.ap, pv.attacker.da, randomCoefficient(rng)
+    ) : { casualties: 0, unitDamage: 0, totalDamage: 0, coefficient: null };
+    var dmgToDefender = attackDamage.casualties;
+    var dmgToAttacker = counterDamage.casualties;
 
     defender.strength = dStr0 - dmgToDefender;
     attacker.strength = aStr0 - dmgToAttacker;
@@ -222,6 +222,8 @@ var COMBAT = (function () {
       preview: pv,
       dmgToDefender: dmgToDefender,
       dmgToAttacker: dmgToAttacker,
+      attackDamage: attackDamage,
+      counterDamage: counterDamage,
       attackerDead: attacker.strength === 0,
       defenderDead: defender.strength === 0,
     };
@@ -231,9 +233,9 @@ var COMBAT = (function () {
     preview: preview, resolve: resolve, makeRng: makeRng,
     atkStat: atkStat, isAir: isAir,
     rangeBand: rangeBand, canAttackAt: canAttackAt,
-    experienceBonus: experienceBonus,
+    experienceBonus: experienceBonus, expectedCasualties: expectedCasualties,
     MAX_EXP: MAX_EXP, MAX_STRENGTH: MAX_STRENGTH,
-    EXP_ATK: EXP_ATK, EXP_DEF: EXP_DEF,
+    EXP_DAMAGE: EXP_DAMAGE,
     /* Full strength is the default squad size; UI must not print it. */
     strengthCaption: function (n) { return n < MAX_STRENGTH ? String(n) : null; },
   };

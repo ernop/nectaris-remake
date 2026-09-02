@@ -93,9 +93,9 @@ against the old `rmin`/`rmax` schema still load: `mergeUnitTypes` translates
 the legacy fields.
 
 Adopted from the same sweep (special-effects and EXP pages): surround
-penalizes only the defender and never at the map edge; combat powers ceiling
-at 999; defender experience awards +2 when its counterattack destroys the
-attacker; infantry earns +4 experience for capturing a factory.
+penalizes only the defender and never at the map edge; defender experience
+awards +2 when its counterattack destroys the attacker; infantry earns +4
+experience for capturing a factory.
 
 ### Balance after the cost change
 
@@ -121,32 +121,36 @@ with a source, the maps are ours to tune.
   ends the move. ZOC is cross-domain: aircraft block tanks and vice versa.
 - Friendly units can be moved through, not stopped on. One unit per hex.
 
-## Combat: the 4-step calculator
+## Combat: community-recovered original formula
 
-Both sides' values are computed through four steps, flooring after each step
-(documented; the in-game battle preview shows the same four rows):
+The remake uses the arithmetic reconstructed by contributors to a 2ch
+Nectaris thread and summarized in
+[戦闘結果計算式](http://anka.sakura.ne.jp/nectaris/d3.html). Every intermediate
+fraction is discarded:
 
-1. **Experience.** Per-strength base attack/defense are raised by the tier
-   table: +4%/+5% (level 1), +10%, +20%, +30%, +40%, +60%, +100% (levels 7
-   and 8). Attack Power = strength × modified base attack.
-2. **Surround** (direct combat only, defender only — corrected 2026-09-01
-   against the published special-effects page). A unit is surrounded when
-   all six adjacent hexes are occupied by, or adjacent to, enemy units; when
-   *attacked* in that state its attack and defense are halved. A surrounded
-   unit that itself attacks suffers nothing, and a unit against the map edge
-   can never be surrounded, because off-map hexes carry no ZOC.
-3. **Support** (direct combat only). The attacker adds 50% of each adjacent
-   ally-of-the-attacker-next-to-the-defender's attack power; the defender
-   adds 50% of each ally-next-to-the-attacker's defense power, capped at 2×
-   the defender's post-experience defense. Attack support uses the ally's
-   relevant stat (an ally with no air attack contributes nothing against an
-   air target); defense support flows from any adjacent ally. The published
-   page's worked examples (Seeker +680 from two Hawkeyes, +320 from two
-   Bisons) reproduce exactly under these formulas.
-4. **Terrain.** The defender's defense rises by the terrain percentage
-   (ground units only). If the bonus rounds down to zero, nothing is added.
-
-Both final powers ceiling at 999, the original calculator's three-digit top.
+1. **Support** (direct combat only). Attack support is the sum of each
+   supporting squad's relevant base attack times its strength, divided by
+   twice the attacker's strength. Defense support uses each supporting
+   squad's base defense and the same denominator. Consequently, defense
+   support becomes stronger when a damaged squad initiates the attack.
+2. **Modified values.** The attacker's attack is base attack plus attack
+   support. Defense is base defense plus the terrain's additive defense value
+   and, for the defender, defense support. Attack and defense each cap at 100.
+   Air units receive no terrain defense.
+3. **Surround** (direct combat, defender only). A surrounded defender's base
+   attack is halved. Its defense is halved after support and terrain have been
+   added. A surrounded squad that initiates combat is not penalized, and a
+   squad against the map edge cannot be surrounded because off-map hexes
+   carry no ZOC.
+4. **Damage.** Per-machine damage is
+   `attack × (100 − defense) / 100`. Total damage is per-machine damage times
+   attacker experience, attacker strength, and one random coefficient.
+   Experience coefficients are 1.00, 1.05, 1.10, 1.20, 1.30, 1.40, 1.60,
+   2.00 and 2.00; experience does not increase defense.
+5. **Casualties.** Temporary HP is `strength × 100 + 50` for squads at
+   strength 2–8 and exactly 100 for a one-machine squad. Remaining strength
+   is `(temporary HP − total damage) / 100`, floored at zero. This makes a
+   one-machine squad die from any positive damage.
 
 **Ranges are per target domain** (corrected 2026-09-01): `rngG` hexes against
 ground targets, `rngA` against air, and any range above 1 is indirect fire
@@ -160,27 +164,12 @@ trick. A defender counterattacks only in adjacent combat and only when its
 own band against the attacker's domain includes distance 1, which is why
 indirect exchanges involve no counterattack at all, in either direction.
 
-**Damage roll (reconstructed).** The original's exact casualty formula was
-never published. This remake rolls one die per attacker strength point with
-kill probability `AP / (AP + DA)`; both sides fire simultaneously in direct
-combat, computed from pre-battle strengths.
-The result matches the original's observed feel: even fights at full strength
-cost the defender ~3–5 points, outmatched attacks bounce off. Seedable RNG
-(`COMBAT.makeRng`) keeps tests and replays deterministic.
-
-**Community-recovered internals.** Japanese community analysis summarized by
-[戦闘結果計算式](http://anka.sakura.ne.jp/nectaris/d3.html) reports a different
-original calculation. Its author says the page reconstructs analysis posted
-by contributors to a 2ch Nectaris thread: per-machine attack and defense cap
-at 100; unit damage is `attack × (100 − defense) / 100`; total damage then
-applies experience, attacker strength, and a random coefficient from 0.2 to
-4.0. Squads at strength 2–8 use temporary HP of `strength × 100 + 50`, while
-strength 1 gets no extra 50 HP, with integer truncation at each internal step.
-
-That source does not provide the random coefficient's probability table. The
-remake therefore keeps its documented binomial roll until the table has a
-citable copy; the current and recovered formulas must not be described as the
-same damage system.
+The recovered source gives the random coefficient's 0.2–4.0 bounds but not
+the original lookup-table distribution. The executable implementation samples
+the 381 integer hundredths from 0.20 through 4.00 uniformly. This preserves
+the documented range and shared battle-level multiplier without claiming the
+unknown original probabilities. Direct attacks compute both sides from their
+pre-battle strengths; ranged attacks receive no counterattack.
 
 **Experience awards (published table):** attacking — no damage +0, damage +1,
 kill +2. Defending — unhurt +2, hurt +1, counterattack destroys the attacker
@@ -189,7 +178,7 @@ stats, so 7 is the effective ceiling.
 
 The map groups levels 1–7 into 3/2/3 star columns; level 8 replaces the
 columns with the General star. The selected-unit panel and battle preview
-state each level's attack and defense bonus.
+state each level's damage bonus.
 
 One naming note: the Japanese unit page designates the heavy infantry GX-78
 (ダーベック); the US release, whose English names this remake uses, prints

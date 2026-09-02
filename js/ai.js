@@ -29,12 +29,14 @@ var AI = (function () {
   /* Expected kills for a battle, using deterministic expectation. */
   function expectedTrade(game, attacker, defender) {
     var pv = COMBAT.preview(game, attacker, defender);
-    var pKill = pv.attacker.ap > 0 ? pv.attacker.ap / (pv.attacker.ap + pv.defender.da) : 0;
-    var eDmgOut = pKill * attacker.strength;
+    var eDmgOut = COMBAT.expectedCasualties(
+      attacker, defender, pv.attacker.ap, pv.defender.da
+    );
     var eDmgIn = 0;
     if (pv.counter && pv.defender.ap > 0) {
-      var pC = pv.defender.ap / (pv.defender.ap + pv.attacker.da);
-      eDmgIn = pC * defender.strength;
+      eDmgIn = COMBAT.expectedCasualties(
+        defender, attacker, pv.defender.ap, pv.attacker.da
+      );
     }
     return { out: eDmgOut, in_: eDmgIn, pv: pv };
   }

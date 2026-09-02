@@ -37,14 +37,16 @@ Facts wei need across sessions:
 - **Rules are sourced, not guessed** (since 2026-09-01): movement costs,
   per-domain attack ranges (`rngG`/`rngA`, indirect band 2..range),
   `moveOrFire`, surround (defender-only, never at the map edge), counter
-  eligibility, the 999 power ceiling, the experience table, and the factory
+  eligibility, the experience table, and the factory
   model (store-to-repair, adjacent-exit deployment, no stopping on unowned
   factories) all follow the published documentation, each with tests. Do not
-  "simplify" them back. The one remaining reconstruction is the casualty
-  roll (formula never published). Open design question: whether to retune
-  the campaign maps, which were built against the old reconstructed rules.
+  "simplify" them back. Combat follows the community-recovered per-machine
+  formula and temporary-HP casualty calculation. Its documented random range
+  is 0.2–4.0; because the original lookup-table probabilities remain
+  unavailable, the implementation samples integer hundredths uniformly.
+  Open design question: whether to retune the campaign maps, which were built
+  against the old reconstructed rules.
 - **Rule constants live in data files**, not code: terrain costs/defense in
   `js/data-terrain.js`, roster in `js/data-units.js`, experience tiers in
-  `js/combat.js` (top). The current damage roll (`AP/(AP+DA)` per strength
-  die) differs from the recovered original total-damage formula and 0.2x–4.0x
-  random coefficient; `MECHANICS.md` records the source and migration gap.
+  `js/combat.js` (top). `MECHANICS.md` records the combat formula, source, and
+  remaining random-distribution gap.

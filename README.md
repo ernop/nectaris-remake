@@ -2,8 +2,8 @@
 
 A from-scratch, dependency-free JavaScript remake of the classic lunar
 hex-based tactics game (TG-16 / PC Engine, 1989: *Nectaris* in Japan,
-*Military Madness* in the US). Faithful to the mechanics — ZOC, the 4-step
-combat calculator with support and surround fire, experience, terrain
+*Military Madness* in the US). Faithful to the mechanics — ZOC, the recovered
+combat calculation with support and surround fire, experience, terrain
 defense, factories with stored units, transports — while dropping the pure
 hardware limitations: the whole map is visible at once, with free zoom and
 pan, at any map size. It includes 16 campaign maps, a 12-map online expansion,
@@ -18,9 +18,9 @@ an original procedural chiptune score, and a level editor with URL sharing.
 | `PRODUCT.md` | Settled UI/product decisions |
 | `MECHANICS.md` | Full rules reconstruction, with sources |
 | `js/hex.js` | Hex math (flat-top, odd-q offset, cube internals) |
-| `js/data-terrain.js` | Terrain data: defense %, per-chassis movement costs |
+| `js/data-terrain.js` | Terrain data: additive defense, per-chassis movement costs |
 | `js/data-units.js` | The 22-unit roster (documented original stats) |
-| `js/combat.js` | The 4-step combat calculator + damage roll |
+| `js/combat.js` | Recovered per-machine damage and squad-casualty calculation |
 | `js/engine.js` | Game state, movement/ZOC, actions, victory |
 | `js/ai.js` | Computer opponent |
 | `js/data-maps.js` | 16-mission campaign (original layouts, classic structure) |
@@ -73,12 +73,12 @@ state (campaign progress, custom levels, custom units) lives in
 - The factory panel shows each stored unit's map icon, damage when present,
   experience, and deployment control.
 - Experience appears on units in three star columns holding 3, 2, and 3 stars.
-  Selecting a unit shows the exact attack/defense percentage; level 8 replaces
+  Selecting a unit shows the exact damage bonus; level 8 replaces
   the columns with the large **GENERAL** star.
 - Union silhouettes face right and Xenon silhouettes face left, so opposing
   units visibly confront one another.
-- Battle preview shows the original-style calculator: EXP → SURROUND →
-  SUPPORT → TERRAIN rows for both sides, before you commit to the attack.
+- Battle preview shows BASE → SUPPORT → TERRAIN → FINAL per-machine attack
+  and defense for both sides before you commit to the attack.
 - Every campaign and expansion map is available immediately. Use the map
   selector in the top bar to move directly between them.
 - **Music: On/Off** starts an original square-wave/triangle/noise military
@@ -173,16 +173,14 @@ without them shows its English text in either setting.
 ## Fidelity and originality
 
 - **Mechanics** are reimplemented from community documentation of the
-  original (StrategyWiki's combat page, player FAQs, the published manual's
-  terrain table) — see `MECHANICS.md` for the details and the one place
-  where reconstruction was necessary (the damage roll, whose exact formula
-  was never published).
+  original, including the Japanese community-recovered damage and casualty
+  formula. See `MECHANICS.md` for sources and the documented uniform sampling
+  used because the original random-coefficient lookup probabilities remain
+  unavailable.
 - **Unit names, stats, ranges and per-chassis movement costs** follow the
   documented original tables (functional game data). The movement costs,
   per-domain attack ranges, surround/counterattack rules and experience
-  awards all stopped being reconstructions on 2026-09-01; the one remaining
-  reconstruction is the casualty roll, whose exact formula was never
-  published. See `MECHANICS.md`.
+  awards are documented original behavior. See `MECHANICS.md`.
 - **Art and sounds are original to this project**, including every unit
   sprite in all three visual styles. No bitmap, tileset, or audio file from
   any release of the original game is bundled, traced, or extracted.

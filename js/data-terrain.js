@@ -1,8 +1,8 @@
 /* Nectaris remake — terrain definitions.
  *
- * Defense percentages follow the published manual values (plain 5%, road 0%,
- * wasteland 30%, valley 0%, mountain 40%, hill 20%, bridge 0%, factory 0%
- * (repairs instead), base 35%).
+ * Additive defense values follow the published manual (plain 5, road 0,
+ * wasteland 30, valley 0, mountain 40, hill 20, bridge 0, factory 0
+ * (repairs instead), base 35).
  *
  * Movement costs follow the per-chassis table published on BASE NECTARIS's
  * terrain page (tactics/chikei/), adopted 2026-09-01 in place of the earlier
