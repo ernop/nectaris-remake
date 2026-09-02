@@ -50,16 +50,12 @@ state (campaign progress, custom levels, custom units) lives in
   auto-stepping to the best adjacent hex first.
 - Right-click or Esc: cancel. Mouse wheel: zoom. Middle/right-drag: pan.
   `E`: end turn.
-<<<<<<< HEAD
 - Unit chrome shows remaining strength only when damaged (1–7). Full
   strength (8) is omitted — see `PRODUCT.md`.
-- Click an own factory (with stored units, unoccupied): deploy panel.
-=======
 - Click an own factory (with stored units, unoccupied): deploy panel. Deploy
   then asks for an exit hex — pick one of the highlighted hexes next to the
   factory. Stop a damaged unit on your own factory to store and repair it;
   it can come back out from the next turn.
->>>>>>> cursor/basenectaris-maps-915b
 - Battle preview shows the original-style calculator: EXP → SURROUND →
   SUPPORT → TERRAIN rows for both sides, before you commit to the attack.
 - Every campaign and expansion map is available immediately. Use the map
