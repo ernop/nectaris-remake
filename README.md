@@ -17,13 +17,14 @@ an original procedural chiptune score, and a level editor with URL sharing.
 | `editor.html` | Level editor: terrain, units, factories, custom unit types |
 | `PRODUCT.md` | Settled UI/product decisions |
 | `MECHANICS.md` | Full rules reconstruction, with sources |
+| `inspiration/nectaris-original/README.md` | Manifest for local, gitignored visual references |
 | `js/hex.js` | Hex math (flat-top, odd-q offset, cube internals) |
 | `js/data-terrain.js` | Terrain data: additive defense, per-chassis movement costs |
-| `js/data-units.js` | The 22-unit roster (documented original stats) |
+| `js/data-units.js` | The 23-unit roster (documented original stats) |
 | `js/combat.js` | Recovered per-machine damage and squad-casualty calculation |
 | `js/engine.js` | Game state, movement/ZOC, actions, victory |
 | `js/ai.js` | Computer opponent |
-| `js/data-maps.js` | 16-mission campaign (original layouts, classic structure) |
+| `js/data-maps.js` | Official 16-map normal campaign from Hudson's 1997 PC Engine remake |
 | `js/data-expansion-maps.js` | 12-map Lunar Frontiers online expansion |
 | `js/data-basenectaris-maps.js` | 12-map Base Nectaris terrain pack (bilingual briefings) |
 | `tools/nmd-to-level.js` | Converts a Windows-edition `.nmd` map file to a level |
@@ -40,9 +41,10 @@ an original procedural chiptune score, and a level editor with URL sharing.
 ./serve.sh
 ```
 
-Open <http://127.0.0.1:8001>. Port **8001** is canonical; if another process
-has it, the server exits with the bind error rather than selecting a different
-port.
+Open <http://nectaris.localhost>. The machine's local Caddy proxy routes that
+name to <http://127.0.0.1:8001> and lists it on the local dashboard. Port
+**8001** is canonical; if another process has it, the server exits with the
+bind error rather than selecting a different port.
 
 ## Deployment
 
@@ -64,10 +66,12 @@ state (campaign progress, custom levels, custom units) lives in
   `E`: end turn.
 - Unit chrome shows remaining strength only when damaged (1–7). Full
   strength (8) is omitted — see `PRODUCT.md`.
-- Click an own factory (with stored units, unoccupied): deploy panel. Deploy
-  then asks for an exit hex — pick one of the highlighted hexes next to the
-  factory. Stop a damaged unit on your own factory to store and repair it;
-  it can come back out from the next turn.
+- Click an owned factory with stored units to choose a ready unit. Click
+  **Deploy**, then choose a highlighted destination among the six surrounding
+  hexes: an unoccupied deployable terrain hex, or an adjacent friendly Mule or
+  Pelican with an empty cargo slot. Capturing infantry goes inside the factory
+  and leaves the map; it can deploy again from the next turn. Stop a damaged
+  unit on your own factory to store and repair it under the same delay.
 - **Watch AI: On** shows every Xenon move, combat matchup, and before/after
   squad strength. Turn it off for immediate AI turns.
 - The factory panel shows each stored unit's map icon, damage when present,
@@ -77,10 +81,15 @@ state (campaign progress, custom levels, custom units) lives in
   the columns with the large **GENERAL** star.
 - Union silhouettes face right and Xenon silhouettes face left, so opposing
   units visibly confront one another.
+- Units that have completed their activation this turn appear fully greyscale
+  at unchanged opacity; units with movement or an action remaining stay at
+  full color.
 - Battle preview shows BASE → SUPPORT → TERRAIN → FINAL per-machine attack
   and defense for both sides before you commit to the attack.
 - Every campaign and expansion map is available immediately. Use the map
   selector in the top bar to move directly between them.
+- Mission choices show the initial Union and Xenon squad totals, including
+  reserves already stored in each side's factories.
 - **Music: On/Off** starts an original square-wave/triangle/noise military
   chiptune. Browsers require the button press before audio may begin.
 
@@ -184,12 +193,11 @@ without them shows its English text in either setting.
 - **Art and sounds are original to this project**, including every unit
   sprite in all three visual styles. No bitmap, tileset, or audio file from
   any release of the original game is bundled, traced, or extracted.
-- **Map layouts** are original except for the Base Nectaris terrain pack,
-  whose hex layouts come from the unit-free `.nmd` files that BASE NECTARIS
-  published under an explicit grant to place units on them and repost the
-  result. The 16 campaign missions are new designs that follow the original
-  campaign's structure and difficulty curve, not copies of its map data; the
-  12-map Lunar Frontiers expansion is original too. Other historical fan-map
-  archives are linked but not copied where their terms prohibit republication
-  or map-data rights are unclear. See
+- **Campaign maps** reproduce the 16 normal-campaign layouts, deployments and
+  factory inventories built into Hudson's official 1997 Windows freeware PC
+  Engine remake. The data was extracted deterministically after the project
+  owner confirmed redistribution permission; no original bitmap artwork is
+  included. The Base Nectaris terrain pack comes from unit-free
+  `.nmd` files published with a separate reposting grant. The 12-map Lunar
+  Frontiers expansion remains original. See
   [`LEVEL_SOURCES.md`](LEVEL_SOURCES.md).

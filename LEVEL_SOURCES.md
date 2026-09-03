@@ -43,10 +43,50 @@ Example publishing flow:
 3. Open the file's **Raw** URL.
 4. Paste that URL into **Install from URL** on the mission menu.
 
+## Included campaign: official Hudson normal campaign
+
+`js/data-maps.js` reproduces all 16 normal-campaign maps: dimensions, terrain
+types, building ownership, field deployments and factory inventories. The
+project owner confirmed redistribution permission on 2026-09-03.
+
+The canonical source is Hudson's official 1997 Windows freeware port, described
+by Hudson as a PC Engine Nectaris remake. The generated data came from the
+1997-11-05 `Nec.exe` build with SHA-256
+`d3c62eee07e7df1ad9b53ac46b3c69c38e6648ad045710fc4687aa20d10d9f92`.
+`tools/extract-original-campaign.js` verifies that digest, decodes the
+executable's terrain compression, unit records and factory tables, and emits
+the campaign module. The archived
+[Hudson edition page](https://web.archive.org/web/20030416131613id_/http://www.hudson.co.jp/gamenavi/gamedb/slg/soft/necwin.html)
+and [download page](https://web.archive.org/web/20021020133532id_/http://www.hudson.co.jp/gamenavi/gamedb/slg/down.html)
+identify the source. The Win95 installer has SHA-256
+`bcd43e7dee31ccefac62d766f2b497245cebe0fed32ec5db2a004c4f12925a8c`.
+Original map screenshots and the published rosters at
+[Izuito's PC Engine guide](https://izuito.net/game/pce-nectaris/stage.htm)
+were used as independent checks. Direct byte equality against a 1989 HuCard ROM
+has not been tested, so claims of exactness refer to the official 1997 built-in
+campaign data.
+
+Map dimensions record playable cells only. The Windows renderer adds a
+non-playable one-hex perimeter, so its 16×11 and 32×22 render buffers correspond
+to 15×10 and 30×20 campaign maps. KAISER has one known source discrepancy:
+`Nec.exe` and the visible sprite place `KILROY` at `(20,2)`, while Izuito's
+roster lists a second `CHARLIE`. The executable record is authoritative here.
+
+The compressed gameplay terrain IDs are `0` plains, `1` road, `2` hills, `3`
+wasteland, `4` valley, `5` mountains and `6` bridge. This ordering is verified
+against the executable's defense table (`5, 0, 20, 30, 0, 40, 0`) rather than
+inferred from scenery appearance. An earlier swapped mapping made eight legal
+deployed squads appear to begin on impassable terrain; correcting the decoder
+removed all campaign validation failures.
+
+No executable, ROM, screenshot, tile bitmap, unit sprite or sound from the
+original release is committed. Only the functional level data and the
+reproducible extractor are included.
+
 ## Historical Nectaris map archives
 
-Research performed 2026-08-26 found historical online maps, but no active
-archive whose terms permit copying those map files into this repository:
+Research performed 2026-08-26 found historical fan maps, but no active archive
+whose terms permit copying those community files into this repository:
 
 - [BASE NECTARIS history](https://nectaris.tg-16.com/nectaris_legacy_01.html)
   documents Hudson Soft's 1997 Windows map editor, the design-a-map contest,

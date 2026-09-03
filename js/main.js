@@ -91,9 +91,36 @@
   }
 
   var CARD_LABELS = {
-    en: { special: "Special: ", source: "Terrain source", turns: " turns" },
-    ja: { special: "特徴: ", source: "地形の出典", turns: "ターン" },
+    en: {
+      special: "Special: ", source: "Terrain source", turns: " turns",
+      union: "UNION", xenon: "XENON",
+    },
+    ja: {
+      special: "特徴: ", source: "地形の出典", turns: "ターン",
+      union: "連合軍", xenon: "ガイチ軍",
+    },
   };
+
+  function initialForceCounts(level) {
+    var counts = [0, 0];
+    (level.units || []).forEach(function (unit) {
+      if (unit.o === 0 || unit.o === 1) counts[unit.o]++;
+    });
+    (level.buildings || []).forEach(function (building) {
+      if (building.owner === 0 || building.owner === 1) {
+        counts[building.owner] += (building.stored || []).length;
+      }
+    });
+    return counts;
+  }
+
+  function forceCountHtml(level, labels, className) {
+    var counts = initialForceCounts(level);
+    return "<span class='" + className + " force-union'><span>" +
+      labels.union + "</span><strong>" + counts[0] + "</strong></span>" +
+      "<span class='" + className + " force-xenon'><span>" +
+      labels.xenon + "</span><strong>" + counts[1] + "</strong></span>";
+  }
 
   function renderLevelCards(host, levels, onPick) {
     var L = CARD_LABELS[lang()];
@@ -108,6 +135,9 @@
       meta.className = "level-card-meta";
       meta.textContent = lv.grid[0].length + "×" + lv.grid.length + " · " +
         lv.turnLimit + L.turns;
+      var forces = document.createElement("div");
+      forces.className = "level-card-forces";
+      forces.innerHTML = forceCountHtml(lv, L, "level-force");
       var description = document.createElement("p");
       description.textContent = tr(lv, "description");
       var special = document.createElement("p");
@@ -127,6 +157,7 @@
       footer.appendChild(source);
       card.appendChild(heading);
       card.appendChild(meta);
+      card.appendChild(forces);
       card.appendChild(description);
       card.appendChild(special);
       card.appendChild(footer);
@@ -143,6 +174,7 @@
       buildMenu();
     };
     var p = getProgress();
+    var labels = CARD_LABELS[lang()];
     var list = $("mission-list");
     list.innerHTML = "";
     CAMPAIGN.forEach(function (m, i) {
@@ -150,6 +182,8 @@
       div.className = "mission" + (i < p.cleared ? " cleared" : "");
       div.innerHTML = "<span class='mnum'>" + String(i + 1).padStart(2, "0") + "</span>" +
         "<span class='mname'>" + m.name + "</span>" +
+        "<span class='mission-forces'>" +
+        forceCountHtml(m, labels, "mission-force") + "</span>" +
         (i < p.cleared ? "<span class='mstar'>★</span>" : "");
       div.title = m.blurb || "";
       div.onclick = function () {
@@ -171,7 +205,10 @@
     customs.forEach(function (lv) {
       var div = document.createElement("div");
       div.className = "mission";
-      div.innerHTML = "<span class='mname'>" + lv.name + "</span><span class='mstar'>✎</span>";
+      div.innerHTML = "<span class='mname'>" + lv.name + "</span>" +
+        "<span class='mission-forces'>" +
+        forceCountHtml(lv, labels, "mission-force") + "</span>" +
+        "<span class='mstar'>✎</span>";
       div.onclick = function () { startGame(lv, { hotseat: $("chk-hotseat").checked }); };
       clist.appendChild(div);
     });

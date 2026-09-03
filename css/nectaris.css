@@ -61,7 +61,7 @@ select, input[type="url"] {
 }
 .mission-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 8px;
 }
 .mission {
@@ -79,7 +79,25 @@ select, input[type="url"] {
 .mission.cleared { border-color: #7a6c33; }
 .mnum { color: #776f5a; font-family: monospace; }
 .mname { font-weight: 600; letter-spacing: 1px; }
-.mstar { margin-left: auto; color: #ffd94a; }
+.mstar { color: #ffd94a; }
+.mission-forces {
+  display: flex;
+  gap: 9px;
+  margin-left: auto;
+}
+.mission-force {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+  color: #fff;
+  font: 700 9px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.5px;
+}
+.mission-force strong {
+  color: #fff;
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+}
 
 .menu-controls { margin-top: 12px; display: flex; gap: 10px; }
 .menu-options label { margin-right: 24px; color: #c8c2b0; }
@@ -111,6 +129,24 @@ select, input[type="url"] {
   color: #f0e7cd;
   font-variant-numeric: tabular-nums;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.level-card-forces {
+  display: flex;
+  gap: 18px;
+  margin-top: 6px;
+}
+.level-force {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  color: #fff;
+  font: 800 10px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.8px;
+}
+.level-force strong {
+  color: #fff;
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
 }
 .level-card p { margin: 6px 0; font-size: 13px; line-height: 1.45; color: #c5bea9; }
 .level-card .level-special { color: #9fb8cc; }
@@ -222,6 +258,7 @@ select, input[type="url"] {
 .popup-buttons { display: flex; gap: 8px; margin-top: 10px; justify-content: flex-end; }
 
 #factory-panel { left: 50%; top: 18%; transform: translateX(-50%); min-width: 390px; max-height: 70%; overflow-y: auto; }
+#factory-title { font-size: 18px; font-weight: 800; }
 .factory-row {
   display: flex;
   justify-content: space-between;
@@ -242,7 +279,14 @@ select, input[type="url"] {
 }
 .factory-unit-details { display: flex; flex-direction: column; gap: 3px; }
 .factory-unit-details strong { color: #ffe9a0; }
-.factory-unit-details span { color: #aaa18d; font: 11px monospace; white-space: nowrap; }
+.factory-unit-details span { color: #fff; font: 11px monospace; white-space: nowrap; }
+.factory-row button { color: #fff; }
+.factory-unit-status {
+  color: #fff;
+  font: 700 11px monospace;
+  letter-spacing: 0.5px;
+  text-align: right;
+}
 
 #battle-panel { left: 50%; top: 18%; transform: translateX(-50%); min-width: 420px; }
 #battle-detail { display: flex; gap: 18px; flex-wrap: wrap; }

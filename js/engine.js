@@ -308,13 +308,11 @@ var ENGINE = (function () {
     var b = this.buildingAt(unit.col, unit.row);
     var events = [];
     if (b && unit.type.moveType !== "air") {
-      var captured = false;
       // Capture: infantry only, on enemy/neutral buildings.
       if (unit.type.capture && b.owner !== unit.player) {
         b.owner = unit.player;
         // Stored units belong to the new owner once the factory is captured.
         for (var i = 0; i < b.stored.length; i++) b.stored[i].player = unit.player;
-        captured = true;
         events.push({ t: "capture", kind: b.kind });
         this.log.push({ t: "capture", unit: unit.id, col: unit.col, row: unit.row });
         // Published rule: capturing a factory earns the infantry +4 EXP.
@@ -327,11 +325,9 @@ var ENGINE = (function () {
           this.winReason = "base";
         }
       }
-      // Storage: stopping on a factory that was already yours takes the
-      // unit off the field into the stored list, repaired to full. (A
-      // capturer stays on the hex it just took; loaded transports are kept
-      // off the hex by movementRange.)
-      if (!captured && b.kind === "factory" && b.owner === unit.player &&
+      // Storage: stopping on an owned factory, including the act of
+      // capturing it, takes the unit off the field and repairs it to full.
+      if (b.kind === "factory" && b.owner === unit.player &&
           this.winner === null && (!unit.cargo || unit.cargo.length === 0)) {
         var ui = this.units.indexOf(unit);
         if (ui >= 0) this.units.splice(ui, 1);
@@ -425,9 +421,8 @@ var ENGINE = (function () {
     this.finishUnit(cargoUnit);
   };
 
-  /* Hexes a stored unit could deploy to: the six around the factory, open,
-   * outside any building, on terrain the unit can be set down on and stand
-   * on. Aircraft ignore the ground-terrain restriction. Shared by the UI's
+  /* Empty hexes a stored unit could deploy to: one of the six around the
+   * factory, on terrain explicitly marked as deployable. Shared by the UI's
    * exit picker and the AI. */
   Game.prototype.deployTargets = function (building, storedUnit) {
     var out = [];
@@ -437,21 +432,36 @@ var ENGINE = (function () {
       var n = ns[i];
       if (!this.inBounds(n.col, n.row)) continue;
       if (this.unitAt(n.col, n.row)) continue;
-      if (this.buildingAt(n.col, n.row)) continue;
       var terr = this.terrainAt(n.col, n.row);
-      if (storedUnit.type.moveType !== "air" && !terr.deployable) continue;
+      if (!terr.deployable) continue;
       if (terrainCost(terr, storedUnit.type.moveType, storedUnit.type) === null) continue;
       out.push(n);
     }
     return out;
   };
 
+  /* Adjacent transports a stored unit can deploy directly into. */
+  Game.prototype.transportDeployTargets = function (building, storedUnit) {
+    var out = [];
+    if (storedUnit.type.moveType === "air" || storedUnit.type.cargo) return out;
+    var ns = HEX.neighbors(building.col, building.row);
+    for (var i = 0; i < ns.length; i++) {
+      var n = ns[i];
+      if (!this.inBounds(n.col, n.row)) continue;
+      var transport = this.unitAt(n.col, n.row);
+      if (!transport || transport.player !== building.owner ||
+          !transport.type.cargo ||
+          transport.cargo.length >= transport.type.cargo) continue;
+      out.push(transport);
+    }
+    return out;
+  };
+
   /* Deploy a stored unit from a factory to a chosen adjacent hex. Units
-   * never stand on the factory hex itself — stopping there is what stores
-   * them — and ground units exit only onto open plains, road or bridge.
-   * Deploying costs the unit its whole turn, and a unit stored this turn
-   * cannot leave until the next. Mines and the Atlas only leave aboard a
-   * transport (loadFromFactory). */
+   * exit only onto open terrain marked as deployable. Deploying costs the
+   * unit its whole turn, and a unit stored this turn cannot leave until the
+   * next. Mines and the Atlas only leave aboard a transport
+   * (loadFromFactory). */
   Game.prototype.deployFromFactory = function (building, storedUnit, col, row) {
     if (building.owner !== this.currentPlayer) throw new Error("Not your factory");
     var idx = building.stored.indexOf(storedUnit);
@@ -464,11 +474,8 @@ var ENGINE = (function () {
       throw new Error("Units deploy to a hex adjacent to the factory");
     }
     if (this.unitAt(col, row)) throw new Error("Hex occupied");
-    if (this.buildingAt(col, row)) throw new Error("Cannot deploy into another building");
     var terr = this.terrainAt(col, row);
-    if (storedUnit.type.moveType !== "air" && !terr.deployable) {
-      throw new Error("Can only deploy onto plains, a road or a bridge");
-    }
+    if (!terr || !terr.deployable) throw new Error("Terrain does not allow deployment");
     if (terrainCost(terr, storedUnit.type.moveType, storedUnit.type) === null) throw new Error("Impassable");
     building.stored.splice(idx, 1);
     storedUnit.inFactory = false;
@@ -483,17 +490,26 @@ var ENGINE = (function () {
   /* Load a stored ground unit directly onto an eligible adjacent transport. */
   Game.prototype.loadFromFactory = function (building, storedUnit, transport) {
     if (building.owner !== this.currentPlayer) throw new Error("Not your factory");
-    if (storedUnit.moved) throw new Error(storedUnit.type.name + " was stored this turn");
-    var d = HEX.distance(building.col, building.row, transport.col, transport.row);
-    if (d > 1) throw new Error("Transport must be on or adjacent to factory");
-    if (!transport.type.cargo || transport.cargo.length >= transport.type.cargo) throw new Error("Transport full");
     var idx = building.stored.indexOf(storedUnit);
+    if (idx < 0) throw new Error("Unit not stored here");
+    if (storedUnit.moved) throw new Error(storedUnit.type.name + " was stored this turn");
+    if (storedUnit.type.moveType === "air" || storedUnit.type.cargo) {
+      throw new Error(storedUnit.type.name + " cannot board a transport");
+    }
+    var d = HEX.distance(building.col, building.row, transport.col, transport.row);
+    if (d !== 1) throw new Error("Transport must be adjacent to factory");
+    if (this.unitAt(transport.col, transport.row) !== transport) {
+      throw new Error("Transport is not on the map");
+    }
+    if (transport.player !== building.owner) throw new Error("Not your transport");
+    if (!transport.type.cargo || transport.cargo.length >= transport.type.cargo) throw new Error("Transport full");
     building.stored.splice(idx, 1);
     storedUnit.inFactory = false;
     storedUnit.player = building.owner;
     storedUnit.col = transport.col; storedUnit.row = transport.row;
     storedUnit.carriedBy = transport.id;
     storedUnit.moved = true;
+    storedUnit.movePointsLeft = 0;
     transport.cargo.push(storedUnit);
     this.units.push(storedUnit);
     this.log.push({ t: "loadFromFactory", unit: storedUnit.id, into: transport.id });

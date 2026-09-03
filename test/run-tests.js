@@ -7,6 +7,7 @@
  */
 "use strict";
 
+var cryptoModule = require("node:crypto");
 var path = require("path");
 var HEX = require(path.join(__dirname, "../js/hex.js"));
 global.HEX = HEX;
@@ -88,6 +89,38 @@ ALL_MAPS.forEach(function (m, mi) {
 });
 console.log("  " + ALL_MAPS.length + " maps checked");
 
+var campaignPayload = CAMPAIGN.map(function (m) {
+  return { grid: m.grid, buildings: m.buildings, units: m.units };
+});
+ok(cryptoModule.createHash("sha256").update(JSON.stringify(campaignPayload))
+  .digest("hex") === "54edc11e231ed865388d7b2e0371ad17971cdf8a96b683debb914cd0db1b991b",
+  "campaign terrain, deployments and factory inventories match the extracted original data");
+
+var expectedCampaign = [
+  ["REVOLT", 15, 10, 5, 4, 0], ["ICARUS", 15, 10, 8, 6, 0],
+  ["CYRANO", 15, 10, 6, 6, 0], ["RAMSEY", 15, 20, 9, 8, 2],
+  ["NEWTON", 15, 20, 6, 5, 8], ["SENECA", 15, 20, 10, 7, 7],
+  ["SABINE", 30, 10, 10, 11, 7], ["ARATUS", 30, 10, 19, 19, 8],
+  ["GALOIS", 30, 20, 13, 16, 25], ["DARWIN", 30, 20, 16, 12, 28],
+  ["PASCAL", 30, 20, 14, 16, 24], ["HALLEY", 30, 20, 17, 15, 23],
+  ["BORMAN", 30, 20, 11, 11, 23], ["APPOLO", 30, 20, 13, 14, 19],
+  ["KAISER", 30, 20, 12, 15, 27], ["NECTOR", 30, 20, 15, 18, 23],
+];
+CAMPAIGN.forEach(function (m, i) {
+  var expected = expectedCampaign[i];
+  var forces = [0, 0], neutral = 0;
+  m.units.forEach(function (u) { forces[u.o]++; });
+  m.buildings.forEach(function (building) {
+    var stored = (building.stored || []).length;
+    if (building.owner === 0 || building.owner === 1) forces[building.owner] += stored;
+    else neutral += stored;
+  });
+  ok(m.name === expected[0] && m.grid[0].length === expected[1] &&
+    m.grid.length === expected[2], m.name + ": original name and dimensions");
+  ok(forces[0] === expected[3] && forces[1] === expected[4] &&
+    neutral === expected[5], m.name + ": original initial force totals");
+});
+
 /* ---------- 2. rules ---------- */
 
 section("hex math");
@@ -137,16 +170,27 @@ ok(Math.abs(roadHub.y - bridgeHub.y) < 0.0001,
   "same-row road tile variants align on one horizontal line");
 var thumbnailOps = 0;
 var thumbnailScales = [];
-var thumbnailContext = new Proxy({
-  scale: function (x, y) { thumbnailOps++; thumbnailScales.push([x, y]); },
-}, {
-  get: function (target, property) {
-    if (!(property in target)) {
-      target[property] = function () { thumbnailOps++; };
-    }
-    return target[property];
-  },
-});
+function recordingContext(assignments, scales) {
+  return new Proxy({
+    scale: function (x, y) {
+      thumbnailOps++;
+      if (scales) scales.push([x, y]);
+    },
+  }, {
+    get: function (target, property) {
+      if (!(property in target)) {
+        target[property] = function () { thumbnailOps++; };
+      }
+      return target[property];
+    },
+    set: function (target, property, value) {
+      if (assignments) assignments.push([property, value]);
+      target[property] = value;
+      return true;
+    },
+  });
+}
+var thumbnailContext = recordingContext(null, thumbnailScales);
 RENDER.drawUnitIcon({
   width: 56, height: 44,
   getContext: function () { return thumbnailContext; },
@@ -160,13 +204,24 @@ RENDER.drawUnitIcon({
 ok(thumbnailScales.some(function (scale) { return scale[0] === -1 && scale[1] === 1; }),
   "Xenon unit silhouettes are reflected to face left");
 var mapUnitDraws = true;
+var mapFacingScales = [];
+var mapRightFacingScales = [];
 try {
   ["neon", "pixel", "classic"].forEach(function (style) {
     RENDER.setStyle(style);
-    renderer.ctx = thumbnailContext;
-    renderer.drawUnit({
-      id: "renderer-test", typeId: "BISON", type: UNIT_TYPES.BISON,
-      player: 0, col: 1, row: 1, moved: false, strength: 8, exp: 0, cargo: [],
+    ["BISON", "TRIGGER"].forEach(function (typeId) {
+      renderer.ctx = recordingContext(null, mapRightFacingScales);
+      renderer.drawUnit({
+        id: "renderer-union-" + style + "-" + typeId,
+        typeId: typeId, type: UNIT_TYPES[typeId],
+        player: 0, col: 1, row: 1, moved: false, strength: 8, exp: 0, cargo: [],
+      });
+      renderer.ctx = recordingContext(null, mapFacingScales);
+      renderer.drawUnit({
+        id: "renderer-xenon-" + style + "-" + typeId,
+        typeId: typeId, type: UNIT_TYPES[typeId],
+        player: 1, col: 1, row: 1, moved: false, strength: 8, exp: 0, cargo: [],
+      });
     });
   });
 } catch (err) {
@@ -174,6 +229,44 @@ try {
 }
 RENDER.setStyle("neon");
 ok(mapUnitDraws, "map unit chrome renders in neon, pixel, and classic styles");
+ok(mapFacingScales.filter(function (scale) {
+  return scale[0] === -1 && scale[1] === 1;
+}).length === 6, "enemy tanks and mines face left in every visual style");
+ok(mapRightFacingScales.length === 0,
+  "player tanks and mines face right in every visual style");
+
+rendererGame.currentPlayer = 0;
+var spentAssignments = [];
+renderer.ctx = recordingContext(spentAssignments, null);
+renderer.drawUnit({
+  id: "spent-unit", typeId: "BISON", type: UNIT_TYPES.BISON,
+  player: 0, col: 1, row: 1, moved: true, strength: 7, exp: 3, cargo: [],
+});
+ok(spentAssignments.some(function (assignment) {
+  return assignment[0] === "filter" && assignment[1] === "grayscale(1)";
+}) && !spentAssignments.some(function (assignment) {
+  return assignment[0] === "globalAlpha" && assignment[1] === 0.45;
+}), "a completed current-player unit is fully greyscale without reduced opacity");
+
+var activeAssignments = [];
+renderer.ctx = recordingContext(activeAssignments, null);
+renderer.drawUnit({
+  id: "active-unit", typeId: "RABBIT", type: UNIT_TYPES.RABBIT,
+  player: 0, col: 1, row: 1, moved: false, strength: 8, exp: 0, cargo: [],
+});
+ok(!activeAssignments.some(function (assignment) {
+  return assignment[0] === "filter";
+}), "a unit with an open activation remains at full color");
+
+var opponentAssignments = [];
+renderer.ctx = recordingContext(opponentAssignments, null);
+renderer.drawUnit({
+  id: "opponent-unit", typeId: "BISON", type: UNIT_TYPES.BISON,
+  player: 1, col: 1, row: 1, moved: true, strength: 8, exp: 0, cargo: [],
+});
+ok(!opponentAssignments.some(function (assignment) {
+  return assignment[0] === "filter";
+}), "the opposing army is not greyed during the current player's turn");
 
 section("movement and ZOC");
 var testMap = {
@@ -565,7 +658,10 @@ g9.finishUnit(ch9);
 var fac9 = g9.buildingAt(0, 0);
 ok(fac9.owner === 0, "infantry captured neutral factory");
 ok(fac9.stored[0].player === 0, "stored unit defected to captor");
-ok(g9.unitAt(0, 0) === ch9, "the capturer stays on the factory hex");
+ok(!g9.unitAt(0, 0) && fac9.stored.indexOf(ch9) >= 0,
+  "the capturer goes inside and leaves the factory hex empty");
+ok(ch9.inFactory && ch9.moved,
+  "the stored capturer cannot redeploy during the capture turn");
 // deploying never targets the factory hex — an exit hex is chosen instead
 var threw = false;
 try { g9.deployFromFactory(fac9, fac9.stored[0], 0, 0); } catch (e) { threw = true; }
@@ -600,6 +696,38 @@ try { g9b.deployFromFactory(fac9b, bi9, 1, 0); } catch (e) { threw = true; }
 ok(threw, "cannot deploy onto hills — exits are plains, road or bridge");
 g9b.deployFromFactory(fac9b, bi9, 0, 1);
 ok(g9b.unitAt(0, 1) === bi9 && bi9.strength === 8, "repaired unit deploys the next turn");
+
+// A ready stored ground unit may choose an adjacent transport instead of an
+// empty terrain hex. Aircraft and transports cannot be carried.
+var g9t = new ENGINE.Game({
+  name: "T9 transport deployment", turnLimit: 50,
+  grid: [".....", "..F..", "B...B"],
+  buildings: [
+    { col: 2, row: 1, owner: 0, stored: ["BISON", "KILROY", "HUNTER"] },
+    { col: 0, row: 2, owner: 0 }, { col: 4, row: 2, owner: 1 },
+  ],
+  units: [
+    { t: "MULE", o: 0, x: 1, y: 1 },
+    { t: "PELICAN", o: 0, x: 3, y: 1 },
+  ],
+}, { seed: 1 });
+var fac9t = g9t.buildingAt(2, 1);
+var bison9t = fac9t.stored[0];
+var kilroy9t = fac9t.stored[1];
+var hunter9t = fac9t.stored[2];
+var transports9t = g9t.transportDeployTargets(fac9t, bison9t);
+ok(transports9t.length === 2,
+  "a tank may deploy into either available adjacent Mule or Pelican");
+var pelican9t = g9t.unitAt(3, 1);
+g9t.loadFromFactory(fac9t, bison9t, pelican9t);
+ok(bison9t.carriedBy === pelican9t.id && pelican9t.cargo[0] === bison9t &&
+  bison9t.moved, "direct transport deployment loads the tank and spends its turn");
+var mule9t = g9t.unitAt(1, 1);
+g9t.loadFromFactory(fac9t, kilroy9t, mule9t);
+ok(kilroy9t.carriedBy === mule9t.id,
+  "another stored ground unit can choose the other adjacent transport");
+ok(g9t.transportDeployTargets(fac9t, hunter9t).length === 0,
+  "stored aircraft cannot deploy into transports");
 
 // A non-capturing unit can pass through but never stop on a factory it
 // does not own.
@@ -686,7 +814,7 @@ var g14 = new ENGINE.Game({
     { col: 7, row: 0, owner: 1 },
     { col: 2, row: 0, owner: -1 },
   ],
-  units: [{ t: "CHARLIE", o: 0, x: 1, y: 0 }],
+  units: [{ t: "CHARLIE", o: 0, x: 1, y: 0, str: 2 }],
 }, { seed: 2 });
 var cap = g14.unitAt(1, 0);
 var capRange = g14.movementRange(cap);
@@ -694,6 +822,8 @@ g14.moveUnit(cap, 2, 0, capRange);
 g14.finishUnit(cap);
 ok(g14.buildingAt(2, 0).owner === 0, "infantry captures the neutral factory");
 ok(cap.exp === 4, "factory capture awards +4 exp, got " + cap.exp);
+ok(cap.inFactory && !g14.unitAt(2, 0) && cap.strength === 8,
+  "factory capture stores the capturing infantry off-map and repairs it");
 
 section("observable AI turn steps");
 var aiFactoryGame = new ENGINE.Game({

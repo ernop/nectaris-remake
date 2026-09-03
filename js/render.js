@@ -1101,14 +1101,15 @@ var RENDER = (function () {
     ctx.save();
     ctx.translate(ctr.x, ctr.y);
 
-    if (unit.moved && this.game.currentPlayer === unit.player) ctx.globalAlpha = 0.55;
+    if (unit.moved && this.game.currentPlayer === unit.player) {
+      ctx.filter = "grayscale(1)";
+    }
 
     // flash overlay ring during battles
     var flash = this.flashUnits[unit.id];
 
     drawUnitBody(ctx, unit, u, colors);
 
-    ctx.globalAlpha = 1;
     // No stencil badge: the silhouettes are the identification, as in the
     // original, and the sidebar names the unit under the cursor.
 

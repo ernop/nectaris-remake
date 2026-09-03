@@ -7,6 +7,23 @@ FAQs, the game's published manual, and Japanese community ROM analysis).
 Everything here is data-driven: the tables live in
 `js/data-*.js` and the pipeline in `js/combat.js` / `js/engine.js`.
 
+## Version provenance policy (2026-09-03)
+
+Nectaris releases may differ in mechanics as well as maps and campaigns.
+Accordingly, “the original game” is not sufficient provenance for a rule.
+Every adopted mechanic must identify the platform, region and release when the
+source provides them. Evidence from the 1989 PC Engine release, TurboGrafx-16
+localization, 1997 Windows remake, PlayStation release and later ports must not
+be treated as interchangeable.
+
+The current remake is a documented composite: English unit names come from the
+TurboGrafx-16 localization; campaign data comes from Hudson's 1997 Windows PC
+Engine remake; individual mechanics cite their own evidence below. When two
+versions disagree, preserve both findings in this document and make the chosen
+behavior an explicit product decision rather than silently replacing one
+version's rule with another. A source from an unidentified version remains
+unresolved evidence, not confirmation of the implemented behavior.
+
 ## Units
 
 Each unit is a squad with a **strength** of 1–8 (the original's sub-unit
@@ -28,9 +45,9 @@ Special behaviors (all documented):
 - **Transports** (Mule ground, Pelican air) carry one ground unit. Loading:
   the passenger moves onto the transport's hex. Unloading: to an adjacent
   passable, empty hex; the passenger's turn is spent.
-- **Atlas and Trigger** are immobile; they only leave a factory by being
-  loaded onto a transport on/adjacent to it (or deployed onto the factory hex
-  itself). A level file may also place them directly.
+- **Atlas and Trigger** are immobile; they only leave a factory by deploying
+  directly into an empty Mule or Pelican on one of the six adjacent hexes. A
+  level file may also place them directly.
 - **Air units** pay 1 movement per hex regardless of terrain, receive no
   terrain defense, and can only be attacked with air-attack values.
 
@@ -190,11 +207,15 @@ GX-87 Kilroy. We follow the US designation to match the names.
 「工場の上にユニットを停止させれば自動的に格納されます」 and the TG-16 FAQ's
 "deploy the unit onto the space the transport occupies".)
 
-- Factories hold **stored units** — the original's hidden reinforcements.
-  Deploying places the unit on a **chosen hex adjacent to the factory**,
-  never on the factory hex itself; ground units exit only onto open plains,
-  road or bridge, and the deployed unit's turn is spent. Mines and the Atlas
-  leave only aboard a transport parked on or next to the factory.
+- Factories hold **stored units**. Clicking an owned factory with ready stored
+  units opens the stored-unit list. After choosing one unit, choose its
+  destination from the highlighted hexes surrounding the factory.
+- A terrain destination must be one of the six adjacent hexes, unoccupied, and
+  marked `deployable` by its terrain type. Alternatively, a stored ground unit
+  can deploy directly into an adjacent friendly Mule or Pelican with an empty
+  cargo slot. Atlas and Trigger have only the transport option. Deploying by
+  either method spends the stored unit's turn, so it cannot move or attack
+  immediately.
 - **Stopping a ground unit on a factory you already own stores it**: it
   leaves the field, is repaired to full (experience kept), and can deploy
   again from your next turn on — so a repair costs the two turns of entering
@@ -202,8 +223,11 @@ GX-87 Kilroy. We follow the US designation to match the names.
   store or repair.
 - A factory you do not own can be passed through but not stopped on —
   except by infantry, whose stopping there *is* the capture. The capturer
-  stays on the hex; capturing transfers the factory *and its stored units*,
-  and awards the infantry +4 experience.
+  goes inside the newly owned factory and disappears from the map. It is
+  repaired, keeps its experience, and cannot redeploy until its next turn.
+  Capturing also transfers every unit already stored there to the new owner
+  and awards the infantry +4 experience. Previously stored units that have
+  not acted are immediately eligible to deploy.
 - A transport carrying cargo cannot stop on its own factory (it will not
   fit); unloading cargo onto your factory hex stores the cargo directly.
 
@@ -221,7 +245,7 @@ GX-87 Kilroy. We follow the US designation to match the names.
   maps up to 60×60 in the editor.
 - **Fixed roster and level set.** Units, terrain and maps are data; custom
   levels can carry custom unit types inside their JSON.
-- **Original assets and map data.** All art is procedural and original; the
-  16 campaign missions are original layouts following the original campaign's
-  teaching structure (tanks → factories → artillery → air → AA → transports →
-  mines → mountains → combined arms).
+- **Original assets.** All art is procedural and original. The 16 campaign
+  missions reproduce the terrain, deployments and factory inventories built
+  into Hudson's official 1997 Windows PC Engine remake; no original bitmap or
+  audio asset is included.

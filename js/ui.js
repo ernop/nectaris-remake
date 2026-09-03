@@ -419,67 +419,55 @@ var UI = (function () {
       unit.appendChild(details);
       row.appendChild(unit);
       RENDER.drawUnitIcon(icon, su);
-      var btn = document.createElement("button");
-      btn.textContent = "Deploy";
+      var groundTargets = g.deployTargets(building, su);
+      var transportTargets = g.transportDeployTargets(building, su);
+      var btn;
       if (su.moved) {
-        btn.disabled = true;
-        btn.title = "Stored this turn — can leave from the next turn";
-      } else if (su.type.placeByTransport &&
-                 !self.findAdjacentTransport(building)) {
-        btn.disabled = true;
-        btn.title = su.type.name + " needs an available transport on or next to the factory";
-      } else if (!su.type.placeByTransport &&
-                 !g.deployTargets(building, su).length) {
-        btn.disabled = true;
-        btn.title = "No open exit hex next to the factory";
-      }
-      btn.onclick = function () {
-        try {
-          if (su.type.placeByTransport) {
-            var transport = self.findAdjacentTransport(building);
-            if (!transport) {
-              throw new Error(su.type.name +
-                " needs an available transport on or next to the factory");
+        btn = document.createElement("span");
+        btn.className = "factory-unit-status";
+        btn.textContent = "AVAILABLE NEXT TURN";
+      } else if (!groundTargets.length && !transportTargets.length) {
+        btn = document.createElement("span");
+        btn.className = "factory-unit-status";
+        btn.textContent = "NO DESTINATION";
+      } else {
+        btn = document.createElement("button");
+        btn.textContent = "Deploy";
+        btn.onclick = function () {
+          try {
+            var exits = g.deployTargets(building, su);
+            var transports = g.transportDeployTargets(building, su);
+            if (!exits.length && !transports.length) {
+              throw new Error("No available deployment destination");
             }
-            g.loadFromFactory(building, su, transport);
             self.closeFactoryPanel();
-            self.refreshStatus();
+            self.mode = "deployPick";
+            self.deployPending = {
+              building: building,
+              unit: su,
+              transports: transports,
+            };
+            var highlights = {};
+            exits.forEach(function (exit) {
+              highlights[HEX.key(exit.col, exit.row)] = "rgba(130,220,130,0.45)";
+            });
+            transports.forEach(function (transport) {
+              highlights[HEX.key(transport.col, transport.row)] = "rgba(80,180,255,0.6)";
+            });
+            self.renderer.highlights = highlights;
+            self.toast("Choose an adjacent hex or transport for " + su.type.name);
             self.draw();
-            return;
+          } catch (err) {
+            self.toast(err.message);
           }
-          var exits = g.deployTargets(building, su);
-          if (!exits.length) throw new Error("No open exit hex next to the factory");
-          self.closeFactoryPanel();
-          self.mode = "deployPick";
-          self.deployPending = { building: building, unit: su };
-          var highlights = {};
-          exits.forEach(function (exit) {
-            highlights[HEX.key(exit.col, exit.row)] = "rgba(130,220,130,0.45)";
-          });
-          self.renderer.highlights = highlights;
-          self.toast("Choose an exit hex for " + su.type.name);
-          self.draw();
-        } catch (err) {
-          self.toast(err.message);
-        }
-      };
+        };
+      }
       row.appendChild(btn);
       list.appendChild(row);
     });
     if (!building.stored.length) list.innerHTML = "<em>empty</em>";
     $("factory-close").onclick = function () { self.closeFactoryPanel(); };
     panel.classList.remove("hidden");
-  };
-
-  GameUI.prototype.findAdjacentTransport = function (building) {
-    var positions = [{ col: building.col, row: building.row }]
-      .concat(HEX.neighbors(building.col, building.row));
-    for (var i = 0; i < positions.length; i++) {
-      var unit = this.game.unitAt(positions[i].col, positions[i].row);
-      if (unit && unit.player === building.owner && unit.type.cargo &&
-          unit.cargo.length < unit.type.cargo) return unit;
-    }
-    return null;
   };
 
   GameUI.prototype.closeFactoryPanel = function () {
@@ -826,7 +814,17 @@ var UI = (function () {
       this.deployPending = null;
       this.mode = "idle";
       if (pend && chosen) {
-        try { g.deployFromFactory(pend.building, pend.unit, col, row); }
+        try {
+          var transport = null;
+          for (var j = 0; j < pend.transports.length; j++) {
+            if (pend.transports[j].col === col && pend.transports[j].row === row) {
+              transport = pend.transports[j];
+              break;
+            }
+          }
+          if (transport) g.loadFromFactory(pend.building, pend.unit, transport);
+          else g.deployFromFactory(pend.building, pend.unit, col, row);
+        }
         catch (err) { this.toast(err.message); }
         this.refreshStatus();
       }
