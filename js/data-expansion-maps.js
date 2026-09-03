@@ -7,7 +7,7 @@
 "use strict";
 
 var EXPANSION_LEVELS = (function () {
-  var SOURCE = "https://github.com/ernop/nectaris-remake/blob/main/js/data-expansion-maps.js";
+  var SOURCE = "https://github.com/ernop/nectaris-remake/blob/master/js/data-expansion-maps.js";
 
   function level(meta, grid, bases, factories, blueUnits, redUnits) {
     var width = grid[0].length;
