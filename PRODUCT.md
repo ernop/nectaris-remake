@@ -16,3 +16,14 @@ only when damaged (1–7):
 - Battle-preview name line
 
 `COMBAT.strengthCaption` is the single check. Combat still uses 1–8 internally.
+
+## No two-letter unit badges (2026-09-03)
+
+Map units do **not** carry the two-letter stencil badge ("BI", "LY", …). The
+silhouettes are the identification, as in the original, and the sidebar names
+the unit under the cursor. Together with the hidden full-strength `8` and the
+mirrored enemy facing (player units face right, enemy units face left —
+`drawUnitBody`'s `ctx.scale(-1, 1)`), this keeps the field clean of text.
+This trio was rebuilt on request after an earlier uncommitted version of the
+same look was lost; the facing and strength parts were already in `main`
+(commits `ba660e9`, `f1491b5`), the badge removal is new here.

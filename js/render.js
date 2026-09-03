@@ -457,9 +457,9 @@ var RENDER = (function () {
 
   /* --- units ------------------------------------------------------------ */
 
-  /* Original military silhouettes. Every role has a distinct profile plus a
-   * two-letter stencil badge (drawn below), so units remain readable when
-   * zoomed out without using any original-game artwork. */
+  /* Original military silhouettes. Every role has a distinct profile, so
+   * units remain readable when zoomed out without any original-game artwork
+   * and without text badges. */
 
   var TANK_ART = {
     BISON:   { hull: 23, turret: "round", turretW: 5.4, barrel: 13, barrelWidth: 2.1 },
@@ -469,16 +469,6 @@ var RENDER = (function () {
     SLAGGER: { hull: 22, turret: "wedge", turretW: 5.2, barrel: 12, barrelWidth: 1.8, low: true },
     TITAN:   { hull: 26, turret: "box", turretW: 6.8, barrel: 15, barrelWidth: 2.6, pod: true },
     GIANT:   { hull: 29, turret: "angular", turretW: 8.4, barrel: 18, barrelWidth: 2.9, barrels: 2, skirts: true },
-  };
-
-  var UNIT_MARKS = {
-    CHARLIE: "CH", KILROY: "KI", PANTHER: "PA",
-    BISON: "BI", LENET: "LE", POLAR: "PO", GRIZZLY: "GR",
-    SLAGGER: "SL", TITAN: "TI", GIANT: "GI",
-    EAGLE: "EA", FALCON: "FA", HUNTER: "HU",
-    HADRIAN: "HA", OCTOPUS: "OC", ATLAS: "AT",
-    RABBIT: "RA", LYNX: "LY", SEEKER: "SE", HAWKEYE: "HW",
-    MULE: "MU", PELICAN: "PE", TRIGGER: "TR",
   };
 
   function drawUnitBody(ctx, unit, u, colors) {
@@ -1119,13 +1109,8 @@ var RENDER = (function () {
     drawUnitBody(ctx, unit, u, colors);
 
     ctx.globalAlpha = 1;
-    // Two-letter stencil makes individual chassis identifiable at a glance.
-    ctx.fillStyle = theme.chrome.stencilBg;
-    ctx.fillRect(-15 * u, -16 * u, 11 * u, 7 * u);
-    ctx.fillStyle = theme.chrome.stencilText;
-    ctx.font = "bold " + Math.max(5, Math.round(5.5 * u)) + "px monospace";
-    ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    ctx.fillText(UNIT_MARKS[unit.typeId] || unit.typeId.slice(0, 2), -9.5 * u, -12.5 * u);
+    // No stencil badge: the silhouettes are the identification, as in the
+    // original, and the sidebar names the unit under the cursor.
 
     // Strength is omitted at 8 (the default). Damaged 1–7 stay bottom-left.
     var shownStrength = this.strengthOverrides[unit.id];
