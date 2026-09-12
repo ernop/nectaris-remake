@@ -268,6 +268,76 @@ ok(!opponentAssignments.some(function (assignment) {
   return assignment[0] === "filter";
 }), "the opposing army is not greyed during the current player's turn");
 
+section("unit sprite set");
+/* One 22x18 sprite per stock unit, drawn with the documented colour codes,
+ * and no two stock units share artwork. */
+var spriteIds = Object.keys(RENDER.UNIT_SPRITES);
+Object.keys(UNIT_TYPES).forEach(function (typeId) {
+  var art = RENDER.UNIT_SPRITES[typeId];
+  ok(!!art, "stock unit " + typeId + " has its own sprite");
+  if (!art) return;
+  ok(art.length === RENDER.SPRITE_H, typeId + " sprite has " + RENDER.SPRITE_H + " rows (got " + art.length + ")");
+  art.forEach(function (row, r) {
+    ok(row.length === RENDER.SPRITE_W, typeId + " sprite row " + r + " is " + RENDER.SPRITE_W + " wide (got " + row.length + ")");
+    for (var c = 0; c < row.length; c++) {
+      var code = row.charAt(c);
+      ok(code === "." || RENDER.SPRITE_CODES.indexOf(code) >= 0,
+        typeId + " sprite row " + r + " col " + c + " uses unknown code " + JSON.stringify(code));
+    }
+  });
+  ok(art.some(function (row) { return /[^.]/.test(row); }), typeId + " sprite is not blank");
+});
+spriteIds.forEach(function (a, i) {
+  ok(!!UNIT_TYPES[a], "sprite " + a + " names a stock unit");
+  for (var j = i + 1; j < spriteIds.length; j++) {
+    ok(RENDER.UNIT_SPRITES[a].join("\n") !== RENDER.UNIT_SPRITES[spriteIds[j]].join("\n"),
+      "sprites " + a + " and " + spriteIds[j] + " are distinct");
+  }
+});
+ok(RENDER.spriteIdFor({ id: "CUSTOM_TANK", cls: "tank", moveType: "treads" }) === "BISON",
+  "a custom tank without artwork renders as the class base chassis");
+ok(RENDER.spriteIdFor({ id: "CUSTOM_HELI", cls: "transport", moveType: "air" }) === "PELICAN",
+  "a custom air transport renders as the Pelican");
+ok(RENDER.spriteIdFor({ id: "CUSTOM_MBT", cls: "tank", moveType: "treads", sprite: "GRIZZLY" }) === "GRIZZLY",
+  "a custom unit may name a stock sprite");
+var badSprite = false;
+try { RENDER.spriteIdFor({ id: "X", cls: "tank", moveType: "treads", sprite: "NOPE" }); } catch (e) { badSprite = true; }
+ok(badSprite, "naming an unknown sprite is an error, not a silent substitution");
+
+section("attacker palette and faction colours");
+RENDER.setStyle("pixel");
+ok(RENDER.PLAYER_COLORS[0].name === "Union (blue)" && RENDER.PLAYER_COLORS[1].name === "Xenon (green)",
+  "pixel style names the original faction colours: Union blue, Xenon green");
+var attackAssignments = [];
+renderer.attackingUnitId = "attacking-unit";
+renderer.ctx = recordingContext(attackAssignments, null);
+renderer.drawUnit({
+  id: "attacking-unit", typeId: "GRIZZLY", type: UNIT_TYPES.GRIZZLY,
+  player: 1, col: 1, row: 1, moved: true, strength: 8, exp: 0, cargo: [],
+});
+rendererGame.currentPlayer = 1;
+ok(attackAssignments.some(function (assignment) {
+  return assignment[0] === "fillStyle" && assignment[1] === "#c01818";
+}), "the attacking unit is drawn in the deep-red attack body colour");
+ok(!attackAssignments.some(function (assignment) {
+  return assignment[0] === "fillStyle" && assignment[1] === RENDER.PLAYER_COLORS[1].body;
+}), "the attacking unit shows no faction body colour");
+ok(!attackAssignments.some(function (assignment) {
+  return assignment[0] === "filter";
+}), "the attacking unit is never greyed even after moving");
+renderer.attackingUnitId = null;
+rendererGame.currentPlayer = 0;
+var bystanderAssignments = [];
+renderer.ctx = recordingContext(bystanderAssignments, null);
+renderer.drawUnit({
+  id: "bystander", typeId: "GRIZZLY", type: UNIT_TYPES.GRIZZLY,
+  player: 1, col: 1, row: 1, moved: false, strength: 8, exp: 0, cargo: [],
+});
+ok(!bystanderAssignments.some(function (assignment) {
+  return assignment[0] === "fillStyle" && assignment[1] === "#c01818";
+}), "a unit that is not attacking keeps its faction colours");
+RENDER.setStyle("neon");
+
 section("movement and ZOC");
 var testMap = {
   name: "T", turnLimit: 50,
@@ -931,6 +1001,73 @@ ALL_MAPS.forEach(function (m, mi) {
     ok(false, "map " + (mi + 1) + " " + m.name + " crashed: " + e.stack);
   }
 });
+
+section("direct combat interaction");
+(function () {
+  var UI = require("../js/ui.js");
+  var nodes = {};
+  function element() {
+    var classes = new Set(["hidden"]);
+    return { style: {}, appendChild: function () {},
+      classList: { add: function (c) { classes.add(c); }, remove: function (c) { classes.delete(c); },
+        contains: function (c) { return classes.has(c); } } };
+  }
+  global.document = { getElementById: function (id) { return nodes[id] || (nodes[id] = element()); },
+    createElement: element };
+  function fixture(type, enemyX) {
+    var game = new ENGINE.Game({name: "UI", grid: ["........", "........", "........"],
+      units: [{t: type, o: 0, x: 1, y: 1}, {t: "POLAR", o: 1, x: enemyX, y: 1}]}, {seed: 7});
+    var ui = Object.create(UI.GameUI.prototype);
+    ui.game = game; ui.canvas = {width: 800}; ui.renderer = {hexCenter: function () { return {x: 100,y: 100}; }};
+    ui.draw = ui.showUnitInfo = ui.refreshStatus = ui.checkGameOver = function () {};
+    ui.animateBattleResult = function (event, detail, done) { ui.animationDone = done; };
+    ui.selectUnit(game.units[0]);
+    return ui;
+  }
+  var ui = fixture("BISON", 2), unit = ui.selected;
+  ui.onHexClick(2, 1);
+  ok(unit.attacked && ui.busy && ui.mode === "battle", "enemy click commits without Fight and locks combat input");
+  ui.onCancel();
+  ok(ui.mode === "battle", "Escape cannot escape a resolving battle");
+  ui.animationDone();
+  ok(ui.mode === "idle" && !ui.busy && nodes["battle-panel"].classList.contains("hidden"), "result automatically closes and unlocks map");
+
+  ui = fixture("BISON", 4); unit = ui.selected;
+  var initialPoints = unit.movePointsLeft;
+  ui.previewAttack = true; ui.onHexClick(4,1);
+  ok(!unit.attacked && ui.pendingMoveFrom && unit.col !== 1, "Shift-click previews an automatic approach without firing");
+  ui.onCancel();
+  ok(unit.col === 1 && unit.row === 1 && unit.movePointsLeft === initialPoints && ui.mode === "unitSelected", "preview cancel restores position and movement budget");
+
+  ui = fixture("BISON", 3); unit = ui.selected;
+  ui.onHexClick(2,1);
+  ok(ui.mode === "moved" && ui.renderer.highlights[HEX.key(3,1)], "after movement enemies remain highlighted");
+  ui.onHexClick(3,1);
+  ok(unit.attacked, "moved unit attacks by clicking enemy without Attack menu");
+  ui.animationDone();
+
+  ui = fixture("BISON", 3); unit = ui.selected;
+  ui.onHexClick(2,1); ui.previewAttack = true; ui.onHexClick(3,1);
+  ui.onCancel();
+  ok(unit.col === 1 && !unit.attacked && ui.mode === "unitSelected", "cancelling a post-move preview rolls back the provisional move");
+  ui.previewAttack = true; ui.onHexClick(3,1);
+  var turnBeforePreview = ui.game.currentPlayer;
+  ui.endTurn();
+  ok(ui.mode === "battle" && ui.game.currentPlayer === turnBeforePreview, "end turn cannot bypass the open calculator");
+  nodes["battle-fight"].onclick();
+  ok(unit.attacked && ui.busy, "optional calculator Fight commits combat");
+  ui.animationDone();
+
+  ui = fixture("RABBIT", 2); unit = ui.selected;
+  ui.onHexClick(2,1); ui.animationDone();
+  ok(ui.selected === unit && ui.mode === "unitSelected" && unit.movePointsLeft > 0, "surviving Rabbit can spend remaining movement after automatic result");
+  ok(ui.previewTargets(unit).length === 0, "Rabbit cannot attack twice");
+
+  ui = fixture("HADRIAN", 6); unit = ui.selected;
+  ui.onHexClick(2,1);
+  ok(unit.moved && ui.mode === "idle" && !unit.attacked, "moving move-or-fire artillery finishes without offering attack");
+  delete global.document;
+})();
 
 /* ---------- summary ---------- */
 

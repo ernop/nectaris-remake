@@ -370,3 +370,11 @@ textarea#custom-units-json {
   background: #14110c; color: #e8e2d4;
   border: 1px solid #55503f; font-family: monospace; font-size: 11px;
 }
+
+.action-hint {
+  max-width: 180px;
+  padding: 7px 10px;
+  color: #ffd9b4;
+  font-size: 12px;
+  line-height: 1.4;
+}

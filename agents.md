@@ -4,7 +4,8 @@ JavaScript remake of the TG-16 hex-tactics game (Nectaris / Military
 Madness). Start with `README.md` (usage, deployment, modding),
 `PRODUCT.md` (settled UI/product decisions), and `MECHANICS.md`
 (rules reconstruction with sources). Before regenerating unit icons, also read
-`inspiration/nectaris-original/README.md` and inspect its local reference PNGs.
+`inspiration/nectaris-original/README.md` and open
+`inspiration/nectaris-original/index.html` to inspect its local reference PNGs.
 
 Facts wei need across sessions:
 
@@ -42,7 +43,9 @@ Facts wei need across sessions:
   archive. Hudson/Konami sprite and tile bitmaps remain off-limits. The
   gitignored captures under `inspiration/nectaris-original/` are local design
   references only and must never become runtime or redistributed assets.
-  The pixel visual style imitates the era's idiom with original art.
+  The pixel visual style (default) imitates the era's idiom with original
+  art: one 22×18 sprite per stock unit in `UNIT_SPRITES`; review changes in
+  `tools/unit-sheet.html`. Union is blue, Xenon green, red means "attacking".
 - **Rules are sourced, not guessed** (since 2026-09-01): movement costs,
   per-domain attack ranges (`rngG`/`rngA`, indirect band 2..range),
   `moveOrFire`, surround (defender-only, never at the map edge), counter

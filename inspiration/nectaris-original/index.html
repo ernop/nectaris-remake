@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nectaris original-game references</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #14110c;
+    color: #fff;
+    font-family: "Segoe UI", system-ui, sans-serif;
+  }
+  body {
+    width: 100%;
+    padding: 24px 3%;
+  }
+  h1 {
+    font-size: 36px;
+    font-weight: 800;
+    margin: 0 0 8px;
+    color: #ffd94a;
+  }
+  .lede {
+    font-size: 16px;
+    font-weight: 400;
+    color: #fff;
+    margin: 0 0 24px;
+  }
+  code {
+    color: #fff;
+    font-weight: 700;
+  }
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px 20px;
+    margin: 0 0 32px;
+    padding: 16px 0;
+    border-top: 1px solid #ffd94a;
+    border-bottom: 1px solid #ffd94a;
+  }
+  nav a {
+    color: #fff;
+    font-size: 15px;
+    font-weight: 700;
+    text-decoration: underline;
+  }
+  nav a:hover { color: #ffd94a; }
+  figure {
+    margin: 0 0 48px;
+    width: 100%;
+  }
+  h2 {
+    font-size: 28px;
+    font-weight: 800;
+    color: #fff;
+    margin: 0 0 6px;
+  }
+  figcaption {
+    font-size: 16px;
+    font-weight: 400;
+    color: #fff;
+    margin: 0 0 12px;
+  }
+  img {
+    display: block;
+    width: 100%;
+    height: auto;
+    background: #000;
+    border: 1px solid #ffd94a;
+  }
+  .load-error {
+    font-size: 22px;
+    font-weight: 800;
+    color: #ff3030;
+    white-space: pre-wrap;
+  }
+</style>
+</head>
+<body>
+  <h1>Original-game visual references</h1>
+  <p class="lede">Local gitignored captures in <code>inspiration/nectaris-original/</code>. Design references only: not runtime assets, not for redistribution. A missing PNG fails this page instead of leaving a blank slot.</p>
+  <nav>
+    <a href="#original-zoc-battle-pincer-guide">ZOC / pincer guide</a>
+    <a href="#original-encirclement-quiz">Encirclement quiz</a>
+    <a href="#original-terrain-defense-chart">Terrain defense chart</a>
+    <a href="#original-bison-vs-munks-battle">Bison vs Munks</a>
+    <a href="#original-terrain-defense-examples">Terrain defense examples</a>
+    <a href="#original-facing-battlefield-example">Facing example</a>
+  </nav>
+
+  <figure id="original-zoc-battle-pincer-guide">
+    <h2>original-zoc-battle-pincer-guide.png</h2>
+    <figcaption>Gaichi 6-hex Union ZOC, Bison S-61 vs Grizzly T-79, two-unit pincer.</figcaption>
+    <img src="original-zoc-battle-pincer-guide.png" alt="ZOC and pincer-attack guide from the original game">
+  </figure>
+
+  <figure id="original-encirclement-quiz">
+    <h2>original-encirclement-quiz.png</h2>
+    <figcaption>Six map panels. Question: which attack is not an encirclement?</figcaption>
+    <img src="original-encirclement-quiz.png" alt="Encirclement quiz with six battlefield panels">
+  </figure>
+
+  <figure id="original-terrain-defense-chart">
+    <h2>original-terrain-defense-chart.png</h2>
+    <figcaption>Road 0%, plains 5%, hill 20%, wasteland 30%, mountain 40%. Movement gets harder as defense rises.</figcaption>
+    <img src="original-terrain-defense-chart.png" alt="Terrain movement and defense bonus chart">
+  </figure>
+
+  <figure id="original-bison-vs-munks-battle">
+    <h2>original-bison-vs-munks-battle.png</h2>
+    <figcaption>Bison S-61 on plains (5%) versus Munks GX-77 on mountain (40%).</figcaption>
+    <img src="original-bison-vs-munks-battle.png" alt="Bison versus Munks battle screen">
+  </figure>
+
+  <figure id="original-terrain-defense-examples">
+    <h2>original-terrain-defense-examples.png</h2>
+    <figcaption>Armadillo 60 + hill 20 = DEF 80. Grizzly 50 + wasteland 30 = DEF 80.</figcaption>
+    <img src="original-terrain-defense-examples.png" alt="Map callouts adding unit defense to terrain defense">
+  </figure>
+
+  <figure id="original-facing-battlefield-example">
+    <h2>original-facing-battlefield-example.png</h2>
+    <figcaption>Union units face right. Xenon units face left.</figcaption>
+    <img src="original-facing-battlefield-example.png" alt="Battlefield showing opposing unit facing">
+  </figure>
+
+  <script>
+    function failLoad(src) {
+      document.body.replaceChildren();
+      const p = document.createElement("p");
+      p.className = "load-error";
+      p.textContent = "Failed to load " + src + "\nThis PNG is gitignored and must exist beside this page.";
+      document.body.appendChild(p);
+      throw new Error("Failed to load " + src);
+    }
+    document.querySelectorAll("img").forEach(function (img) {
+      img.addEventListener("error", function () {
+        failLoad(img.getAttribute("src"));
+      });
+      if (img.complete && img.naturalWidth === 0) {
+        failLoad(img.getAttribute("src"));
+      }
+    });
+  </script>
+</body>
+</html>

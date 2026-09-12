@@ -2,8 +2,8 @@
  *
  * Interaction model (mirrors the original's flow, minus its screen limits):
  *   click own unit  -> show movement range + attackable targets
- *   click dest hex  -> unit steps there; menu opens only when an action remains
- *   Attack          -> pick highlighted target, battle preview, resolve
+ *   click dest hex  -> unit steps there; enemies stay directly clickable
+ *   click enemy     -> resolve immediately (Shift-click opens calculator)
  *   Finish          -> commit without attacking (captures/repairs apply)
  *   Cancel          -> unit returns to where it was
  * Right-click / Esc cancels. Wheel zooms; middle/right-drag pans only on axes
@@ -180,6 +180,7 @@ var UI = (function () {
   GameUI.prototype.hideWatchPanel = function () {
     $("watch-panel").classList.add("hidden");
     this.renderer.flashUnits = {};
+    this.renderer.attackingUnitId = null;
   };
 
   GameUI.prototype.showWatchMove = function (event) {
@@ -203,9 +204,11 @@ var UI = (function () {
   };
 
   GameUI.prototype.showWatchPreview = function (event) {
+    // The attacker is identified by its deep-red body (as in the original);
+    // the defender gets a white ring so the pair reads as one matchup.
     this.renderer.flashUnits = {};
-    this.renderer.flashUnits[event.attacker.id] = "#ffe067";
-    this.renderer.flashUnits[event.defender.id] = "#ff765f";
+    this.renderer.attackingUnitId = event.attacker.id;
+    this.renderer.flashUnits[event.defender.id] = "#ffffff";
     this.showWatchPanel(
       "XENON ATTACK",
       "<div class='watch-matchup'>" +
@@ -220,6 +223,7 @@ var UI = (function () {
 
   GameUI.prototype.showWatchResult = function (event) {
     this.renderer.flashUnits = {};
+    this.renderer.attackingUnitId = event.attacker.id;
     $("watch-title").textContent = "BATTLE RESULT";
     $("watch-panel").classList.remove("hidden");
     return this.animateBattleResult(event, $("watch-detail"));
@@ -298,6 +302,7 @@ var UI = (function () {
       self.renderer.strengthOverrides = {};
       self.renderer.battleGhosts = [];
       self.renderer.explosions = [];
+      self.renderer.attackingUnitId = null;
       self.draw();
       if (onComplete) onComplete();
     }
@@ -359,7 +364,17 @@ var UI = (function () {
       menu.appendChild(b);
     }
 
-    add("Attack", canAttack, function () { self.enterPickTarget(unit, targets); });
+    this.pickTargets = canAttack ? targets : [];
+    this.renderer.highlights = {};
+    this.pickTargets.forEach(function (target) {
+      self.renderer.highlights[HEX.key(target.col, target.row)] = "rgba(255,80,60,0.55)";
+    });
+    if (canAttack) {
+      var hint = document.createElement("div");
+      hint.textContent = "Click red enemy to attack · Shift-click to preview";
+      hint.className = "action-hint";
+      menu.appendChild(hint);
+    }
 
     // Unload options
     if (unit.cargo && unit.cargo.length) {
@@ -378,6 +393,7 @@ var UI = (function () {
     menu.style.left = Math.min(this.canvas.width - 150, ctr.x + 30) + "px";
     menu.style.top = Math.max(10, ctr.y - 20) + "px";
     menu.classList.remove("hidden");
+    this.draw();
   };
 
   GameUI.prototype.closeActionMenu = function () {
@@ -486,6 +502,10 @@ var UI = (function () {
     $("battle-fight").classList.remove("hidden");
     $("battle-cancel").classList.remove("hidden");
     this.mode = "battle";
+    this.renderer.attackingUnitId = attacker.id;
+    this.renderer.flashUnits = {};
+    this.renderer.flashUnits[defender.id] = "#ffffff";
+    this.draw();
 
     function sideHtml(unit, calc, label) {
       var rows = calc.steps.map(function (s) {
@@ -505,6 +525,8 @@ var UI = (function () {
         (pv.counter ? "Defender will counterattack." : "Defender cannot counterattack.")) + "</div>";
 
     $("battle-fight").onclick = function () {
+      if (self.busy) return;
+      self.busy = true;
       var attackerBefore = attacker.strength;
       var defenderBefore = defender.strength;
       var result = g.attack(attacker, defender);
@@ -520,22 +542,19 @@ var UI = (function () {
         defenderBefore: defenderBefore,
         result: result,
       }, $("battle-detail"), function () {
-        $("battle-cancel").textContent = "Close";
-        $("battle-cancel").classList.remove("hidden");
-        $("battle-cancel").onclick = function () {
-          panel.classList.add("hidden");
-          $("battle-fight").classList.remove("hidden");
-          $("battle-cancel").textContent = "Cancel";
-          $("battle-title").textContent = "Combat calculator";
-          done(result);
-        };
+        panel.classList.add("hidden");
+        self.busy = false;
+        done(result);
       });
     };
     $("battle-cancel").textContent = "Cancel";
     $("battle-cancel").onclick = function () {
       panel.classList.add("hidden");
+      self.renderer.attackingUnitId = null;
+      self.renderer.flashUnits = {};
       done(null);
     };
+    if (!this.previewAttack) $("battle-fight").onclick();
   };
 
   /* --- selection / movement flow ------------------------------------------- */
@@ -742,13 +761,17 @@ var UI = (function () {
         this.mode === "factory" || this.mode === "over") return;
     var hex = this.renderer.pixelToHex(e.offsetX, e.offsetY);
     if (!hex) return;
+    this.previewAttack = !!e.shiftKey;
     this.onHexClick(hex.col, hex.row);
+    this.previewAttack = false;
   };
 
   GameUI.prototype.onCancel = function () {
+    if (this.busy || this.mode === "aiTurn" || this.mode === "over") return;
+    if (this.mode === "battle") { $("battle-cancel").onclick(); return; }
     if (this.mode === "moved" && this.selected) this.cancelMove(this.selected);
-    else if (this.mode === "pickTarget" && this.selected) { this.openActionMenu(this.selected); this.mode = "moved"; this.renderer.highlights = null; this.draw(); }
-    else if (this.mode === "unload" && this.selected) { this.openActionMenu(this.selected); this.mode = "moved"; this.renderer.highlights = null; this.draw(); }
+    else if (this.mode === "pickTarget" && this.selected) { this.openActionMenu(this.selected); this.mode = "moved"; this.draw(); }
+    else if (this.mode === "unload" && this.selected) { this.openActionMenu(this.selected); this.mode = "moved"; this.draw(); }
     else if (this.mode === "deployPick") { this.deployPending = null; this.deselect(); }
     else if (this.mode === "factory") this.closeFactoryPanel();
     else this.deselect();
@@ -786,6 +809,7 @@ var UI = (function () {
       var attacker = this.selected;
       this.renderer.highlights = null;
       this.showBattle(attacker, tgt, function (result) {
+        if (result === null) { self.cancelMove(attacker); return; }
         self.pendingMoveFrom = null;
         if (result && g.units.indexOf(attacker) >= 0 && attacker.type.moveAfterAttack && attacker.movePointsLeft > 0 && !attacker.moved) {
           self.selectUnit(attacker); // buggy: keep moving
@@ -832,7 +856,13 @@ var UI = (function () {
       return;
     }
 
-    if (this.mode === "moved") return; // must use menu
+    if (this.mode === "moved") {
+      if (unit && this.pickTargets.indexOf(unit) >= 0) {
+        this.closeActionMenu();
+        this.quickAttack(this.selected, unit);
+      } else if (unit === this.selected) this.commitUnit(unit);
+      return;
+    }
 
     if (this.mode === "unitSelected") {
       if (unit === this.selected) { this.mode = "moved"; this.openActionMenu(unit); return; }
@@ -875,6 +905,8 @@ var UI = (function () {
     if (COMBAT.canAttackAt(unit.type, enemyAir, d)) {
       this.renderer.highlights = null;
       this.showBattle(unit, enemy, function (result) {
+        if (result === null) { self.cancelMove(unit); return; }
+        self.pendingMoveFrom = null;
         if (result && g.units.indexOf(unit) >= 0 && unit.type.moveAfterAttack && unit.movePointsLeft > 0 && !unit.moved) self.selectUnit(unit);
         else self.deselect();
         self.refreshStatus(); self.checkGameOver();
@@ -965,7 +997,7 @@ var UI = (function () {
   };
 
   GameUI.prototype.endTurn = function () {
-    if (this.mode === "over" || this.busy) return;
+    if (this.mode === "over" || this.mode === "battle" || this.busy) return;
     var g = this.game, self = this;
     this.deselect();
     g.endTurn();
@@ -1016,3 +1048,5 @@ var UI = (function () {
 
   return { GameUI: GameUI };
 })();
+
+if (typeof module !== "undefined") module.exports = UI;

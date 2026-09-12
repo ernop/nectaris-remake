@@ -36,6 +36,38 @@ including a Rabbit or Lynx that has attacked but still has movement available.
 player receive this treatment, so the opposing army does not remain greyed
 during the next turn.
 
+## Unit icon set, faction colours and attacker red (2026-09-03)
+
+Adopted from the original's presentation after reviewing the local captures
+in `inspiration/nectaris-original/`:
+
+- **One silhouette per unit type.** The pixel style has a hand-drawn 22×18
+  top-down sprite for each of the 23 stock units (`UNIT_SPRITES` in
+  `js/render.js`), so types are distinguished by shape: hull width, turret
+  form, gun length and count, missile racks, dishes, wings, rotor. Yellow is
+  used only for missiles, rockets and bombs, so a yellow accent itself means
+  "carries ordnance". Custom unit types render as their class's base chassis
+  or as a stock sprite named by `sprite: "GRIZZLY"`; an unknown name is an
+  error. Sprites are drawn at 2.1 cells per hex unit (46×38 of the 68×59
+  hex) so they fill the hex the way the original's do.
+- **Pixel is the default style.** The storage key moved to
+  `nectaris-style-v2` so every existing browser sees the new set once instead
+  of its saved neon; neon and classic remain selectable.
+- **Faction colours follow the original: Union blue, Xenon green** in all
+  three styles (neon keeps violet for Union). This frees red.
+- **The attacking unit is deep red** (`attackColors` per theme) from the
+  moment an attack is previewed — the human combat calculator or the AI's
+  "XENON ATTACK" panel — until the result animation ends. The defender gets a
+  white ring. The attacker is exempt from the completed-activation greyscale
+  so its red is never greyed. `Renderer.attackingUnitId` is the single
+  signal; `ui.js` sets and clears it.
+- **Completed units stay bright greyscale** (unchanged from 2026-09-02): the
+  pixel palette keeps mid and light tones luminous so `grayscale(1)` leaves a
+  clearly visible unit, not a dark one.
+
+Review tool: `tools/unit-sheet.html` shows every unit as Union, Xenon,
+attacking and spent in any style.
+
 ## Opposing unit facing (2026-09-02)
 
 Union/player-0 unit silhouettes face right. Xenon/player-1 silhouettes face
@@ -51,6 +83,11 @@ icon regeneration should consult them for silhouettes, opposing facing,
 information density and terrain readability while continuing to produce
 original procedural artwork. The captured PNGs are references, not runtime
 assets and not files for redistribution.
+
+`inspiration/nectaris-original/index.html` is the local viewer for those
+captures: one full-width page, jump links, each filename as the section
+heading. It is not linked from the game menu. A missing PNG fails the page
+instead of rendering an empty slot.
 
 ## Mission-card force totals (2026-09-03)
 
@@ -104,3 +141,19 @@ The permanent local backend port is **8001**, bound to `127.0.0.1` by
 `nectaris-remake` and exposes it at <http://nectaris.localhost>. The fixed port
 prevents unrelated temporary servers from changing the project URL, while the
 Caddy hostname removes the need to remember the port during normal use.
+
+## Direct combat controls and heavier tanks (2026-09-05)
+
+Clicking a highlighted enemy commits combat immediately. After choosing a move,
+valid enemies remain clickable beside the Finish / Cancel / Unload controls;
+there is no Attack menu step. Clicking the selected unit again finishes.
+Shift-clicking an enemy opens the optional calculator with Fight / Cancel.
+Cancel restores the provisional movement and its movement allowance. Results
+return automatically after the casualty animation; combat locks input until
+that animation completes. Mobile missile units retain their remaining movement.
+
+The six tracked tank sprites now use deeper hulls, tread shoes, engine grilles,
+raised beveled turrets and recessed hatches. Polar has the widest single-turret
+armor envelope and segmented skirts; Giant retains its twin guns, Titan its
+missile rack, and Lenet a small scout chassis. These original pixel constructions
+use the local captures as visual references only.

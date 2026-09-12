@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Nectaris unit icon sheet</title>
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #14110c; color: #fff; font-family: "Segoe UI", system-ui, sans-serif; }
+  body { padding: 20px 2%; }
+  h1 { font-size: 30px; font-weight: 800; color: #ffd94a; margin: 0 0 6px; }
+  p { margin: 0 0 16px; font-size: 15px; }
+  .controls { display: flex; gap: 24px; align-items: center; margin-bottom: 20px; font-size: 16px; font-weight: 700; }
+  select { background: #17140f; color: #fff; border: 1px solid #ffd94a; font-size: 16px; padding: 4px 8px; }
+  label input { vertical-align: middle; width: 240px; }
+  table { border-collapse: collapse; width: 100%; }
+  th { font-size: 16px; font-weight: 800; text-align: left; padding: 6px 8px; border-bottom: 2px solid #ffd94a; }
+  td { padding: 6px 8px; border-bottom: 1px solid #3d382c; vertical-align: middle; }
+  td.name { font-size: 18px; font-weight: 800; white-space: nowrap; }
+  td.cls { font-size: 15px; font-weight: 400; }
+  canvas { display: block; background: #4b252b; image-rendering: pixelated; }
+</style>
+</head>
+<body>
+<h1>Unit icon sheet</h1>
+<p>Every stock unit in the selected style: Union (faces right), Xenon (faces left), the attacker palette, and the completed-activation greyscale. Background is the wasteland tone so contrast matches the map.</p>
+<div class="controls">
+  <span>Style <select id="style"></select></span>
+  <label>Icon size <input id="size" type="range" min="40" max="160" step="8" value="88" list="ticks"> <span id="size-val">88</span> px</label>
+  <datalist id="ticks">
+    <option value="40" label="40"></option>
+    <option value="72" label="72"></option>
+    <option value="104" label="104"></option>
+    <option value="136" label="136"></option>
+    <option value="160" label="160"></option>
+  </datalist>
+</div>
+<table>
+  <thead><tr><th>Unit</th><th>Class</th><th>Union</th><th>Xenon</th><th>Attacking</th><th>Spent</th></tr></thead>
+  <tbody id="rows"></tbody>
+</table>
+
+<script src="../js/hex.js"></script>
+<script src="../js/data-terrain.js"></script>
+<script src="../js/data-units.js"></script>
+<script src="../js/combat.js"></script>
+<script src="../js/render.js"></script>
+<script>
+(function () {
+  var styleSel = document.getElementById("style");
+  RENDER.styleIds.forEach(function (id) {
+    var o = document.createElement("option");
+    o.value = id; o.textContent = id;
+    styleSel.appendChild(o);
+  });
+  styleSel.value = RENDER.getStyle();
+  var sizeInput = document.getElementById("size");
+  var sizeVal = document.getElementById("size-val");
+
+  function render() {
+    var size = +sizeInput.value;
+    sizeVal.textContent = size;
+    RENDER.setStyle(styleSel.value);
+    var tbody = document.getElementById("rows");
+    tbody.innerHTML = "";
+    Object.keys(UNIT_TYPES).forEach(function (id) {
+      var type = UNIT_TYPES[id];
+      var tr = document.createElement("tr");
+      var name = document.createElement("td"); name.className = "name"; name.textContent = type.name;
+      var cls = document.createElement("td"); cls.className = "cls"; cls.textContent = type.cls + " / " + type.moveType;
+      tr.appendChild(name); tr.appendChild(cls);
+      [
+        { player: 0 },
+        { player: 1 },
+        { player: 0, opts: { attacking: true } },
+        { player: 0, opts: { spent: true } },
+      ].forEach(function (cell) {
+        var td = document.createElement("td");
+        var canvas = document.createElement("canvas");
+        canvas.width = Math.round(size * 1.15); canvas.height = size;
+        td.appendChild(canvas); tr.appendChild(td);
+        RENDER.drawUnitIcon(canvas, { typeId: id, type: type, player: cell.player }, cell.opts);
+      });
+      tbody.appendChild(tr);
+    });
+  }
+  styleSel.onchange = render;
+  sizeInput.oninput = render;
+  render();
+})();
+</script>
+</body>
+</html>

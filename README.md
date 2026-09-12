@@ -18,6 +18,7 @@ an original procedural chiptune score, and a level editor with URL sharing.
 | `PRODUCT.md` | Settled UI/product decisions |
 | `MECHANICS.md` | Full rules reconstruction, with sources |
 | `inspiration/nectaris-original/README.md` | Manifest for local, gitignored visual references |
+| `inspiration/nectaris-original/index.html` | Local full-page viewer for those captures |
 | `js/hex.js` | Hex math (flat-top, odd-q offset, cube internals) |
 | `js/data-terrain.js` | Terrain data: additive defense, per-chassis movement costs |
 | `js/data-units.js` | The 23-unit roster (documented original stats) |
@@ -33,6 +34,7 @@ an original procedural chiptune score, and a level editor with URL sharing.
 | `js/ui.js`, `js/main.js` | Game UI and boot/menu |
 | `js/editor.js` | Editor logic |
 | `test/run-tests.js` | Node test suite (`node test/run-tests.js`) |
+| `tools/unit-sheet.html` | Contact sheet of every unit icon per style (Union, Xenon, attacking, spent) |
 | `serve.sh` | Local server on the fixed development port |
 
 ## Run locally
@@ -57,10 +59,12 @@ state (campaign progress, custom levels, custom units) lives in
 
 - Click a unit: shows movement range (white), boardable transports (blue),
   attackable enemies (red).
-- Click a destination: the unit steps there. If an attack or unload remains,
-  the action menu opens (Attack / Unload / Finish / Cancel); otherwise the
-  move completes immediately. Clicking a red enemy attacks directly,
-  auto-stepping to the best adjacent hex first.
+- Click a destination: the unit steps there. Enemies in firing range stay
+  highlighted: click one to attack, or click the unit again / **Finish** to
+  end its activation. Moves with no remaining action finish automatically.
+- Click a red enemy to attack immediately, auto-stepping to a reachable firing
+  position when needed. **Shift-click** the enemy to open the optional combat
+  calculator before committing. Battle results close automatically.
 - Right-click or Esc: cancel. Mouse wheel: zoom. Middle/right-drag pans only
   when the zoomed map extends beyond the viewport.
   `E`: end turn.
@@ -84,7 +88,9 @@ state (campaign progress, custom levels, custom units) lives in
 - Units that have completed their activation this turn appear fully greyscale
   at unchanged opacity; units with movement or an action remaining stay at
   full color.
-- Battle preview shows BASE → SUPPORT → TERRAIN → FINAL per-machine attack
+- While an attack is previewed or resolving, the attacking unit is drawn in
+  deep red and the defender gets a white ring, whichever side is attacking.
+- The optional combat calculator shows BASE → SUPPORT → TERRAIN → FINAL per-machine attack
   and defense for both sides before you commit to the attack.
 - Every campaign and expansion map is available immediately. Use the map
   selector in the top bar to move directly between them.
@@ -149,27 +155,34 @@ domains the unit can attack.
 ## Art style
 
 Three selectable visual styles, switched with the dropdown in the game's top
-bar and persisted in `localStorage` under `nectaris-style` (decision
-2026-08-30, extended 2026-09-01; the editor follows the stored choice on
-load):
+bar and persisted in `localStorage` under `nectaris-style-v2` (decision
+2026-08-30, extended 2026-09-01, pixel made default 2026-09-03; the editor
+follows the stored choice on load):
 
-- **Neon** (default): procedural neon wireframes from a reference palette
-  image — dark plates with glowing faction-colored outlines, rib hatching,
-  dashed pale details, and shared neon-yellow accents on weapons/canopies.
-  Union = violet/magenta, Xenon = red, neutral = pale gray (the palette
-  has no blue, so Union moved from blue to the magenta-violet band).
-- **Pixel**: original 16-wide sprite matrices drawn in the idiom of late-80s
-  console strategy art — hard outline, a three-tone ramp per faction, a white
-  specular on upper surfaces, yellow weapons. The *idiom* is borrowed from the
-  era; the sprites are ours, drawn as character matrices in `PIXEL_SPRITES`.
-  No bitmap from any release of the original game is used, traced or extracted
-  — see "Fidelity and originality" below.
+- **Pixel** (default): one 22×18 top-down sprite per stock unit type, drawn
+  as character matrices in `UNIT_SPRITES` in the idiom of late-80s console
+  strategy art — hard outline, a three-tone faction ramp, white specular,
+  steel barrels, yellow reserved for missiles, rockets and bombs. Every unit
+  has its own silhouette (see `tools/unit-sheet.html`). The *idiom* is
+  borrowed from the era; the sprites are ours. No bitmap from any release of
+  the original game is used, traced or extracted — see "Fidelity and
+  originality" below.
+- **Neon**: procedural neon wireframes — dark plates with glowing
+  faction-colored outlines, rib hatching, dashed pale details, and shared
+  neon-yellow accents on weapons/canopies. Union = violet/magenta.
 - **Classic**: the remake's first look — solid painted silhouettes with
-  dark outlines. Union = blue, Xenon = red.
+  dark outlines.
 
-The palettes live at the top of `js/render.js` (`THEMES` + `NEON`); buildings
-tint from the same faction entries so ownership reads consistently in every
-style.
+Faction colours follow the original in every style: Union blue (violet in
+neon), Xenon green, neutral gray. Red is reserved for the unit currently
+attacking. The palettes live at the top of `js/render.js` (`THEMES` +
+`NEON`); buildings tint from the same faction entries so ownership reads
+consistently in every style.
+
+`tools/unit-sheet.html` (serve the repo, then open
+`http://nectaris.localhost/tools/unit-sheet.html`) shows every stock unit in
+the chosen style as Union, Xenon, attacking and spent, for reviewing icon
+changes.
 
 ## Briefing language
 

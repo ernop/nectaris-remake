@@ -9,6 +9,11 @@ Study silhouettes, opposing-unit facing, visual density, and terrain readability
 Continue producing original procedural artwork rather than tracing or bundling
 extracted sprites.
 
+Open `index.html` in this folder (or
+http://nectaris.localhost/inspiration/nectaris-original/) to view every capture
+on one page. The PNGs are gitignored; a missing file fails that page instead of
+leaving a blank slot.
+
 ## Source mappings
 
 - `/home/ef/Screenshots/20260902101707_dee190fde64797dbc67e080540ce3af505f96b9a1a04618d2cbefe58991da4be.png` → `original-zoc-battle-pincer-guide.png`
