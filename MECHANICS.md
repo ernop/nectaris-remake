@@ -253,7 +253,10 @@ an additional claim established by the sources above.
 ## Victory
 
 - Capture the enemy base with infantry → instant win.
-- Destroy all fielded enemy units → win.
+- Eliminate all enemy units, including reserves stored in owned factories
+  and bases → win. Stored units count even when they cannot currently deploy;
+  neutral reserves do not belong to either side. This is the requested remake
+  behavior as of 2026-09-20, superseding the fielded-units-only check.
 - Turn limit (default 50, per-map override): if it expires, the defender
   (player 2 / Xenon) wins — the original's "complete each scenario within 50
   turns, otherwise you lose."

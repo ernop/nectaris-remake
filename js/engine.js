@@ -18,10 +18,9 @@
  *
  * Factories: hold stored units (the original's "hidden reinforcements").
  * Infantry capture factories/bases by moving onto them. Capturing the enemy
- * base wins the map instantly; so does destroying every enemy unit
- * (including units still stored in enemy factories? — no: stored units only
- * count once deployed, matching the original). Turn limit default 50; if it
- * expires, player 0 (the attacker/Union side) loses.
+ * base wins the map instantly; so does eliminating every enemy unit,
+ * including reserves stored in owned factories and bases. Turn limit default
+ * 50; if it expires, player 0 (the attacker/Union side) loses.
  */
 "use strict";
 
@@ -459,8 +458,12 @@ var ENGINE = (function () {
     if (this.winner !== null) return;
     var alive = [0, 0];
     for (var i = 0; i < this.units.length; i++) alive[this.units[i].player]++;
-    // Stored units in owned factories still count as forces in being only
-    // once deployable; the original ends the map when fielded units hit 0.
+    // Reserves count even if they cannot currently deploy. Neutral reserves
+    // belong to neither side until their building is captured.
+    for (var k in this.buildings) {
+      var b = this.buildings[k];
+      if (b.owner === 0 || b.owner === 1) alive[b.owner] += b.stored.length;
+    }
     if (alive[0] === 0) { this.winner = 1; this.winReason = "elimination"; }
     else if (alive[1] === 0) { this.winner = 0; this.winReason = "elimination"; }
   };

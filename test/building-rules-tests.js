@@ -99,4 +99,38 @@ module.exports = function (ok) {
         "deployment cannot park a tank on an unowned factory");
     }
   });
+
+  ["F", "B"].forEach(function (kind) {
+    [0, 1].forEach(function (owner) {
+      var game = new ENGINE.Game({ name: "Stored forces survive", grid: ["....." + kind + "..", ".......F"],
+        buildings: [{ col: 5, row: 0, owner: owner, stored: [{ t: "CHARLIE", str: 1 }] },
+          { col: 7, row: 1, owner: -1, stored: ["TRIGGER"] }],
+        units: [{ t: "HADRIAN", o: 1 - owner, x: 0, y: 0 },
+          { t: "CHARLIE", o: owner, x: 2, y: 0, str: 1 }],
+      }, { seed: 1 });
+      if (game.currentPlayer !== 1 - owner) game.endTurn();
+      var attacker = game.unitAt(0, 0), building = game.buildingAt(5, 0), reserve = building.stored[0];
+      reserve.moved = true;
+      var result = game.attack(attacker, game.unitAt(2, 0));
+      ok(result.defenderDead && game.playerUnits(owner).length === 0,
+        kind + ": combat destroys player " + owner + "'s last fielded unit");
+      ok(game.winner === null && game.winReason === null,
+        kind + ": stored reserves prevent elimination even before they can deploy for player " + owner);
+
+      game.endTurn();
+      game.deployFromFactory(building, reserve, 4, 0);
+      game.endTurn();
+      result = game.attack(attacker, reserve);
+      ok(result.defenderDead && game.winner === 1 - owner && game.winReason === "elimination",
+        kind + ": destroying the last deployed reserve wins despite empty owned buildings and neutral reserves");
+    });
+  });
+
+  var storedOnly = new ENGINE.Game({ name: "Stored forces only", grid: ["F...F"],
+    buildings: [{ col: 0, row: 0, owner: 0, stored: ["TRIGGER"] },
+      { col: 4, row: 0, owner: 1, stored: ["TRIGGER"] }],
+    units: [],
+  }, { seed: 1 });
+  storedOnly.checkElimination();
+  ok(storedOnly.winner === null, "both sides remain in play with only stored transport-dependent reserves");
 };
