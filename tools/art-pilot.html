@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nectaris — native pixel art pilot</title>
+<style>
+ :root { color-scheme: dark; font-family: system-ui,sans-serif; background:#111218; color:#e4e6dc; }
+ * { box-sizing:border-box; }
+ body { margin:0; padding:24px; }
+ main { max-width:1024px; margin:auto; }
+ h1 { margin:0 0 8px; font-size:24px; font-weight:600; }
+ .intro { color:#a8abb4; margin:0 0 20px; max-width:80ch; line-height:1.55; }
+ .toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:10px 18px; padding:12px 0; }
+ .group { display:flex; gap:6px; align-items:center; }
+ button { font:inherit; color:#dce5eb; background:#282d38; border:1px solid #454e5d; padding:8px 12px; border-radius:4px; cursor:pointer; }
+ button[aria-pressed="true"] { background:#385979; border-color:#80b1d9; }
+ button:focus-visible,a:focus-visible,input:focus-visible { outline:2px solid #d8dbae; outline-offset:3px; }
+ label { display:flex; align-items:center; gap:8px; }
+ a { color:#91c7ef; }
+ .game { width:528px; max-width:100%; background:#19171e; border:1px solid #353740; }
+ .bar { display:flex; flex-wrap:wrap; justify-content:space-between; gap:10px; background:#20222b; padding:14px 16px; font-size:13px; letter-spacing:.08em; }
+ .blue { color:#91c7ef; }
+ .play { display:grid; grid-template-columns:minmax(0,1fr) 190px; }
+ .viewport { overflow:auto; min-height:240px; max-height:480px; background:#19171e; }
+ #map { display:block; image-rendering:pixelated; cursor:crosshair; }
+ aside { padding:12px 16px; background:#15161d; border-left:1px solid #353740; }
+ .eyebrow { margin:0 0 8px; font-size:11px; letter-spacing:.12em; color:#989eab; }
+ h2 { font-size:24px; font-weight:550; margin:0 0 5px; }
+ .designation { font-size:12px; margin:0; color:#91c7ef; }
+ #portrait { width:32px; height:32px; display:block; image-rendering:pixelated; margin:8px auto; }
+ dl { margin:0; font-size:12px; }
+ dl>div { display:flex; justify-content:space-between; gap:8px; padding:6px 0; }
+ dt { color:#a1a7b2; } dd { margin:0; font-variant-numeric:tabular-nums; }
+ .terrain { padding-top:10px; margin-top:8px; border-top:1px solid #353740; font-size:13px; }
+ .caption { margin:0; background:#20222b; padding:10px 16px; font-size:12px; color:#a8abb4; }
+ .sheet { margin-top:26px; overflow-x:auto; }
+ .sheet img { display:block; width:548px; height:480px; image-rendering:pixelated; }
+ .sheet p { color:#a8abb4; line-height:1.5; font-size:13px; }
+ @media(max-width:520px) { body{padding:12px} .play{display:block} aside{border-left:0;border-top:1px solid #353740;display:grid;grid-template-columns:1fr 32px;gap:12px} #portrait{grid-column:2;grid-row:1/5;margin:0} dl,.terrain{grid-column:1/-1} .viewport{max-height:520px} }
+</style>
+</head>
+<body><main>
+<h1>Unit icon sets on the map</h1>
+<p class="intro">The complete 23-unit roster: long hulls, low turrets, straight wings and small infantry. Every icon is horizontally centered and shown at native 32 × 32. Click a unit, then choose any roster type to try it in that position.</p>
+<div class="toolbar">
+ <label>Art set <select id="icon-set"></select></label>
+ <label><input id="grid" type="checkbox"> Hex grid</label>
+ <label><input id="frames" type="checkbox"> 32 × 32 frames</label>
+ <label>State <select id="state"><option value="normal">Faction colors</option><option value="attack">Attacking</option><option value="spent">Completed</option></select></label>
+ <label>Selected type <select id="unit-type"></select></label>
+ <a href="unit-sheet.html">Full roster and states</a>
+ <a href="../art/pilot/output/map-context.png">Map image</a>
+</div>
+<section class="game" aria-label="Art pilot battlefield">
+ <div class="bar"><span>NECTARIS</span><span class="blue">UNION TURN</span><span>TURN 04</span><span>LUNAR CROSSING</span></div>
+ <div class="play"><div class="viewport"><canvas id="map" width="336" height="240" aria-label="Preview battlefield. Use unit buttons below as an alternative to clicking the map."></canvas></div>
+ <aside aria-live="polite">
+  <div><p class="eyebrow">SELECTED UNIT</p><h2 id="name">Bison</h2><p class="designation" id="designation">S-61 / Medium tank</p></div>
+  <canvas id="portrait" width="32" height="32" aria-label="Selected unit at native 32 by 32 size"></canvas>
+  <dl id="stats"></dl><div class="terrain" id="terrain">Road · defense 0%</div>
+ </aside></div>
+ <p class="caption">Straight armor lines · low profiles · native 32 × 32 · blue Union / green Xenon</p>
+</section>
+<div class="toolbar" id="units" aria-label="Choose a unit"></div>
+<section class="sheet">
+ <h2>Complete native-size roster</h2>
+ <p>Blue faces right; green faces left. Every icon is shown at its actual 32 × 32 frame size, horizontally centered in its hex.</p>
+ <img id="roster-sheet" src="../art/units/output/units-native.png" width="548" height="480" alt="All 23 unit types, blue facing right and green facing left, at native 32 by 32 size">
+</section>
+<p class="intro">Legacy uses the same original-style pixel terrain as the game. Remake terrain here remains a review fixture for the planned terrain update.</p>
+</main>
+<script src="../art/units/pixel-art.js"></script>
+<script src="../js/hex.js"></script>
+<script src="../js/data-units.js"></script>
+<script src="../js/data-unit-art.js"></script>
+<script src="../js/data-unit-art-legacy.js"></script>
+<script src="../js/unit-icon-sets.js"></script>
+<script src="../js/legacy-terrain.js"></script>
+<script src="../js/render.js"></script>
+<script>
+(() => {
+ const A=UNIT_PIXEL_ART, map=document.getElementById('map'),ctx=map.getContext('2d');
+ RENDER.setStyle('pixel');
+ const portrait=document.getElementById('portrait'),pctx=portrait.getContext('2d');
+ const units=[
+  ['BISON',3,3,'union','right','Road · defense 0%'],['CHARLIE',2,2,'union','right','Plains · defense 5%'],['EAGLE',3,1,'union','right','Airborne · no terrain defense'],['POLAR',2,1,'union','right','Hills · defense 20%'],['HADRIAN',1,2,'union','right','Plains · defense 5%'],
+  ['BISON',7,3,'xenon','left','Road · defense 0%'],['CHARLIE',8,3,'xenon','left','Plains · defense 5%'],['EAGLE',7,1,'xenon','left','Airborne · no terrain defense'],['POLAR',8,1,'xenon','left','Plains · defense 5%'],['HADRIAN',8,5,'xenon','left','Hills · defense 20%'],
+  ['BASE',1,4,'union','right','Domed bunker · open service yard'],['BASE',9,3,'xenon','right','Domed bunker · open service yard']
+ ];
+ const info={BASE:['Base','Fortified installation',null,null,null]},typeSelect=document.getElementById('unit-type');
+ Object.entries(UNIT_TYPES).forEach(([id,t])=>{info[id]=[t.name.split(' ')[0],t.name.split(' ').slice(1).join(' ')+' / '+t.cls,t.move,t.atkG,t.def,t.rngG>1?'2–'+t.rngG:t.rngG];});
+ Object.keys(info).forEach(id=>{const option=document.createElement('option');option.value=id;option.textContent=info[id][0];typeSelect.append(option);});
+ let selected=0,ready=false;const cache={};
+ const iconSelect=document.getElementById('icon-set');
+ RENDER.getIconSets().forEach(pack=>{const option=document.createElement('option');option.value=pack.id;option.textContent=pack.label;iconSelect.append(option);});
+ function syncSet(){iconSelect.value=RENDER.getIconSet();document.getElementById('roster-sheet').src=RENDER.getIconSetData(RENDER.getIconSet()).sheet;draw();}
+ iconSelect.onchange=()=>RENDER.setIconSet(iconSelect.value);RENDER.onIconSetChange(syncSet);syncSet();
+ const terrain=new Image();terrain.src='../art/pilot/output/terrain-native.png';terrain.onload=()=>{ready=true;draw();};
+ function center(c,r){return [24+A.GEOMETRY.pitch*c,16+A.GEOMETRY.pitch*r+A.GEOMETRY.stagger*(c&1)];}
+ function hex(cx,cy,color){ctx.fillStyle=color;const points=[[cx-24,cy],[cx-8,cy-16],[cx+8,cy-16],[cx+24,cy],[cx+8,cy+16],[cx-8,cy+16]];
+  points.forEach(([x,y],i)=>{const [ex,ey]=points[(i+1)%6],dx=Math.abs(ex-x),dy=-Math.abs(ey-y),sx=x<ex?1:-1,sy=y<ey?1:-1;let err=dx+dy;for(;;){ctx.fillRect(x,y,1,1);if(x===ex&&y===ey)break;const e=err*2;if(e>=dy){err+=dy;x+=sx;}if(e<=dx){err+=dx;y+=sy;}}});}
+ function frame(u){const mode=document.getElementById('state').value,key=[RENDER.getIconSet(),u[0],u[3],u[4],mode].join('-');if(cache[key])return cache[key];
+  const c=document.createElement('canvas');c.width=c.height=A.FRAME;
+  if(u[0]==='BASE' && RENDER.getIconSet()==='legacy'){
+   LEGACY_TERRAIN.draw(c.getContext('2d'),16,16,1,'base',[],0,u[3]==='xenon'?1:0);
+  }else if(u[0]==='BASE'){
+   const s=A.colorize(A.sprite(u[0],u[4]),mode==='attack'?'attack':u[3],mode==='spent'),cctx=c.getContext('2d'),im=cctx.createImageData(A.FRAME,A.FRAME);
+   s.p.forEach((p,i)=>{im.data[i*4]=(p>>>16)&255;im.data[i*4+1]=(p>>>8)&255;im.data[i*4+2]=p&255;im.data[i*4+3]=p>>>24;});cctx.putImageData(im,0,0);
+  }else RENDER.drawUnitIcon(c,{typeId:u[0],type:UNIT_TYPES[u[0]],player:u[3]==='xenon'?1:0},{attacking:mode==='attack',spent:mode==='spent'});
+  return cache[key]=c;
+ }
+ function select(i){selected=i;draw();}
+ function draw(){
+  if(!ready)return;ctx.imageSmoothingEnabled=false;ctx.fillStyle='#19171e';ctx.fillRect(0,0,map.width,map.height);if(RENDER.getIconSet()==='legacy'){
+   const kind=(c,r)=>{if(c<0||c>=10||r<0||r>=7)return null;if((c===1&&r===4)||(c===9&&r===3))return 'base';if(r===3)return c===5?'bridge':'road';if(c===5)return 'valley';if((c===2||c===3)&&r===1||c===8&&r===5)return 'hill';if(c<2&&r>4||c>8&&r<2)return 'mountain';if(c===7&&r===5)return 'waste';return 'plain';};
+   for(let c=0;c<10;c++)for(let r=0;r<7;r++)LEGACY_TERRAIN.draw(ctx,...center(c,r),1,kind(c,r),HEX.neighbors(c,r).map(n=>kind(n.col,n.row)),(c*3+r*7)%8,c===1?0:1);
+  }else ctx.drawImage(terrain,0,0);
+  if(document.getElementById('grid').checked)for(let c=0;c<10;c++)for(let r=0;r<7;r++)hex(...center(c,r),'#6b525b');
+  hex(...center(units[selected][1],units[selected][2]),'#e4e6cd');
+  units.forEach(u=>{const [x,y]=center(u[1],u[2]);if(u[0]!=='BASE'||RENDER.getIconSet()!=='legacy')ctx.drawImage(frame(u),x-16,y-16);if(document.getElementById('frames').checked){ctx.strokeStyle='#f2cb58';ctx.strokeRect(x-16+.5,y-16+.5,31,31);}});
+  const u=units[selected],d=info[u[0]];document.getElementById('name').textContent=d[0];document.getElementById('designation').textContent=d[1]+' / '+(u[3]==='union'?'Union':'Xenon');
+  typeSelect.value=u[0];
+  document.getElementById('terrain').textContent=u[0]==='BASE'?'Domed bunker · open service yard':UNIT_TYPES[u[0]].moveType==='air'?'Airborne · no terrain defense':/^(Airborne|Domed)/.test(u[5])?'Preview terrain':u[5];document.getElementById('stats').replaceChildren();
+  (u[0]==='BASE'?[['Frame','32 × 32'],['Structure','Low compound']]:[['Movement',d[2]],['Ground attack',d[3]],['Defense',d[4]],['Ground range',d[5]]]).forEach(([name,value])=>{const row=document.createElement('div'),dt=document.createElement('dt'),dd=document.createElement('dd');dt.textContent=name;dd.textContent=value;row.append(dt,dd);document.getElementById('stats').append(row);});
+  pctx.imageSmoothingEnabled=false;pctx.clearRect(0,0,32,32);pctx.drawImage(frame(u),0,0);
+  [...document.getElementById('units').children].forEach((b,i)=>{b.setAttribute('aria-pressed',i===selected);b.textContent=(units[i][3]==='union'?'Blue ':'Green ')+info[units[i][0]][0];});
+ }
+ units.forEach((u,i)=>{const b=document.createElement('button');b.textContent=(u[3]==='union'?'Blue ':'Green ')+info[u[0]][0];b.addEventListener('click',()=>select(i));document.getElementById('units').append(b);});
+ ['grid','frames','state'].forEach(id=>document.getElementById(id).addEventListener('change',draw));
+ typeSelect.addEventListener('change',()=>{units[selected][0]=typeSelect.value;draw();});
+ map.addEventListener('click',event=>{const b=map.getBoundingClientRect(),x=(event.clientX-b.left)*map.width/b.width,y=(event.clientY-b.top)*map.height/b.height;
+  let pick=-1,best=Infinity;units.forEach((u,i)=>{const [cx,cy]=center(u[1],u[2]),d=(x-cx)**2+(y-cy)**2;if(Math.abs(y-cy)<=16 && Math.abs(x-cx)+Math.abs(y-cy)<=24 && d<best){pick=i;best=d;}});if(pick>=0)select(pick);
+ });
+})();
+</script>
+</body></html>

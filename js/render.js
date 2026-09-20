@@ -1,7 +1,7 @@
 /* Nectaris remake — canvas renderer.
  *
- * All artwork is original, procedurally drawn geometry (no assets from the
- * original game). The whole map renders at once; zoom (wheel) and constrained
+ * Remake artwork is original; the optional Legacy icon set is imported from
+ * the user-selected unit chart. The map renders at once; zoom and constrained
  * pan (drag) replace the original's one-screen viewport.
  */
 "use strict";
@@ -97,6 +97,9 @@ var RENDER = (function () {
     setStyle(saved && THEMES[saved] ? saved : "pixel");
   })();
 
+  var LEGACY_TILES = typeof LEGACY_TERRAIN !== "undefined" ? LEGACY_TERRAIN : require("./legacy-terrain.js");
+  function legacyMap() { return theme.id === "pixel" && ICON_SETS.current().terrain === "legacy"; }
+
   var TERRAIN_COLORS = {
     plain:    { base: "#a88b8c", dark: "#6d4d54", light: "#c2aaab", accent: "#d0bbba" },
     road:     { base: "#a88b8c", dark: "#4c4848", light: "#b8b7b0", accent: "#d3d0c4" },
@@ -149,12 +152,15 @@ var RENDER = (function () {
     var mapW = dims.width, mapH = dims.height;
     var zx = (this.canvas.width - 40) / mapW;
     var zy = (this.canvas.height - 40) / mapH;
-    this.zoom = Math.min(zx, zy, 1.6);
-    this.originX = (this.canvas.width - mapW * this.zoom) / 2 + s * this.zoom;
-    this.originY = (this.canvas.height - mapH * this.zoom) / 2 + s * this.zoom;
+    this.zoom = Math.max(this.minimumZoom(), Math.min(zx, zy, 1.6));
+    this.originX = (this.canvas.width - mapW * this.zoom) / 2 + (legacyMap() ? 24 : s) * this.zoom;
+    this.originY = (this.canvas.height - mapH * this.zoom) / 2 + (legacyMap() ? 16 : s) * this.zoom;
   };
 
+  Renderer.prototype.minimumZoom = function () { return legacyMap() ? 1 : theme.id === "pixel" ? 0.65 : 0.2; };
+
   Renderer.prototype.mapDimensions = function () {
+    if (legacyMap()) return {width: this.game.width * 32 + 16, height: this.game.height * 32 + (this.game.width > 1 ? 16 : 0)};
     return {
       width: (1.5 * (this.game.width - 1) + 2) * this.hexSize,
       height: Math.sqrt(3) * (this.game.height + 0.5) * this.hexSize,
@@ -170,26 +176,28 @@ var RENDER = (function () {
   };
 
   Renderer.prototype.constrainView = function () {
+    this.zoom = Math.max(this.minimumZoom(), this.zoom);
     var dims = this.mapDimensions();
     var axes = this.panAxes();
     var z = this.zoom, s = this.hexSize;
+    var offsetX = legacyMap() ? 24 : s, offsetY = legacyMap() ? 16 : s;
     var mapW = dims.width * z, mapH = dims.height * z;
     var margin = 16;
 
     if (!axes.x) {
-      this.originX = (this.canvas.width - mapW) / 2 + s * z;
+      this.originX = (this.canvas.width - mapW) / 2 + offsetX * z;
     } else {
       this.originX = Math.max(
-        this.canvas.width - margin - mapW + s * z,
-        Math.min(s * z + margin, this.originX)
+        this.canvas.width - margin - mapW + offsetX * z,
+        Math.min(offsetX * z + margin, this.originX)
       );
     }
     if (!axes.y) {
-      this.originY = (this.canvas.height - mapH) / 2 + s * z;
+      this.originY = (this.canvas.height - mapH) / 2 + offsetY * z;
     } else {
       this.originY = Math.max(
-        this.canvas.height - margin - mapH + s * z,
-        Math.min(s * z + margin, this.originY)
+        this.canvas.height - margin - mapH + offsetY * z,
+        Math.min(offsetY * z + margin, this.originY)
       );
     }
     return axes;
@@ -205,20 +213,29 @@ var RENDER = (function () {
   };
 
   Renderer.prototype.hexCenter = function (col, row) {
-    var p = HEX.toPixel(col, row, this.hexSize);
+    var p = legacyMap() ? {x: col * 32, y: row * 32 + (col & 1) * 16} : HEX.toPixel(col, row, this.hexSize);
     return { x: this.originX + p.x * this.zoom, y: this.originY + p.y * this.zoom };
   };
 
   Renderer.prototype.pixelToHex = function (px, py) {
     var x = (px - this.originX) / this.zoom;
     var y = (py - this.originY) / this.zoom;
+    if (legacyMap()) {
+      var col = Math.round(x / 32);
+      for (var c = col - 1; c <= col + 1; c++) {
+        var row = Math.round((y - (c & 1) * 16) / 32);
+        var dx = Math.abs(x - c * 32), dy = Math.abs(y - row * 32 - (c & 1) * 16);
+        if (dy <= 16 && dx + dy <= 24 && this.game.inBounds(c, row)) return {col: c, row: row};
+      }
+      return null;
+    }
     var off = HEX.fromPixel(x, y, this.hexSize);
     if (!this.game.inBounds(off.col, off.row)) return null;
     return off;
   };
 
   function pathHex(ctx, cx, cy, size) {
-    var pts = HEX.corners(cx, cy, size);
+    var pts = legacyMap() ? [[24,0],[8,16],[-8,16],[-24,0],[-8,-16],[8,-16]].map(function(p) { return {x:cx+p[0]*size/34,y:cy+p[1]*size/34}; }) : HEX.corners(cx, cy, size);
     ctx.beginPath();
     ctx.moveTo(pts[0].x, pts[0].y);
     for (var i = 1; i < 6; i++) ctx.lineTo(pts[i].x, pts[i].y);
@@ -230,6 +247,16 @@ var RENDER = (function () {
   Renderer.prototype.drawTerrainHex = function (c, r) {
     var ctx = this.ctx, g = this.game;
     var terr = g.terrainAt(c, r);
+    if (legacyMap()) {
+      var at = this.hexCenter(c, r), building = g.buildingAt(c, r);
+      var neighbors = HEX.neighbors(c, r).map(function(n) { var t = g.inBounds(n.col,n.row) && g.terrainAt(n.col,n.row); return t ? t.id : null; });
+      LEGACY_TILES.draw(ctx,at.x,at.y,this.zoom,terr.id,neighbors,(c*3+r*7)%8,building ? building.owner : -1);
+      if (building && terr.id === "factory" && building.stored.length) {
+        ctx.fillStyle="#fff9e5";ctx.font="bold 9px monospace";ctx.textAlign="center";
+        ctx.fillText(String(building.stored.length),Math.round(at.x+7),Math.round(at.y+10));
+      }
+      return;
+    }
     var pal = TERRAIN_COLORS[terr.id];
     var ctr = this.hexCenter(c, r);
     var s = this.hexSize * this.zoom;
@@ -396,6 +423,7 @@ var RENDER = (function () {
   };
 
   Renderer.prototype.drawRoadNetwork = function () {
+    if (legacyMap()) return; // Connections are drawn on the same integer tile grid.
     var ctx = this.ctx, g = this.game;
     var segments = [], bridges = [];
     for (var r = 0; r < g.height; r++) {
@@ -485,522 +513,34 @@ var RENDER = (function () {
 
   function drawUnitBody(ctx, unit, u, colors) {
     ctx.save();
-    if (unit.player === 1) ctx.scale(-1, 1);
-    if (theme.id === "classic") drawUnitBodyClassic(ctx, unit, u, colors);
-    else if (theme.id === "pixel") drawUnitBodyPixel(ctx, unit, u, colors);
-    else drawUnitBodyNeon(ctx, unit, u, colors);
+    if (theme.id === "pixel") drawUnitBodyPixel(ctx, unit, u, colors);
+    else {
+      if (unit.player === 1) ctx.scale(-1, 1);
+      if (theme.id === "classic") drawUnitBodyClassic(ctx, unit, u, colors);
+      else drawUnitBodyNeon(ctx, unit, u, colors);
+    }
     ctx.restore();
   }
 
-  /* Pixel style (default): one hand-drawn 22x18 sprite per stock unit type,
-   * seen from a raised three-quarter angle with the unit facing right, in the idiom of late-80s
-   * console strategy art -- hard outline, a three-tone faction ramp, white
-   * specular on upper surfaces. Every unit type has its own silhouette so
-   * types are told apart by shape, not by badge:
-   *
-   *   tanks      tracked hull + turret; the seven differ in hull width,
-   *              turret shape and gun length (Giant: twin guns, Titan:
-   *              missile pod, Polar: skirts, Slagger: hover wedge, no tracks)
-   *   guns       Hadrian: long diagonal barrel; Octopus: rocket box with
-   *              three tube tips; Atlas: outriggers, no tracks, 5-row barrel
-   *   buggies    wheels outside the body; Rabbit two small missiles, Lynx
-   *              one long missile plus a radar dish
-   *   anti-air   Seeker twin diagonal guns; Hawkeye dish plus two big tips
-   *   aircraft   Eagle straight wings with bombs, Falcon rear delta, Hunter
-   *              twin engine pods with wingtip missiles, Pelican rotor X
-   *   infantry   Charlie rifleman, Kilroy shoulder tube, Panther on a bike
-   *   Mule       cargo box + cab + three wheel pairs; Trigger: spiked disc
-   *
-   * Yellow (`a`) marks missiles, rockets and bomb loads only, so a yellow
-   * accent itself says "carries ordnance". Steel (`s`, `w`) is for gun
-   * barrels, wheels and rotors. The artwork is ours: these matrices were
-   * drawn for this project, not traced or extracted from any release of
-   * the original game.
-   *
-   * Colour codes: o outline · d body dark · m body mid · l body light
-   *               h specular · a ordnance yellow · g canopy glass
-   *               t track/tyre · s steel · w bright steel
-   */
-  var SPRITE_W = 22, SPRITE_H = 18;
-  var SPRITE_CODES = "odmlhagtsw";
-
-  var UNIT_SPRITES = {
-    /* --- infantry --- */
-    CHARLIE: [
-      "......................",
-      "......................",
-      "......................",
-      ".........oooo.........",
-      "........ohhhho........",
-      "........ommmmo........",
-      ".........oooo.........",
-      "........oommoo...s....",
-      ".......ommmmmmo.s.....",
-      ".......omllllmos......",
-      ".......ommmmmms.......",
-      "........oommmoo.......",
-      ".........dd.dd........",
-      ".........dd.dd........",
-      "........ooo.ooo.......",
-      "......................",
-      "......................",
-      "......................",
-    ],
-    KILROY: [
-      "......................",
-      "......................",
-      "......................",
-      ".........oooo.........",
-      "........ohhhho........",
-      "........ommmmo........",
-      ".........oooo.........",
-      ".....owwwwwwwwwwwwwaa.",
-      ".....osssssssssssssaa.",
-      "......ommmmmmmmo......",
-      "......omllllllmo......",
-      "......ommmmmmmmo......",
-      ".......oommmmoo.......",
-      "........dd..dd........",
-      "........dd..dd........",
-      ".......ooo..ooo.......",
-      "......................",
-      "......................",
-    ],
-    PANTHER: [
-      "......................",
-      "......................",
-      "......................",
-      "......................",
-      ".........oooo.........",
-      "........ohhhho........",
-      "........ommmmo........",
-      ".........oooo.........",
-      ".......ommmmmmo.......",
-      ".......omllllmoss.....",
-      ".......ommmmmmo.......",
-      "....ooo.ooooooo.ooo...",
-      "...otttommmmmmmottto..",
-      "...otstodddddddotsto..",
-      "...otttooooooooottto..",
-      "....ooo........ooo....",
-      "......................",
-      "......................",
-    ],
-
-    /* --- tanks --- */
-    BISON: [
-      "......................",
-      "......................",
-      "......................",
-      "......................",
-      "......................",
-      "....ooooooooooooo.....",
-      "...otststoooootsto....",
-      "...omlll.hhhhmmlmo....",
-      "...osdsmollsodollo....",
-      "...ommmmollssmolmo....",
-      "...osdsmomlsdwwwwwwo..",
-      "...ommmmooooosssssso..",
-      "...oddddddddddddmo....",
-      "...otstssttstsstto....",
-      "...ooooooooooooooo....",
-      "......................",
-      "......................",
-      "......................",
-    ],
-    LENET: [
-      "......................",
-      "......................",
-      "......................",
-      "......................",
-      "......................",
-      "......................",
-      ".....oooooooooo.......",
-      "....otststooooso......",
-      "....omlll.hhhmmo......",
-      "....osdsmolddddo......",
-      "....ommmmollssmo......",
-      "....oddddddlswwwwwo...",
-      "....otstssttstsssso...",
-      "....oooooooooooo......",
-      "......................",
-      "......................",
-      "......................",
-      "......................",
-    ],
-    POLAR: [
-      "......................",
-      "......................",
-      "......................",
-      "..ooooooooooooooooo...",
-      ".otstsoooooooooststo..",
-      ".ohll.hhhhhhhhmmhhmo..",
-      ".osdsollsodllllomllo..",
-      ".ommmollssmmmmdomlmo..",
-      ".osdsollsdmmmdwwwwwo..",
-      ".ommmollmlmdmmssssso..",
-      ".osdsollmmdmmmoooooo..",
-      ".ommmollmmmmmmmomlmo..",
-      ".osdsomddddddddomlmo..",
-      ".omlmdolmdolmdolmdoo..",
-      ".oddddddddddddddddmo..",
-      ".otstssttstssttststo..",
-      ".ooooooooooooooooooo..",
-      "......................",
-    ],
-    GRIZZLY: [
-      "......................",
-      "......................",
-      "......................",
-      "......................",
-      "...oooooooooooooo.....",
-      "..otststoooooostso....",
-      "..omlll.hhhhhmmlmo....",
-      "..osdsmollsodlollo....",
-      "..ommmmollssmdolmo....",
-      "..osdsmollsddwwwwwwwo.",
-      "..ommmmollmlmssssssso.",
-      "..osdsmomlmmddolmo....",
-      "..ommmmoooooooolmo....",
-      "..odddddddddddddmo....",
-      "..otstssttstssttso....",
-      "..oooooooooooooooo....",
-      "......................",
-      "......................",
-    ],
-    SLAGGER: [
-      "......................",
-      "......................",
-      "......................",
-      "......................",
-      "......................",
-      ".....ooooooooo........",
-      "....ohhhllllllo.......",
-      "....ohhlllllllloo.....",
-      "....olloooooollllloo..",
-      "....olmohhmowwwwwwwwo.",
-      "....ommommdosssssssso.",
-      "....ommoooooommmmmoo..",
-      "....oddddddddddo......",
-      ".....ggggggggg........",
-      "......................",
-      "......................",
-      "......................",
-      "......................",
-    ],
-    TITAN: [
-      "......................",
-      "......................",
-      "......oooooooo........",
-      "......oswswaao........",
-      "...oooosdsdaaoooo.....",
-      "..otstoooooooostso....",
-      "..omlll.hhhhhmmlmo....",
-      "..osdsmollsodlollo....",
-      "..ommmmollssmdolmo....",
-      "..osdsmollsddwwwwwo...",
-      "..ommmmollmlmssssso...",
-      "..osdsmomlmmddolmo....",
-      "..ommmmoooooooolmo....",
-      "..odddddddddddddmo....",
-      "..otstssttstssttso....",
-      "..oooooooooooooooo....",
-      "......................",
-      "......................",
-    ],
-    GIANT: [
-      "......................",
-      "......................",
-      "......................",
-      "..ooooooooooooooooo...",
-      ".otststooooooooststo..",
-      ".omlll.hhhhhhhmmllmo..",
-      ".osdsmollsodlllomllo..",
-      ".ommmmollssmmmdomlmo..",
-      ".osdsmollsdmmdwwwwwwo.",
-      ".ommmmollmlmdmsssssso.",
-      ".osdsmollmmdmmmomlmo..",
-      ".ommmmollmmmmmmomlmo..",
-      ".osdsmomddddddwwwwwwo.",
-      ".ommmmoooooooosssssso.",
-      ".oddddddddddddddddmo..",
-      ".otstssttstssttststo..",
-      ".ooooooooooooooooooo..",
-      "......................",
-    ],
-
-    /* --- aircraft --- */
-    EAGLE: [
-      "......................",
-      "......................",
-      "......................",
-      ".........oo...........",
-      "........oaao..........",
-      "........ommmo.........",
-      "...oo...ommmmo........",
-      "...ommoooooooooooooo..",
-      "...ohhhlllllllmmmmmo..",
-      "...ollllllllmmmmggmmo.",
-      "...ommmmmmmmmddddddo..",
-      "...ommoooooooooooooo..",
-      "...oo...ommmmo........",
-      "........ommmo.........",
-      "........oaao..........",
-      ".........oo...........",
-      "......................",
-      "......................",
-    ],
-    FALCON: [
-      "......................",
-      "......................",
-      "......................",
-      "......................",
-      ".....o................",
-      ".....oo...............",
-      ".....omo..............",
-      "...o.ommoo............",
-      "...oommmmmooooooooo...",
-      "...ohhlllllmmmmgggmmo.",
-      "...oommmmmooooooooo...",
-      "...o.ommoo............",
-      ".....omo..............",
-      ".....oo...............",
-      ".....o................",
-      "......................",
-      "......................",
-      "......................",
-    ],
-    HUNTER: [
-      "......................",
-      "......................",
-      "......................",
-      "........oaao..........",
-      "........ommo..........",
-      "......oodmmoo.........",
-      "......oddmmmdo........",
-      "...oooooooooooooooo...",
-      "...ohhhllllllmmmmmo...",
-      "...olllllllmmmmmggmmo.",
-      "...ommmmmmmddddddddo..",
-      "...oooooooooooooooo...",
-      "......oddmmmdo........",
-      "......oodmmoo.........",
-      "........ommo..........",
-      "........oaao..........",
-      "......................",
-      "......................",
-    ],
-    PELICAN: [
-      "......................",
-      "..w...............w...",
-      "...w.............w....",
-      "....w...........w.....",
-      ".....w.........w......",
-      "......w.......w.......",
-      "......owooooowoo......",
-      "w.....olwlllwllo......",
-      "wooooooollwlwlggo.....",
-      "wmmmmmommmwmmggo......",
-      "wooooooommwmwmggo.....",
-      "w.....odwdddwddo......",
-      "......owooooowoo......",
-      "......w.......w.......",
-      ".....w.........w......",
-      "....w...........w.....",
-      "...w.............w....",
-      "..w...............w...",
-    ],
-
-    /* --- self-propelled guns --- */
-    HADRIAN: [
-      "......................",
-      "....................ws",
-      "...................ws.",
-      "..................ws..",
-      ".................ws...",
-      "................ws....",
-      "...............ws.....",
-      "....oooooooooowso.....",
-      "...otttttttttwstto....",
-      "...otsoooooowststo....",
-      "...ollohhlolllllo.....",
-      "...ommolmmdommmmmo....",
-      "...oddommddodddddo....",
-      "...otsoooooototsto....",
-      "...ottttttttttttto....",
-      "....ooooooooooooo.....",
-      "......................",
-      "......................",
-    ],
-    OCTOPUS: [
-      "......................",
-      "......................",
-      "......................",
-      "......oooooooooo......",
-      "......ossssssssoaa....",
-      "......oddddddddo......",
-      "......ossssssssoaa....",
-      "......oddddddddo......",
-      "....ooossssssssoaa....",
-      "...ottoooooooooooto...",
-      "...otststststststo....",
-      "...olllllllllllllo....",
-      "...ommmmmmmmmmmmmo....",
-      "...odddddddddddddo....",
-      "...otststststststo....",
-      "...ottttttttttttto....",
-      "....ooooooooooooo.....",
-      "......................",
-    ],
-    ATLAS: [
-      "......................",
-      "......................",
-      "......................",
-      ".o............o.......",
-      "..o..........o........",
-      "...oooooooooo.........",
-      "...ollllllllo.........",
-      "...ollhhllllooooooooo.",
-      "...ommmmmmmmwwwwwwwwww",
-      "...ommhhmmmmssssssssss",
-      "...ommmmmmmmssssssssss",
-      "...ommmmmmmmoooooooooo",
-      "...oddddddddo.........",
-      "...oddddddddo.........",
-      "...oddddddddo.........",
-      "...oooooooooo.........",
-      "..o..........o........",
-      ".o............o.......",
-    ],
-
-    /* --- missile buggies --- */
-    RABBIT: [
-      "......................",
-      "......................",
-      "......................",
-      "......................",
-      "......................",
-      "......tt.....tt.......",
-      "......tt.....tt.......",
-      ".....ooooooooooo......",
-      ".....ollssssssssaa....",
-      ".....olllllllllo......",
-      ".....ommmmmmmmmo......",
-      ".....oddssssssssaa....",
-      ".....ooooooooooo......",
-      "......tt.....tt.......",
-      "......tt.....tt.......",
-      "......................",
-      "......................",
-      "......................",
-    ],
-    LYNX: [
-      "......................",
-      "......................",
-      "......................",
-      "......................",
-      "....tt...tt..tt.......",
-      "....tt...tt..tt.......",
-      "...ooooooooooooo......",
-      "...owolllllllllo......",
-      "...owwollllllllo......",
-      "...owwomssssssssssaa..",
-      "...owwomssssssssssaa..",
-      "...owodddddddddo......",
-      "...odddddddddddo......",
-      "...ooooooooooooo......",
-      "....tt...tt..tt.......",
-      "....tt...tt..tt.......",
-      "......................",
-      "......................",
-    ],
-
-    /* --- anti-air --- */
-    SEEKER: [
-      "......................",
-      "......................",
-      "...................w..",
-      "..................w...",
-      ".................w.w..",
-      "................w.w...",
-      "...............w.w....",
-      "....oooooooooowowo....",
-      "...otttttttttwtwto....",
-      "...otsoooooowtwsto....",
-      "...ollohhlolwlllo.....",
-      "...ommolmmdowmmmmo....",
-      "...oddommddodddddo....",
-      "...otsoooooototsto....",
-      "...ottttttttttttto....",
-      "....ooooooooooooo.....",
-      "......................",
-      "......................",
-    ],
-    HAWKEYE: [
-      "......................",
-      "......................",
-      "......................",
-      "....ooooo.............",
-      "....owwwo.ooooooo.....",
-      "....owhwo.osssssoaa...",
-      "....owwwo.odddddo.....",
-      "....owwwo.osssssoaa...",
-      "....ooooo.ooooooo.....",
-      "....ooooooooooooo.....",
-      "...ottttttttttttto....",
-      "...otststststststo....",
-      "...olllllllllllllo....",
-      "...ommmmmmmmmmmmmo....",
-      "...otststststststo....",
-      "...ottttttttttttto....",
-      "....ooooooooooooo.....",
-      "......................",
-    ],
-
-    /* --- transports --- */
-    MULE: [
-      "......................",
-      "......................",
-      "......................",
-      "......................",
-      "....tt..tt....tt......",
-      "....tt..tt....tt......",
-      "...ooooooooo..........",
-      "...ollllllloooooooo...",
-      "...olhhllllooommgo....",
-      "...ollllllloommmgo....",
-      "...ommmmmmmoommmgo....",
-      "...odddddddoooooooo...",
-      "...ooooooooo..........",
-      "....tt..tt....tt......",
-      "....tt..tt....tt......",
-      "......................",
-      "......................",
-      "......................",
-    ],
-
-    /* --- mine --- */
-    TRIGGER: [
-      "......................",
-      "......................",
-      "......................",
-      "..........a...........",
-      "..........a...........",
-      "........ooooo.........",
-      ".......odddddo........",
-      "......odmmmmmdo.......",
-      "......odmhhhmdo.......",
-      "....aaodmhhhmdoaa.....",
-      "......odmmmmmdo.......",
-      ".......odddddo........",
-      "........ooooo.........",
-      "..........a...........",
-      "..........a...........",
-      "......................",
-      "......................",
-      "......................",
-    ],
-  };
+  /* Generated native art: both facings are independently shaded on 32x32. */
+  var NATIVE_ART = typeof NATIVE_UNIT_ART !== "undefined" ? NATIVE_UNIT_ART :
+    (typeof module !== "undefined" ? require("./data-unit-art.js") : null);
+  if (!NATIVE_ART) throw new Error("Load js/data-unit-art.js before js/render.js");
+  var ICON_SETS = typeof UNIT_ICON_SETS !== "undefined" ? UNIT_ICON_SETS :
+    (typeof module !== "undefined" ? require("./unit-icon-sets.js") : null);
+  if (!ICON_SETS) throw new Error("Load js/unit-icon-sets.js before js/render.js");
+  // Buildings, labels and native units share the same faction ramps.
+  ["union", "xenon", "neutral", "attack"].forEach(function (faction, index) {
+    var colors = index === 3 ? THEMES.pixel.attackColors : THEMES.pixel.playerColors[index];
+    var ramp = NATIVE_ART.palettes[faction];
+    colors.dark = ramp[6]; colors.body = ramp[8]; colors.light = ramp[10];
+  });
+  var SPRITE_W = NATIVE_ART.frame, SPRITE_H = NATIVE_ART.frame;
+  var SPRITE_CODES = NATIVE_ART.codes, UNIT_SPRITES = {};
+  Object.keys(NATIVE_ART.frames).forEach(function (id) {
+    UNIT_SPRITES[id] = NATIVE_ART.frames[id].right;
+  });
+  var nativeRunCache = Object.create(null);
 
   /* Custom unit types (editor / level JSON) have no artwork of their own.
    * A custom definition may name a stock sprite via `sprite: "GRIZZLY"`;
@@ -1028,28 +568,30 @@ var RENDER = (function () {
   }
 
   function drawUnitBodyPixel(ctx, unit, u, colors) {
-    var art = UNIT_SPRITES[spriteIdFor(unit.type)];
-    var pal = {
-      o: "#0f0b12", d: colors.dark, m: colors.body, l: colors.light,
-      h: "#ffffff", a: "#ffd23d", g: "#9fe8ff", t: "#42424c", s: "#8a8a96", w: "#d2d2dc",
-    };
-    // 2.1 cells per hex unit: 46x38 of a 68x59 hex, the largest whole-cell
-    // size whose top corners still sit inside the hex outline.
-    var px = 2.1 * u;
-    var ox = -SPRITE_W * px / 2, oy = -SPRITE_H * px / 2;
-    for (var r = 0; r < SPRITE_H; r++) {
-      var row = art[r];
-      for (var c = 0; c < SPRITE_W; c++) {
-        var code = row.charAt(c);
-        if (code === ".") continue;
-        var fill = pal[code];
-        if (!fill) {
-          throw new Error("Unknown pixel-sprite colour code '" + code + "' at row " + r);
+    var id = spriteIdFor(unit.type), facing = unit.player === 1 ? "left" : "right";
+    var faction = colors === theme.attackColors ? "attack" :
+      (unit.player < 0 || unit.player === 2 ? "neutral" : unit.player === 1 ? "xenon" : "union");
+    var pack = ICON_SETS.current(), art = pack.art;
+    var key = pack.id + "-" + id + "-" + facing + "-" + faction, runs = nativeRunCache[key];
+    if (!runs) {
+      var rows = art.frames[id][facing], palette = art.palettes[faction];
+      runs = [];
+      for (var y = 0; y < SPRITE_H; y++) {
+        for (var x = 0; x < SPRITE_W;) {
+          var code = rows[y].charAt(x), end = x + 1;
+          while (end < SPRITE_W && rows[y].charAt(end) === code) end++;
+          if (code !== ".") runs.push({ x: x - 16, y: y - 16, w: end - x, color: palette[parseInt(code, 16)] });
+          x = end;
         }
-        ctx.fillStyle = fill;
-        // Half-pixel overdraw keeps the grid seam-free at fractional zoom.
-        ctx.fillRect(ox + c * px, oy + r * px, px + 0.5, px + 0.5);
       }
+      nativeRunCache[key] = runs;
+    }
+    // One native pixel per canvas pixel, independent of map zoom or icon slot.
+    // Cached horizontal runs avoid repeated palette decoding and overdraw.
+    ctx.imageSmoothingEnabled = false;
+    for (var i = 0; i < runs.length; i++) {
+      var run = runs[i]; ctx.fillStyle = run.color;
+      ctx.fillRect(run.x, run.y, run.w, 1);
     }
   }
 
@@ -1492,12 +1034,13 @@ var RENDER = (function () {
     var ctx = this.ctx;
     var ctr = this.hexCenter(unit.col, unit.row);
     var s = this.hexSize * this.zoom;
-    var u = s / 34;
+    var u = theme.id === "pixel" ? 0.8 : s / 34;
     var attacking = this.attackingUnitId !== null && this.attackingUnitId === unit.id;
     var colors = attacking ? theme.attackColors : PLAYER_COLORS[unit.player];
 
     ctx.save();
-    ctx.translate(ctr.x, ctr.y);
+    ctx.translate(theme.id === "pixel" ? Math.round(ctr.x) : ctr.x,
+      theme.id === "pixel" ? Math.round(ctr.y) : ctr.y);
 
     // A unit whose activation is complete keeps full brightness but loses its
     // faction colour. The attacker is exempt so its red is never greyed.
@@ -1576,7 +1119,7 @@ var RENDER = (function () {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.save();
     if (opts && opts.spent) ctx.filter = "grayscale(1)";
-    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.translate(Math.round(canvas.width / 2), Math.round(canvas.height / 2));
     drawUnitBody(ctx, unit, u, base);
     ctx.restore();
   }
@@ -1684,7 +1227,13 @@ var RENDER = (function () {
     setStyle: setStyle,
     getStyle: getStyle,
     styleIds: Object.keys(THEMES),
+    getIconSets: ICON_SETS.list,
+    getIconSet: ICON_SETS.getId,
+    setIconSet: ICON_SETS.set,
+    getIconSetData: ICON_SETS.get,
+    onIconSetChange: ICON_SETS.onChange,
     UNIT_SPRITES: UNIT_SPRITES,
+    NATIVE_UNIT_ART: NATIVE_ART,
     SPRITE_W: SPRITE_W,
     SPRITE_H: SPRITE_H,
     SPRITE_CODES: SPRITE_CODES,

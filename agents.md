@@ -4,6 +4,7 @@ JavaScript remake of the TG-16 hex-tactics game (Nectaris / Military
 Madness). Start with `README.md` (usage, deployment, modding),
 `PRODUCT.md` (settled UI/product decisions), and `MECHANICS.md`
 (rules reconstruction with sources). Before regenerating unit icons, also read
+`ART_DIRECTION.md` (settled 32×32-unit / 48×32-flattened-hex specification),
 `inspiration/nectaris-original/README.md` and open
 `inspiration/nectaris-original/index.html` to inspect its local reference PNGs.
 
@@ -33,18 +34,37 @@ Facts wei need across sessions:
   Engine normal-campaign layouts, deployments and factory inventories now in
   `js/data-maps.js`; `tools/extract-original-campaign.js` records their
   deterministic provenance from Hudson's official 1997 Windows freeware port.
-  Art, music, and the 12 Lunar Frontiers layouts remain original. Do not import
+  Remake art, music, and the 12 Lunar Frontiers layouts remain original. Do not import
   other original assets, sounds, map data, or community archive files without
   explicit redistribution permission. The other archive-derived exception is
   the Base Nectaris terrain pack, which rests on a specific written grant
   covering only the unit-free terrain files — the boundary of what that grant
   does and does not cover is tabulated in
   `LEVEL_SOURCES.md`. Read that table before adding anything else from an
-  archive. Hudson/Konami sprite and tile bitmaps remain off-limits. The
+  archive. On 2026-09-20 the user explicitly requested a separate Legacy set
+  from Anka’s ユニットデータ chart, then requested the old map tile style.
+  That specific import is in `art/legacy/`; its README records provenance and
+  distinguishes user authorization from a third-party license. The Legacy
+  terrain is an original code-authored reconstruction in `js/legacy-terrain.js`.
+  The registry `js/unit-icon-sets.js` keeps Remake first/default and Legacy
+  second; the shared persisted choice covers game, editor and review pages.
+  Other original sprite/tile imports still require explicit authorization. The
   gitignored captures under `inspiration/nectaris-original/` are local design
   references only and must never become runtime or redistributed assets.
   The pixel visual style (default) imitates the era's idiom with original
-  art: one 22×18 sprite per stock unit in `UNIT_SPRITES`; review changes in
+  art: all 23 units have two 32×32 directional frames, authored in
+  `art/units/pixel-art.js` and exported by `tools/build-unit-art.js` into
+  `js/data-unit-art.js`. Read `art/units/README.md` before edits. Unit art is
+  integrated; Remake production terrain/geometry migration is still pending.
+  Legacy already uses 48×32 flattened tiles and 32-pixel pitch in production.
+  Follow `ART_DIRECTION.md`: 32×32 frames, 48×32 flattened hexes,
+  fixed upper-left lighting, bright white/pale armor and selective charcoal
+  contours on shadow-facing edges. Use angular military silhouettes: long low
+  hulls, flat turrets, straight wings, narrow fuselages and small helmets.
+  The user rejected chibi/toy proportions. Always horizontally
+  center the visible unit silhouette in its tile. Never enlarge icons: maps,
+  inspectors and review sheets all show the native 32×32 frame. Charlie must
+  stay small within its frame; bases use original-style domed compounds. Review changes in
   `tools/unit-sheet.html`. Union is blue, Xenon green, red means "attacking".
 - **Rules are sourced, not guessed** (since 2026-09-01): movement costs,
   per-domain attack ranges (`rngG`/`rngA`, indirect band 2..range),

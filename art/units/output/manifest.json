@@ -1,0 +1,566 @@
+{
+  "revision": 5,
+  "style": "angular military",
+  "nativeFrame": [
+    32,
+    32
+  ],
+  "displayScale": 1,
+  "horizontalAlignment": "opaque-bounds-centered",
+  "unitCount": 23,
+  "directionalFrames": [
+    {
+      "id": "CHARLIE",
+      "facing": "right",
+      "visibleBounds": [
+        7,
+        8,
+        18,
+        17
+      ],
+      "opaquePixels": 179,
+      "paletteEntries": 11
+    },
+    {
+      "id": "CHARLIE",
+      "facing": "left",
+      "visibleBounds": [
+        7,
+        8,
+        18,
+        17
+      ],
+      "opaquePixels": 179,
+      "paletteEntries": 11
+    },
+    {
+      "id": "KILROY",
+      "facing": "right",
+      "visibleBounds": [
+        5,
+        8,
+        22,
+        17
+      ],
+      "opaquePixels": 197,
+      "paletteEntries": 12
+    },
+    {
+      "id": "KILROY",
+      "facing": "left",
+      "visibleBounds": [
+        5,
+        8,
+        22,
+        17
+      ],
+      "opaquePixels": 197,
+      "paletteEntries": 12
+    },
+    {
+      "id": "PANTHER",
+      "facing": "right",
+      "visibleBounds": [
+        5,
+        11,
+        22,
+        14
+      ],
+      "opaquePixels": 179,
+      "paletteEntries": 10
+    },
+    {
+      "id": "PANTHER",
+      "facing": "left",
+      "visibleBounds": [
+        5,
+        11,
+        22,
+        14
+      ],
+      "opaquePixels": 179,
+      "paletteEntries": 10
+    },
+    {
+      "id": "BISON",
+      "facing": "right",
+      "visibleBounds": [
+        2,
+        9,
+        28,
+        15
+      ],
+      "opaquePixels": 334,
+      "paletteEntries": 11
+    },
+    {
+      "id": "BISON",
+      "facing": "left",
+      "visibleBounds": [
+        2,
+        9,
+        28,
+        15
+      ],
+      "opaquePixels": 334,
+      "paletteEntries": 11
+    },
+    {
+      "id": "LENET",
+      "facing": "right",
+      "visibleBounds": [
+        5,
+        9,
+        22,
+        15
+      ],
+      "opaquePixels": 260,
+      "paletteEntries": 7
+    },
+    {
+      "id": "LENET",
+      "facing": "left",
+      "visibleBounds": [
+        5,
+        9,
+        22,
+        15
+      ],
+      "opaquePixels": 261,
+      "paletteEntries": 8
+    },
+    {
+      "id": "POLAR",
+      "facing": "right",
+      "visibleBounds": [
+        2,
+        7,
+        28,
+        19
+      ],
+      "opaquePixels": 435,
+      "paletteEntries": 10
+    },
+    {
+      "id": "POLAR",
+      "facing": "left",
+      "visibleBounds": [
+        2,
+        7,
+        28,
+        19
+      ],
+      "opaquePixels": 435,
+      "paletteEntries": 10
+    },
+    {
+      "id": "GRIZZLY",
+      "facing": "right",
+      "visibleBounds": [
+        2,
+        7,
+        28,
+        18
+      ],
+      "opaquePixels": 366,
+      "paletteEntries": 10
+    },
+    {
+      "id": "GRIZZLY",
+      "facing": "left",
+      "visibleBounds": [
+        2,
+        7,
+        28,
+        18
+      ],
+      "opaquePixels": 366,
+      "paletteEntries": 11
+    },
+    {
+      "id": "SLAGGER",
+      "facing": "right",
+      "visibleBounds": [
+        3,
+        10,
+        26,
+        16
+      ],
+      "opaquePixels": 263,
+      "paletteEntries": 11
+    },
+    {
+      "id": "SLAGGER",
+      "facing": "left",
+      "visibleBounds": [
+        3,
+        10,
+        26,
+        16
+      ],
+      "opaquePixels": 262,
+      "paletteEntries": 11
+    },
+    {
+      "id": "TITAN",
+      "facing": "right",
+      "visibleBounds": [
+        2,
+        7,
+        28,
+        19
+      ],
+      "opaquePixels": 427,
+      "paletteEntries": 11
+    },
+    {
+      "id": "TITAN",
+      "facing": "left",
+      "visibleBounds": [
+        2,
+        7,
+        28,
+        19
+      ],
+      "opaquePixels": 427,
+      "paletteEntries": 11
+    },
+    {
+      "id": "GIANT",
+      "facing": "right",
+      "visibleBounds": [
+        2,
+        5,
+        28,
+        22
+      ],
+      "opaquePixels": 501,
+      "paletteEntries": 11
+    },
+    {
+      "id": "GIANT",
+      "facing": "left",
+      "visibleBounds": [
+        2,
+        5,
+        28,
+        22
+      ],
+      "opaquePixels": 501,
+      "paletteEntries": 11
+    },
+    {
+      "id": "EAGLE",
+      "facing": "right",
+      "visibleBounds": [
+        2,
+        8,
+        28,
+        17
+      ],
+      "opaquePixels": 270,
+      "paletteEntries": 14
+    },
+    {
+      "id": "EAGLE",
+      "facing": "left",
+      "visibleBounds": [
+        2,
+        8,
+        28,
+        17
+      ],
+      "opaquePixels": 269,
+      "paletteEntries": 14
+    },
+    {
+      "id": "FALCON",
+      "facing": "right",
+      "visibleBounds": [
+        2,
+        6,
+        28,
+        21
+      ],
+      "opaquePixels": 277,
+      "paletteEntries": 12
+    },
+    {
+      "id": "FALCON",
+      "facing": "left",
+      "visibleBounds": [
+        2,
+        6,
+        28,
+        21
+      ],
+      "opaquePixels": 285,
+      "paletteEntries": 12
+    },
+    {
+      "id": "HUNTER",
+      "facing": "right",
+      "visibleBounds": [
+        2,
+        6,
+        28,
+        20
+      ],
+      "opaquePixels": 329,
+      "paletteEntries": 14
+    },
+    {
+      "id": "HUNTER",
+      "facing": "left",
+      "visibleBounds": [
+        2,
+        6,
+        28,
+        20
+      ],
+      "opaquePixels": 329,
+      "paletteEntries": 14
+    },
+    {
+      "id": "HADRIAN",
+      "facing": "right",
+      "visibleBounds": [
+        2,
+        6,
+        28,
+        20
+      ],
+      "opaquePixels": 325,
+      "paletteEntries": 9
+    },
+    {
+      "id": "HADRIAN",
+      "facing": "left",
+      "visibleBounds": [
+        2,
+        6,
+        28,
+        20
+      ],
+      "opaquePixels": 327,
+      "paletteEntries": 10
+    },
+    {
+      "id": "OCTOPUS",
+      "facing": "right",
+      "visibleBounds": [
+        4,
+        8,
+        24,
+        18
+      ],
+      "opaquePixels": 377,
+      "paletteEntries": 9
+    },
+    {
+      "id": "OCTOPUS",
+      "facing": "left",
+      "visibleBounds": [
+        4,
+        8,
+        24,
+        18
+      ],
+      "opaquePixels": 377,
+      "paletteEntries": 9
+    },
+    {
+      "id": "ATLAS",
+      "facing": "right",
+      "visibleBounds": [
+        2,
+        7,
+        28,
+        19
+      ],
+      "opaquePixels": 304,
+      "paletteEntries": 10
+    },
+    {
+      "id": "ATLAS",
+      "facing": "left",
+      "visibleBounds": [
+        2,
+        7,
+        28,
+        19
+      ],
+      "opaquePixels": 306,
+      "paletteEntries": 10
+    },
+    {
+      "id": "RABBIT",
+      "facing": "right",
+      "visibleBounds": [
+        5,
+        10,
+        22,
+        15
+      ],
+      "opaquePixels": 229,
+      "paletteEntries": 12
+    },
+    {
+      "id": "RABBIT",
+      "facing": "left",
+      "visibleBounds": [
+        5,
+        10,
+        22,
+        15
+      ],
+      "opaquePixels": 229,
+      "paletteEntries": 12
+    },
+    {
+      "id": "LYNX",
+      "facing": "right",
+      "visibleBounds": [
+        2,
+        9,
+        28,
+        16
+      ],
+      "opaquePixels": 293,
+      "paletteEntries": 11
+    },
+    {
+      "id": "LYNX",
+      "facing": "left",
+      "visibleBounds": [
+        2,
+        9,
+        28,
+        16
+      ],
+      "opaquePixels": 294,
+      "paletteEntries": 11
+    },
+    {
+      "id": "SEEKER",
+      "facing": "right",
+      "visibleBounds": [
+        2,
+        4,
+        28,
+        21
+      ],
+      "opaquePixels": 331,
+      "paletteEntries": 9
+    },
+    {
+      "id": "SEEKER",
+      "facing": "left",
+      "visibleBounds": [
+        2,
+        4,
+        28,
+        21
+      ],
+      "opaquePixels": 331,
+      "paletteEntries": 9
+    },
+    {
+      "id": "HAWKEYE",
+      "facing": "right",
+      "visibleBounds": [
+        2,
+        7,
+        28,
+        18
+      ],
+      "opaquePixels": 362,
+      "paletteEntries": 11
+    },
+    {
+      "id": "HAWKEYE",
+      "facing": "left",
+      "visibleBounds": [
+        2,
+        7,
+        28,
+        18
+      ],
+      "opaquePixels": 370,
+      "paletteEntries": 11
+    },
+    {
+      "id": "MULE",
+      "facing": "right",
+      "visibleBounds": [
+        4,
+        10,
+        24,
+        16
+      ],
+      "opaquePixels": 318,
+      "paletteEntries": 12
+    },
+    {
+      "id": "MULE",
+      "facing": "left",
+      "visibleBounds": [
+        4,
+        10,
+        24,
+        16
+      ],
+      "opaquePixels": 322,
+      "paletteEntries": 12
+    },
+    {
+      "id": "PELICAN",
+      "facing": "right",
+      "visibleBounds": [
+        2,
+        6,
+        28,
+        19
+      ],
+      "opaquePixels": 320,
+      "paletteEntries": 13
+    },
+    {
+      "id": "PELICAN",
+      "facing": "left",
+      "visibleBounds": [
+        2,
+        6,
+        28,
+        19
+      ],
+      "opaquePixels": 324,
+      "paletteEntries": 13
+    },
+    {
+      "id": "TRIGGER",
+      "facing": "right",
+      "visibleBounds": [
+        6,
+        13,
+        20,
+        11
+      ],
+      "opaquePixels": 160,
+      "paletteEntries": 8
+    },
+    {
+      "id": "TRIGGER",
+      "facing": "left",
+      "visibleBounds": [
+        6,
+        13,
+        20,
+        11
+      ],
+      "opaquePixels": 162,
+      "paletteEntries": 8
+    }
+  ],
+  "exportedVariants": 184
+}

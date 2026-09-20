@@ -14,7 +14,7 @@
   <header class="menu-header">
     <h1>NECTARIS</h1>
     <p class="subtitle">A faithful JavaScript remake of the classic lunar hex-tactics game.
-    Original code and art; the rules are the real thing: ZOC, support &amp; surround fire,
+    Original code, selectable art; the rules are the real thing: ZOC, support &amp; surround fire,
     experience, terrain, factories, transports.</p>
   </header>
 
@@ -81,6 +81,7 @@
       <option value="neon">Neon style</option>
       <option value="classic">Classic style</option>
     </select>
+    <select id="icon-set-select" aria-label="Art set"></select>
     <button id="btn-watch" aria-pressed="true">Watch AI: On</button>
     <button id="btn-music" aria-pressed="false">Music: Off</button>
     <button id="btn-endturn">End Turn (E)</button>
@@ -140,6 +141,10 @@
 <script src="js/data-maps.js"></script>
 <script src="js/data-expansion-maps.js"></script>
 <script src="js/data-basenectaris-maps.js"></script>
+<script src="js/data-unit-art.js"></script>
+<script src="js/data-unit-art-legacy.js"></script>
+<script src="js/unit-icon-sets.js"></script>
+<script src="js/legacy-terrain.js"></script>
 <script src="js/render.js"></script>
 <script src="js/music.js"></script>
 <script src="js/combat-view.js"></script>

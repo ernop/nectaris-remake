@@ -1,0 +1,261 @@
+{
+  "revision": 4,
+  "style": "angular military silhouettes with flat armor and narrow fuselages",
+  "nativeFrame": [
+    32,
+    32
+  ],
+  "hexFootprint": [
+    48,
+    32
+  ],
+  "pitch": [
+    32,
+    32
+  ],
+  "stagger": 16,
+  "light": "screen-upper-left",
+  "displayScale": 1,
+  "horizontalAlignment": "opaque-bounds-centered",
+  "frames": [
+    {
+      "id": "BISON",
+      "facing": "right",
+      "width": 32,
+      "height": 32,
+      "visibleBounds": [
+        2,
+        9,
+        28,
+        15
+      ],
+      "opaquePixels": 334,
+      "paletteEntries": 11
+    },
+    {
+      "id": "BISON",
+      "facing": "left",
+      "width": 32,
+      "height": 32,
+      "visibleBounds": [
+        2,
+        9,
+        28,
+        15
+      ],
+      "opaquePixels": 334,
+      "paletteEntries": 11
+    },
+    {
+      "id": "POLAR",
+      "facing": "right",
+      "width": 32,
+      "height": 32,
+      "visibleBounds": [
+        2,
+        7,
+        28,
+        19
+      ],
+      "opaquePixels": 435,
+      "paletteEntries": 10
+    },
+    {
+      "id": "POLAR",
+      "facing": "left",
+      "width": 32,
+      "height": 32,
+      "visibleBounds": [
+        2,
+        7,
+        28,
+        19
+      ],
+      "opaquePixels": 435,
+      "paletteEntries": 10
+    },
+    {
+      "id": "EAGLE",
+      "facing": "right",
+      "width": 32,
+      "height": 32,
+      "visibleBounds": [
+        2,
+        8,
+        28,
+        17
+      ],
+      "opaquePixels": 270,
+      "paletteEntries": 14
+    },
+    {
+      "id": "EAGLE",
+      "facing": "left",
+      "width": 32,
+      "height": 32,
+      "visibleBounds": [
+        2,
+        8,
+        28,
+        17
+      ],
+      "opaquePixels": 269,
+      "paletteEntries": 14
+    },
+    {
+      "id": "CHARLIE",
+      "facing": "right",
+      "width": 32,
+      "height": 32,
+      "visibleBounds": [
+        7,
+        8,
+        18,
+        17
+      ],
+      "opaquePixels": 179,
+      "paletteEntries": 11
+    },
+    {
+      "id": "CHARLIE",
+      "facing": "left",
+      "width": 32,
+      "height": 32,
+      "visibleBounds": [
+        7,
+        8,
+        18,
+        17
+      ],
+      "opaquePixels": 179,
+      "paletteEntries": 11
+    },
+    {
+      "id": "HADRIAN",
+      "facing": "right",
+      "width": 32,
+      "height": 32,
+      "visibleBounds": [
+        2,
+        6,
+        28,
+        20
+      ],
+      "opaquePixels": 325,
+      "paletteEntries": 9
+    },
+    {
+      "id": "HADRIAN",
+      "facing": "left",
+      "width": 32,
+      "height": 32,
+      "visibleBounds": [
+        2,
+        6,
+        28,
+        20
+      ],
+      "opaquePixels": 327,
+      "paletteEntries": 10
+    },
+    {
+      "id": "BASE",
+      "facing": "right",
+      "width": 32,
+      "height": 32,
+      "visibleBounds": [
+        4,
+        4,
+        24,
+        23
+      ],
+      "opaquePixels": 413,
+      "paletteEntries": 10
+    }
+  ],
+  "deployment": [
+    {
+      "id": "BISON",
+      "col": 3,
+      "row": 3,
+      "faction": "union",
+      "facing": "right",
+      "selected": true
+    },
+    {
+      "id": "CHARLIE",
+      "col": 2,
+      "row": 2,
+      "faction": "union",
+      "facing": "right"
+    },
+    {
+      "id": "EAGLE",
+      "col": 3,
+      "row": 1,
+      "faction": "union",
+      "facing": "right"
+    },
+    {
+      "id": "POLAR",
+      "col": 2,
+      "row": 1,
+      "faction": "union",
+      "facing": "right"
+    },
+    {
+      "id": "HADRIAN",
+      "col": 1,
+      "row": 2,
+      "faction": "union",
+      "facing": "right"
+    },
+    {
+      "id": "BISON",
+      "col": 7,
+      "row": 3,
+      "faction": "xenon",
+      "facing": "left"
+    },
+    {
+      "id": "CHARLIE",
+      "col": 8,
+      "row": 3,
+      "faction": "xenon",
+      "facing": "left"
+    },
+    {
+      "id": "EAGLE",
+      "col": 7,
+      "row": 1,
+      "faction": "xenon",
+      "facing": "left"
+    },
+    {
+      "id": "POLAR",
+      "col": 8,
+      "row": 1,
+      "faction": "xenon",
+      "facing": "left"
+    },
+    {
+      "id": "HADRIAN",
+      "col": 8,
+      "row": 5,
+      "faction": "xenon",
+      "facing": "left"
+    }
+  ],
+  "bases": [
+    {
+      "col": 1,
+      "row": 4,
+      "faction": "union"
+    },
+    {
+      "col": 9,
+      "row": 3,
+      "faction": "xenon"
+    }
+  ]
+}

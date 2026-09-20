@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nectaris — original and remake art comparison</title>
+<style>
+ :root{color-scheme:dark;font-family:system-ui,sans-serif;background:#111218;color:#e4e6dc}
+ *{box-sizing:border-box}body{margin:0;padding:24px}main{max-width:1160px;margin:auto}
+ h1{font-size:26px;margin:0 0 10px}h2{font-size:19px;margin:0 0 8px}p{line-height:1.55;max-width:95ch}
+ a{color:#91c7ef}.muted,figcaption{color:#a8abb4;font-size:13px;line-height:1.55}
+ .comparison{display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start;margin:24px 0}
+ figure{margin:0}figure.reference{width:579px}figure.current{width:548px}
+ .image-viewport{overflow:auto;max-width:calc(100vw - 48px)}
+ img{display:block;max-width:none}img.native{image-rendering:pixelated}
+ figcaption{margin:10px 0 18px}.context{display:flex;flex-wrap:wrap;gap:24px;align-items:center;border-top:1px solid #343846;padding-top:24px}
+ table{border-collapse:collapse;width:100%;font-size:14px;margin:24px 0}th,td{padding:12px;text-align:left;vertical-align:top;border-bottom:1px solid #343846;line-height:1.5}th{color:#91c7ef}
+ .scroll{overflow:auto}li{line-height:1.55;margin:10px 0}.callout{padding:16px 20px;background:#1c2230;border-left:3px solid #91c7ef}
+</style>
+</head>
+<body><main>
+<h1>Original unit language vs our new roster</h1>
+<p>My assessment: our new set is more disciplined and less cartoonish than our earlier remake. The original still has stronger chunky silhouettes, value contrast and science-fiction identity. Its abstraction is purposeful; realism alone does not improve a tactical icon.</p>
+<p class="muted">Research review · 2026-09-20. Remake icons remain 32 × 32 with no enlargement. External reference images retain their published dimensions; the archive chart is not a verified native sprite atlas. No game artwork was changed for this comparison.</p>
+<div class="comparison">
+ <figure class="reference">
+  <h2>Original-family roster reference</h2>
+  <div class="image-viewport"><img src="https://anka.sakura.ne.jp/nectaris/image/d2-01.jpg" width="579" height="635" alt="Japanese chart showing all 23 Nectaris unit types grouped by role"></div>
+  <figcaption><a href="https://anka.sakura.ne.jp/nectaris/d2.html">Anka's 23-unit chart</a>. The guide covers PC Engine, Windows and PlayStation; this chart does not identify the capture edition. Use it for unit designs, with the PC Engine capture below as the map-style check. Japanese names include Armadillo = Polar, Monster = Titan, Jabby = Eagle, Munks = Charlie.</figcaption>
+ </figure>
+ <figure class="current">
+  <h2>Our current 32 × 32 roster</h2>
+  <div class="image-viewport"><img class="native" src="../art/units/output/units-native.png" width="548" height="480" alt="Current remake roster, blue and green factions, every icon at native 32 by 32"></div>
+  <figcaption><a href="unit-sheet.html">Inspect all gameplay states</a> · <a href="art-pilot.html">Try units on the map</a>. Every visible silhouette is centered. Charlie and Kilroy are 17 pixels tall; Panther is 14. The common 32-pixel frame does not prescribe a common vehicle size.</figcaption>
+  <p class="callout">Keep the size, centering and restrained infantry. The next improvement should be stronger shape and light/dark grouping, with fewer small stripes and more of the original's spacecraft and powered-armor character.</p>
+ </figure>
+</div>
+<div class="scroll"><table>
+ <thead><tr><th>Criterion</th><th>Original reference</th><th>Our current set</th><th>Judgment</th></tr></thead>
+ <tbody>
+  <tr><td>Style</td><td>Compact industrial science fiction; thick masses and bright facets.</td><td>Angular miniature vehicles, longer barrels, finer surface detail.</td><td>Closer to the requested military tone, but somewhat more conventional.</td></tr>
+  <tr><td>Abstraction</td><td>A few exaggerated features carry identity; proportions serve recognition.</td><td>More literal wings, wheels, tracks and equipment.</td><td>Keep the useful exaggeration. Thick armor and large weapon cues do not require cute proportions.</td></tr>
+  <tr><td>Contrast</td><td>Bold white/cyan clusters against very dark recesses.</td><td>Pale blue armor with more intermediate tones and repeated thin highlights.</td><td>Use fewer, larger value regions. More individual white pixels would add noise.</td></tr>
+  <tr><td>Unit differentiation</td><td>Shape, mass and internal light patterns establish recognizable tokens.</td><td>Roles are clear; several tanks share the same width and horizontal bands.</td><td>Differentiate heavy armor through footprint and volume, not only barrels.</td></tr>
+  <tr><td>Infantry</td><td>Small powered-armor figures and a motorcycle.</td><td>Small helmeted soldiers with exposed human proportions.</td><td>Preserve small scale; emphasize armor, stance and weapon instead of larger heads.</td></tr>
+  <tr><td>Effectiveness</td><td>Strong visual punch against dark terrain.</td><td>Clear faction/state handling and native pixels; some fine distinctions are subtle.</td><td>A visual assessment, not a measured player-recognition result. Terrain and scale affect the comparison.</td></tr>
+ </tbody>
+</table></div>
+<h2>Where our interpretation departs from the original</h2>
+<ul>
+ <li><strong>Aircraft:</strong> our Falcon is a familiar delta-wing jet. The reference designs read as compact spacecraft. Preserve straight edges while making noses, engine blocks and body proportions less conventional.</li>
+ <li><strong>Pelican:</strong> our crossed rotor clearly says helicopter. The original manual specifies a transport plane. This is a design mismatch, not merely a shading preference.</li>
+ <li><strong>Polar and heavy tanks:</strong> our Polar has useful slab skirts, but the original reference feels more massive and sharply contrasted. Several of our tank silhouettes span 28 visible pixels, which compresses their apparent size hierarchy.</li>
+ <li><strong>Infantry:</strong> the manual specifies powered suits. Our small scale is right for the user's brief; stronger shoulders, armored boots and a compact stance could carry the original identity without enlarging the figure.</li>
+ <li><strong>Added equipment:</strong> our Titan's missile pod and Slagger's hover chassis were remake inventions. They aid differentiation, but should not be mistaken for verified original designs.</li>
+</ul>
+<p class="muted">Design identities checked against <a href="https://dds.konami.com/games/manual/pcemini/en_Military.pdf">Konami's hosted original Military Madness manual, printed pages 8–9</a>. Some US/Japanese names and descriptions differ; this review does not propose rule or stat changes.</p>
+<section class="context">
+ <figure>
+  <img src="https://www.pcengine.co.uk/Images-Screenshots_L-R/Nectaris_06.gif" width="320" height="239" alt="Original PC Engine ICARUS map capture at its published 320 by 239 dimensions">
+  <figcaption>PC Engine capture, published 320 × 239. <a href="https://www.pcengine.co.uk/HTML_Games/Nectaris.htm">PC Engine Software Bible</a>.</figcaption>
+ </figure>
+ <div><h2>Read the art at map scale</h2><p style="max-width:62ch">The original's compact icons belong to a dense, dark battlefield. Our larger pale production hexes create much more empty space around the new 32-pixel units. Judge their final presence again on the planned flattened terrain before changing sprite size.</p></div>
+</section>
+<h2>Compared with our earlier remake</h2>
+<p>The earlier 22 × 18 source matrices used large dark frames, stronger block shapes and enlarged fractional rendering. Their broad silhouettes were forceful, but proportions, infantry scale and edge quality were less controlled. The new set fixes those problems. The strongest next pass would retain that discipline while recovering the original's heavier masses, clearer value groups and distinctive science-fiction machinery.</p>
+</main></body></html>

@@ -311,8 +311,9 @@ select, input[type="url"] {
 }
 .factory-unit { display: flex; align-items: center; gap: 9px; min-width: 0; }
 .factory-unit-icon {
-  width: 56px;
-  height: 44px;
+  width: 34px; /* 32 native pixels plus the border */
+  height: 34px;
+  image-rendering: pixelated;
   flex: 0 0 auto;
   background: #191711;
   border: 1px solid #494233;
@@ -419,3 +420,7 @@ textarea#custom-units-json {
   font-size: 12px;
   line-height: 1.4;
 }
+
+/* Keep appearance controls visible on narrow screens. */
+#topbar { flex-wrap: wrap; gap: 10px 14px; }
+#topbar > * { white-space: nowrap; flex-shrink: 0; }

@@ -4,6 +4,58 @@ Settled product and UI decisions for this remake. Mechanics reconstruction
 (with sources) lives in `MECHANICS.md`. Link this file from `agents.md` and
 the README so later sessions load it.
 
+## Selectable art sets (2026-09-20)
+
+The **Art set** selector offers **1 · Remake** first/default and **Legacy**
+second. Legacy unit icons are adapted from the user-selected ユニットデータ
+chart; source provenance and the JPEG limitations are in `art/legacy/README.md`.
+Both sets provide all 23 units in native 32×32 frames and all game states.
+
+Legacy also selects reconstructed original-style terrain and buildings, with
+48×32 flattened hexes, 32×32 pitch, 16-pixel odd-column stagger, connected roads
+and relief, integer pixel drawing and no permanent grid. Its minimum map zoom
+is 1; units are never scaled. Remake keeps its existing production terrain
+until its separate terrain migration is complete. Classic/neon keep their
+existing vector appearance and disable the art-set picker.
+
+Selection persists independently of saves/profiles and synchronizes across
+same-origin game, editor and review pages. Adding a set uses the validated
+registry in `js/unit-icon-sets.js`. Switching sets updates open inventories
+and refits the map without changing game data.
+
+## Native pixel art and flattened geometry (2026-09-20)
+
+The settled specification is documented in
+[ART_DIRECTION.md](ART_DIRECTION.md). Every unit has one **32×32** native
+transparent frame, centered at (16,16). Planned terrain hexes have a **48×32** footprint,
+**32×32** center pitch and **16-pixel** odd-column stagger, following the
+original's flattened geometry. Sprite corners remain transparent so visible
+art fits the hex; see the explicit safe mask in that specification.
+
+All icon displays remain 32×32, including map, inspector and review sheets;
+never enlarge icons. Center the visible silhouette horizontally with equal
+left/right transparent padding in every facing. Infantry stays smaller within
+its frame (Charlie 18×17, Kilroy 22×17, Panther 22×14 visible). Bases are low domed compounds with
+open service areas, following the original art's structure.
+
+Use angular military proportions inspired by traditional Japanese hex strategy:
+long low hulls, flat rectangular turrets, straight wing edges, narrow fuselages
+and small infantry helmets. The user explicitly rejected chibi, toy-like and
+super-deformed shapes. Keep domed base architecture as its own building motif.
+
+Use screen-upper-left lighting, selective one-pixel charcoal contours, a shared
+indexed palette and integer pixel rendering. Upper armor uses connected white
+and pale faction highlights; shadow-facing edges, tracks and recesses stay dark. Opposite-facing shapes must be relit
+rather than mirroring the finished shaded image. All 23 units have been rebuilt
+at native resolution using editable pixel construction. Terrain, buildings and connections follow
+the same pixel density and light. Normal terrain has no permanent hex borders.
+
+All 46 directional unit frames are now integrated into pixel mode in the game,
+editor and factory. Review all states in `tools/unit-sheet.html` or substitute
+any unit on the native map fixture in `tools/art-pilot.html`. Icons remain 32×32
+at every zoom; small viewports scroll rather than shrink them. Production
+terrain, buildings and flattened map geometry for Remake remain to be migrated.
+
 ## Strength chrome (2026-08-30)
 
 Full-strength units do **not** show `8`. Squad size 8 is the default, so
@@ -22,8 +74,7 @@ only when damaged (1–7):
 Map units do **not** carry the two-letter stencil badge ("BI", "LY", …). The
 silhouettes are the identification, as in the original, and the sidebar names
 the unit under the cursor. Together with the hidden full-strength `8` and the
-mirrored enemy facing (player units face right, enemy units face left —
-`drawUnitBody`'s `ctx.scale(-1, 1)`), this keeps unit-name text off the map.
+opposing enemy facing (player units face right, enemy units face left), this keeps unit-name text off the map.
 
 ## Completed-unit appearance (2026-09-02)
 
@@ -41,15 +92,15 @@ during the next turn.
 Adopted from the original's presentation after reviewing the local captures
 in `inspiration/nectaris-original/`:
 
-- **One silhouette per unit type.** The pixel style has a hand-drawn 22×18
-  top-down sprite for each of the 23 stock units (`UNIT_SPRITES` in
-  `js/render.js`), so types are distinguished by shape: hull width, turret
+- **One silhouette per unit type.** The pixel style has two original 32×32
+  directional frames for each of the 23 stock units (`js/data-unit-art.js`),
+  so types are distinguished by shape: hull width, turret
   form, gun length and count, missile racks, dishes, wings, rotor. Yellow is
   used only for missiles, rockets and bombs, so a yellow accent itself means
   "carries ordnance". Custom unit types render as their class's base chassis
   or as a stock sprite named by `sprite: "GRIZZLY"`; an unknown name is an
-  error. Sprites are drawn at 2.1 cells per hex unit (46×38 of the 68×59
-  hex) so they fill the hex the way the original's do.
+  error. Sprites are drawn at one native pixel per canvas pixel, independent
+  of map zoom or icon slot size.
 - **Pixel is the default style.** The storage key moved to
   `nectaris-style-v2` so every existing browser sees the new set once instead
   of its saved neon; neon and classic remain selectable.
@@ -66,7 +117,7 @@ in `inspiration/nectaris-original/`:
   clearly visible unit, not a dark one.
 
 Review tool: `tools/unit-sheet.html` shows every unit as Union, Xenon,
-attacking and spent in any style.
+attacking and spent in pixel mode, with native frames and contrast controls.
 
 ## Opposing unit facing (2026-09-02)
 

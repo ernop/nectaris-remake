@@ -98,9 +98,27 @@ var UI = (function () {
     };
 
     var styleSel = $("style-select");
+    var iconSel = $("icon-set-select");
+    iconSel.innerHTML = "";
+    RENDER.getIconSets().forEach(function (pack) {
+      var option = document.createElement("option");
+      option.value = pack.id; option.textContent = pack.label; iconSel.appendChild(option);
+    });
+    iconSel.value = RENDER.getIconSet();
+    iconSel.disabled = RENDER.getStyle() !== "pixel";
+    iconSel.onchange = function () { RENDER.setIconSet(iconSel.value); };
+    this._unsubscribeIconSet = RENDER.onIconSetChange(function () {
+      iconSel.value = RENDER.getIconSet();
+      self.renderer.fitToMap();
+      if (self.mode === "factory" && self.inspectedFactory) self.openFactoryPanel(self.inspectedFactory);
+      self.draw();
+    });
     styleSel.value = RENDER.getStyle();
     styleSel.onchange = function () {
       RENDER.setStyle(styleSel.value);
+      iconSel.disabled = RENDER.getStyle() !== "pixel";
+      self.renderer.constrainView();
+      if (self.mode === "factory" && self.inspectedFactory) self.openFactoryPanel(self.inspectedFactory);
       self.refreshStatus();   // faction names/colors differ per style
       self.draw();
     };
@@ -152,6 +170,7 @@ var UI = (function () {
   GameUI.prototype.destroy = function () {
     if (this.destroyed) return;
     this.destroyed = true;
+    if (this._unsubscribeIconSet) this._unsubscribeIconSet();
     var h = this.handlers;
     window.removeEventListener("resize", h.resize);
     window.removeEventListener("mouseup", h.windowMouseup);
@@ -496,6 +515,7 @@ var UI = (function () {
 
   GameUI.prototype.openFactoryPanel = function (building) {
     var self = this, g = this.game;
+    this.inspectedFactory = building;
     var canDeploy = building.owner === g.currentPlayer;
     var owner = building.owner < 0 ? "Neutral" : RENDER.PLAYER_COLORS[building.owner].name;
     var panel = $("factory-panel");
@@ -516,8 +536,8 @@ var UI = (function () {
       unit.className = "factory-unit";
       var icon = document.createElement("canvas");
       icon.className = "factory-unit-icon";
-      icon.width = 56;
-      icon.height = 44;
+      icon.width = 32;
+      icon.height = 32;
       icon.setAttribute("role", "img");
       icon.setAttribute("aria-label", su.type.name + " unit icon");
       var details = document.createElement("div");
@@ -589,6 +609,7 @@ var UI = (function () {
 
   GameUI.prototype.closeFactoryPanel = function () {
     $("factory-panel").classList.add("hidden");
+    this.inspectedFactory = null;
     if (this.mode === "factory") this.mode = "idle";
   };
 
@@ -799,7 +820,7 @@ var UI = (function () {
     e.preventDefault();
     var r = this.renderer;
     var factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
-    var nz = Math.min(4, Math.max(0.2, r.zoom * factor));
+    var nz = Math.min(4, Math.max(r.minimumZoom(), r.zoom * factor));
     // zoom about cursor
     r.originX = e.offsetX - (e.offsetX - r.originX) * (nz / r.zoom);
     r.originY = e.offsetY - (e.offsetY - r.originY) * (nz / r.zoom);

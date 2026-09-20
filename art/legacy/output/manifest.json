@@ -1,0 +1,402 @@
+{
+  "source": "https://anka.sakura.ne.jp/nectaris/image/d2-01.jpg",
+  "sourcePage": "https://anka.sakura.ne.jp/nectaris/d2.html",
+  "sha256": "bcc5f5a34670a9b6049c738e6b0b6ade1157c99688bd482a2bbb0e178cd199f5",
+  "method": "JPEG-derived crops; background removal, shared-palette quantization, nearest-neighbor normalization",
+  "frame": 32,
+  "leftFacing": "mirrored source shading",
+  "unitCount": 23,
+  "units": [
+    {
+      "id": "CHARLIE",
+      "japaneseName": "ムンクス",
+      "sourceCrop": [
+        492,
+        92,
+        34,
+        34
+      ],
+      "visibleBounds": [
+        8,
+        7,
+        24,
+        24
+      ],
+      "opaquePixels": 153
+    },
+    {
+      "id": "KILROY",
+      "japaneseName": "ダーベック",
+      "sourceCrop": [
+        492,
+        187,
+        34,
+        34
+      ],
+      "visibleBounds": [
+        7,
+        7,
+        25,
+        24
+      ],
+      "opaquePixels": 177
+    },
+    {
+      "id": "PANTHER",
+      "japaneseName": "ドレイパー",
+      "sourceCrop": [
+        492,
+        282,
+        34,
+        34
+      ],
+      "visibleBounds": [
+        6,
+        7,
+        26,
+        24
+      ],
+      "opaquePixels": 239
+    },
+    {
+      "id": "BISON",
+      "japaneseName": "バイソン",
+      "sourceCrop": [
+        62,
+        101,
+        34,
+        34
+      ],
+      "visibleBounds": [
+        2,
+        5,
+        30,
+        26
+      ],
+      "opaquePixels": 416
+    },
+    {
+      "id": "LENET",
+      "japaneseName": "レネット",
+      "sourceCrop": [
+        62,
+        291,
+        34,
+        34
+      ],
+      "visibleBounds": [
+        2,
+        4,
+        30,
+        27
+      ],
+      "opaquePixels": 467
+    },
+    {
+      "id": "POLAR",
+      "japaneseName": "アルマジロ",
+      "sourceCrop": [
+        158,
+        196,
+        34,
+        34
+      ],
+      "visibleBounds": [
+        3,
+        4,
+        29,
+        27
+      ],
+      "opaquePixels": 484
+    },
+    {
+      "id": "GRIZZLY",
+      "japaneseName": "グリズリー",
+      "sourceCrop": [
+        158,
+        101,
+        34,
+        34
+      ],
+      "visibleBounds": [
+        2,
+        4,
+        30,
+        28
+      ],
+      "opaquePixels": 459
+    },
+    {
+      "id": "SLAGGER",
+      "japaneseName": "スラッガー",
+      "sourceCrop": [
+        62,
+        195,
+        34,
+        34
+      ],
+      "visibleBounds": [
+        2,
+        5,
+        30,
+        27
+      ],
+      "opaquePixels": 437
+    },
+    {
+      "id": "TITAN",
+      "japaneseName": "モンスター",
+      "sourceCrop": [
+        158,
+        291,
+        34,
+        34
+      ],
+      "visibleBounds": [
+        3,
+        6,
+        29,
+        26
+      ],
+      "opaquePixels": 365
+    },
+    {
+      "id": "GIANT",
+      "japaneseName": "ギガント",
+      "sourceCrop": [
+        254,
+        101,
+        34,
+        34
+      ],
+      "visibleBounds": [
+        3,
+        4,
+        29,
+        28
+      ],
+      "opaquePixels": 529
+    },
+    {
+      "id": "EAGLE",
+      "japaneseName": "ジャビイ",
+      "sourceCrop": [
+        376,
+        187,
+        34,
+        34
+      ],
+      "visibleBounds": [
+        2,
+        5,
+        30,
+        26
+      ],
+      "opaquePixels": 327
+    },
+    {
+      "id": "FALCON",
+      "japaneseName": "ファルコ",
+      "sourceCrop": [
+        376,
+        92,
+        34,
+        34
+      ],
+      "visibleBounds": [
+        3,
+        7,
+        29,
+        25
+      ],
+      "opaquePixels": 308
+    },
+    {
+      "id": "HUNTER",
+      "japaneseName": "ハンター",
+      "sourceCrop": [
+        376,
+        282,
+        34,
+        34
+      ],
+      "visibleBounds": [
+        2,
+        5,
+        30,
+        26
+      ],
+      "opaquePixels": 341
+    },
+    {
+      "id": "HADRIAN",
+      "japaneseName": "ナスホルン",
+      "sourceCrop": [
+        154,
+        550,
+        34,
+        34
+      ],
+      "visibleBounds": [
+        2,
+        5,
+        30,
+        26
+      ],
+      "opaquePixels": 408
+    },
+    {
+      "id": "OCTOPUS",
+      "japaneseName": "エストール",
+      "sourceCrop": [
+        154,
+        455,
+        34,
+        34
+      ],
+      "visibleBounds": [
+        2,
+        4,
+        30,
+        28
+      ],
+      "opaquePixels": 519
+    },
+    {
+      "id": "ATLAS",
+      "japaneseName": "モノケロス",
+      "sourceCrop": [
+        386,
+        550,
+        34,
+        34
+      ],
+      "visibleBounds": [
+        4,
+        5,
+        28,
+        26
+      ],
+      "opaquePixels": 278
+    },
+    {
+      "id": "RABBIT",
+      "japaneseName": "ラビット",
+      "sourceCrop": [
+        38,
+        455,
+        34,
+        34
+      ],
+      "visibleBounds": [
+        2,
+        3,
+        30,
+        28
+      ],
+      "opaquePixels": 440
+    },
+    {
+      "id": "LYNX",
+      "japaneseName": "リンクス",
+      "sourceCrop": [
+        38,
+        550,
+        34,
+        34
+      ],
+      "visibleBounds": [
+        2,
+        4,
+        30,
+        28
+      ],
+      "opaquePixels": 429
+    },
+    {
+      "id": "SEEKER",
+      "japaneseName": "シーカー",
+      "sourceCrop": [
+        268,
+        455,
+        34,
+        34
+      ],
+      "visibleBounds": [
+        4,
+        4,
+        28,
+        27
+      ],
+      "opaquePixels": 406
+    },
+    {
+      "id": "HAWKEYE",
+      "japaneseName": "ホークアイ",
+      "sourceCrop": [
+        268,
+        550,
+        34,
+        34
+      ],
+      "visibleBounds": [
+        3,
+        3,
+        29,
+        28
+      ],
+      "opaquePixels": 448
+    },
+    {
+      "id": "MULE",
+      "japaneseName": "ミュール",
+      "sourceCrop": [
+        502,
+        455,
+        34,
+        34
+      ],
+      "visibleBounds": [
+        3,
+        5,
+        29,
+        27
+      ],
+      "opaquePixels": 488
+    },
+    {
+      "id": "PELICAN",
+      "japaneseName": "ペリカン",
+      "sourceCrop": [
+        502,
+        550,
+        34,
+        34
+      ],
+      "visibleBounds": [
+        2,
+        3,
+        30,
+        29
+      ],
+      "opaquePixels": 513
+    },
+    {
+      "id": "TRIGGER",
+      "japaneseName": "ヤマアラシ",
+      "sourceCrop": [
+        386,
+        455,
+        34,
+        34
+      ],
+      "visibleBounds": [
+        2,
+        4,
+        30,
+        28
+      ],
+      "opaquePixels": 375
+    }
+  ]
+}

@@ -201,8 +201,8 @@ RENDER.drawUnitIcon({
   width: 56, height: 44,
   getContext: function () { return thumbnailContext; },
 }, { typeId: "BISON", type: UNIT_TYPES.BISON, player: 1 });
-ok(thumbnailScales.some(function (scale) { return scale[0] === -1 && scale[1] === 1; }),
-  "Xenon unit silhouettes are reflected to face left");
+ok(thumbnailScales.length === 0,
+  "pixel Xenon icons use an authored left-facing frame without reflecting its lighting");
 var mapUnitDraws = true;
 var mapFacingScales = [];
 var mapRightFacingScales = [];
@@ -231,7 +231,7 @@ RENDER.setStyle("neon");
 ok(mapUnitDraws, "map unit chrome renders in neon, pixel, and classic styles");
 ok(mapFacingScales.filter(function (scale) {
   return scale[0] === -1 && scale[1] === 1;
-}).length === 6, "enemy tanks and mines face left in every visual style");
+}).length === 4, "classic and neon reflect enemy silhouettes; pixel uses directional frames");
 ok(mapRightFacingScales.length === 0,
   "player tanks and mines face right in every visual style");
 
@@ -269,7 +269,7 @@ ok(!opponentAssignments.some(function (assignment) {
 }), "the opposing army is not greyed during the current player's turn");
 
 section("unit sprite set");
-/* One 22x18 sprite per stock unit, drawn with the documented colour codes,
+/* One native 32x32 right-facing sprite per stock unit, with indexed colours,
  * and no two stock units share artwork. */
 var spriteIds = Object.keys(RENDER.UNIT_SPRITES);
 Object.keys(UNIT_TYPES).forEach(function (typeId) {
@@ -304,6 +304,11 @@ var badSprite = false;
 try { RENDER.spriteIdFor({ id: "X", cls: "tank", moveType: "treads", sprite: "NOPE" }); } catch (e) { badSprite = true; }
 ok(badSprite, "naming an unknown sprite is an error, not a silent substitution");
 
+section("native unit art and renderer integration");
+require("./unit-art-tests.js")(ok);
+require("./icon-set-tests.js")(ok);
+require("./legacy-terrain-tests.js")(ok);
+
 section("attacker palette and faction colours");
 RENDER.setStyle("pixel");
 ok(RENDER.PLAYER_COLORS[0].name === "Union (blue)" && RENDER.PLAYER_COLORS[1].name === "Xenon (green)",
@@ -317,7 +322,7 @@ renderer.drawUnit({
 });
 rendererGame.currentPlayer = 1;
 ok(attackAssignments.some(function (assignment) {
-  return assignment[0] === "fillStyle" && assignment[1] === "#c01818";
+  return assignment[0] === "fillStyle" && assignment[1] === "#be4448";
 }), "the attacking unit is drawn in the deep-red attack body colour");
 ok(!attackAssignments.some(function (assignment) {
   return assignment[0] === "fillStyle" && assignment[1] === RENDER.PLAYER_COLORS[1].body;
@@ -334,7 +339,7 @@ renderer.drawUnit({
   player: 1, col: 1, row: 1, moved: false, strength: 8, exp: 0, cargo: [],
 });
 ok(!bystanderAssignments.some(function (assignment) {
-  return assignment[0] === "fillStyle" && assignment[1] === "#c01818";
+  return assignment[0] === "fillStyle" && assignment[1] === "#be4448";
 }), "a unit that is not attacking keeps its faction colours");
 RENDER.setStyle("neon");
 

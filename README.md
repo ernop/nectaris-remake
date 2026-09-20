@@ -29,12 +29,18 @@ an original procedural chiptune score, and a level editor with URL sharing.
 | `js/data-expansion-maps.js` | 12-map Lunar Frontiers online expansion |
 | `js/data-basenectaris-maps.js` | 12-map Base Nectaris terrain pack (bilingual briefings) |
 | `tools/nmd-to-level.js` | Converts a Windows-edition `.nmd` map file to a level |
-| `js/render.js` | Canvas renderer (all art procedural and original) |
+| `js/render.js` | Canvas renderer with selectable Remake/Legacy art |
+| `js/data-unit-art.js` | Generated native 32×32 Remake art for all 23 unit types |
+| `js/unit-icon-sets.js` | Validated art-set registry and saved selection |
+| `js/data-unit-art-legacy.js` | Imported Legacy unit-chart frames |
+| `js/legacy-terrain.js` | Original-style pixel terrain and connected tile variants |
+| `art/units/pixel-art.js` | Editable indexed unit art; export with `node tools/build-unit-art.js` |
 | `js/music.js` | Original synthesized military chiptune (Web Audio; no audio files) |
 | `js/ui.js`, `js/main.js` | Game UI and boot/menu |
 | `js/editor.js` | Editor logic |
 | `test/run-tests.js` | Node test suite (`node test/run-tests.js`) |
-| `tools/unit-sheet.html` | Contact sheet of every unit icon per style (Union, Xenon, attacking, spent) |
+| `tools/unit-sheet.html` | Native roster review: Union, Xenon, attacking, spent, contrast and silhouette checks |
+| `tools/art-pilot.html` | Native map fixture with a selector for all 23 unit types |
 | `serve.sh` | Local server on the fixed development port |
 
 ## Run locally
@@ -164,19 +170,39 @@ domains the unit can attack.
 
 ## Art style
 
+The first/default set, **1 · Remake**, gives all 23 unit types original native **32×32** art in pixel mode: angular
+military silhouettes, upper-left lighting, bright flat armor and selective
+charcoal contours. Both directions are separately shaded and horizontally
+centered. Infantry stays small. Icons stay native-sized at every map zoom and
+in factory panels. See [art/units/README.md](art/units/README.md) for source,
+exports and review tools. The flattened 48×32 terrain geometry specified in
+[ART_DIRECTION.md](ART_DIRECTION.md) is present in the review fixture; production
+terrain and building migration for Remake are still pending.
+
+Choose **Art set → Legacy** in the game or editor to use all 23 unit icons
+adapted from [ユニットデータ](https://anka.sakura.ne.jp/nectaris/d2.html), together
+with original-style pixel terrain: maroon plains, gray ridges, pink plateaus,
+pale connected roads and domed installations. Legacy uses 48×32 flattened
+hexes, 32×32 pitch and a 16-pixel column stagger. Units always stay 32×32.
+The terrain is a reconstruction; the icons are JPEG-derived adaptations,
+not a bit-exact ROM atlas. Provenance and rebuilding: [art/legacy/README.md](art/legacy/README.md).
+
+The art-set choice is stored under `nectaris-unit-icon-set-v1`, shared by
+the game, editor and review tools. It applies in Pixel style. New sets can
+be registered through `js/unit-icon-sets.js`; every set must cover all 23 units.
+
 Three selectable visual styles, switched with the dropdown in the game's top
 bar and persisted in `localStorage` under `nectaris-style-v2` (decision
 2026-08-30, extended 2026-09-01, pixel made default 2026-09-03; the editor
 follows the stored choice on load):
 
-- **Pixel** (default): one 22×18 top-down sprite per stock unit type, drawn
-  as character matrices in `UNIT_SPRITES` in the idiom of late-80s console
-  strategy art — hard outline, a three-tone faction ramp, white specular,
+- **Pixel** (default): two 32×32 directional frames per stock unit type,
+  supplied by the selected art set. Remake is generated from editable indexed
+  pixel constructions in `art/units/`.
+  Late-80s console strategy proportions, selective charcoal contours, pale armor,
   steel barrels, yellow reserved for missiles, rockets and bombs. Every unit
-  has its own silhouette (see `tools/unit-sheet.html`). The *idiom* is
-  borrowed from the era; the sprites are ours. No bitmap from any release of
-  the original game is used, traced or extracted — see "Fidelity and
-  originality" below.
+  has its own silhouette (see `tools/unit-sheet.html`). Legacy instead uses
+  the user-selected imported chart and matching reconstructed map style.
 - **Neon**: procedural neon wireframes — dark plates with glowing
   faction-colored outlines, rib hatching, dashed pale details, and shared
   neon-yellow accents on weapons/canopies. Union = violet/magenta.
@@ -185,14 +211,14 @@ follows the stored choice on load):
 
 Faction colours follow the original in every style: Union blue (violet in
 neon), Xenon green, neutral gray. Red is reserved for the unit currently
-attacking. The palettes live at the top of `js/render.js` (`THEMES` +
-`NEON`); buildings tint from the same faction entries so ownership reads
+attacking. Native unit palettes live in `art/units/pixel-art.js` and generated
+`js/data-unit-art.js`; other styles use `js/render.js` (`THEMES` + `NEON`).
+Buildings tint from the same faction entries so ownership reads
 consistently in every style.
 
 `tools/unit-sheet.html` (serve the repo, then open
 `http://nectaris.localhost/tools/unit-sheet.html`) shows every stock unit in
-the chosen style as Union, Xenon, attacking and spent, for reviewing icon
-changes.
+pixel mode as Union, Xenon, attacking and spent, always at native size.
 
 ## Briefing language
 
@@ -213,14 +239,15 @@ without them shows its English text in either setting.
   documented original tables (functional game data). The movement costs,
   per-domain attack ranges, surround/counterattack rules and experience
   awards are documented original behavior. See `MECHANICS.md`.
-- **Art and sounds are original to this project**, including every unit
-  sprite in all three visual styles. No bitmap, tileset, or audio file from
-  any release of the original game is bundled, traced, or extracted.
+- **Remake art, reconstructed terrain and sounds are original to this project.**
+  Legacy unit icons are third-party-derived, imported from the chart explicitly
+  selected by the user on 2026-09-20. The source JPEG and provenance are in
+  `art/legacy/`; this user instruction is not a separate third-party license.
 - **Campaign maps** reproduce the 16 normal-campaign layouts, deployments and
   factory inventories built into Hudson's official 1997 Windows freeware PC
   Engine remake. The data was extracted deterministically after the project
-  owner confirmed redistribution permission; no original bitmap artwork is
-  included. The Base Nectaris terrain pack comes from unit-free
+  owner confirmed redistribution permission; that campaign extraction includes
+  no bitmap artwork. The Base Nectaris terrain pack comes from unit-free
   `.nmd` files published with a separate reposting grant. The 12-map Lunar
   Frontiers expansion remains original. See
   [`LEVEL_SOURCES.md`](LEVEL_SOURCES.md).

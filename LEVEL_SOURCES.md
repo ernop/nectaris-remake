@@ -79,8 +79,10 @@ inferred from scenery appearance. An earlier swapped mapping made eight legal
 deployed squads appear to begin on impassable terrain; correcting the decoder
 removed all campaign validation failures.
 
-No executable, ROM, screenshot, tile bitmap, unit sprite or sound from the
-original release is committed. Only the functional level data and the
+The campaign extraction commits no executable, ROM, screenshot, tile bitmap,
+unit sprite or sound. The separate user-requested Legacy unit-chart import is
+documented in `art/legacy/README.md` and is outside these campaign grants.
+Only the functional level data and the
 reproducible extractor are included.
 
 ## Historical Nectaris map archives

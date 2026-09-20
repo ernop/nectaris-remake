@@ -269,6 +269,22 @@
     renderer.fitToMap();
     draw();
 
+    var styleSelect = $("editor-style"), iconSelect = $("editor-icon-set");
+    styleSelect.value = RENDER.getStyle();
+    RENDER.getIconSets().forEach(function (pack) {
+      var option = document.createElement("option");
+      option.value = pack.id; option.textContent = pack.label; iconSelect.appendChild(option);
+    });
+    iconSelect.value = RENDER.getIconSet();
+    iconSelect.disabled = RENDER.getStyle() !== "pixel";
+    iconSelect.onchange = function () { RENDER.setIconSet(iconSelect.value); };
+    RENDER.onIconSetChange(function () { iconSelect.value = RENDER.getIconSet(); renderer.fitToMap(); draw(); });
+    styleSelect.onchange = function () {
+      RENDER.setStyle(styleSelect.value);
+      iconSelect.disabled = RENDER.getStyle() !== "pixel";
+      renderer.constrainView(); draw();
+    };
+
     canvas.addEventListener("mousedown", function (e) {
       if (e.button === 2 || e.button === 1) { canvas._drag = { x: e.offsetX, y: e.offsetY }; return; }
       var hex = renderer.pixelToHex(e.offsetX, e.offsetY);
@@ -293,7 +309,7 @@
     canvas.addEventListener("wheel", function (e) {
       e.preventDefault();
       var factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
-      var nz = Math.min(4, Math.max(0.2, renderer.zoom * factor));
+      var nz = Math.min(4, Math.max(renderer.minimumZoom(), renderer.zoom * factor));
       renderer.originX = e.offsetX - (e.offsetX - renderer.originX) * (nz / renderer.zoom);
       renderer.originY = e.offsetY - (e.offsetY - renderer.originY) * (nz / renderer.zoom);
       renderer.zoom = nz;
