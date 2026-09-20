@@ -22,8 +22,8 @@
  *
  * `null` = impassable for that class. Air always pays 1 and gets no terrain
  * defense. `costsAllMovement` terrain can be entered only by spending every
- * remaining movement point. `deployable` terrain is where a transport may
- * set down a unit that can only be positioned by transport (mines, Atlas).
+ * remaining movement point. `deployable` terrain permits factory exits and
+ * transport unloading; a factory destination must also belong to the unit.
  * All of it is plain data so custom rule sets can override it.
  */
 "use strict";
@@ -37,7 +37,7 @@ var TERRAIN = {
   valley:   { ch: "v", name: "Valley",    def: 0,  cost: { foot: 1, wheels: null, treads: null }, color: "#5c5548", costsAllMovement: true },
   bridge:   { ch: "=", name: "Bridge",    def: 0,  cost: { foot: 1, wheels: 1, treads: 1 }, color: "#97918a", deployable: true },
   factory:  { ch: "F", name: "Factory",   def: 0,  cost: { foot: 1, wheels: 1, treads: 1 }, color: "#c8c2b4", building: true, repairs: true, deployable: true },
-  base:     { ch: "B", name: "Base",      def: 35, cost: { foot: 1, wheels: 1, treads: 1 }, color: "#c8c2b4", building: true, repairs: true },
+  base:     { ch: "B", name: "Base",      def: 35, cost: { foot: 1, wheels: 1, treads: 1 }, color: "#c8c2b4", building: true },
 };
 
 var TERRAIN_BY_CHAR = {};

@@ -73,15 +73,19 @@ Facts wei need across sessions:
   model (store-to-repair, adjacent-exit deployment, no stopping on unowned
   factories) all follow the published documentation, each with tests. Do not
   "simplify" them back. Combat follows the community-recovered per-machine
-  formula and temporary-HP casualty calculation. Its documented random range
-  is 0.2–4.0; because the original lookup-table probabilities remain
-  unavailable, the implementation samples integer hundredths uniformly.
+  formula and temporary-HP casualty calculation. Damage rolls use the 14-outcome weighted table in Anka d5,
+  empirically checked against PCE battles. The original PRNG/correlation and
+  exact rounding remain unverified. See `FIDELITY_AUDIT.md` for the PCE
+  baseline and remaining CPU, ZOC and campaign gaps. Bases permit parking
+  without repair; factories also accept aircraft and loaded transports.
+  Mule restricts passengers; same-turn loading/unloading is forbidden.
+  Mines and stored Atlas do not prevent PCE elimination.
   The extracted official campaign maps must not be retuned; tuning changes
   belong in separate original levels.
 - **Rule constants live in data files**, not code: terrain costs/defense in
   `js/data-terrain.js`, roster in `js/data-units.js`, experience tiers in
   `js/combat.js` (top). `MECHANICS.md` records the combat formula, source, and
-  remaining random-distribution gap.
+  remaining exact-arithmetic and PRNG gaps.
 
 - **Profiles/save state:** `js/profiles.js` stores browser-local profiles; engine
   snapshots preserve cargo identity and RNG state. UI checkpoints committed human

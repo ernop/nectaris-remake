@@ -442,6 +442,7 @@ var gd = new ENGINE.Game({
 var gdFactory = gd.buildingAt(1, 0);
 var gdMule = gd.unitAt(2, 0);
 var gdMine = gd.loadFromFactory(gdFactory, gdFactory.stored[0], gdMule);
+gd.endTurn(); gd.endTurn(); // loading spends the passenger's activation
 var threw = false;
 try { gd.unload(gdMule, gdMine, 3, 0); } catch (e) { threw = true; }
 ok(threw, "a mine cannot be set down on hills");
@@ -774,7 +775,7 @@ g9b.deployFromFactory(fac9b, bi9, 0, 1);
 ok(g9b.unitAt(0, 1) === bi9 && bi9.strength === 8, "repaired unit deploys the next turn");
 
 // A ready stored ground unit may choose an adjacent transport instead of an
-// empty terrain hex. Aircraft and transports cannot be carried.
+// empty terrain hex. Mule excludes tanks; Pelican accepts any ground unit.
 var g9t = new ENGINE.Game({
   name: "T9 transport deployment", turnLimit: 50,
   grid: [".....", "..F..", "B...B"],
@@ -792,8 +793,8 @@ var bison9t = fac9t.stored[0];
 var kilroy9t = fac9t.stored[1];
 var hunter9t = fac9t.stored[2];
 var transports9t = g9t.transportDeployTargets(fac9t, bison9t);
-ok(transports9t.length === 2,
-  "a tank may deploy into either available adjacent Mule or Pelican");
+ok(transports9t.length === 1 && transports9t[0].typeId === "PELICAN",
+  "a tank may deploy into Pelican, but cannot board Mule");
 var pelican9t = g9t.unitAt(3, 1);
 g9t.loadFromFactory(fac9t, bison9t, pelican9t);
 ok(bison9t.carriedBy === pelican9t.id && pelican9t.cargo[0] === bison9t &&
@@ -838,6 +839,7 @@ g10.finishUnit(ch10);
 ok(g10.winner === 0 && g10.winReason === "base", "capturing enemy base wins");
 
 section("transports");
+require("./fidelity-tests.js")(ok);
 var g11 = new ENGINE.Game({
   name: "T11", turnLimit: 50,
   grid: ["........", "........", "B......B"],
@@ -850,6 +852,7 @@ var loadRec = r11[HEX.key(2, 0)];
 ok(!!loadRec && loadRec.load === true, "infantry can board adjacent transport");
 g11.moveUnit(kil, 2, 0, r11);
 ok(kil.carriedBy === mule.id && mule.cargo.length === 1, "loading works");
+g11.endTurn(); g11.endTurn();
 g11.unload(mule, kil, 3, 0);
 ok(kil.carriedBy === null && g11.unitAt(3, 0) === kil, "unloading works");
 
@@ -865,7 +868,7 @@ var res12 = g12.attack(gz, chd);
 ok(res12.defenderDead, "grizzly kills 1-strength charlie");
 ok(gz.exp === 2, "attacker gains 2 exp for a kill, got " + gz.exp);
 
-// A defender whose counterattack destroys the attacker outright earns +2.
+// A defender earns +2 if unhurt, otherwise +1, even with a counterattack kill.
 var g13 = new ENGINE.Game({
   name: "T13", turnLimit: 50,
   grid: ["........", "........", "B......B"],
@@ -874,12 +877,8 @@ var g13 = new ENGINE.Game({
 }, { seed: 11 });
 var ch13 = g13.unitAt(2, 0), po13 = g13.unitAt(3, 0);
 var res13 = g13.attack(ch13, po13);
-if (res13.attackerDead && !res13.defenderDead) {
-  ok(po13.exp === 2, "defender whose counter kills the attacker gains 2 exp, got " + po13.exp);
-} else {
-  ok(po13.exp === (res13.dmgToDefender > 0 ? 1 : 2),
-     "defender exp follows the published table, got " + po13.exp);
-}
+ok(po13.exp === (res13.dmgToDefender > 0 ? 1 : 2),
+  "defender exp follows damage taken, got " + po13.exp);
 
 // Capturing a factory earns the infantry +4 EXP; the flag and repair still work.
 var g14 = new ENGINE.Game({
@@ -917,7 +916,54 @@ var firstFactoryDeploy = aiFactoryTurn.next();
 ok(firstFactoryDeploy.t === "deploy" && firstFactoryDeploy.unit.typeId === "BISON",
   "AI deploys one eligible stored unit from the factory");
 ok(aiFactoryGame.buildingAt(2, 2).stored.length === 1,
-  "AI leaves the remaining inventory for a later turn");
+  "each observable AI step deploys only one reserve");
+var secondFactoryDeploy = aiFactoryTurn.next();
+ok(secondFactoryDeploy && secondFactoryDeploy.t === "deploy" &&
+  secondFactoryDeploy.unit.typeId === "LENET" &&
+  aiFactoryGame.buildingAt(2, 2).stored.length === 0,
+  "AI deploys remaining ready reserves from the same factory this turn");
+ok(firstFactoryDeploy.unit.moved && secondFactoryDeploy.unit.moved &&
+  HEX.distance(firstFactoryDeploy.to.col, firstFactoryDeploy.to.row,
+    secondFactoryDeploy.to.col, secondFactoryDeploy.to.row) > 0,
+  "factory deployments occupy distinct exits and spend each unit's activation");
+ok(aiFactoryTurn.next() === null, "AI finishes after exhausting ready reserves");
+
+var crowdedFactoryGame = new ENGINE.Game({
+  name: "AI full exits", turnLimit: 20,
+  grid: [".....", ".....", "..F..", ".....", "B...B"],
+  buildings: [
+    { col: 2, row: 2, owner: 1,
+      stored: ["BISON", "BISON", "BISON", "BISON", "BISON", "ATLAS", "TRIGGER"] },
+    { col: 0, row: 4, owner: 0 }, { col: 4, row: 4, owner: 1 },
+  ],
+  units: [{ t: "CHARLIE", o: 0, x: 0, y: 0 }],
+}, { seed: 31 });
+crowdedFactoryGame.endTurn();
+var crowdedTurn = AI.createTurn(crowdedFactoryGame, 1), deploymentCount = 0, factoryStep;
+while ((factoryStep = crowdedTurn.next()) && deploymentCount < 10) {
+  if (factoryStep.t === "deploy") deploymentCount++;
+}
+ok(deploymentCount === 6 && crowdedFactoryGame.buildingAt(2, 2).stored.length === 1,
+  "AI fills all six legal exits, including Atlas and mines, and retains overflow");
+
+var blockedFactoryGame = new ENGINE.Game({
+  name: "AI chassis exits", turnLimit: 20,
+  grid: [".....", ".....", "..F..", ".....", "B...B"],
+  buildings: [
+    { col: 2, row: 2, owner: 1, stored: ["FALCON", "BISON"] },
+    { col: 0, row: 4, owner: 0 }, { col: 4, row: 4, owner: 1 },
+  ],
+  units: [{ t: "CHARLIE", o: 0, x: 0, y: 0 }],
+}, { seed: 31 });
+blockedFactoryGame.endTurn();
+var originalDeployTargets = blockedFactoryGame.deployTargets;
+blockedFactoryGame.deployTargets = function (building, unit) {
+  return unit.typeId === "BISON" ? [] : originalDeployTargets.call(this, building, unit);
+};
+var unblockedDeployment = AI.createTurn(blockedFactoryGame, 1).next();
+ok(unblockedDeployment && unblockedDeployment.t === "deploy" &&
+  unblockedDeployment.unit.typeId === "FALCON",
+  "a reserve without legal exits does not block another eligible chassis");
 
 var watchMap = {
   name: "WATCH", turnLimit: 20,

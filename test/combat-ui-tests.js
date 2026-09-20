@@ -38,6 +38,28 @@ module.exports = function (ok) {
     ui.onHexClick(4, 1);
     ok(JSON.stringify(ui.game.snapshot()) === before && !ui.busy,
       "clicking a distant enemy cannot move or attack automatically");
+    ok(ui.mode === "enemyInspect" && ui.selected === ui.game.units[1] &&
+      Object.keys(ui.renderer.highlights).length > 1,
+      "clicking an enemy displays its movement range in inspection mode");
+    var enemy = ui.selected;
+    enemy.moved = true; enemy.movePointsLeft = 0;
+    before = JSON.stringify(ui.game.snapshot());
+    ui.onHexClick(enemy.col, enemy.row);
+    ok(Object.keys(ui.renderer.highlights).length > 1 &&
+      JSON.stringify(ui.game.snapshot()) === before,
+      "spent enemies show next-turn movement without altering the saved game");
+    ui.onHexClick(5, 1);
+    ok(ui.mode === "idle" && !ui.renderer.highlights &&
+      JSON.stringify(ui.game.snapshot()) === before,
+      "clicking an inspected enemy destination clears inspection without moving it");
+    ui.onHexClick(enemy.col, enemy.row);
+    ui.onCancel();
+    ok(ui.mode === "idle" && !ui.selected && !ui.renderer.highlights,
+      "Escape clears enemy movement inspection");
+    ui.onHexClick(enemy.col, enemy.row);
+    ui.onHexClick(1, 1);
+    ok(ui.mode === "unitSelected" && ui.selected.player === 0,
+      "a friendly unit can be selected directly after enemy inspection");
     ui = fixture("BISON", 2); unit = ui.selected;
     ok(!ui.renderer.highlights[HEX.key(2, 1)], "even adjacent targets stay unhighlighted until a position is chosen");
     ui.onHexClick(1, 1);
@@ -156,6 +178,37 @@ module.exports = function (ok) {
       ok(unit.col === firingCol - 1 && unit.moved && unit.attacked && ui.mode === "idle",
         type + " End commits the retreat and spends its activation");
     });
+
+    function transportUI() {
+      var transportUI = fixture("MULE", 7);
+      var passenger = ENGINE.makeUnit("CHARLIE",0,0,1);
+      transportUI.game.units.push(passenger);
+      transportUI.deselect();
+      transportUI.onHexClick(0,1); transportUI.onHexClick(1,1);
+      ok(passenger.carriedBy === transportUI.game.units[0].id && transportUI.mode === "idle",
+        "clicking a highlighted friendly transport boards it instead of switching selection");
+      transportUI.game.endTurn(); transportUI.game.endTurn();
+      return transportUI;
+    }
+    ui = transportUI(); unit = ui.game.units[0];
+    ui.onHexClick(1,1); ui.onHexClick(1,1);
+    nodes["transport-actions"].children[0].onclick(); ui.onHexClick(2,1);
+    ok(!unit.moved && !unit.cargo.length && ui.mode === "idle" && ui.game.unitAt(2,1).moved,
+      "unloading in place spends the passenger's turn while leaving the transport ready");
+    ui = transportUI(); unit = ui.game.units[0];
+    ui.onHexClick(1,1); ui.onHexClick(1,0); action("End").onclick();
+    ui.onHexClick(1,0);
+    ok(unit.moved && ui.mode === "moved" && action("Close") && !action("End") && !ui.pickTargets.length,
+      "used transport can reopen only its passenger actions without a second move or attack");
+    nodes["transport-actions"].children[0].onclick(); ui.onHexClick(2,0);
+    ok(!unit.cargo.length && unit.moved && ui.game.unitAt(2,0).moved,
+      "ready passenger can unload after the carrier's movement was committed");
+    ui = transportUI(); unit = ui.game.units[0];
+    ui.onHexClick(1,1); ui.onHexClick(1,0);
+    nodes["transport-actions"].children[0].onclick(); ui.onHexClick(2,0);
+    ui.onCancel();
+    ok(unit.moved && unit.col === 1 && unit.row === 0 && !unit.cargo.length && !ui.pendingMoveFrom,
+      "unloading after a provisional move commits that move and cannot detach cargo by cancellation");
 
     // Conservative target bounds include the whole hex, not just the icon.
     [0.2, 0.5, 1, 2, 4].forEach(function (zoom) {

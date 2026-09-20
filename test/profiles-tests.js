@@ -19,9 +19,16 @@ module.exports = function (ok) {
   ok(JSON.stringify(restored.snapshot()) === JSON.stringify(saved), "full snapshot round trips losslessly");
   ok(restored.units[0].cargo[0] === restored.units[1], "loaded cargo retains shared unit identity");
   ok(restored.units[1].carriedBy === restored.units[0].id, "transport ownership survives reload");
+  var legacy = JSON.parse(JSON.stringify(saved));
+  delete legacy.types.MULE.cargoTypes; delete legacy.types.MULE.cargoFactoryTypes;
+  var migrated = ENGINE.Game.restore(legacy);
+  ok(migrated.units[0].type.cargoTypes.join(",") === "CHARLIE,KILROY,ATLAS,TRIGGER" &&
+    migrated.units[0].type.cargoFactoryTypes[0] === "PANTHER",
+    "old saved Mule definitions acquire the original passenger restrictions");
   ok(restored.buildingAt(0,0).stored.length === 2, "factory inventories survive reload");
   ok(restored.units[2].attacked && restored.units[2].movePointsLeft === rabbit.movePointsLeft, "post-attack movement and spent attack survive reload");
   ok(restored.rng() === game.rng() && restored.rng() === game.rng(), "random stream resumes exactly");
+  restored.endTurn(); restored.endTurn();
   restored.unload(restored.units[0], restored.units[1], 2, 1);
   ok(!restored.units[1].carriedBy && restored.units[0].cargo.length === 0, "restored transport can unload");
   restored.deployFromFactory(restored.buildingAt(0,0), restored.buildingAt(0,0).stored[1], 1,0);

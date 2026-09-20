@@ -107,10 +107,11 @@ profile. Storage problems display an error instead of claiming progress is saved
   hexes: an unoccupied deployable terrain hex, or an adjacent friendly Mule or
   Pelican with an empty cargo slot. Capturing infantry goes inside the factory
   and leaves the map; it can deploy again from the next turn. Stop a damaged
-  unit on your own base or factory to store and repair it under the same delay.
-  Ground units may pass through buildings but cannot park on them: friendly
-  destinations store the unit, while enemy and neutral destinations require
-  capturing infantry. This also applies to unloading and deployment.
+  unit on your own factory to store and repair it under the same delay.
+  Factories accept aircraft and loaded transports too. Bases permit parking
+  and provide defense, without repair. Transport unloading is limited to
+  plains, roads, bridges and direct storage in an owned factory; a passenger
+  cannot load and unload in one turn.
 - **Watch AI: On** shows every Xenon move, combat matchup, and before/after
   squad strength. Turn it off for immediate AI turns.
 - The factory panel shows each stored unit's map icon, damage when present,
@@ -251,9 +252,9 @@ without them shows its English text in either setting.
 
 - **Mechanics** are reimplemented from community documentation of the
   original, including the Japanese community-recovered damage and casualty
-  formula. See `MECHANICS.md` for sources and the documented uniform sampling
-  used because the original random-coefficient lookup probabilities remain
-  unavailable.
+  formula and documented weighted damage rolls. See [the fidelity audit](FIDELITY_AUDIT.md)
+  for corrections, source versions and remaining gaps; exact original CPU,
+  PRNG and rounding behavior are not yet established.
 - **Unit names, stats, ranges and per-chassis movement costs** follow the
   documented original tables (functional game data). The movement costs,
   per-domain attack ranges, surround/counterattack rules and experience

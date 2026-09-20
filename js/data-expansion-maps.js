@@ -133,7 +133,7 @@ var EXPANSION_LEVELS = (function () {
     level({
       name: "LONG REACH",
       description: "Interlocking artillery ranges cover the center while hills provide staging positions just outside them.",
-      special: "Atlas guns start immobile on both wings; transports can reposition one, but doing so abandons immediate fire.",
+      special: "Atlas guns are fixed on both wings; transports move the mobile ground forces while artillery controls the approaches.",
       tags: ["artillery", "transport", "range"],
     }, [
       "................",
@@ -171,7 +171,7 @@ var EXPANSION_LEVELS = (function () {
 
     level({
       name: "SCRAPYARD",
-      description: "Wasteland slows every ground chassis and grants 30% cover, turning short advances into deliberate commitments.",
+      description: "Wasteland slows fighting vehicles and infantry and grants 30% cover; carriers and Giants must use other routes.",
       special: "Road corridors are fast but exposed; leaving them trades speed for strong defensive terrain.",
       tags: ["wasteland", "roads", "attrition"],
     }, [

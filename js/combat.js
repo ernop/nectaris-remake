@@ -12,14 +12,13 @@
  * Intermediate fractions are discarded. Indirect fire receives no support
  * or surround effects and draws no counterattack.
  *
- * The source establishes random-coefficient bounds of 0.2–4.0 but omits the
- * original lookup-table distribution. This implementation samples every
- * integer hundredth in that documented interval uniformly.
+ * Random coefficients follow Anka's published weighted table, checked by
+ * its author against PCE, Windows and PS battles (nectaris/d5.html).
+ * The original PRNG and any correlation between opposing rolls are unknown.
  *
  * Experience awards (published table):
  *   attacking:  no damage dealt +0 · damage dealt +1 · target destroyed +2
- *   defending:  no damage taken +2 · damage taken +1 · counter destroys
- *               the attacker +2
+ *   defending:  no damage taken +2 · damage taken +1
  * Infantry additionally gains +4 for capturing a factory (engine's job).
  */
 "use strict";
@@ -30,8 +29,14 @@ var COMBAT = (function () {
   var MAX_EXP = 8;
   var MAX_STRENGTH = 8;
   var STAT_CAP = 100;
-  var RANDOM_MIN = 20;
-  var RANDOM_MAX = 400;
+  // [damage percentage, probability percentage]. Integer buckets avoid
+  // floating-point boundary drift; resolution, forecasts and AI share them.
+  var RANDOM_WEIGHTS = [[20,3], [50,7], [60,8], [70,9], [80,6], [90,9],
+    [100,10], [110,10], [120,6], [130,9], [140,10], [150,6], [200,5], [400,2]];
+  var RANDOM_BUCKETS = [];
+  RANDOM_WEIGHTS.forEach(function (entry) {
+    for (var i = 0; i < entry[1]; i++) RANDOM_BUCKETS.push(entry[0]);
+  });
 
   function experienceBonus(level) {
     if (!Number.isInteger(level) || level < 0 || level > MAX_EXP) {
@@ -166,10 +171,10 @@ var COMBAT = (function () {
 
   function randomCoefficient(rng) {
     var roll = rng();
-    if (typeof roll !== "number" || roll < 0 || roll >= 1) {
+    if (!Number.isFinite(roll) || roll < 0 || roll >= 1) {
       throw new Error("Combat RNG must return a number from 0 up to but not including 1");
     }
-    return RANDOM_MIN + Math.floor(roll * (RANDOM_MAX - RANDOM_MIN + 1));
+    return RANDOM_BUCKETS[Math.floor(roll * RANDOM_BUCKETS.length)];
   }
 
   function damageResult(shooter, target, modifiedAttack, modifiedDefense,
@@ -195,12 +200,12 @@ var COMBAT = (function () {
 
   function expectedCasualties(shooter, target, modifiedAttack, modifiedDefense) {
     var total = 0;
-    for (var coefficient = RANDOM_MIN; coefficient <= RANDOM_MAX; coefficient++) {
+    for (var i = 0; i < RANDOM_BUCKETS.length; i++) {
       total += damageResult(
-        shooter, target, modifiedAttack, modifiedDefense, coefficient
+        shooter, target, modifiedAttack, modifiedDefense, RANDOM_BUCKETS[i]
       ).casualties;
     }
-    return total / (RANDOM_MAX - RANDOM_MIN + 1);
+    return total / RANDOM_BUCKETS.length;
   }
 
   /* A joint casualty forecast, deliberately accepting no game or match RNG.
@@ -213,12 +218,13 @@ var COMBAT = (function () {
     }
     var attackLosses = [], counterLosses = [], bins = [];
     for (var a = 0; a <= attacker.strength; a++) bins.push(new Array(defender.strength + 1).fill(0));
-    for (var c = RANDOM_MIN; c <= RANDOM_MAX; c++) {
+    for (var bucket = 0; bucket < RANDOM_BUCKETS.length; bucket++) {
+      var c = RANDOM_BUCKETS[bucket];
       attackLosses.push(damageResult(attacker, defender, pv.attacker.ap, pv.defender.da, c).casualties);
       counterLosses.push(pv.counter ? damageResult(defender, attacker, pv.defender.ap, pv.attacker.da, c).casualties : 0);
     }
     var totalA = 0, totalD = 0, lostA = 0, lostD = 0, mutual = 0;
-    var coefficients = RANDOM_MAX - RANDOM_MIN + 1;
+    var coefficients = RANDOM_BUCKETS.length;
     for (var i = 0; i < samples; i++) {
       var rng = makeRng(Math.imul(i + 1, 0x9e3779b9) ^ 0xa341316c);
       var dLoss = attackLosses[Math.floor(rng() * coefficients)];
@@ -255,13 +261,12 @@ var COMBAT = (function () {
     attacker.strength = aStr0 - dmgToAttacker;
 
     // Published experience awards. Attacking: +0 for no damage, +1 for
-    // damage, +2 for a kill. Defending: +2 when unhurt, +1 when hurt, +2
-    // when the counterattack destroys the attacker outright.
+    // damage, +2 for a kill. Defending: +2 when unhurt, +1 when hurt.
     if (defender.strength === 0) {
       attacker.exp = Math.min(MAX_EXP, attacker.exp + 2);
     } else if (dmgToDefender > 0) {
       attacker.exp = Math.min(MAX_EXP, attacker.exp + 1);
-      defender.exp = Math.min(MAX_EXP, defender.exp + (attacker.strength === 0 ? 2 : 1));
+      defender.exp = Math.min(MAX_EXP, defender.exp + 1);
     } else {
       defender.exp = Math.min(MAX_EXP, defender.exp + 2);
     }

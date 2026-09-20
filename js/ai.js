@@ -80,11 +80,11 @@ var AI = (function () {
   }
 
   function nearestOwnedRepair(game, unit) {
-    // Friendly factories and bases repair by storing the unit for a turn.
+    // Only factories repair; prison bases are defensive terrain.
     var best = null, bestD = Infinity;
     for (var k in game.buildings) {
       var b = game.buildings[k];
-      if (b.owner !== unit.player) continue;
+      if (b.owner !== unit.player || b.kind !== "factory") continue;
       var d = HEX.distance(unit.col, unit.row, b.col, b.row);
       if (d < bestD) { bestD = d; best = b; }
     }
@@ -209,13 +209,13 @@ var AI = (function () {
   }
 
   function deployOneFactory(game, building) {
-    // Deploy one stored mobile unit per factory and turn, choosing the exit
-    // nearest the opposing base.
+    // Emit one deployment per animation step; revisit until no reserve has
+    // a legal exit. Prefer the exit nearest the opposing base.
     for (var s = building.stored.length - 1; s >= 0; s--) {
       var su = building.stored[s];
-      if (su.type.placeByTransport || su.moved) continue;
+      if (su.moved) continue;
       var exits = game.deployTargets(building, su);
-      if (!exits.length) return null;
+      if (!exits.length) continue;
       var goal = null;
       for (var k in game.buildings) {
         var enemyBuilding = game.buildings[k];
@@ -354,8 +354,9 @@ var AI = (function () {
         if (game.winner !== null) return null;
 
         if (factoryIndex < factories.length) {
-          var deployed = deployOneFactory(game, factories[factoryIndex++]);
+          var deployed = deployOneFactory(game, factories[factoryIndex]);
           if (deployed) return deployed;
+          factoryIndex++;
           continue;
         }
 

@@ -475,8 +475,11 @@ var UI = (function () {
       button.onclick = fn;
       parent.appendChild(button);
     }
-    add(menu, "Cancel", function () { self.cancelMove(unit); });
-    add(menu, "End", function () { self.commitUnit(unit); });
+    if (unit.moved) add(menu, "Close", function () { self.deselect(); });
+    else {
+      add(menu, "Cancel", function () { self.cancelMove(unit); });
+      add(menu, "End", function () { self.commitUnit(unit); });
+    }
     var targetList = $("attack-targets");
     targetList.innerHTML = "";
     this.pickTargets.forEach(function (target) {
@@ -495,7 +498,8 @@ var UI = (function () {
       }
     });
     transport.classList.remove("hidden");
-    $("action-status").textContent = unit.attacked ?
+    $("action-status").textContent = unit.moved ?
+      "Transport has acted. Its ready passenger may still unload." : unit.attacked ?
       "Attack complete. End confirms this position; Cancel reverts only this move." : this.pickTargets.length ?
       "Hover to compare. Click a red target to attack." :
       "No attack from this position. Cancel reverts the move; End finishes this unit.";
@@ -644,8 +648,37 @@ var UI = (function () {
 
   /* --- selection / movement flow ------------------------------------------- */
 
+  GameUI.prototype.inspectEnemy = function (unit) {
+    this.deselect();
+    this.selected = unit;
+    this.mode = "enemyInspect";
+    // The enemy's last activation may be spent. Preview its next full turn
+    // against the current board without resetting or mutating the real unit.
+    var preview = Object.assign({}, unit, {
+      moved: false, attacked: false, attackSpent: false, movePointsLeft: unit.type.move,
+    });
+    this.range = this.game.movementRange(preview);
+    var highlights = {};
+    for (var k in this.range) {
+      if (this.range[k].canStop) highlights[k] = "rgba(255,180,65,0.38)";
+    }
+    this.renderer.highlights = highlights;
+    this.showUnitInfo(unit);
+    $("action-status").textContent = "Enemy movement · Orange hexes show its next-turn range on the current board, including terrain and ZOC. Inspection only. Esc to clear.";
+    $("action-status").classList.remove("hidden");
+    this.draw();
+  };
+
   GameUI.prototype.selectUnit = function (unit) {
-    if (unit.moved || (unit.attacked && !unit.type.moveAfterAttack)) return;
+    if (unit.moved || (unit.attacked && !unit.type.moveAfterAttack)) {
+      var self = this;
+      if (unit.cargo.some(function (cargo) { return self.hasUnloadDestination(unit, cargo); })) {
+        this.selected = unit;
+        this.pendingMoveFrom = null;
+        this.openActionMenu(unit);
+      }
+      return;
+    }
     this.closeActionMenu();
     this.selected = unit;
     this.pickTargets = [];
@@ -809,7 +842,8 @@ var UI = (function () {
   GameUI.prototype.onCancel = function () {
     if (this.busy || this.mode === "aiTurn" || this.mode === "over") return;
     if (this.mode === "battle") return;
-    if (this.mode === "moved" && this.selected) this.cancelMove(this.selected);
+    if (this.mode === "moved" && this.selected && this.selected.moved) this.deselect();
+    else if (this.mode === "moved" && this.selected) this.cancelMove(this.selected);
     else if (this.mode === "unload" && this.selected) { this.openActionMenu(this.selected); this.mode = "moved"; this.draw(); }
     else if (this.mode === "deployPick") { this.deployPending = null; this.deselect(); }
     else if (this.mode === "factory") this.closeFactoryPanel();
@@ -838,14 +872,24 @@ var UI = (function () {
     var g = this.game;
     var self = this;
     var unit = g.unitAt(col, row);
-
+    if (this.mode === "enemyInspect") this.deselect();
 
 
     if (this.mode === "unload") {
       var t = this.selected;
       try {
         g.unload(t, this.unloadCargo, col, row);
-        this.commitUnit(t);
+        // Unloading is the passenger's action. A provisional carrier move
+        // becomes committed, but unloading in place leaves a ready carrier
+        // free to move afterwards. Never allow Cancel to undo only the carrier.
+        if (this.pendingMoveFrom && (t.col !== this.pendingMoveFrom.col || t.row !== this.pendingMoveFrom.row)) {
+          this.commitUnit(t);
+        } else {
+          this.pendingMoveFrom = null;
+          this.deselect();
+          this.refreshStatus();
+          this.checkGameOver();
+        }
       } catch (err) { this.toast(err.message); }
       return;
     }
@@ -885,9 +929,11 @@ var UI = (function () {
 
     if (this.mode === "unitSelected") {
       if (unit === this.selected) { this.mode = "moved"; this.openActionMenu(unit); return; }
+      if (this.range && this.range[HEX.key(col, row)] && this.range[HEX.key(col, row)].load &&
+          this.tryMove(this.selected, col, row)) return;
       if (unit && unit.player === g.currentPlayer) { this.deselect(); this.selectUnit(unit); return; }
       if (unit && unit.player !== g.currentPlayer) {
-        this.deselect(); this.showUnitInfo(unit); return;
+        this.inspectEnemy(unit); return;
       }
       if (this.tryMove(this.selected, col, row)) return;
       this.deselect();
@@ -895,8 +941,8 @@ var UI = (function () {
     }
 
     // idle
-    if (unit && unit.player === g.currentPlayer && !unit.moved) { this.selectUnit(unit); return; }
-    if (unit) { this.showUnitInfo(unit); return; }
+    if (unit && unit.player === g.currentPlayer) { this.showUnitInfo(unit); this.selectUnit(unit); return; }
+    if (unit) { this.inspectEnemy(unit); return; }
     var b = g.buildingAt(col, row);
     if (b) {
       this.openFactoryPanel(b);

@@ -1,299 +1,151 @@
 # Mechanics reconstruction
 
-How this remake implements the original's rules, and where each rule comes
-from. "Documented" means published community documentation of the original
-game's behavior (StrategyWiki's *Military Madness/Combat* page, player-written
-FAQs, the game's published manual, and Japanese community ROM analysis).
-Everything here is data-driven: the tables live in
-`js/data-*.js` and the pipeline in `js/combat.js` / `js/engine.js`.
+The target is **1989 Japanese PC Engine Nectaris**, retaining the English
+TurboGrafx-16 unit names. The latest maximum-fidelity request supersedes the
+earlier custom base-storage rule. Campaign data comes from Hudson's official
+1997 Windows port. See [FIDELITY_AUDIT.md](FIDELITY_AUDIT.md) for the complete
+comparison, release differences, corrections and unresolved gaps.
 
-## Version provenance policy (2026-09-03)
+“Documented” means supported by a manual or identified community research;
+it does not mean verified against every original instruction. Never treat PCE,
+TG-16, Windows and PlayStation evidence as interchangeable. Do not retune the
+imported campaign to compensate for rule corrections.
 
-Nectaris releases may differ in mechanics as well as maps and campaigns.
-Accordingly, “the original game” is not sufficient provenance for a rule.
-Every adopted mechanic must identify the platform, region and release when the
-source provides them. Evidence from the 1989 PC Engine release, TurboGrafx-16
-localization, 1997 Windows remake, PlayStation release and later ports must not
-be treated as interchangeable.
+## Units and actions
 
-The current remake is a documented composite: English unit names come from the
-TurboGrafx-16 localization; campaign data comes from Hudson's 1997 Windows PC
-Engine remake; individual mechanics cite their own evidence below. When two
-versions disagree, preserve both findings in this document and make the chosen
-behavior an explicit product decision rather than silently replacing one
-version's rule with another. A source from an unidentified version remains
-unresolved evidence, not confirmation of the implemented behavior.
+There are **23 unit types**, each a squad of 1–8 machines. Full strength is
+omitted from the map label. `js/data-units.js` follows the
+[original PCE manual](https://dds.konami.com/games/manual/pcemini/jp_Nectaris.pdf)
+and [Anka's table](https://anka.sakura.ne.jp/nectaris/d2.html); the former
+confirms Giant air attack 40, Atlas ground attack 90 and Slagger defense 50.
+English names/designations are localization choices, not evidence for different
+stats. Charlie, Kilroy and Panther capture buildings.
 
-## Units
+Each ordinary unit may move and attack once. Combat ends its activation.
+Hadrian, Octopus, Atlas and Hawkeye move **or** fire. Atlas and Trigger have no
+movement once deployed; they may leave a factory onto an adjacent legal hex
+or aboard a compatible transport.
 
-Each unit is a squad with a **strength** of 1–8 (the original's sub-unit
-count). Combat power scales linearly with strength. The UI omits the
-number at 8 (the default); damaged units show 1–7. Roster and stats are in
-`js/data-units.js` — 22 types: 3 infantry (the only capturers), 7 tanks,
-3 aircraft, 3 artillery, 2 missile buggies, 2 anti-air, 2 transports, 1 mine.
+**Rabbit (8 movement) and Lynx (6) may move, attack once, then spend the
+remainder of the same allowance.** Attacking never refills it. Lynx attacks
+ground targets exactly two hexes away and aircraft at distance one. The UI
+and AI preserve the remaining allowance; cancelling a provisional retreat
+cannot undo combat. Sources: [PCE supplement](https://anka.sakura.ne.jp/nectaris/d1.html)
+and the [TG-16 FAQ](https://gamefaqs.gamespot.com/tg16/589030-military-madness/faqs/53871).
 
-Special behaviors (all documented):
+## Movement and terrain
 
-- **Infantry** capture factories and bases by moving onto them.
-- **Ranged units** (artillery, Hawkeye): may move *or* fire each turn, never
-  both; their attacks receive no counterattack, and they cannot counterattack.
-  Minimum range 2 — adjacent enemies are safe from them.
-- **Missile buggies** (Rabbit, Lynx) may split one movement allowance around
-  one attack: move, attack once, then spend any remaining movement. A second
-  attack in the same turn is rejected. The enemy AI uses its remaining
-  movement to increase distance from the nearest opposing unit.
-- **Transports** (Mule ground, Pelican air) carry one ground unit. Loading:
-  the passenger moves onto the transport's hex. Unloading: to an adjacent
-  passable, empty hex; the passenger's turn is spent.
-- **Atlas and Trigger** are immobile; they only leave a factory by deploying
-  directly into an empty Mule or Pelican on one of the six adjacent hexes. A
-  level file may also place them directly.
-- **Air units** pay 1 movement per hex regardless of terrain, receive no
-  terrain defense, and can only be attacked with air-attack values.
+`js/data-terrain.js` implements the published chassis costs:
 
-## Movement
+| Chassis | Road/bridge | Plain | Hill | Waste | Mountain | Valley | Factory/base |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Fighting vehicles, including buggies | 1 | 1 | 2 | 3 | — | — | 1 |
+| Panther / Mule | 1 | 2 | 4 | — | — | — | 1 |
+| Charlie / Kilroy | 1 | 1 | 1 | 2 | 2 | All remaining | 1 |
+| Aircraft / Pelican | 1 | 1 | 1 | 1 | 1 | 1 | 1 |
 
-- Per-terrain, per-chassis costs (`js/data-terrain.js`). The defense
-  percentages are the manual's published values (plains 5%, road 0%,
-  wasteland 30%, hills 20%, mountains 40%, valley/bridge 0%, base 35%).
-  Mountains are foot/air only; valleys can be entered on foot only by
-  spending every remaining movement point. The cost numbers are the published
-  per-chassis table (below) and are plain data for modders to override.
+Giant additionally cannot enter wasteland. Immobile units have zero movement.
+Ground terrain defense is additive: road/bridge/valley/factory 0, plain 5,
+hill 20, waste 30, base 35, mountain 40. Air receives no terrain defense.
+Sources: PCE manual and [movement table](https://anka.sakura.ne.jp/nectaris/d2.html).
 
-### Movement costs are now sourced, not reconstructed (2026-09-01)
+One unit occupies a hex. Friendly units permit pass-through; enemies block.
+Every field unit projects cross-domain ZOC onto its six neighbors. Entering
+hostile ZOC stops a move. Our adopted starting-in-ZOC rule permits one adjacent
+passable hex, charged as one point. For buggies, stopping before the attack
+preserves the unused allowance and the second range is recalculated after
+casualties. The exact ZOC/terrain and buggy boundary cases still need original
+PCE traces; this is not a claim of an independently verified original exception.
 
-The costs were a reconstruction until a per-chassis table turned up on BASE
-NECTARIS's [terrain page](http://www.max.hi-ho.ne.jp/summoner/nectaris/tactics/chikei/index.htm)
-during the archive-map research. Two things made it worth trusting: its
-defense column matches ours value for value, and its
-[unit page](http://www.max.hi-ho.ne.jp/summoner/nectaris/tactics/unit/index.htm)
-lists all 23 units with model codes (GX-77, S-61, MB-4 …) that match our
-roster one for one, so its chassis groupings map onto ours without guesswork.
+## Combat calculations
 
-Those groupings turned out to be *our* groupings, with one unit-level error on
-our side. The original has three ground classes: the two capturing infantry;
-the fighting vehicles (tanks, missile buggies, self-propelled guns, anti-air);
-and the two carriers, Panther and Mule. Our `foot`/`treads`/`wheels` already
-matched that, except that the missile buggies were filed with the carriers.
+`js/combat.js` follows the
+[community reconstruction](https://anka.sakura.ne.jp/nectaris/d3.html):
 
-Adopted:
+- Attack support sums relevant base attack × supporter strength; defense
+  support sums base defense × supporter strength. Both divide by **twice the
+  initiating squad's strength**. Supporters stand adjacent to the opposing unit.
+- Attack receives attack support. Defense receives terrain and, on the defending
+  side, defense support. Air terrain is zero.
+- Surround halves the defender's base attack and its defense after terrain and
+  support. Then modified stats cap at 100. Map edges prevent surround; an
+  initiating squad is not penalized for being surrounded.
+- Unit damage is `floor(attack × (100 − defense) / 100)`. Our implementation
+  next floors the experience-adjusted unit damage, then floors multiplication
+  by squad strength and the random coefficient.
+- Temporary HP is `100 × strength + 50`, except strength 1 gets no extra 50.
+  Remaining strength is `floor(max(0, HP − damage) / 100)`.
 
-| Rule | Was | Now |
-|---|---|---|
-| Buggies (Rabbit, Lynx) | carrier rates | fighting-vehicle rates |
-| Wasteland, carriers | 4 | cannot enter |
-| Wasteland, vehicles | 2 | 3 |
-| Wasteland, Giant | 2 | cannot enter (`cannotEnter`, per-unit) |
-| Hills, foot | 2 | 1 |
-| Hills, carriers | 3 | 4 |
-| Mountains, foot | 3 | 2 |
-| Valley, foot | 2 | spends all remaining movement (`costsAllMovement`) |
-| Setting down a mine or Atlas | any passable hex | plains, road, bridge or factory (`deployable`) |
+The published reconstruction suppresses some integer-operation ordering.
+Our exact intermediate floors therefore remain a verification gap. Adjacent
+exchanges use both pre-battle strengths. A counter requires the defender's
+range band to include distance one against that target domain. Indirect bands
+start at two; indirect exchanges have no support, surround or counterattack.
 
-Also corrected from the unit page: Kilroy's designation is GX-78, not GX-87.
+### Damage randomness
 
-Each row above has a test in `test/run-tests.js` under "per-chassis terrain
-costs". The change moved AI-vs-AI self-play from 17/40 to 11/40 wins for
-player 0 — see "Balance after the cost change" below.
+The former uniform 0.20–4.00 sampling was incorrect. Combat, AI expectations
+and forecasts now share the [published weighted table](https://anka.sakura.ne.jp/nectaris/d5.html):
 
-### Adopted: per-domain ranges and the Lynx (2026-09-01, same day)
+| Multiplier | .2 | .5 | .6 | .7 | .8 | .9 | 1 | 1.1 | 1.2 | 1.3 | 1.4 | 1.5 | 2 | 4 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Probability % | 3 | 7 | 8 | 9 | 6 | 9 | 10 | 10 | 6 | 9 | 10 | 6 | 5 | 2 |
 
-The Lynx item above was adopted the same day, on the instruction that the
-original's behavior is the spec. The single `rmin`/`rmax` pair was replaced
-with per-domain maximum ranges `rngG`/`rngA` (band 2..range when above 1),
-"move or fire" became the explicit `moveOrFire` flag on the three
-self-propelled guns and the Hawkeye, and counterattack eligibility now falls
-out of the defender's own band — no special artillery case remains. Verified
-against BASE NECTARIS's unit page, StrategyWiki's US tables, and the TG-16
-and PlayStation FAQs, which agree with each other. Custom units written
-against the old `rmin`/`rmax` schema still load: `mergeUnitTypes` translates
-the legacy fields.
+The source checks PCE, Windows and PS observations. This is stronger evidence
+than using bounds alone, but does not recover the original PRNG. Mulberry32
+and independent attack/counter rolls remain remake assumptions. Tests reproduce
+the source's Falcon/Hunter survivor distributions.
 
-Adopted from the same sweep (special-effects and EXP pages): surround
-penalizes only the defender and never at the map edge; defender experience
-awards +2 when its counterattack destroys the attacker; infantry earns +4
-experience for capturing a factory.
+### Experience and forecasts
 
-### Balance after the cost change
+The [experience table](https://anka.sakura.ne.jp/nectaris/d4.html) gives damage
+coefficients `[1, 1.05, 1.10, 1.20, 1.30, 1.40, 1.60, 2, 2]` for levels 0–8.
+It does not increase defense. Initiating combat earns +0 for no casualties,
++1 for damage, +2 for a kill; a surviving defender earns +2 when unhurt and +1
+when hurt, including a counter-kill. Factory capture earns infantry +4. Cap 8.
+The old additional counter-kill award was removed in this audit.
 
-Self-play is one deterministic AI-vs-AI game per map with a fixed seed and the
-same AI on both sides, so per-map results mostly reflect starting-position
-asymmetry rather than skill. Adopting the table moved the totals from 17/40 to
-11/40 for player 0, and the shift is concentrated in the older maps, which were
-tuned against the reconstructed costs:
+Forecasts use 100,000 independently seeded trials, the same weighted damage
+model and simultaneous strengths. They never read or advance the match RNG.
+Joint probabilities assume independent opposing rolls; they are estimates,
+not knowledge of the next hidden outcome. See `PRODUCT.md` for controls.
 
-| Group | Before | After |
-|---|---|---|
-| Campaign (16) | 8 / 8 | 4 / 12 |
-| Lunar Frontiers (12) | 3 / 9 | 2 / 10 |
-| Base Nectaris (12) | 6 / 6 | 5 / 7 |
+## Transports, factories and bases
 
-Turn-limit stalls went from 3 to 2. Nothing became unplayable and no map
-validation broke, but the campaign is now noticeably friendlier to player 1
-under AI play. Whether to retune those maps against the corrected costs is an
-open design question, deliberately left alone here: the rules are the thing
-with a source, the maps are ours to tune.
-- **Zone of Control** (documented): the six hexes around every unit. A unit
-  starting inside an enemy ZOC may move only 1 hex; entering an enemy-ZOC hex
-  ends the move. ZOC is cross-domain: aircraft block tanks and vice versa.
-- Friendly units can be moved through, not stopped on. One unit per hex.
+Mule carries Charlie, Kilroy, Atlas and Trigger. PCE permits Panther boarding
+only from a factory. Pelican carries ground units, including an empty Mule;
+loaded nested transports are forbidden. See the
+[release comparison](https://anka.sakura.ne.jp/nectaris/d6.html).
 
-### Missile buggy movement after attack (2026-09-20)
+Loading and unloading spend the passenger's activation. It cannot do both in
+one turn. A ready passenger may leave a used carrier; unloading in place leaves
+a ready carrier available to move. Unloading allows plains, roads and bridges,
+plus direct storage in an owned factory in PCE. It never captures a prison base
+by dropping onto it. Carrier casualties reduce cargo to at most the carrier's
+remaining strength; cargo never increases. See the PCE supplement above.
 
-Rabbit (8 movement points) and Lynx (6) share one movement allowance across
-their approach and retreat. Attacking once leaves the unused points available;
-it does not refill them. Spending the whole allowance before attacking leaves
-no retreat. Lynx still fires at ground targets exactly two hexes away, or at
-adjacent aircraft, after moving.
+Factories store and repair all chassis. Loaded carrier entry separates and
+repairs both units; experience is retained. Storing and redeploying each spend
+an activation. Infantry capture transfers reserves and stores the capturer.
+Ready reserves can deploy immediately; the capturer must wait. Deployment
+uses adjacent legal exits or compatible transports. There is no production
+or resource economy. The TG-16 FAQ independently describes loaded-carrier repair.
 
-The [TG-16 walkthrough](https://gamefaqs.gamespot.com/tg16/589030-military-madness/faqs/53871)
-warns that spending shift points on the approach can prevent retreat. The
-Japanese [unit guide, buggy section](https://anka.sakura.ne.jp/nectaris/d2.html)
-explicitly describes attacking during movement with an unchanged total
-allowance (that page does not identify a release, so it is corroborating
-evidence rather than separate version confirmation).
+**Bases are prison camps, not repair factories.** Units may stand on them;
+ground units receive +35 defense. Infantry capture of the enemy base wins.
+The earlier remake extension that stored units in bases has been removed.
+Explicit inventories already present in custom maps or historical saves remain
+readable/deployable so this correction does not erase saved units.
 
-The remake now separates stopping at enemy ZOC from discarding a buggy's
-remaining allowance before combat. The approach still stops there. After the
-attack, movement is recalculated: a surviving adjacent enemy limits the retreat
-to one hex under our existing ZOC rule; eliminating that enemy can open a longer
-retreat. This is the adopted interaction of the two rules, not an independently
-verified ZOC exception for every original release. Normal terrain costs and
-passability still apply. Ending at an owned building stores and repairs the
-buggy. Player controls and AI both use this flow; cancelling a provisional
-retreat never undoes combat. Regression coverage is in
-`test/buggy-movement-tests.js` and `test/combat-ui-tests.js`.
+## Victory and limits
 
-## Combat: community-recovered original formula
+Enemy-base capture wins. Elimination counts owned reserves but excludes Trigger
+mines everywhere and, for PCE, Atlas still in storage. A deployed Atlas counts.
+Default turn limit is 50 rounds; expiration awards Xenon the win. Custom maps
+may override it. Exact victory-check timing in rare simultaneous/capture cases
+still needs verification.
 
-The remake uses the arithmetic reconstructed by contributors to a 2ch
-Nectaris thread and summarized in
-[戦闘結果計算式](http://anka.sakura.ne.jp/nectaris/d3.html). Every intermediate
-fraction is discarded:
-
-1. **Support** (direct combat only). Attack support is the sum of each
-   supporting squad's relevant base attack times its strength, divided by
-   twice the attacker's strength. Defense support uses each supporting
-   squad's base defense and the same denominator. Consequently, defense
-   support becomes stronger when a damaged squad initiates the attack.
-2. **Modified values.** The attacker's attack is base attack plus attack
-   support. Defense is base defense plus the terrain's additive defense value
-   and, for the defender, defense support. Attack and defense each cap at 100.
-   Air units receive no terrain defense.
-3. **Surround** (direct combat, defender only). A surrounded defender's base
-   attack is halved. Its defense is halved after support and terrain have been
-   added. A surrounded squad that initiates combat is not penalized, and a
-   squad against the map edge cannot be surrounded because off-map hexes
-   carry no ZOC.
-4. **Damage.** Per-machine damage is
-   `attack × (100 − defense) / 100`. Total damage is per-machine damage times
-   attacker experience, attacker strength, and one random coefficient.
-   Experience coefficients are 1.00, 1.05, 1.10, 1.20, 1.30, 1.40, 1.60,
-   2.00 and 2.00; experience does not increase defense.
-5. **Casualties.** Temporary HP is `strength × 100 + 50` for squads at
-   strength 2–8 and exactly 100 for a one-machine squad. Remaining strength
-   is `(temporary HP − total damage) / 100`, floored at zero. This makes a
-   one-machine squad die from any positive damage.
-
-**Ranges are per target domain** (corrected 2026-09-01): `rngG` hexes against
-ground targets, `rngA` against air, and any range above 1 is indirect fire
-with a band of 2..range — it cannot hit an adjacent hex. So the Lynx (ground
-2 / air 1) shoots ground targets only at exactly two hexes yet must be
-adjacent to hit aircraft, and it keeps its move-after-attack; the Hawkeye
-(air 2–5) cannot shoot an adjacent aircraft. "Move or fire, never both" is a
-separate flag (`moveOrFire`) carried by the three self-propelled guns and the
-Hawkeye — it is not implied by being ranged, which is exactly the Lynx's
-trick. A defender counterattacks only in adjacent combat and only when its
-own band against the attacker's domain includes distance 1, which is why
-indirect exchanges involve no counterattack at all, in either direction.
-
-The recovered source gives the random coefficient's 0.2–4.0 bounds but not
-the original lookup-table distribution. The executable implementation samples
-the 381 integer hundredths from 0.20 through 4.00 uniformly. This preserves
-the documented range and shared battle-level multiplier without claiming the
-unknown original probabilities. Direct attacks compute both sides from their
-pre-battle strengths; ranged attacks receive no counterattack.
-
-**Experience awards (published table):** attacking — no damage +0, damage +1,
-kill +2. Defending — unhurt +2, hurt +1, counterattack destroys the attacker
-+2. Infantry earns +4 for capturing a factory. Max 8; the 7→8 step adds no
-stats, so 7 is the effective ceiling.
-
-The map groups levels 1–7 into 3/2/3 star columns; level 8 replaces the
-columns with the General star. The selected-unit panel and battle preview
-state each level's damage bonus.
-
-One naming note: the Japanese unit page designates the heavy infantry GX-78
-(ダーベック); the US release, whose English names this remake uses, prints
-GX-87 Kilroy. We follow the US designation to match the names.
-
-## Combat forecasts
-
-Combat forecasts use 100,000 independent simulation seeds with the same
-per-machine damage, simultaneous pre-battle strengths and random-coefficient
-model described above. The UI shows a joint distribution of attacker and
-defender casualties. Forecasts are estimates under the remake's uniform
-coefficient model, not a prediction of the next hidden roll. They do not read
-or advance the match RNG or mutate unit strength, experience or action flags.
-The interaction design is recorded in `PRODUCT.md`.
-
-## Factories and bases
-
-(Corrected 2026-09-02 against the published factory rules — the terrain page's
-「工場の上にユニットを停止させれば自動的に格納されます」 and the TG-16 FAQ's
-"deploy the unit onto the space the transport occupies".)
-
-The requested remake behavior was updated on 2026-09-20 to apply the same
-ground-unit stopping and storage rules to bases. This supersedes the earlier
-"bases never store or repair" implementation; it is a product decision, not
-an additional claim established by the sources above.
-
-- Factories and bases hold **stored units**. Clicking any unoccupied building
-  shows its inventory; only the owner can deploy. After choosing one unit, choose its
-  destination from the highlighted hexes surrounding the factory.
-- A terrain destination must be one of the six adjacent hexes, unoccupied, and
-  marked `deployable` by its terrain type. Alternatively, a stored ground unit
-  can deploy directly into an adjacent friendly Mule or Pelican with an empty
-  cargo slot. Atlas and Trigger have only the transport option. Deploying by
-  either method spends the stored unit's turn, so it cannot move or attack
-  immediately.
-- **Stopping a ground unit on a factory or base you already own stores it**: it
-  leaves the field, is repaired to full (experience kept), and can deploy
-  again from your next turn on — so a repair costs the two turns of entering
-  and leaving. There is no on-hex repair or ground-unit parking. Entering a
-  building ends the activation immediately, including when an enemy is in range.
-- A factory or base you do not own can be passed through but not stopped on —
-  except by infantry, whose stopping there *is* the capture. The capturer
-  goes inside the newly owned building and disappears from the map (capturing
-  the enemy base instead ends the match). It is
-  repaired, keeps its experience, and cannot redeploy until its next turn.
-  Capturing also transfers every unit already stored there to the new owner
-  and awards the infantry +4 experience. Previously stored units that have
-  not acted are immediately eligible to deploy.
-- A ground transport carrying cargo cannot stop on its own building (it will
-  not fit); unloading cargo onto your building hex stores the cargo directly.
-  Unloading and factory deployment also forbid placing non-capturing ground
-  units on enemy or neutral buildings; deploying into a friendly factory
-  transfers the unit into storage rather than leaving it on the map.
-
-## Victory
-
-- Capture the enemy base with infantry → instant win.
-- Eliminate all enemy units, including reserves stored in owned factories
-  and bases → win. Stored units count even when they cannot currently deploy;
-  neutral reserves do not belong to either side. This is the requested remake
-  behavior as of 2026-09-20, superseding the fielded-units-only check.
-- Turn limit (default 50, per-map override): if it expires, the defender
-  (player 2 / Xenon) wins — the original's "complete each scenario within 50
-  turns, otherwise you lose."
-
-## Deliberately not reproduced
-
-- **Screen-size limits.** The whole map renders at once; zoom and pan freely;
-  maps up to 60×60 in the editor.
-- **Fixed roster and level set.** Units, terrain and maps are data; custom
-  levels can carry custom unit types inside their JSON.
-- **Original assets.** All art is procedural and original. The 16 campaign
-  missions reproduce the terrain, deployments and factory inventories built
-  into Hudson's official 1997 Windows PC Engine remake; no original bitmap or
-  audio asset is included.
+The original CPU, original PRNG and all 32 PCE missions are not reproduced.
+The remake has 16 normal campaign missions plus separate custom packs. Modern
+UI, profiles, saves, hotseat, editor and forecasts are deliberate additions.
+Read `FIDELITY_AUDIT.md` before describing the game as fully faithful.

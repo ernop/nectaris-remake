@@ -13,13 +13,13 @@
  *
  * Turn structure: each unit may act once per turn (move+attack, or the
  * type-specific variants: ranged units move OR attack; buggies may spend
- * leftover movement after attacking). Ground units ending movement at an
- * owned factory or base go into storage, repair, and end their turn.
+ * leftover movement after attacking). Units ending movement at an owned
+ * factory go into storage, repair, and end their turn. Bases permit parking.
  *
  * Factories: hold stored units (the original's "hidden reinforcements").
  * Infantry capture factories/bases by moving onto them. Capturing the enemy
  * base wins the map instantly; so does eliminating every enemy unit,
- * including reserves stored in owned factories and bases. Turn limit default
+ * including reserves, except mines and stored Atlas guns (PCE). Turn limit default
  * 50; if it expires, player 0 (the attacker/Union side) loses.
  */
 "use strict";
@@ -151,6 +151,12 @@ var ENGINE = (function () {
         (data.currentPlayer !== 0 && data.currentPlayer !== 1)) {
       throw new Error("This saved match is invalid or from an unsupported version.");
     }
+    // Saves made before the fidelity audit have no Mule passenger policy.
+    // Migrate only missing fields; explicit custom transport policies survive.
+    if (data.types.MULE && !data.types.MULE.cargoTypes) {
+      data.types.MULE.cargoTypes = ["CHARLIE", "KILROY", "ATLAS", "TRIGGER"];
+      data.types.MULE.cargoFactoryTypes = ["PANTHER"];
+    }
     mergeUnitTypes(data.types);
     var game = new Game(data.map, {seed: data.rngState});
     var byId = {};
@@ -215,8 +221,7 @@ var ENGINE = (function () {
 
   /* Surround check (combat step 2): every adjacent hex is either occupied by
    * an enemy of `unit` or itself adjacent to an enemy of `unit`. Off-map
-   * hexes count as satisfying the condition (walls help the surrounder),
-   * matching observed original behavior at map edges. */
+   * hexes prevent surround: the map edge has no enemy ZOC. */
   Game.prototype.isSurrounded = function (unit) {
     var ns = HEX.neighbors(unit.col, unit.row);
     for (var i = 0; i < ns.length; i++) {
@@ -244,13 +249,29 @@ var ENGINE = (function () {
 
   /* --- Movement --------------------------------------------------------- */
 
-  /* Buildings are ground-unit destinations only for storage or capture.
-   * They remain traversable regardless of ownership. */
+  /* Bases allow parking. Unowned factories allow aircraft or capturers;
+   * owned factories store every chassis, including loaded transports. */
   Game.prototype.canStopAtBuilding = function (unit, col, row) {
     var building = this.buildingAt(col, row);
-    if (!building || unit.type.moveType === "air") return true;
+    if (!building || building.kind === "base" || unit.type.moveType === "air") return true;
     if (building.owner !== unit.player) return !!unit.type.capture;
-    return !unit.cargo || unit.cargo.length === 0;
+    return true;
+  };
+
+  Game.prototype.canLoad = function (transport, passenger, fromFactory) {
+    if (!transport || transport === passenger || transport.player !== passenger.player ||
+        !transport.type.cargo || transport.cargo.length >= transport.type.cargo ||
+        passenger.type.moveType === "air" || passenger.cargo.length) return false;
+    var allowed = transport.type.cargoTypes;
+    return !allowed || allowed.indexOf(passenger.typeId) >= 0 ||
+      !!(fromFactory && transport.type.cargoFactoryTypes &&
+        transport.type.cargoFactoryTypes.indexOf(passenger.typeId) >= 0);
+  };
+
+  Game.prototype.entersBuilding = function (unit, col, row) {
+    var b = this.buildingAt(col, row);
+    return !!b && ((b.kind === "factory" && b.owner === unit.player) ||
+      (unit.type.capture && b.owner !== unit.player));
   };
 
   /* Dijkstra over terrain costs with ZOC stops.
@@ -295,8 +316,7 @@ var ENGINE = (function () {
         var isLoad = false;
         if (occ) {
           if (occ.player !== unit.player) continue;             // enemies block
-          if (occ.type.cargo && occ.cargo.length < occ.type.cargo &&
-              unit.type.moveType !== "air" && !unit.type.cargo) {
+          if (this.canLoad(occ, unit, false)) {
             isLoad = true;                                       // can board
           }
           // friendly non-transport: can pass through, not stop
@@ -314,8 +334,7 @@ var ENGINE = (function () {
             stop: enteringZOC || drains,             // move ends here
             canStop: canStopHere,                    // can end move on hex
             load: isLoad,
-            enterBuilding: canStopHere && !isLoad && unit.type.moveType !== "air" &&
-              !!this.buildingAt(n.col, n.row),
+            enterBuilding: canStopHere && !isLoad && this.entersBuilding(unit, n.col, n.row),
             prev: curKey,
           };
           if (!isLoad) frontier.push({ col: n.col, row: n.row, cost: newCost });
@@ -342,18 +361,22 @@ var ENGINE = (function () {
   /* --- Actions ---------------------------------------------------------- */
 
   Game.prototype.moveUnit = function (unit, col, row, range) {
+    if (unit.moved || unit.carriedBy || unit.inFactory ||
+        this.unitAt(unit.col, unit.row) !== unit) throw new Error("Unit cannot move now");
     range = range || this.movementRange(unit);
     var rec = range[HEX.key(col, row)];
     if (!rec || !rec.canStop) throw new Error("Illegal move");
-    if (!rec.load && !this.canStopAtBuilding(unit, col, row)) throw new Error("Cannot stop on an unowned building or store a loaded transport");
+    if (!rec.load && !this.canStopAtBuilding(unit, col, row)) throw new Error("Cannot stop on an unowned factory");
+    var transport = rec.load ? this.unitAt(col, row) : null;
+    if (rec.load && !this.canLoad(transport, unit, false)) throw new Error("Cannot board this transport");
     if (unit.type.moveOrFire && rec.cost > 0) unit.attackSpent = true; // SP guns/Hawkeye: move OR fire
     unit.movePointsLeft -= rec.cost;
     if (rec.load) {
-      var transport = this.unitAt(col, row);
       transport.cargo.push(unit);
       unit.carriedBy = transport.id;
       unit.col = col; unit.row = row;
       unit.moved = true;
+      unit.movePointsLeft = 0;
       this.log.push({ t: "load", unit: unit.id, into: transport.id });
       return { loaded: true };
     }
@@ -366,16 +389,13 @@ var ENGINE = (function () {
     return { loaded: false };
   };
 
-  /* Finish a unit's activation: captures and building storage happen on
-   * "wait". There is no on-hex repair — the original repairs by storing:
-   * stop a ground unit on a building you already own and it goes inside,
-   * comes out at full strength on a later turn, and loses the two turns of
-   * entering and leaving. */
+  /* Factory storage repairs the carrier and passenger separately. Entering
+   * and redeploying each spend an activation; bases never repair. */
   Game.prototype.finishUnit = function (unit) {
     if (unit.inFactory) return []; // already stored, including after deployment
     var b = this.buildingAt(unit.col, unit.row);
     var events = [];
-    if (b && unit.type.moveType !== "air") {
+    if (b) {
       // Capture: infantry only, on enemy/neutral buildings.
       if (unit.type.capture && b.owner !== unit.player) {
         b.owner = unit.player;
@@ -393,16 +413,20 @@ var ENGINE = (function () {
           this.winReason = "base";
         }
       }
-      // Storage: stopping on an owned building, including the act of
-      // capturing it, takes the unit off the field and repairs it to full.
-      if (b.owner === unit.player &&
-          this.winner === null && (!unit.cargo || unit.cargo.length === 0)) {
-        var ui = this.units.indexOf(unit);
-        if (ui >= 0) this.units.splice(ui, 1);
-        unit.inFactory = true;
-        unit.strength = COMBAT.MAX_STRENGTH;
-        unit.moved = true; // stored this turn: cannot come back out until next turn
-        b.stored.push(unit);
+      if (b.kind === "factory" && b.owner === unit.player && this.winner === null) {
+        var storing = [unit].concat(unit.cargo);
+        unit.cargo = [];
+        for (var si = 0; si < storing.length; si++) {
+          var storedUnit = storing[si], ui = this.units.indexOf(storedUnit);
+          if (ui >= 0) this.units.splice(ui, 1);
+          storedUnit.inFactory = true;
+          storedUnit.carriedBy = null;
+          storedUnit.col = b.col; storedUnit.row = b.row;
+          storedUnit.strength = COMBAT.MAX_STRENGTH;
+          storedUnit.moved = true;
+          storedUnit.movePointsLeft = 0;
+          b.stored.push(storedUnit);
+        }
         events.push({ t: "store" });
         this.log.push({ t: "store", unit: unit.id, col: unit.col, row: unit.row });
       }
@@ -426,11 +450,23 @@ var ENGINE = (function () {
   Game.prototype.attack = function (attacker, defender) {
     if (attacker.attacked) throw new Error("Unit already attacked this turn");
     if (attacker.moved) throw new Error("Unit already finished its turn");
+    if (this.winner !== null || attacker.player !== this.currentPlayer) throw new Error("Not this unit's turn");
     if (attacker.type.moveOrFire && attacker.attackSpent) throw new Error("Move-or-fire unit already moved");
+    if (this.unitAt(attacker.col, attacker.row) !== attacker ||
+        this.attackTargets(attacker).indexOf(defender) < 0) throw new Error("Illegal attack target");
     var result = COMBAT.resolve(this, attacker, defender, this.rng);
     this.log.push({
       t: "battle", a: attacker.id, d: defender.id,
       dmgD: result.dmgToDefender, dmgA: result.dmgToAttacker,
+    });
+    // A damaged transport also loses passengers down to its remaining
+    // strength. Loading a larger squad is legal; undamaged cargo is unchanged.
+    [attacker, defender].forEach(function (unit, i) {
+      if ((i === 0 ? result.dmgToAttacker : result.dmgToDefender) > 0) {
+        unit.cargo.forEach(function (cargo) {
+          cargo.strength = Math.min(cargo.strength, unit.strength);
+        });
+      }
     });
     if (result.defenderDead) this.removeUnit(defender);
     if (result.attackerDead) this.removeUnit(attacker);
@@ -460,12 +496,18 @@ var ENGINE = (function () {
   Game.prototype.checkElimination = function () {
     if (this.winner !== null) return;
     var alive = [0, 0];
-    for (var i = 0; i < this.units.length; i++) alive[this.units[i].player]++;
-    // Reserves count even if they cannot currently deploy. Neutral reserves
-    // belong to neither side until their building is captured.
+    for (var i = 0; i < this.units.length; i++) {
+      if (this.units[i].typeId !== "TRIGGER") alive[this.units[i].player]++;
+    }
+    // PCE excludes mines everywhere and Atlas guns still in storage.
+    // Other owned reserves count, including those with blocked exits.
     for (var k in this.buildings) {
       var b = this.buildings[k];
-      if (b.owner === 0 || b.owner === 1) alive[b.owner] += b.stored.length;
+      if (b.owner === 0 || b.owner === 1) {
+        alive[b.owner] += b.stored.filter(function (u) {
+          return u.typeId !== "TRIGGER" && u.typeId !== "ATLAS";
+        }).length;
+      }
     }
     if (alive[0] === 0) { this.winner = 1; this.winReason = "elimination"; }
     else if (alive[1] === 0) { this.winner = 0; this.winReason = "elimination"; }
@@ -474,29 +516,22 @@ var ENGINE = (function () {
   /* Unload one cargo unit from a transport to an adjacent hex. */
   Game.prototype.unloadTargets = function (transport, cargoUnit) {
     var self = this;
+    if (cargoUnit.moved || cargoUnit.carriedBy !== transport.id ||
+        transport.cargo.indexOf(cargoUnit) < 0 ||
+        this.unitAt(transport.col, transport.row) !== transport) return [];
     return HEX.neighbors(transport.col, transport.row).filter(function (n) {
       var terr = self.terrainAt(n.col, n.row);
+      var b = self.buildingAt(n.col, n.row);
       return terr && !self.unitAt(n.col, n.row) &&
         terrainCost(terr, cargoUnit.type.moveType, cargoUnit.type) !== null &&
-        (!cargoUnit.type.placeByTransport || terr.deployable) &&
-        self.canStopAtBuilding(cargoUnit, n.col, n.row);
+        terr.deployable && (!b || (b.kind === "factory" && b.owner === cargoUnit.player));
     });
   };
 
   Game.prototype.unload = function (transport, cargoUnit, col, row) {
-    if (cargoUnit.carriedBy !== transport.id) throw new Error("Not carried by this transport");
-    if (HEX.distance(transport.col, transport.row, col, row) !== 1) throw new Error("Must unload adjacent");
-    if (this.unitAt(col, row)) throw new Error("Hex occupied");
-    var terr = this.terrainAt(col, row);
-    if (!terr || terrainCost(terr, cargoUnit.type.moveType, cargoUnit.type) === null) {
-      throw new Error("Impassable for cargo");
-    }
-    /* Mines and the Atlas gun are set down rather than driven off, so they
-     * need firm ground: plains, road, bridge or a factory floor. */
-    if (cargoUnit.type.placeByTransport && !terr.deployable) {
-      throw new Error(cargoUnit.type.name + " cannot be set down on " + terr.name);
-    }
-    if (!this.canStopAtBuilding(cargoUnit, col, row)) throw new Error("Cannot unload onto an unowned building");
+    if (!this.unloadTargets(transport, cargoUnit).some(function (n) {
+      return n.col === col && n.row === row;
+    })) throw new Error("Cargo cannot unload here or has already acted this turn");
     cargoUnit.carriedBy = null;
     cargoUnit.col = col; cargoUnit.row = row;
     cargoUnit.moved = true; cargoUnit.movePointsLeft = 0;
@@ -510,7 +545,6 @@ var ENGINE = (function () {
    * exit picker and the AI. */
   Game.prototype.deployTargets = function (building, storedUnit) {
     var out = [];
-    if (storedUnit.type.placeByTransport) return out; // transport-only exits
     var ns = HEX.neighbors(building.col, building.row);
     for (var i = 0; i < ns.length; i++) {
       var n = ns[i];
@@ -528,15 +562,12 @@ var ENGINE = (function () {
   /* Adjacent transports a stored unit can deploy directly into. */
   Game.prototype.transportDeployTargets = function (building, storedUnit) {
     var out = [];
-    if (storedUnit.type.moveType === "air" || storedUnit.type.cargo) return out;
     var ns = HEX.neighbors(building.col, building.row);
     for (var i = 0; i < ns.length; i++) {
       var n = ns[i];
       if (!this.inBounds(n.col, n.row)) continue;
       var transport = this.unitAt(n.col, n.row);
-      if (!transport || transport.player !== building.owner ||
-          !transport.type.cargo ||
-          transport.cargo.length >= transport.type.cargo) continue;
+      if (!this.canLoad(transport, storedUnit, true)) continue;
       out.push(transport);
     }
     return out;
@@ -545,16 +576,12 @@ var ENGINE = (function () {
   /* Deploy a stored unit from a factory to a chosen adjacent hex. Units
    * exit only onto open terrain marked as deployable. Deploying costs the
    * unit its whole turn, and a unit stored this turn cannot leave until the
-   * next. Mines and the Atlas only leave aboard a transport
-   * (loadFromFactory). */
+   * next. Mines and Atlas may also deploy directly, becoming immobile. */
   Game.prototype.deployFromFactory = function (building, storedUnit, col, row) {
     if (building.owner !== this.currentPlayer) throw new Error("Not your factory");
     var idx = building.stored.indexOf(storedUnit);
     if (idx < 0) throw new Error("Unit not stored here");
     if (storedUnit.moved) throw new Error(storedUnit.type.name + " was stored this turn");
-    if (storedUnit.type.placeByTransport) {
-      throw new Error(storedUnit.type.name + " can only leave by transport");
-    }
     if (HEX.distance(building.col, building.row, col, row) !== 1) {
       throw new Error("Units deploy to a hex adjacent to the factory");
     }
@@ -580,7 +607,7 @@ var ENGINE = (function () {
     var idx = building.stored.indexOf(storedUnit);
     if (idx < 0) throw new Error("Unit not stored here");
     if (storedUnit.moved) throw new Error(storedUnit.type.name + " was stored this turn");
-    if (storedUnit.type.moveType === "air" || storedUnit.type.cargo) {
+    if (!this.canLoad(transport, storedUnit, true)) {
       throw new Error(storedUnit.type.name + " cannot board a transport");
     }
     var d = HEX.distance(building.col, building.row, transport.col, transport.row);

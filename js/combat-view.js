@@ -114,7 +114,7 @@ var COMBAT_VIEW = (function () {
       (pv.counter ? damageLine(defender, pv.defender.ap, pv.attacker.da, "Counter") : "") +
       "<p>Stats cap at 100. Fractions are discarded at each step. Temporary HP = strength × 100, plus 50 for squads of 2–8. " +
       "Remaining machines = floor(max(0, HP − damage) / 100).</p></details>" +
-      "<p class='forecast-note'>Estimate under the game's uniform roll model. The match's random state is never read or advanced.</p>";
+      "<p class='forecast-note'>Estimate using the documented weighted damage rolls. The match's random state is never read or advanced.</p>";
   }
   return { html: html, heatmap: heatmap };
 })();

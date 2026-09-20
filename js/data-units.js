@@ -1,11 +1,10 @@
 /* Nectaris remake — unit roster.
  *
  * Stats (move / ranges / ground attack / air attack / defense) follow the
- * published tables for the original game: BASE NECTARIS's unit page
- * (tactics/unit/) and the US-release tables (StrategyWiki "Military
- * Madness/Units", the TG-16 and PlayStation FAQs), which agree with each
- * other stat for stat. Names and designations are the US release's. Stats
- * are functional game data; all art in this project is original.
+ * Japanese 1989 PC Engine manual, corroborated by Anka's unit table.
+ * Cross-release FAQs disagree on several stats; see FIDELITY_AUDIT.md.
+ * Names and designations are the US release's. Stats
+ * are functional game data; artwork provenance is recorded under art/.
  *
  * Fields:
  *   name       display name (designation)
@@ -27,7 +26,9 @@
  *              the Lynx fires indirectly and may still re-move.
  *   moveAfterAttack  may spend leftover movement after attacking (buggies)
  *   cargo      number of units this transport can carry (ground units only)
- *   placeByTransport  can only be positioned via transport (from a factory)
+ *   placeByTransport  immobile once deployed; factory exits remain legal
+ *   cargoTypes       optional passenger type whitelist for ground boarding
+ *   cargoFactoryTypes additional passengers allowed directly from factories
  *   cannotEnter      terrain ids this specific unit may never enter
  *
  * No unit gives or receives a counterattack in an indirect exchange: a
@@ -74,7 +75,8 @@ var UNIT_TYPES = {
   HAWKEYE: { name: "Hawkeye MM107", cls: "antiair", move: 5, moveType: "treads", rngG: 0, rngA: 5, atkG: 0,  atkA: 85, def: 30, moveOrFire: true },
 
   // Transports — carry one ground unit each.
-  MULE:    { name: "Mule NC-1",     cls: "transport", move: 6, moveType: "wheels", rngG: 1, rngA: 1, atkG: 10, atkA: 10, def: 10, cargo: 1 },
+  MULE:    { name: "Mule NC-1",     cls: "transport", move: 6, moveType: "wheels", rngG: 1, rngA: 1, atkG: 10, atkA: 10, def: 10, cargo: 1,
+    cargoTypes: ["CHARLIE", "KILROY", "ATLAS", "TRIGGER"], cargoFactoryTypes: ["PANTHER"] },
   PELICAN: { name: "Pelican C-61",  cls: "transport", move: 9, moveType: "air",    rngG: 0, rngA: 0, atkG: 0,  atkA: 0,  def: 10, cargo: 1 },
 
   // Mines — immobile, no attack, hard to crack, project ZOC like anything else.

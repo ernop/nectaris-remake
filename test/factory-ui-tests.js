@@ -126,7 +126,16 @@ module.exports = function (ok) {
     ok(ui.mode === "factory" && buttons(nodes["factory-list"]).length === 0,
       "a factory becomes inspectable enemy inventory after switching players");
 
-    ["B", "F"].forEach(function (kind) {
+    ui = fixture(0, "BISON", "B");
+    ui.positionActionMenu = function () {};
+    var baseTank = ui.game.units[0];
+    click(ui,1,1); click(ui,2,1);
+    ok(ui.mode === "moved" && !baseTank.inFactory && ui.game.unitAt(2,1) === baseTank,
+      "base movement offers normal attack/end controls instead of automatic storage");
+    ui.commitUnit(baseTank);
+    ok(ui.game.unitAt(2,1) === baseTank && baseTank.moved, "base defender remains visible on its hex");
+
+    ["F"].forEach(function (kind) {
       ui = fixture(0, "BISON", kind);
       var tank = ui.game.units[0], enemy = ui.game.units[1];
       enemy.col = 3; enemy.row = 1; // entering storage must not offer a shot here

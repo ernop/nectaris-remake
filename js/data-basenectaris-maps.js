@@ -334,7 +334,7 @@ var BASE_NECTARIS_LEVELS = (function () {
       sourceFile: "bnm_b002.nmd",
       description: "A branching road network threads between valleys, and a single bridge carries the only direct crossing.",
       descriptionJa: "谷の間を分岐した道路網が縫う。直通路は橋一本だけ。",
-      special: "Four neutral factories: holding production pays better than hunting kills.",
+      special: "Four neutral factories: securing reserves pays better than hunting kills.",
       specialJa: "中立工場は四つ。撃破数を稼ぐより生産を確保する方が得。",
       tags: ["road network", "bridge", "factories"],
       tagsJa: ["道路網", "橋", "工場"],

@@ -1,4 +1,4 @@
-/* Bases and factories share ground-unit storage and stopping restrictions. */
+/* Factory storage, entry restrictions and reserves. Base parking is in fidelity-tests. */
 "use strict";
 module.exports = function (ok) {
   var ENGINE = require("../js/engine.js");
@@ -19,7 +19,7 @@ module.exports = function (ok) {
     return targets.some(function (n) { return n.col === col && n.row === row; });
   }
 
-  ["B", "F"].forEach(function (kind) {
+  ["F"].forEach(function (kind) {
     [-1, 0, 1].forEach(function (owner) {
       var game = fixture(kind, owner), tank = game.units[0], building = game.buildingAt(1, 0);
       var range = game.movementRange(tank), rec = range[HEX.key(1, 0)];
@@ -46,13 +46,14 @@ module.exports = function (ok) {
       game = fixture(kind, owner, "EAGLE");
       var aircraft = game.units[0];
       game.moveUnit(aircraft, 1, 0); game.finishUnit(aircraft);
-      ok(game.unitAt(1, 0) === aircraft && !aircraft.inFactory && game.buildingAt(1, 0).owner === owner,
-        kind + ": aircraft retain their existing movement behavior");
+      ok(!!aircraft.inFactory === (owner === 0) && game.buildingAt(1, 0).owner === owner,
+        kind + ": aircraft repair in friendly factories without capturing others");
 
-      game = fixture(kind, owner, "MULE");
+      game = fixture(kind, owner, "PELICAN");
       var transport = game.units[0], cargo = game.units[1];
       game.moveUnit(cargo, transport.col, transport.row);
-      ok(!game.movementRange(transport)[HEX.key(1, 0)].canStop, kind + ": loaded transport cannot park or enter storage");
+      ok(game.movementRange(transport)[HEX.key(1, 0)].canStop, kind + ": loaded aircraft may enter factories");
+      game.endTurn(); game.endTurn();
       ok(includesHex(game.unloadTargets(transport, cargo), 1, 0) === (owner === 0),
         kind + ": unload destinations enforce tank ownership");
       if (owner === 0) {
@@ -100,7 +101,7 @@ module.exports = function (ok) {
     }
   });
 
-  ["F", "B"].forEach(function (kind) {
+  ["F"].forEach(function (kind) {
     [0, 1].forEach(function (owner) {
       var game = new ENGINE.Game({ name: "Stored forces survive", grid: ["....." + kind + "..", ".......F"],
         buildings: [{ col: 5, row: 0, owner: owner, stored: [{ t: "CHARLIE", str: 1 }] },
@@ -127,10 +128,10 @@ module.exports = function (ok) {
   });
 
   var storedOnly = new ENGINE.Game({ name: "Stored forces only", grid: ["F...F"],
-    buildings: [{ col: 0, row: 0, owner: 0, stored: ["TRIGGER"] },
+    buildings: [{ col: 0, row: 0, owner: 0, stored: ["CHARLIE"] },
       { col: 4, row: 0, owner: 1, stored: ["TRIGGER"] }],
     units: [],
   }, { seed: 1 });
   storedOnly.checkElimination();
-  ok(storedOnly.winner === null, "both sides remain in play with only stored transport-dependent reserves");
+  ok(storedOnly.winner === 0, "mines in storage do not prevent elimination");
 };

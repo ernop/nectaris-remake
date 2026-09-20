@@ -4,6 +4,16 @@ Settled product and UI decisions for this remake. Mechanics reconstruction
 (with sources) lives in `MECHANICS.md`. Link this file from `agents.md` and
 the README so later sessions load it.
 
+## Enemy movement inspection (2026-09-20)
+
+During your turn, click an enemy to inspect its details and orange movement
+range. This previews a full next-turn movement budget on the current board,
+respecting terrain, occupancy and ZOC, without changing the unit or match.
+Clicking a destination clears inspection; it never moves the enemy. Escape
+also clears it, and clicking another unit selects or inspects that unit.
+While choosing an attack, red targets retain their attack-click behavior;
+cancel the current action first to inspect enemy movement.
+
 ## Selectable art sets (2026-09-20)
 
 The **Art set** selector offers **1 · Remake** first/default and **Legacy**
@@ -165,18 +175,13 @@ terrain and unit art.
 
 ## Building capture, storage and deployment (updated 2026-09-20)
 
-Ground units cannot park on a base or factory. They may pass through either
-building, but ending movement at an owned building immediately stores and
-repairs the unit, spending its turn. It can deploy to an adjacent destination
-on its next turn. Enemy and neutral buildings cannot be stopping points for
-tanks or other non-capturing ground units. Infantry may enter to capture;
-capturing the enemy base still wins the map. Loaded ground transports cannot
-enter storage. The same restrictions apply to transport unloading and deployment.
-Building entry is not a firing position for a move-and-attack action.
-
-This extends the factory storage behavior to friendly bases, as requested on
-2026-09-20, superseding the earlier base exception. Aircraft retain their
-existing movement behavior.
+The latest maximum-fidelity request restores the 1989 PCE distinction:
+owned factories store and repair every chassis, including aircraft and loaded
+transports; prison bases allow parking and provide ground defense without
+repairing. This supersedes the earlier same-day base-storage extension.
+Unowned factories cannot be ground stopping points except for capturing infantry.
+Loaded carrier entry separates its passenger into storage; both are repaired.
+Factory entry ends the activation immediately and is not a firing position.
 
 Capturing infantry enters the factory immediately instead of remaining on its
 map hex. The factory becomes unoccupied and clickable, its existing inventory
@@ -200,9 +205,9 @@ destinations among the six neighboring hexes:
 - Green: an unoccupied hex whose terrain is marked `deployable`
 - Blue: an adjacent friendly Mule or Pelican with an empty cargo slot
 
-The player clicks one highlighted destination. Ground units may use either
-kind; aircraft cannot enter transports, and Atlas and Trigger require a
-transport. Deployment spends the unit's activation, including deployment into
+The player clicks one highlighted destination. Ground units may use compatible
+transports; aircraft cannot board, Mule has its original passenger restrictions,
+and Atlas/Trigger may deploy directly or aboard a carrier. Deployment spends the unit's activation, including deployment into
 a transport. This flow exposes the factory inventory as soon as capture is
 complete and makes the destination a player choice rather than selecting a
 transport automatically.
@@ -234,8 +239,9 @@ available with a keyboard or touch input.
 The sidebar includes a two-dimensional casualty probability heatmap from
 100,000 independent simulation seeds: enemy losses on the horizontal axis and
 our losses on the vertical axis. Show cell rates, mean losses and destruction
-probabilities. Simulations use the current combat formula and uniform 0.2–4.0
-random-coefficient model. They must never read, reveal, advance or derive their
+probabilities. Simulations use the current combat formula and the documented weighted
+14-outcome damage model. Opposing rolls are independently sampled; original
+PRNG correlation remains unverified. They must never read, reveal, advance or derive their
 seeds from the match RNG. Hovering and cancelling must leave combat state and
 the future real result unchanged. Cache projections for the current activation.
 
@@ -315,3 +321,14 @@ The calculation section names support contributors and their weighted values,
 shows the support divisor, terrain, experience, caps, counterattack eligibility
 and ZOC/surround status. Ordinary ZOC restricts movement; it is not a separate
 combat bonus. Forecasting never reads or advances the live match RNG.
+
+## Maximum-fidelity rule baseline (2026-09-20)
+
+See `FIDELITY_AUDIT.md` and `MECHANICS.md`. The PCE rules supersede earlier
+custom behavior where it conflicts: bases no longer repair/store incoming
+units, mines do not prevent elimination, and Atlas still in storage does not
+prevent elimination. Other owned reserves count even when exits are blocked.
+Existing custom or saved base inventories remain accessible. Loading and
+unloading consume the passenger's turn; unloading a ready passenger remains
+available after its carrier acts. Modern profiles, saves, editor and forecasts
+remain product features and are identified as extras, not original PCE rules.
