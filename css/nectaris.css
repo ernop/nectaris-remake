@@ -187,11 +187,13 @@ select, input[type="url"] {
 #btn-endturn { margin-left: auto; }
 
 #game-main { flex: 1; display: flex; min-height: 0; }
-#canvas-wrap { flex: 1; position: relative; min-width: 0; }
-#game-canvas { display: block; width: 100%; height: 100%; cursor: crosshair; }
+#canvas-wrap { flex: 1; position: relative; min-width: 0; display: flex; flex-direction: column; }
+#game-canvas { display: block; width: 100%; height: calc(100% - 40px); min-height: 0; cursor: crosshair; }
+#map-action-rail { height: 40px; flex-shrink: 0; background: #19160f; border-top: 1px solid #302b22; }
 
 #sidebar {
-  width: 230px;
+  width: 340px;
+  flex: 0 0 340px;
   background: #1d1912;
   border-right: 1px solid #3d382c;
   padding: 12px;
@@ -253,12 +255,51 @@ select, input[type="url"] {
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.6);
   z-index: 20;
 }
-#action-menu { display: flex; flex-direction: column; gap: 4px; min-width: 130px; }
+#action-menu { position: absolute; z-index: 10; display: flex; gap: 2px; padding: 2px;
+  background: #14110c; border: 1px solid #8e805d; border-radius: 5px; }
+#action-menu button { font-size: 12px; line-height: 18px; padding: 1px 8px; }
+#action-menu button:last-child { color: #ffdf78; }
+#action-status { padding: 9px 10px; margin-bottom: 12px; border-left: 2px solid #ffb467;
+  background: #30271a; color: #eee0ba; line-height: 1.5; }
+#transport-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
+#transport-actions button { font-size: 12px; padding: 5px 8px; }
+#attack-targets { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 12px; }
+#attack-targets button { font-size: 11px; padding: 4px 6px; border-color: #864e39; }
+.forecast-final { display: flex; gap: 14px; margin: 9px 0; font-size: 11px; color: #c6bda2; }
+.forecast-final strong { display: block; font: 700 16px monospace; color: #eee6cb; margin-top: 3px; }
+#combat-inspector { color: #e9e4d4; }
+.forecast-eyebrow { color: #d4b878; font-size: 10px; letter-spacing: 1.2px; }
+#combat-inspector h3 { color: #ffe5a1; margin: 5px 0; font-size: 19px; }
+.forecast-matchup { color: #ddd3ba; font-size: 12px; }
+.forecast-note { color: #b8b09a; font-size: 11px; line-height: 1.5; margin: 8px 0; }
+.forecast-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  padding: 10px 0; border-top: 1px solid #464030; border-bottom: 1px solid #464030; }
+.forecast-summary strong { display: block; font-size: 19px; color: #ffe5a1; font-variant-numeric: tabular-nums; }
+.forecast-summary span { font-size: 11px; color: #beb69f; }
+.forecast-chart-title { margin-top: 12px; }
+.outcome-map { width: 100%; max-width: 280px; display: block; margin: 6px auto 0; }
+.outcome-map text { font: 9px monospace; pointer-events: none; }
+.outcome-map .axis-tick { fill: #c4bea8; font-size: 10px; }
+.outcome-map .axis-label { fill: #e9e2cb; font-size: 11px; }
+.outcome-map g:focus { outline: none; }
+.outcome-map g:focus rect, .outcome-map g:hover rect { stroke: #fff; stroke-width: 2px; }
+.forecast-calculations { border-top: 1px solid #464030; margin-top: 12px; padding-top: 8px; }
+.forecast-calculations summary { cursor: pointer; font-weight: 700; color: #ffe5a1; }
+.forecast-sides { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.forecast-side h4 { margin: 10px 0 4px; color: #c8be9f; font-size: 11px; }
+.forecast-side > strong { font-size: 12px; }
+.forecast-calculations p { color: #b8b09a; font-size: 11px; line-height: 1.45; }
+.forecast-side table { width: 100%; border-collapse: collapse; font: 10px monospace; }
+.forecast-side td, .forecast-side th { text-align: right; padding: 3px 1px; border-bottom: 1px solid #383323; }
+.forecast-side th:first-child { text-align: left; font-weight: 400; }
+.forecast-side tr:last-child { color: #ffe5a1; }
+@media (max-width: 850px) { #sidebar { width: 290px; flex-basis: 290px; padding: 10px; } }
 .popup-title { font-weight: 700; color: #ffd94a; margin-bottom: 8px; letter-spacing: 1px; }
 .popup-buttons { display: flex; gap: 8px; margin-top: 10px; justify-content: flex-end; }
 
 #factory-panel { left: 50%; top: 18%; transform: translateX(-50%); min-width: 390px; max-height: 70%; overflow-y: auto; }
 #factory-title { font-size: 18px; font-weight: 800; }
+#factory-summary { color: #d0c8b0; margin-bottom: 8px; }
 .factory-row {
   display: flex;
   justify-content: space-between;

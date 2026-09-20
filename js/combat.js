@@ -46,13 +46,15 @@ var COMBAT = (function () {
   /* Mulberry32 — small seedable PRNG so replays/tests are deterministic. */
   function makeRng(seed) {
     var s = seed >>> 0;
-    return function () {
+    var rng = function () {
       s = (s + 0x6D2B79F5) >>> 0;
       var t = s;
       t = Math.imul(t ^ (t >>> 15), t | 1);
       t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
       return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
     };
+    rng.getState = function () { return s; };
+    return rng;
   }
 
   /* Relevant per-strength attack stat of `unit` against `target`. */
@@ -126,6 +128,8 @@ var COMBAT = (function () {
       ],
       ap: finalAttack,
       da: finalDefense,
+      modifiers: { supportAttack: supportAttack, supportDefense: supportDefense,
+        terrain: terrain, surrounded: surrounded, attackDisabled: attackDisabled },
     };
   }
 
@@ -145,7 +149,9 @@ var COMBAT = (function () {
       atkStat(defender.type, isAir(attacker)), defender.type.def,
       0, dSupport, terrainValue(game, defender), surrounded, !counter
     );
-    return { attacker: a, defender: d, ranged: ranged, counter: counter, dist: dist };
+    return { attacker: a, defender: d, ranged: ranged, counter: counter, dist: dist,
+      surrounded: surrounded, attackerTerrain: game.terrainAt(attacker.col, attacker.row).name,
+      defenderTerrain: game.terrainAt(defender.col, defender.row).name };
   }
 
   function randomCoefficient(rng) {
@@ -185,6 +191,38 @@ var COMBAT = (function () {
       ).casualties;
     }
     return total / (RANDOM_MAX - RANDOM_MIN + 1);
+  }
+
+  /* A joint casualty forecast, deliberately accepting no game or match RNG.
+   * Each trial has its own fixed simulation seed, independent of actual play.
+   * Precomputed damage uses the same formula and pre-battle strengths as resolve. */
+  function forecast(attacker, defender, pv, samples) {
+    samples = samples === undefined ? 100000 : samples;
+    if (!Number.isInteger(samples) || samples < 1 || samples > 1000000) {
+      throw new Error("Forecast sample count must be between 1 and 1000000");
+    }
+    var attackLosses = [], counterLosses = [], bins = [];
+    for (var a = 0; a <= attacker.strength; a++) bins.push(new Array(defender.strength + 1).fill(0));
+    for (var c = RANDOM_MIN; c <= RANDOM_MAX; c++) {
+      attackLosses.push(damageResult(attacker, defender, pv.attacker.ap, pv.defender.da, c).casualties);
+      counterLosses.push(pv.counter ? damageResult(defender, attacker, pv.defender.ap, pv.attacker.da, c).casualties : 0);
+    }
+    var totalA = 0, totalD = 0, lostA = 0, lostD = 0, mutual = 0;
+    var coefficients = RANDOM_MAX - RANDOM_MIN + 1;
+    for (var i = 0; i < samples; i++) {
+      var rng = makeRng(Math.imul(i + 1, 0x9e3779b9) ^ 0xa341316c);
+      var dLoss = attackLosses[Math.floor(rng() * coefficients)];
+      var aLoss = pv.counter ? counterLosses[Math.floor(rng() * coefficients)] : 0;
+      bins[aLoss][dLoss]++;
+      totalA += aLoss; totalD += dLoss;
+      if (aLoss === attacker.strength) lostA++;
+      if (dLoss === defender.strength) lostD++;
+      if (aLoss === attacker.strength && dLoss === defender.strength) mutual++;
+    }
+    return { samples: samples, bins: bins,
+      meanAttackerLoss: totalA / samples, meanDefenderLoss: totalD / samples,
+      attackerDestroyed: lostA / samples, defenderDestroyed: lostD / samples,
+      mutualDestruction: mutual / samples };
   }
 
   /* Resolve a battle. Mutates unit strengths/experience; removal of dead
@@ -234,6 +272,7 @@ var COMBAT = (function () {
     atkStat: atkStat, isAir: isAir,
     rangeBand: rangeBand, canAttackAt: canAttackAt,
     experienceBonus: experienceBonus, expectedCasualties: expectedCasualties,
+    forecast: forecast,
     MAX_EXP: MAX_EXP, MAX_STRENGTH: MAX_STRENGTH,
     EXP_DAMAGE: EXP_DAMAGE,
     /* Full strength is the default squad size; UI must not print it. */

@@ -62,7 +62,7 @@
   </section>
 
   <footer class="menu-footer">
-    Controls: click to select / move / attack · Shift-click enemy for calculator · right-click or Esc to cancel · wheel zooms · middle/right-drag pans when zoomed in · E ends turn.
+    Controls: select a unit, choose a position, then hover red targets to preview or click to attack · Cancel undoes the move · End finishes the unit · right-click or Esc cancels · wheel zooms · E ends the side's turn.
     See <a href="MECHANICS.md">MECHANICS.md</a> for the full rules reconstruction.
   </footer>
 </div>
@@ -87,27 +87,30 @@
   </div>
   <div id="game-main">
     <div id="sidebar">
+      <div id="action-status" class="hidden" role="status"></div>
+      <div id="transport-actions" class="hidden"></div>
+      <div id="attack-targets" class="hidden" role="group" aria-label="Preview attack targets"></div>
+      <div id="combat-inspector" class="hidden" aria-live="polite"></div>
       <div id="unit-info"></div>
       <div id="hex-info"></div>
     </div>
-    <div id="canvas-wrap"><canvas id="game-canvas"></canvas></div>
+    <div id="canvas-wrap">
+      <canvas id="game-canvas"></canvas>
+      <div id="map-action-rail"></div>
+      <div id="action-menu" class="hidden" role="group" aria-label="Unit actions"></div>
+    </div>
   </div>
-
-  <div id="action-menu" class="hidden popup"></div>
 
   <div id="factory-panel" class="hidden popup">
     <div id="factory-title" class="popup-title"></div>
+    <div id="factory-summary"></div>
     <div id="factory-list"></div>
     <button id="factory-close">Close</button>
   </div>
 
   <div id="battle-panel" class="hidden popup">
-    <div id="battle-title" class="popup-title">Combat calculator</div>
+    <div id="battle-title" class="popup-title">Battle result</div>
     <div id="battle-detail"></div>
-    <div class="popup-buttons">
-      <button id="battle-fight">Fight</button>
-      <button id="battle-cancel">Cancel</button>
-    </div>
   </div>
 
   <div id="watch-panel" class="hidden popup" aria-live="polite">
@@ -139,6 +142,7 @@
 <script src="js/data-basenectaris-maps.js"></script>
 <script src="js/render.js"></script>
 <script src="js/music.js"></script>
+<script src="js/combat-view.js"></script>
 <script src="js/ui.js"></script>
 <script src="js/main.js"></script>
 </body>

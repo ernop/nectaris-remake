@@ -56,7 +56,7 @@ in `inspiration/nectaris-original/`:
 - **Faction colours follow the original: Union blue, Xenon green** in all
   three styles (neon keeps violet for Union). This frees red.
 - **The attacking unit is deep red** (`attackColors` per theme) from the
-  moment an attack is previewed — the human combat calculator or the AI's
+  moment an attack is previewed — the human hover inspector or the AI's
   "XENON ATTACK" panel — until the result animation ends. The defender gets a
   white ring. The attacker is exempt from the completed-activation greyscale
   so its red is never greyed. `Renderer.attackingUnitId` is the single
@@ -112,14 +112,36 @@ The project owner confirmed redistribution permission on 2026-09-03. Original
 tile and unit bitmaps are not included; the remake continues to render its own
 terrain and unit art.
 
-## Factory capture and deployment flow (2026-09-03)
+## Building capture, storage and deployment (updated 2026-09-20)
+
+Ground units cannot park on a base or factory. They may pass through either
+building, but ending movement at an owned building immediately stores and
+repairs the unit, spending its turn. It can deploy to an adjacent destination
+on its next turn. Enemy and neutral buildings cannot be stopping points for
+tanks or other non-capturing ground units. Infantry may enter to capture;
+capturing the enemy base still wins the map. Loaded ground transports cannot
+enter storage. The same restrictions apply to transport unloading and deployment.
+Building entry is not a firing position for a move-and-attack action.
+
+This extends the factory storage behavior to friendly bases, as requested on
+2026-09-20, superseding the earlier base exception. Aircraft retain their
+existing movement behavior.
 
 Capturing infantry enters the factory immediately instead of remaining on its
 map hex. The factory becomes unoccupied and clickable, its existing inventory
 changes to the captor's side, and the capturing infantry joins that inventory
 with its deployment locked until its next turn.
 
-Clicking an owned factory presents every stored unit. A ready unit has a
+Clicking any unoccupied base or factory presents every stored unit, including
+neutral and enemy buildings before capture. Ownership and inventory count appear above
+the unit icons, names, damage and experience. Unowned inventories explain that
+infantry must capture the factory to deploy; they offer no deployment controls.
+Empty buildings explicitly say there are no stored units. Hovering a building
+also lists its contents in the sidebar, even when a unit occupies its hex or
+another unit is selected. A valid movement click still moves the selected unit;
+an unreachable building opens for inspection on the same click.
+
+At an owned base or factory, a ready unit has a
 **Deploy** action; a unit that cannot deploy states either **AVAILABLE NEXT
 TURN** or **NO DESTINATION**. Choosing a ready unit highlights all valid
 destinations among the six neighboring hexes:
@@ -142,15 +164,47 @@ The permanent local backend port is **8001**, bound to `127.0.0.1` by
 prevents unrelated temporary servers from changing the project URL, while the
 Caddy hostname removes the need to remember the port during normal use.
 
-## Direct combat controls and heavier tanks (2026-09-05)
+## Movement, target inspection and combat controls (2026-09-20)
 
-Clicking a highlighted enemy commits combat immediately. After choosing a move,
-valid enemies remain clickable beside the Finish / Cancel / Unload controls;
-there is no Attack menu step. Clicking the selected unit again finishes.
-Shift-clicking an enemy opens the optional calculator with Fight / Cancel.
-Cancel restores the provisional movement and its movement allowance. Results
-return automatically after the casualty animation; combat locks input until
-that animation completes. Mobile missile units retain their remaining movement.
+Selecting a movable unit shows only its legal movement destinations and
+boardable transports. Distant enemies are never red shortcuts for an automatic
+move-and-attack. The player chooses the firing position explicitly. Clicking
+the selected unit's own hex chooses to stay, including for stationary artillery.
+
+After choosing a destination, only enemies attackable from that position turn
+red. Hovering one shows its identity, both units' combat stats, support, terrain,
+surround, experience, counterattack eligibility and the resulting calculation
+in the sidebar, outside the map. The last hovered matchup remains readable
+while moving into the sidebar; hovering another target replaces it. Clicking
+a red target commits the attack from the chosen position.
+Sidebar target buttons also preview on focus or click, so the details remain
+available with a keyboard or touch input.
+
+The sidebar includes a two-dimensional casualty probability heatmap from
+100,000 independent simulation seeds: enemy losses on the horizontal axis and
+our losses on the vertical axis. Show cell rates, mean losses and destruction
+probabilities. Simulations use the current combat formula and uniform 0.2–4.0
+random-coefficient model. They must never read, reveal, advance or derive their
+seeds from the match RNG. Hovering and cancelling must leave combat state and
+the future real result unchanged. Cache projections for the current activation.
+
+Replace the floating action popup with exactly two compact controls, **Cancel**
+and **End**, normally beneath the selected unit. Cancel restores the provisional
+move and its remaining movement; End commits that unit without attacking and
+does not end the side's turn. Keep attack hexes unobstructed; if the controls
+cannot fit below the unit without covering a red hex, use the reserved strip
+below the map. Reposition them on pan, zoom and resize. Transport unloading
+controls live in the sidebar, not in this two-button strip.
+
+Ordinary moves remain provisional even when no attack is available, including
+move-or-fire units that have moved. Entering storage, capturing and boarding
+remain immediate committed actions. To attack without moving, choose the unit's
+current hex. There is no separate Shift-click calculator modal. Results still
+close automatically after the casualty animation; combat locks input until it
+finishes. Mobile missile units retain their remaining movement, and cancelling
+a later move cannot undo an attack already committed.
+
+## Heavier tanks (2026-09-05)
 
 The six tracked tank sprites now use deeper hulls, tread shoes, engine grilles,
 raised beveled turrets and recessed hatches. Polar has the widest single-turret

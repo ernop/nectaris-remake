@@ -62,3 +62,13 @@ Facts wei need across sessions:
   `js/data-terrain.js`, roster in `js/data-units.js`, experience tiers in
   `js/combat.js` (top). `MECHANICS.md` records the combat formula, source, and
   remaining random-distribution gap.
+
+- **Combat UI (2026-09-20):** select a unit, choose a position (click its own
+  hex to stay), then choose among red targets. Never restore automatic
+  move-and-attack enemy shortcuts. Hover forecasts and calculations live in
+  the sidebar; the two map controls are Cancel / End, kept clear of target
+  hexes with a reserved rail fallback. Ordinary moves stay reversible until
+  End or combat; storage/capture/boarding still commit immediately.
+  `COMBAT.forecast` uses 100,000 independent simulation seeds and must never
+  read or advance the match RNG. `js/combat-view.js` renders the joint casualty
+  heatmap. See `PRODUCT.md`, `test/combat-ui-tests.js`, and `test/forecast-tests.js`.

@@ -201,14 +201,29 @@ One naming note: the Japanese unit page designates the heavy infantry GX-78
 (ダーベック); the US release, whose English names this remake uses, prints
 GX-87 Kilroy. We follow the US designation to match the names.
 
+## Combat forecasts
+
+Combat forecasts use 100,000 independent simulation seeds with the same
+per-machine damage, simultaneous pre-battle strengths and random-coefficient
+model described above. The UI shows a joint distribution of attacker and
+defender casualties. Forecasts are estimates under the remake's uniform
+coefficient model, not a prediction of the next hidden roll. They do not read
+or advance the match RNG or mutate unit strength, experience or action flags.
+The interaction design is recorded in `PRODUCT.md`.
+
 ## Factories and bases
 
 (Corrected 2026-09-02 against the published factory rules — the terrain page's
 「工場の上にユニットを停止させれば自動的に格納されます」 and the TG-16 FAQ's
 "deploy the unit onto the space the transport occupies".)
 
-- Factories hold **stored units**. Clicking an owned factory with ready stored
-  units opens the stored-unit list. After choosing one unit, choose its
+The requested remake behavior was updated on 2026-09-20 to apply the same
+ground-unit stopping and storage rules to bases. This supersedes the earlier
+"bases never store or repair" implementation; it is a product decision, not
+an additional claim established by the sources above.
+
+- Factories and bases hold **stored units**. Clicking any unoccupied building
+  shows its inventory; only the owner can deploy. After choosing one unit, choose its
   destination from the highlighted hexes surrounding the factory.
 - A terrain destination must be one of the six adjacent hexes, unoccupied, and
   marked `deployable` by its terrain type. Alternatively, a stored ground unit
@@ -216,20 +231,24 @@ GX-87 Kilroy. We follow the US designation to match the names.
   cargo slot. Atlas and Trigger have only the transport option. Deploying by
   either method spends the stored unit's turn, so it cannot move or attack
   immediately.
-- **Stopping a ground unit on a factory you already own stores it**: it
+- **Stopping a ground unit on a factory or base you already own stores it**: it
   leaves the field, is repaired to full (experience kept), and can deploy
   again from your next turn on — so a repair costs the two turns of entering
-  and leaving, as in the original. There is no on-hex repair, and bases never
-  store or repair.
-- A factory you do not own can be passed through but not stopped on —
+  and leaving. There is no on-hex repair or ground-unit parking. Entering a
+  building ends the activation immediately, including when an enemy is in range.
+- A factory or base you do not own can be passed through but not stopped on —
   except by infantry, whose stopping there *is* the capture. The capturer
-  goes inside the newly owned factory and disappears from the map. It is
+  goes inside the newly owned building and disappears from the map (capturing
+  the enemy base instead ends the match). It is
   repaired, keeps its experience, and cannot redeploy until its next turn.
   Capturing also transfers every unit already stored there to the new owner
   and awards the infantry +4 experience. Previously stored units that have
   not acted are immediately eligible to deploy.
-- A transport carrying cargo cannot stop on its own factory (it will not
-  fit); unloading cargo onto your factory hex stores the cargo directly.
+- A ground transport carrying cargo cannot stop on its own building (it will
+  not fit); unloading cargo onto your building hex stores the cargo directly.
+  Unloading and factory deployment also forbid placing non-capturing ground
+  units on enemy or neutral buildings; deploying into a friendly factory
+  transfers the unit into storage rather than leaving it on the map.
 
 ## Victory
 

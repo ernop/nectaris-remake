@@ -57,25 +57,35 @@ state (campaign progress, custom levels, custom units) lives in
 
 ## Controls
 
-- Click a unit: shows movement range (white), boardable transports (blue),
-  attackable enemies (red).
-- Click a destination: the unit steps there. Enemies in firing range stay
-  highlighted: click one to attack, or click the unit again / **Finish** to
-  end its activation. Moves with no remaining action finish automatically.
-- Click a red enemy to attack immediately, auto-stepping to a reachable firing
-  position when needed. **Shift-click** the enemy to open the optional combat
-  calculator before committing. Battle results close automatically.
+- Click a unit to see its movement destinations and boardable transports.
+  Choose a destination, or click its current hex to stay and aim.
+- After choosing the position, attackable enemies turn red. Hover a target for
+  its identity, both sides' calculations and a casualty probability heatmap
+  based on 100,000 independent simulations. The forecast never uses the match's
+  actual random state. Click the red target to attack; there is no automatic
+  approach to a distant enemy.
+- **Cancel** beneath the unit undoes the provisional move. **End** commits that
+  unit without attacking. These controls move to the strip below the map when
+  necessary to keep red targets clear. Unload controls appear in the sidebar.
+  Ordinary moves can be cancelled even when no attack is available; storage,
+  capture and boarding commit immediately. Battle results close automatically.
 - Right-click or Esc: cancel. Mouse wheel: zoom. Middle/right-drag pans only
   when the zoomed map extends beyond the viewport.
   `E`: end turn.
 - Unit chrome shows remaining strength only when damaged (1–7). Full
   strength (8) is omitted — see `PRODUCT.md`.
-- Click an owned factory with stored units to choose a ready unit. Click
+- Click any unoccupied base or factory to inspect its stored units: yours,
+  neutral, or enemy, including empty buildings. Hovering also lists the contents
+  in the sidebar. Capture with infantry to gain control of the reserves.
+  At an owned building, choose a ready unit and click
   **Deploy**, then choose a highlighted destination among the six surrounding
   hexes: an unoccupied deployable terrain hex, or an adjacent friendly Mule or
   Pelican with an empty cargo slot. Capturing infantry goes inside the factory
   and leaves the map; it can deploy again from the next turn. Stop a damaged
-  unit on your own factory to store and repair it under the same delay.
+  unit on your own base or factory to store and repair it under the same delay.
+  Ground units may pass through buildings but cannot park on them: friendly
+  destinations store the unit, while enemy and neutral destinations require
+  capturing infantry. This also applies to unloading and deployment.
 - **Watch AI: On** shows every Xenon move, combat matchup, and before/after
   squad strength. Turn it off for immediate AI turns.
 - The factory panel shows each stored unit's map icon, damage when present,
@@ -90,8 +100,8 @@ state (campaign progress, custom levels, custom units) lives in
   full color.
 - While an attack is previewed or resolving, the attacking unit is drawn in
   deep red and the defender gets a white ring, whichever side is attacking.
-- The optional combat calculator shows BASE → SUPPORT → TERRAIN → FINAL per-machine attack
-  and defense for both sides before you commit to the attack.
+- The hover inspector shows BASE → SUPPORT → TERRAIN → FINAL attack and defense
+  for both sides, plus surround, experience, damage arithmetic and outcome rates.
 - Every campaign and expansion map is available immediately. Use the map
   selector in the top bar to move directly between them.
 - Mission choices show the initial Union and Xenon squad totals, including

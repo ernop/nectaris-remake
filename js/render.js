@@ -1570,7 +1570,7 @@ var RENDER = (function () {
   function drawUnitIcon(canvas, unit, opts) {
     var ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("Factory unit icon requires a 2D canvas context");
-    var base = opts && opts.attacking ? theme.attackColors : PLAYER_COLORS[unit.player];
+    var base = opts && opts.attacking ? theme.attackColors : PLAYER_COLORS[unit.player === -1 ? 2 : unit.player];
     if (!base) throw new Error("Factory unit icon has invalid player " + unit.player);
     var u = Math.min(canvas.width / 44, canvas.height / 38);
     ctx.clearRect(0, 0, canvas.width, canvas.height);

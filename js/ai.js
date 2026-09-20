@@ -80,11 +80,11 @@ var AI = (function () {
   }
 
   function nearestOwnedRepair(game, unit) {
-    // Only factories repair (by storing the unit for a turn); bases do not.
+    // Friendly factories and bases repair by storing the unit for a turn.
     var best = null, bestD = Infinity;
     for (var k in game.buildings) {
       var b = game.buildings[k];
-      if (b.owner !== unit.player || b.kind !== "factory") continue;
+      if (b.owner !== unit.player) continue;
       var d = HEX.distance(unit.col, unit.row, b.col, b.row);
       if (d < bestD) { bestD = d; best = b; }
     }
@@ -155,7 +155,7 @@ var AI = (function () {
       var range = game.movementRange(unit);
       for (var k in range) {
         var rec = range[k];
-        if (!rec.canStop || rec.load) continue;
+        if (!rec.canStop || rec.load || rec.enterBuilding) continue;
         var occ = game.unitAt(rec.col, rec.row);
         if (occ && occ !== unit) continue;
         // simulate standing there

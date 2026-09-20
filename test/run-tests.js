@@ -473,7 +473,7 @@ var buggyRange = buggyGame.movementRange(rabbit);
 var buggyStep = null;
 for (var buggyKey in buggyRange) {
   var candidate = buggyRange[buggyKey];
-  if (candidate.canStop && !candidate.load && candidate.cost > 0 &&
+  if (candidate.canStop && !candidate.load && !candidate.stop && candidate.cost > 0 &&
       (!buggyStep || candidate.cost > buggyStep.cost)) buggyStep = candidate;
 }
 ok(!!buggyStep, "Rabbit receives legal destinations after attacking");
@@ -1002,72 +1002,18 @@ ALL_MAPS.forEach(function (m, mi) {
   }
 });
 
-section("direct combat interaction");
-(function () {
-  var UI = require("../js/ui.js");
-  var nodes = {};
-  function element() {
-    var classes = new Set(["hidden"]);
-    return { style: {}, appendChild: function () {},
-      classList: { add: function (c) { classes.add(c); }, remove: function (c) { classes.delete(c); },
-        contains: function (c) { return classes.has(c); } } };
-  }
-  global.document = { getElementById: function (id) { return nodes[id] || (nodes[id] = element()); },
-    createElement: element };
-  function fixture(type, enemyX) {
-    var game = new ENGINE.Game({name: "UI", grid: ["........", "........", "........"],
-      units: [{t: type, o: 0, x: 1, y: 1}, {t: "POLAR", o: 1, x: enemyX, y: 1}]}, {seed: 7});
-    var ui = Object.create(UI.GameUI.prototype);
-    ui.game = game; ui.canvas = {width: 800}; ui.renderer = {hexCenter: function () { return {x: 100,y: 100}; }};
-    ui.draw = ui.showUnitInfo = ui.refreshStatus = ui.checkGameOver = function () {};
-    ui.animateBattleResult = function (event, detail, done) { ui.animationDone = done; };
-    ui.selectUnit(game.units[0]);
-    return ui;
-  }
-  var ui = fixture("BISON", 2), unit = ui.selected;
-  ui.onHexClick(2, 1);
-  ok(unit.attacked && ui.busy && ui.mode === "battle", "enemy click commits without Fight and locks combat input");
-  ui.onCancel();
-  ok(ui.mode === "battle", "Escape cannot escape a resolving battle");
-  ui.animationDone();
-  ok(ui.mode === "idle" && !ui.busy && nodes["battle-panel"].classList.contains("hidden"), "result automatically closes and unlocks map");
+section("building storage and stopping rules");
+require("./building-rules-tests.js")(ok);
 
-  ui = fixture("BISON", 4); unit = ui.selected;
-  var initialPoints = unit.movePointsLeft;
-  ui.previewAttack = true; ui.onHexClick(4,1);
-  ok(!unit.attacked && ui.pendingMoveFrom && unit.col !== 1, "Shift-click previews an automatic approach without firing");
-  ui.onCancel();
-  ok(unit.col === 1 && unit.row === 1 && unit.movePointsLeft === initialPoints && ui.mode === "unitSelected", "preview cancel restores position and movement budget");
+section("factory inventory inspection");
+require("./factory-ui-tests.js")(ok);
 
-  ui = fixture("BISON", 3); unit = ui.selected;
-  ui.onHexClick(2,1);
-  ok(ui.mode === "moved" && ui.renderer.highlights[HEX.key(3,1)], "after movement enemies remain highlighted");
-  ui.onHexClick(3,1);
-  ok(unit.attacked, "moved unit attacks by clicking enemy without Attack menu");
-  ui.animationDone();
+section("independent combat forecasts");
+require("./forecast-tests.js")(ok);
 
-  ui = fixture("BISON", 3); unit = ui.selected;
-  ui.onHexClick(2,1); ui.previewAttack = true; ui.onHexClick(3,1);
-  ui.onCancel();
-  ok(unit.col === 1 && !unit.attacked && ui.mode === "unitSelected", "cancelling a post-move preview rolls back the provisional move");
-  ui.previewAttack = true; ui.onHexClick(3,1);
-  var turnBeforePreview = ui.game.currentPlayer;
-  ui.endTurn();
-  ok(ui.mode === "battle" && ui.game.currentPlayer === turnBeforePreview, "end turn cannot bypass the open calculator");
-  nodes["battle-fight"].onclick();
-  ok(unit.attacked && ui.busy, "optional calculator Fight commits combat");
-  ui.animationDone();
+section("movement-first combat interaction");
+require("./combat-ui-tests.js")(ok);
 
-  ui = fixture("RABBIT", 2); unit = ui.selected;
-  ui.onHexClick(2,1); ui.animationDone();
-  ok(ui.selected === unit && ui.mode === "unitSelected" && unit.movePointsLeft > 0, "surviving Rabbit can spend remaining movement after automatic result");
-  ok(ui.previewTargets(unit).length === 0, "Rabbit cannot attack twice");
-
-  ui = fixture("HADRIAN", 6); unit = ui.selected;
-  ui.onHexClick(2,1);
-  ok(unit.moved && ui.mode === "idle" && !unit.attacked, "moving move-or-fire artillery finishes without offering attack");
-  delete global.document;
-})();
 
 /* ---------- summary ---------- */
 

@@ -13,8 +13,8 @@
  *
  * Turn structure: each unit may act once per turn (move+attack, or the
  * type-specific variants: ranged units move OR attack; buggies may spend
- * leftover movement after attacking). Entering a factory or base you own (or
- * a neutral/own factory) repairs the unit to full strength and ends its turn.
+ * leftover movement after attacking). Ground units ending movement at an
+ * owned factory or base go into storage, repair, and end their turn.
  *
  * Factories: hold stored units (the original's "hidden reinforcements").
  * Infantry capture factories/bases by moving onto them. Capturing the enemy
@@ -79,16 +79,17 @@ var ENGINE = (function () {
       var b = bdefs[i];
       var terr = this.terrain[b.row] && this.terrain[b.row][b.col];
       if (!terr || !terr.building) throw new Error("Building at " + b.col + "," + b.row + " is not on F/B terrain");
+      var owner = b.owner === undefined ? -1 : b.owner;
       var stored = [];
       for (var s = 0; s < (b.stored || []).length; s++) {
         var st = b.stored[s];
-        var su = makeUnit(typeof st === "string" ? st : st.t, b.owner, b.col, b.row,
+        var su = makeUnit(typeof st === "string" ? st : st.t, owner, b.col, b.row,
                           (st && st.str) || undefined, (st && st.exp) || 0);
         su.inFactory = true;
         stored.push(su);
       }
       this.buildings[HEX.key(b.col, b.row)] = {
-        col: b.col, row: b.row, kind: terr.id, owner: b.owner === undefined ? -1 : b.owner, stored: stored,
+        col: b.col, row: b.row, kind: terr.id, owner: owner, stored: stored,
       };
     }
     // Any F/B terrain hex without an explicit entry becomes a neutral building.
@@ -115,6 +116,68 @@ var ENGINE = (function () {
     this.rng = COMBAT.makeRng(options.seed !== undefined ? options.seed : (Date.now() & 0xffffffff));
     this.log = [];
   }
+
+  /* Versioned saves use IDs for cargo/factory membership, preserving shared
+   * unit identities and the exact random stream across a browser restart. */
+  Game.prototype.snapshot = function () {
+    var all = {}, types = Object.assign({}, UNIT_TYPES);
+    function collect(unit) {
+      if (all[unit.id]) return;
+      var copy = Object.assign({}, unit);
+      delete copy.type;
+      copy.cargo = unit.cargo.map(function (cargo) { return cargo.id; });
+      all[unit.id] = copy;
+      types[unit.typeId] = unit.type;
+      unit.cargo.forEach(collect);
+    }
+    this.units.forEach(collect);
+    var buildings = {};
+    Object.keys(this.buildings).forEach(function (key) {
+      var b = this.buildings[key];
+      b.stored.forEach(collect);
+      buildings[key] = Object.assign({}, b, {stored: b.stored.map(function (u) { return u.id; })});
+    }, this);
+    return JSON.parse(JSON.stringify({version: 1, map: this.map, types: types,
+      units: Object.values(all), field: this.units.map(function (u) { return u.id; }),
+      buildings: buildings, turn: this.turn, currentPlayer: this.currentPlayer,
+      turnLimit: this.turnLimit, winner: this.winner, winReason: this.winReason,
+      rngState: this.rng.getState(), log: this.log}));
+  };
+
+  Game.restore = function (snapshot) {
+    var data = JSON.parse(JSON.stringify(snapshot));
+    if (!data || data.version !== 1 || !Array.isArray(data.units) ||
+        !Array.isArray(data.field) || !data.types || !data.buildings ||
+        !Number.isInteger(data.rngState) || !Number.isInteger(data.turn) || data.turn < 1 ||
+        (data.currentPlayer !== 0 && data.currentPlayer !== 1)) {
+      throw new Error("This saved match is invalid or from an unsupported version.");
+    }
+    mergeUnitTypes(data.types);
+    var game = new Game(data.map, {seed: data.rngState});
+    var byId = {};
+    data.units.forEach(function (u) {
+      if (!Number.isInteger(u.id) || u.id < 1 || byId[u.id] || !data.types[u.typeId] || !Array.isArray(u.cargo)) {
+        throw new Error("Saved match contains invalid units.");
+      }
+      u.type = data.types[u.typeId];
+      byId[u.id] = u;
+      nextUnitId = Math.max(nextUnitId, u.id + 1);
+    });
+    function resolve(id) {
+      if (!byId[id]) throw new Error("Saved match contains a missing unit.");
+      return byId[id];
+    }
+    data.units.forEach(function (u) { u.cargo = u.cargo.map(resolve); });
+    Object.keys(data.buildings).forEach(function (key) {
+      data.buildings[key].stored = data.buildings[key].stored.map(resolve);
+    });
+    game.units = data.field.map(resolve);
+    game.buildings = data.buildings;
+    ["turn", "currentPlayer", "turnLimit", "winner", "winReason", "log"].forEach(function (key) {
+      game[key] = data[key];
+    });
+    return game;
+  };
 
   Game.prototype.terrainAt = function (col, row) {
     if (row < 0 || row >= this.height || col < 0 || col >= this.width) return null;
@@ -182,10 +245,19 @@ var ENGINE = (function () {
 
   /* --- Movement --------------------------------------------------------- */
 
+  /* Buildings are ground-unit destinations only for storage or capture.
+   * They remain traversable regardless of ownership. */
+  Game.prototype.canStopAtBuilding = function (unit, col, row) {
+    var building = this.buildingAt(col, row);
+    if (!building || unit.type.moveType === "air") return true;
+    if (building.owner !== unit.player) return !!unit.type.capture;
+    return !unit.cargo || unit.cargo.length === 0;
+  };
+
   /* Dijkstra over terrain costs with ZOC stops.
-   * Returns { key -> {col,row,cost,stop,canStop,load} } for all reachable
+   * Returns { key -> {col,row,cost,stop,canStop,load,enterBuilding} } for all reachable
    * hexes, including the start. `load` marks a friendly transport hex the
-   * unit could board. */
+   * unit could board; `enterBuilding` ends the activation in storage/capture. */
   Game.prototype.movementRange = function (unit) {
     var self = this;
     var result = {};
@@ -235,17 +307,7 @@ var ENGINE = (function () {
         var k = HEX.key(n.col, n.row);
         var enteringZOC = this.inEnemyZOC(n.col, n.row, unit.player);
         var canStopHere = !occ || isLoad;
-        if (canStopHere && unit.type.moveType !== "air") {
-          var bld = this.buildingAt(n.col, n.row);
-          if (bld && bld.kind === "factory") {
-            // A factory you do not own can be passed through but never
-            // stopped on, except by infantry (which captures by stopping).
-            if (bld.owner !== unit.player && !unit.type.capture) canStopHere = false;
-            // Stopping on your own factory stores the unit; a transport
-            // with cargo aboard cannot fit and so cannot stop there.
-            if (bld.owner === unit.player && unit.cargo && unit.cargo.length) canStopHere = false;
-          }
-        }
+        if (!isLoad && !this.canStopAtBuilding(unit, n.col, n.row)) canStopHere = false;
         var rec = result[k];
         if (!rec || newCost < rec.cost) {
           result[k] = {
@@ -253,6 +315,8 @@ var ENGINE = (function () {
             stop: enteringZOC || drains,             // move ends here
             canStop: canStopHere,                    // can end move on hex
             load: isLoad,
+            enterBuilding: canStopHere && !isLoad && unit.type.moveType !== "air" &&
+              !!this.buildingAt(n.col, n.row),
             prev: curKey,
           };
           if (!isLoad) frontier.push({ col: n.col, row: n.row, cost: newCost });
@@ -282,6 +346,7 @@ var ENGINE = (function () {
     range = range || this.movementRange(unit);
     var rec = range[HEX.key(col, row)];
     if (!rec || !rec.canStop) throw new Error("Illegal move");
+    if (!rec.load && !this.canStopAtBuilding(unit, col, row)) throw new Error("Cannot stop on an unowned building or store a loaded transport");
     if (unit.type.moveOrFire && rec.cost > 0) unit.attackSpent = true; // SP guns/Hawkeye: move OR fire
     unit.movePointsLeft -= rec.cost;
     if (rec.load) {
@@ -299,12 +364,13 @@ var ENGINE = (function () {
     return { loaded: false };
   };
 
-  /* Finish a unit's activation: captures and factory storage happen on
+  /* Finish a unit's activation: captures and building storage happen on
    * "wait". There is no on-hex repair — the original repairs by storing:
-   * stop a ground unit on a factory you already own and it goes inside,
+   * stop a ground unit on a building you already own and it goes inside,
    * comes out at full strength on a later turn, and loses the two turns of
-   * entering and leaving. Bases never store or repair. */
+   * entering and leaving. */
   Game.prototype.finishUnit = function (unit) {
+    if (unit.inFactory) return []; // already stored, including after deployment
     var b = this.buildingAt(unit.col, unit.row);
     var events = [];
     if (b && unit.type.moveType !== "air") {
@@ -325,9 +391,9 @@ var ENGINE = (function () {
           this.winReason = "base";
         }
       }
-      // Storage: stopping on an owned factory, including the act of
+      // Storage: stopping on an owned building, including the act of
       // capturing it, takes the unit off the field and repairs it to full.
-      if (b.kind === "factory" && b.owner === unit.player &&
+      if (b.owner === unit.player &&
           this.winner === null && (!unit.cargo || unit.cargo.length === 0)) {
         var ui = this.units.indexOf(unit);
         if (ui >= 0) this.units.splice(ui, 1);
@@ -400,6 +466,17 @@ var ENGINE = (function () {
   };
 
   /* Unload one cargo unit from a transport to an adjacent hex. */
+  Game.prototype.unloadTargets = function (transport, cargoUnit) {
+    var self = this;
+    return HEX.neighbors(transport.col, transport.row).filter(function (n) {
+      var terr = self.terrainAt(n.col, n.row);
+      return terr && !self.unitAt(n.col, n.row) &&
+        terrainCost(terr, cargoUnit.type.moveType, cargoUnit.type) !== null &&
+        (!cargoUnit.type.placeByTransport || terr.deployable) &&
+        self.canStopAtBuilding(cargoUnit, n.col, n.row);
+    });
+  };
+
   Game.prototype.unload = function (transport, cargoUnit, col, row) {
     if (cargoUnit.carriedBy !== transport.id) throw new Error("Not carried by this transport");
     if (HEX.distance(transport.col, transport.row, col, row) !== 1) throw new Error("Must unload adjacent");
@@ -413,6 +490,7 @@ var ENGINE = (function () {
     if (cargoUnit.type.placeByTransport && !terr.deployable) {
       throw new Error(cargoUnit.type.name + " cannot be set down on " + terr.name);
     }
+    if (!this.canStopAtBuilding(cargoUnit, col, row)) throw new Error("Cannot unload onto an unowned building");
     cargoUnit.carriedBy = null;
     cargoUnit.col = col; cargoUnit.row = row;
     cargoUnit.moved = true; cargoUnit.movePointsLeft = 0;
@@ -435,6 +513,7 @@ var ENGINE = (function () {
       var terr = this.terrainAt(n.col, n.row);
       if (!terr.deployable) continue;
       if (terrainCost(terr, storedUnit.type.moveType, storedUnit.type) === null) continue;
+      if (!this.canStopAtBuilding(storedUnit, n.col, n.row)) continue;
       out.push(n);
     }
     return out;
@@ -477,6 +556,7 @@ var ENGINE = (function () {
     var terr = this.terrainAt(col, row);
     if (!terr || !terr.deployable) throw new Error("Terrain does not allow deployment");
     if (terrainCost(terr, storedUnit.type.moveType, storedUnit.type) === null) throw new Error("Impassable");
+    if (!this.canStopAtBuilding(storedUnit, col, row)) throw new Error("Cannot deploy onto an unowned building");
     building.stored.splice(idx, 1);
     storedUnit.inFactory = false;
     storedUnit.player = building.owner;
@@ -484,6 +564,7 @@ var ENGINE = (function () {
     storedUnit.moved = true; storedUnit.movePointsLeft = 0;
     this.units.push(storedUnit);
     this.log.push({ t: "deploy", unit: storedUnit.id, col: col, row: row });
+    if (this.buildingAt(col, row)) this.finishUnit(storedUnit);
     return storedUnit;
   };
 
