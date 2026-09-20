@@ -22,9 +22,14 @@ module.exports = function (ok) {
   var context = {document:{getElementById:get,createElement:element,addEventListener:function(){}},
     localStorage:storage,PROFILES:PROFILES,window:{addEventListener:function(name,fn){listeners[name]=fn;}},
     MUSIC:{init:function(){}}, location:{search:""},
-    CAMPAIGN:[{name:"Test mission",grid:[".."],units:[]}],EXPANSION_LEVELS:[],BASE_NECTARIS_LEVELS:[]};
+    CAMPAIGN:[{name:"Test mission",grid:[".."],units:[]}],
+    ADVANCED_CAMPAIGN:require("../js/data-advanced-maps.js"), EXPANSION_LEVELS:[],BASE_NECTARIS_LEVELS:[]};
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,"../js/main.js"),"utf8"),context);
   listeners.DOMContentLoaded();
+  ok(get("mission-list").children.length === 1 && get("advanced-mission-list").children.length === 16,
+    "menu lists normal and all sixteen advanced missions in separate sections");
+  ok(get("map-jump").children[1].children.length === 17,
+    "map jump includes the advanced campaign without hiding other packs");
   ok(get("profile-history").children.length === 10, "menu initially shows the newest ten outcomes");
   ok(get("history-count").textContent === "Showing 10 of 15 matches" && !get("history-more").classList.contains("hidden"),
     "older outcomes have a visible navigation control");

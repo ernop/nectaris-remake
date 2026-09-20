@@ -244,6 +244,25 @@ select, input[type="url"] {
 .ui-stats td { padding: 2px 4px; border-bottom: 1px solid #2c2820; }
 .ui-stats td:last-child { text-align: right; color: #d8d2c0; }
 
+#unit-hover {
+  position: absolute;
+  z-index: 9;
+  width: 260px;
+  max-width: calc(100% - 16px);
+  padding: 10px 12px;
+  background: #211d16;
+  border: 1px solid #8e805d;
+  border-radius: 5px;
+  box-shadow: 0 6px 20px #0009;
+  font-size: 12px;
+  line-height: 1.4;
+  pointer-events: none;
+  overflow-wrap: anywhere;
+}
+#unit-hover .hover-faction { color: #bdb39a; font-size: 10px; letter-spacing: 1px; margin-bottom: 3px; }
+#unit-hover .ui-name { font-size: 15px; }
+#unit-hover .experience-card { min-height: 36px; padding: 2px 6px; margin-bottom: 6px; }
+
 /* ---------- popups ---------- */
 
 .popup {

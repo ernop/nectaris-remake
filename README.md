@@ -6,7 +6,7 @@ hex-based tactics game (TG-16 / PC Engine, 1989: *Nectaris* in Japan,
 combat calculation with support and surround fire, experience, terrain
 defense, factories with stored units, transports — while dropping the pure
 hardware limitations: the whole map is visible at once, with free zoom and
-pan, at any map size. It includes 16 campaign maps, a 12-map online expansion,
+pan, at any map size. It includes 32 original campaign maps, a 12-map online expansion,
 an original procedural chiptune score, and a level editor with URL sharing.
 
 ## What's what
@@ -25,7 +25,7 @@ an original procedural chiptune score, and a level editor with URL sharing.
 | `js/combat.js` | Recovered per-machine damage and squad-casualty calculation |
 | `js/engine.js` | Game state, movement/ZOC, actions, victory |
 | `js/ai.js` | Computer opponent |
-| `js/data-maps.js` | Official 16-map normal campaign from Hudson's 1997 PC Engine remake |
+| `js/data-maps.js` / `js/data-advanced-maps.js` | Official normal and advanced campaigns, 16 missions each, from Hudson's 1997 PC Engine remake |
 | `js/data-expansion-maps.js` | 12-map Lunar Frontiers online expansion |
 | `js/data-basenectaris-maps.js` | 12-map Base Nectaris terrain pack (bilingual briefings) |
 | `tools/nmd-to-level.js` | Converts a Windows-edition `.nmd` map file to a level |
@@ -82,6 +82,9 @@ profile. Storage problems display an error instead of claiming progress is saved
 
 ## Controls
 
+- Hover a unit for a compact stats card beside its hex. The card stays clear
+  of the unit, flips at map edges, and lets clicks pass through. Move away or
+  press Esc to dismiss it; the sidebar keeps the persistent selection details.
 - Click a unit to see its movement destinations and boardable transports.
   Choose a destination, or click its current hex to stay and aim.
 - After choosing the position, attackable enemies turn red. Hover a target for
@@ -263,11 +266,11 @@ without them shows its English text in either setting.
   Legacy unit icons are third-party-derived, imported from the chart explicitly
   selected by the user on 2026-09-20. The source JPEG and provenance are in
   `art/legacy/`; this user instruction is not a separate third-party license.
-- **Campaign maps** reproduce the 16 normal-campaign layouts, deployments and
+- **Campaign maps** reproduce the 32 normal/advanced campaign layouts, deployments and
   factory inventories built into Hudson's official 1997 Windows freeware PC
-  Engine remake. The data was extracted deterministically after the project
-  owner confirmed redistribution permission; that campaign extraction includes
-  no bitmap artwork. The Base Nectaris terrain pack comes from unit-free
+  Engine remake. The normal campaign has the owner-confirmed redistribution
+  permission recorded in 2026-09-03; the advanced import was explicitly requested
+  on 2026-09-20. Both are extracted deterministically without bitmap artwork. The Base Nectaris terrain pack comes from unit-free
   `.nmd` files published with a separate reposting grant. The 12-map Lunar
   Frontiers expansion remains original. See
   [`LEVEL_SOURCES.md`](LEVEL_SOURCES.md).

@@ -72,6 +72,7 @@ var UI = (function () {
       resize: function () { self.resize(); },
       mousedown: function (e) { self.onMouseDown(e); },
       mousemove: function (e) { self.onMouseMove(e); },
+      mouseleave: function () { self.onMouseLeave(); },
       mouseup: function (e) { self.onMouseUp(e); },
       windowMouseup: function () { self.dragging = null; },
       wheel: function (e) { self.onWheel(e); },
@@ -84,6 +85,7 @@ var UI = (function () {
     window.addEventListener("mouseup", this.handlers.windowMouseup);
     canvas.addEventListener("mousedown", this.handlers.mousedown);
     canvas.addEventListener("mousemove", this.handlers.mousemove);
+    canvas.addEventListener("mouseleave", this.handlers.mouseleave);
     canvas.addEventListener("mouseup", this.handlers.mouseup);
     canvas.addEventListener("wheel", this.handlers.wheel, { passive: false });
     canvas.addEventListener("contextmenu", this.handlers.contextmenu);
@@ -164,6 +166,7 @@ var UI = (function () {
       self.renderer.selected = self.selected;
       self.renderer.draw();
       self.positionActionMenu();
+      self.updateHoverInfo();
     });
   };
 
@@ -176,6 +179,7 @@ var UI = (function () {
     window.removeEventListener("mouseup", h.windowMouseup);
     this.canvas.removeEventListener("mousedown", h.mousedown);
     this.canvas.removeEventListener("mousemove", h.mousemove);
+    this.canvas.removeEventListener("mouseleave", h.mouseleave);
     this.canvas.removeEventListener("mouseup", h.mouseup);
     this.canvas.removeEventListener("wheel", h.wheel);
     this.canvas.removeEventListener("contextmenu", h.contextmenu);
@@ -187,6 +191,7 @@ var UI = (function () {
     this._aiTurn = null;
     this.closeActionMenu();
     this.closeFactoryPanel();
+    $("unit-hover").classList.add("hidden");
     $("battle-panel").classList.add("hidden");
     $("watch-panel").classList.add("hidden");
   };
@@ -353,28 +358,90 @@ var UI = (function () {
     return duration;
   };
 
-  GameUI.prototype.showUnitInfo = function (unit) {
-    var el = $("unit-info");
-    if (!unit) { el.innerHTML = ""; return; }
+  function unitInfoHtml(game, unit) {
+    if (!unit) return "";
     var t = unit.type;
-    var terr = this.game.terrainAt(unit.col, unit.row);
+    var terr = game.terrainAt(unit.col, unit.row);
     var strCap = COMBAT.strengthCaption(unit.strength);
-    el.innerHTML =
-      "<div class='ui-name'>" + t.name + "</div>" +
+    return "<div class='ui-name'>" + esc(t.name) + "</div>" +
       "<div class='experience-card'>" + experienceStarsHtml(unit.exp) +
       experienceEffectHtml(unit.exp) + "</div>" +
       "<table class='ui-stats'>" +
       (strCap ? "<tr><td>Strength</td><td>" + strCap + "</td></tr>" : "") +
       "<tr><td>Atk G / A</td><td>" + (t.atkG || "—") + " / " + (t.atkA || "—") + "</td></tr>" +
       "<tr><td>Defense</td><td>" + t.def + "</td></tr>" +
-      "<tr><td>Move</td><td>" + (t.move || "—") + " (" + t.moveType + ")</td></tr>" +
+      "<tr><td>Move</td><td>" + (t.move || "—") + " (" + esc(t.moveType) + ")</td></tr>" +
       "<tr><td>Range G / A</td><td>" + bandText(t, false) + " / " + bandText(t, true) + "</td></tr>" +
-      "<tr><td>Terrain</td><td>" + terr.name + " +" + (t.moveType === "air" ? 0 : terr.def) + " DEF</td></tr>" +
+      "<tr><td>Terrain</td><td>" + esc(terr.name) + " +" + (t.moveType === "air" ? 0 : terr.def) + " DEF</td></tr>" +
       (t.capture ? "<tr><td colspan='2'>Can capture buildings</td></tr>" : "") +
       (t.moveAfterAttack ? "<tr><td>Movement left</td><td>" + unit.movePointsLeft + " / " + t.move +
         "</td></tr><tr><td colspan='2'>May spend remaining movement after one attack</td></tr>" : "") +
       (t.moveOrFire ? "<tr><td colspan='2'>May move or fire, never both</td></tr>" : "") +
       "</table>";
+  }
+
+  GameUI.prototype.showUnitInfo = function (unit) {
+    $("unit-info").innerHTML = unitInfoHtml(this.game, unit);
+  };
+
+  // Anchor to the hex, not the moving pointer. Prefer a side with fewer
+  // covered units, and never cover the inspected hex or leave the viewport.
+  function hoverPosition(center, radius, width, height, viewWidth, viewHeight, obstacles) {
+    var margin = 8, gap = radius + 12;
+    if (width > viewWidth - margin * 2 || height > viewHeight - margin * 2) return null;
+    function clamp(value, max) { return Math.max(margin, Math.min(max - margin, value)); }
+    var y = clamp(center.y - 32, viewHeight - height);
+    var x = clamp(center.x - width / 2, viewWidth - width);
+    var candidates = [
+      { x: center.x + gap, y: y },
+      { x: center.x - gap - width, y: y },
+      { x: x, y: center.y + gap },
+      { x: x, y: center.y - gap - height },
+    ];
+    var best = null, bestScore = Infinity;
+    candidates.forEach(function (pos) {
+      if (pos.x < margin || pos.y < margin || pos.x + width > viewWidth - margin ||
+          pos.y + height > viewHeight - margin) return;
+      var score = (obstacles || []).reduce(function (sum, rect) {
+        var w = Math.max(0, Math.min(pos.x + width, rect.x + rect.width) - Math.max(pos.x, rect.x));
+        var h = Math.max(0, Math.min(pos.y + height, rect.y + rect.height) - Math.max(pos.y, rect.y));
+        return sum + w * h;
+      }, 0);
+      if (score < bestScore) { best = pos; bestScore = score; }
+    });
+    return best;
+  }
+
+  GameUI.prototype.updateHoverInfo = function () {
+    var card = $("unit-hover"), r = this.renderer, hex = r.hoverHex;
+    var unit = hex && this.game.unitAt(hex.col, hex.row);
+    if (!unit || this.busy || this.destroyed || (this.dragging && this.dragging.pan) ||
+        ["aiTurn", "battle", "factory", "over"].indexOf(this.mode) >= 0) {
+      card.classList.add("hidden");
+      return;
+    }
+    var faction = RENDER.PLAYER_COLORS[unit.player];
+    var html = "<div class='hover-faction'>" + esc(faction.name) + "</div>" + unitInfoHtml(this.game, unit);
+    if (this._hoverHtml !== html) { card.innerHTML = html; this._hoverHtml = html; }
+    card.style.borderColor = faction.light;
+    card.classList.remove("hidden");
+    var radius = Math.max(18, r.hexSize * r.zoom);
+    var obstacles = this.game.units.filter(function (other) {
+      return other !== unit && !other.carriedBy && !other.inFactory;
+    }).map(function (other) {
+      var p = r.hexCenter(other.col, other.row);
+      return { x: p.x - radius, y: p.y - radius, width: radius * 2, height: radius * 2 };
+    });
+    var menu = $("action-menu");
+    if (!menu.classList.contains("hidden")) obstacles.push({
+      x: parseFloat(menu.style.left), y: parseFloat(menu.style.top),
+      width: menu.offsetWidth, height: menu.offsetHeight,
+    });
+    var pos = hoverPosition(r.hexCenter(unit.col, unit.row), radius,
+      card.offsetWidth, card.offsetHeight, this.canvas.width, this.canvas.height, obstacles);
+    if (!pos) { card.classList.add("hidden"); return; }
+    card.style.left = Math.round(pos.x) + "px";
+    card.style.top = Math.round(pos.y) + "px";
   };
 
   GameUI.prototype.showHexInfo = function (col, row) {
@@ -495,6 +562,13 @@ var UI = (function () {
     (unit.cargo || []).forEach(function (cargo) {
       if (self.hasUnloadDestination(unit, cargo)) {
         add(transport, "Unload " + cargo.type.name, function () { self.enterUnload(unit, cargo); });
+        add(menu, "Unload " + cargo.type.name, function () { self.enterUnload(unit, cargo); });
+      } else {
+        var reason = document.createElement("div");
+        reason.textContent = cargo.type.name + (cargo.moved ?
+          " cannot unload until next turn: it has already acted or boarded this turn." :
+          " cannot unload here: no legal adjacent space is open.");
+        transport.appendChild(reason);
       }
     });
     transport.classList.remove("hidden");
@@ -770,6 +844,12 @@ var UI = (function () {
       if (events[i].t === "repair") this.toast("Repaired to full strength");
     }
     this.checkGameOver();
+    if (this.game.winner === null && !unit.inFactory && unit.cargo.some(function (cargo) {
+      return this.hasUnloadDestination(unit, cargo);
+    }, this)) {
+      this.selected = unit;
+      this.openActionMenu(unit);
+    }
   };
 
   GameUI.prototype.enterUnload = function (transport, cargoUnit) {
@@ -792,6 +872,7 @@ var UI = (function () {
   GameUI.prototype.onMouseDown = function (e) {
     if (e.button === 2 || e.button === 1) {
       this.dragging = { x: e.offsetX, y: e.offsetY, moved: false, pan: true };
+      $("unit-hover").classList.add("hidden");
       return;
     }
     this.dragging = { x: e.offsetX, y: e.offsetY, moved: false, pan: false };
@@ -820,7 +901,14 @@ var UI = (function () {
       if (u && this.mode === "idle") this.showUnitInfo(u);
       if (u && this.mode === "moved") this.showCombatPreview(u);
     }
+    this.updateHoverInfo();
     if (changed) this.draw();
+  };
+
+  GameUI.prototype.onMouseLeave = function () {
+    this.renderer.hoverHex = null;
+    $("unit-hover").classList.add("hidden");
+    this.draw();
   };
 
   GameUI.prototype.onMouseUp = function (e) {
@@ -851,7 +939,7 @@ var UI = (function () {
   };
 
   GameUI.prototype.onKey = function (e) {
-    if (e.key === "Escape") this.onCancel();
+    if (e.key === "Escape") { this.onMouseLeave(); this.onCancel(); }
     if (e.key === "e" && this.mode === "idle") this.endTurn();
   };
 
@@ -865,6 +953,7 @@ var UI = (function () {
     r.originY = e.offsetY - (e.offsetY - r.originY) * (nz / r.zoom);
     r.zoom = nz;
     r.constrainView();
+    r.hoverHex = r.pixelToHex(e.offsetX, e.offsetY);
     this.draw();
   };
 
@@ -1075,7 +1164,7 @@ var UI = (function () {
     this._toastT = setTimeout(function () { el.classList.add("hidden"); }, 2200);
   };
 
-  return { GameUI: GameUI, actionPosition: actionPosition };
+  return { GameUI: GameUI, actionPosition: actionPosition, hoverPosition: hoverPosition };
 })();
 
 if (typeof module !== "undefined") module.exports = UI;

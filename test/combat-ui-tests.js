@@ -2,7 +2,7 @@
 "use strict";
 module.exports = function (ok) {
   var ENGINE = require("../js/engine.js"), COMBAT = require("../js/combat.js"), UI = require("../js/ui.js");
-  var savedDocument = global.document, savedView = global.COMBAT_VIEW;
+  var savedDocument = global.document, savedView = global.COMBAT_VIEW, savedRender = global.RENDER;
   var nodes = {};
   function element() {
     var classes = new Set(["hidden"]), html = "";
@@ -15,6 +15,7 @@ module.exports = function (ok) {
   }
   global.document = { getElementById: function (id) { return nodes[id] || (nodes[id] = element()); }, createElement: element };
   global.COMBAT_VIEW = require("../js/combat-view.js");
+  global.RENDER = require("../js/render.js");
   function fixture(type, enemyX) {
     var game = new ENGINE.Game({name: "Combat UI", grid: ["........", "........", "........"],
       units: [{t: type, o: 0, x: 1, y: 1}, {t: "POLAR", o: 1, x: enemyX, y: 1}]}, {seed: 7});
@@ -24,7 +25,7 @@ module.exports = function (ok) {
       hexCenter: function (col, row) { var p = HEX.toPixel(col, row, 34); return {x: p.x + 200, y: p.y + 100}; },
       pixelToHex: function (col, row) { return { col: col, row: row }; },
     };
-    ui.draw = ui.showUnitInfo = ui.refreshStatus = ui.checkGameOver = function () {};
+    ui.draw = ui.showUnitInfo = ui.refreshStatus = ui.checkGameOver = ui.updateHoverInfo = function () {};
     ui.animateBattleResult = function (event, detail, done) { ui.battleEvent = event; ui.animationDone = done; };
     ui.selectUnit(game.units[0]);
     return ui;
@@ -192,11 +193,17 @@ module.exports = function (ok) {
     }
     ui = transportUI(); unit = ui.game.units[0];
     ui.onHexClick(1,1); ui.onHexClick(1,1);
+    ok(!!action("Unload " + unit.cargo[0].type.name),
+      "stopping a loaded transport offers Unload directly in its map controls");
     nodes["transport-actions"].children[0].onclick(); ui.onHexClick(2,1);
     ok(!unit.moved && !unit.cargo.length && ui.mode === "idle" && ui.game.unitAt(2,1).moved,
       "unloading in place spends the passenger's turn while leaving the transport ready");
     ui = transportUI(); unit = ui.game.units[0];
     ui.onHexClick(1,1); ui.onHexClick(1,0); action("End").onclick();
+    ok(ui.selected === unit && ui.mode === "moved" &&
+      !!action("Unload " + unit.cargo[0].type.name),
+      "End keeps eligible cargo unloading available without reselecting the transport");
+    action("Close").onclick();
     ui.onHexClick(1,0);
     ok(unit.moved && ui.mode === "moved" && action("Close") && !action("End") && !ui.pickTargets.length,
       "used transport can reopen only its passenger actions without a second move or attack");
@@ -225,8 +232,53 @@ module.exports = function (ok) {
     });
     var edge = UI.actionPosition({ x: 790, y: 550 }, 34, [], 108, 26, 800, 560);
     ok(edge.y === 565 && edge.x + 108 <= 800, "edge placement uses the reserved rail inside viewport bounds");
+
+    // Hover details must stay near their hex even on the ultrawide SENECA
+    // layout, and must not clip at any of the four viewport corners.
+    [[3322, 1786], [940, 632], [620, 600]].forEach(function (viewport) {
+      [20, viewport[0] / 2, viewport[0] - 20].forEach(function (x) {
+        [20, viewport[1] / 2, viewport[1] - 20].forEach(function (y) {
+          var pos = UI.hoverPosition({x: x, y: y}, 34, 260, 220, viewport[0], viewport[1], []);
+          ok(pos && pos.x >= 8 && pos.y >= 8 && pos.x + 260 <= viewport[0] - 8 &&
+            pos.y + 220 <= viewport[1] - 8, "hover card fits viewport " + viewport + " at " + x + "," + y);
+          ok(pos && (pos.x >= x + 46 || pos.x + 260 <= x - 46 ||
+            pos.y >= y + 46 || pos.y + 220 <= y - 46), "hover card leaves inspected hex clear");
+        });
+      });
+    });
+    var clearSide = UI.hoverPosition({x: 400, y: 200}, 34, 260, 220, 1000, 600,
+      [{x: 450, y: 180, width: 70, height: 70}]);
+    ok(clearSide.x < 400, "hover card prefers the empty side over covering a nearby unit");
+    ok(UI.hoverPosition({x: 100, y: 50}, 34, 260, 220, 200, 100, []) === null,
+      "a viewport too small for the card retains the sidebar instead of clipping the card");
+
+    ui = fixture("BISON", 3);
+    ui.updateHoverInfo = UI.GameUI.prototype.updateHoverInfo;
+    before = JSON.stringify(ui.game.snapshot());
+    ui.onMouseMove({offsetX: 3, offsetY: 1});
+    var hover = nodes["unit-hover"];
+    ok(!hover.classList.contains("hidden") && hover.innerHTML.includes("Polar PT-6") &&
+      hover.innerHTML.includes("Xenon") && !hover.innerHTML.includes("<td>Strength</td>"),
+      "hover inspects an enemy while retaining the selected unit and hides full strength");
+    ui.game.units[1].strength = 5;
+    ui.updateHoverInfo();
+    ok(hover.innerHTML.includes("<td>Strength</td><td>5</td>"), "hover refreshes changed squad strength");
+    ui.game.units[1].strength = 8;
+    ui.onMouseMove({offsetX: 1, offsetY: 1});
+    ok(hover.innerHTML.includes("Bison S-61") && !hover.innerHTML.includes("Polar PT-6"),
+      "moving between units replaces the local card's contents");
+    ui.onMouseMove({offsetX: 6, offsetY: 1});
+    ok(hover.classList.contains("hidden"), "hover card clears on empty terrain");
+    ui.onMouseMove({offsetX: 1, offsetY: 1});
+    ui.onMouseLeave();
+    ok(hover.classList.contains("hidden") && !ui.renderer.hoverHex, "leaving the canvas clears hover state");
+    ui.onMouseMove({offsetX: 1, offsetY: 1});
+    ui.busy = true; ui.updateHoverInfo();
+    ok(hover.classList.contains("hidden") && JSON.stringify(ui.game.snapshot()) === before,
+      "committed combat hides hover details without changing game state");
   } finally {
     if (savedDocument === undefined) delete global.document; else global.document = savedDocument;
     if (savedView === undefined) delete global.COMBAT_VIEW; else global.COMBAT_VIEW = savedView;
+    if (savedRender === undefined) delete global.RENDER; else global.RENDER = savedRender;
   }
 };

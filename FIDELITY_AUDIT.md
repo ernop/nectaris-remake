@@ -11,6 +11,44 @@ for maximum fidelity; it supersedes the earlier custom base-storage and
 all-reserves-count decisions. Windows, PlayStation and TG-16 sources are
 identified separately. This audit does not claim their releases are identical.
 
+## Requested implementation pass — 2026-09-20
+
+Scope confirmed by the user: implement missing gameplay behavior and the advanced
+campaign. **Leave every extra feature unchanged.** Soundtrack, battle
+presentation, in-game Manual and Surrender are explicitly excluded. No Original
+mode, restrictions, removals or changes to forecasts/profiles/custom packs were
+requested or introduced by this pass.
+
+Completed:
+
+- CPU field boarding, direct factory boarding, transport rendezvous, delivery
+  and legal unloading. Newly loaded passengers wait for their next activation.
+  Landing selection considers the passenger's terrain access; carriers leave
+  the prison hex free for the subsequent infantry capture.
+- CPU Atlas deployment at the documented four-enemy threshold (aircraft count).
+  Multiple reserve deployments and mine deployment already existed in the
+  checkout at the start of this pass. The CPU now revisits factories after its
+  field actions, so captures and transport rendezvous can release ready reserves.
+- CPU factory exits follow the user's corrected recollection: start upper-left
+  and scan clockwise for the first available destination, including compatible
+  transports in the same scan. An original execution trace remains outstanding.
+  Regression tests cover both column
+  parities, map edges, blocked exits, carrier compatibility/capacity and boarding
+  into a carrier just deployed from the factory.
+- CPU diversion around guarded factories and a defensive response to an
+  infantry-loaded Pelican approaching its base. These restore documented kinds
+  of decisions; numerical priorities and tie-breaking remain reconstructed.
+- All 16 advanced missions, TLOVER through ROTCEN, extracted from the same
+  verified Hudson executable as the normal campaign. Normal data is unchanged.
+  Missions 17–32 are wired into the menu, map jump, next mission and existing
+  profile/save/result handling. See `LEVEL_SOURCES.md` for source discrepancies.
+
+Still unresolved: exact original CPU decision order/scoring, the additional
+Atlas infantry trigger, original frame-dependent RNG/call sequencing, and the
+PCE boundary cases below. **This pass does not establish an exact CPU or RNG
+clone.** The Windows executable confirms our ordinary damage-floor ordering;
+see `ORIGINAL_EXECUTABLE_NOTES.md` for addresses and remaining limits.
+
 ## Current differences only — clarification after the fixes
 
 The table later in this document contains history, including bugs already fixed.
@@ -22,11 +60,10 @@ lacked it. “Unverified” is not the same as “incorrect.”
 
 | Current difference | What our remake actually does | Why it remains |
 |---|---|---|
-| Original computer transport tactics are missing | AI never plans boarding, factory-to-carrier loading or unloading. Humans can use them. Original CPU infantry airlifts are described in firsthand TG-16 guides. | Transport legality/UI were implemented, but the AI only has move, attack, repair, deploy and wait plans. |
-| Original CPU Atlas deployment is missing | The AI skips stored Atlas and Trigger entirely. Original CPU Atlas deployment conditions are documented. Its one-reserve-per-factory-per-turn routine is also our simplification; exact original CPU deployment tempo remains unverified. | The AI deployment routine still filters out immobile types and visits each factory once. Correcting human deployment did not reconstruct this routine. |
-| Original tactical decision-making is replaced | New attack scoring, activation order and nearest-target movement; no specific response to an infantry-loaded Pelican threatening the base. | We wrote a heuristic opponent. The original CPU has not been reconstructed; stronger or weaker play is not proof of fidelity. |
-| Advanced campaign is missing | Only 16 normal original missions; no original missions 17–32. | Only the normal campaign was extracted/imported; the recorded redistribution authorization is scoped to those maps. |
-| Original random sequence generation is replaced | Mulberry32 with independent opposing rolls, rather than a recovered original generator. | Deterministic saves/tests were implemented without reverse-engineering the original RNG. This establishes an implementation difference, **not proof that the current documented outcome probabilities are wrong**. |
+| Exact original transport choices remain unverified | CPU now boards, carries and unloads units, including factory reserves and infantry attacks on bases. | Pickup/landing priorities are reconstructed; original per-mission decision traces are unavailable. |
+| Additional Atlas infantry deployment trigger remains unverified | CPU implements the documented four-enemy deployment condition and can deploy mines and multiple reserves. | The separate infantry condition is not specified by the PCE source. Windows disassembly identifies a further state-dependent branch but does not establish the PCE condition. |
+| Original tactical decision-making is replaced | New attack scoring and activation order, with guarded-factory diversion and a response to infantry-loaded Pelicans threatening the base. | We wrote a heuristic opponent. The original CPU has not been reconstructed; stronger or weaker play is not proof of fidelity. |
+| Original random sequence generation is replaced | Mulberry32 with independent opposing rolls, rather than a recovered original generator. | The Windows generator has now been located, but it shares state with frame activity and presentation calls. PCE equivalence and exact call sequencing remain unverified; transplanting the generator alone would not reproduce the original stream. |
 | Original audiovisual battle presentation is replaced | Map explosions and casualty counters, recreated terrain/art options and new procedural music. Legacy unit icons do not reproduce the entire original presentation. | The renderer and music were authored for this remake; full original combat scenes/audio were not implemented or imported. |
 | Original in-game Manual and Surrender command are missing | Markdown help and Save & Menu; no original tutorial/manual mode or command to concede the match. | Those interfaces/actions were not implemented. Saving and leaving is not surrendering. |
 
@@ -35,7 +72,7 @@ For CPU response to loaded Pelicans: [Anka's factory tactics](https://anka.sakur
 For original surrender controls: [TG-16 walkthrough](https://gamefaqs.gamespot.com/tg16/589030-military-madness/faqs/53871).
 PCE/Windows in-game manuals are identified in [Anka's supplement](https://anka.sakura.ne.jp/nectaris/d1.html).
 
-### Extra capabilities / altered player experience
+### Extra capabilities / altered player experience — explicitly unchanged
 
 | Current addition | How it differs | Why it exists |
 |---|---|---|
@@ -61,7 +98,7 @@ PCE/Windows in-game manuals are identified in [Anka's supplement](https://anka.s
 
 ### Suspected differences that are not yet proven violations
 
-Exact intermediate combat rounding; original opposing-roll correlation; ZOC
+Exact PCE intermediate arithmetic (Windows damage-floor order now checked); original opposing-roll correlation; ZOC
 escape/terrain charging and buggy retreat boundaries; adjacent-factory transfer;
 aircraft on hostile factories; carrier attack timing around unloading;
 factory inventory order; and victory-check timing. Our current implementation
@@ -116,7 +153,7 @@ not that every boundary case has been observed on hardware.
 | Counterattacks | Adjacent only, matching target domain; pre-battle strength | Retained. Casualties do not reduce the simultaneous return shot. |
 | Support | Strength-weighted relevant base stats / twice initiator strength | Matches combat reconstruction, including the unusual defense denominator. |
 | Terrain / surround / caps | Add terrain; halve defender after support and terrain; cap 100 | Matches reconstruction. Edge units cannot be surrounded; initiating while surrounded has no penalty. |
-| Damage and temporary HP | Integer damage stages; `100 × strength + 50`, except strength 1 | Matches published high-level formula. Exact intermediate rounding order remains unverified. |
+| Damage and temporary HP | Integer damage stages; `100 × strength + 50`, except strength 1 | Windows floor ordering confirmed by disassembly; direct PCE verification remains outstanding. |
 | Random damage | Uniform 381 values from 0.20 to 4.00 | **Fixed:** published 14-value weighted table. AI expectations, combat and forecasts now agree. |
 | Experience | Correct coefficients; extra +2 for a damaged defender's counter-kill | **Fixed:** damaged surviving defender +1; unhurt +2. Attacker +0/+1/+2 and factory capture +4 retained. Anka's explicit table takes priority over ambiguous English prose. |
 | Mule cargo | Any non-transport ground unit | **Fixed:** Charlie/Kilroy/Atlas/Trigger; PCE Panther exception only directly from a factory. |
@@ -144,36 +181,19 @@ See `MECHANICS.md` for the adopted rules and source links.
 
 ## Remaining gaps, in priority order
 
-1. **Original CPU behavior is not reproduced.** `js/ai.js` is a new heuristic.
-   It deploys at most one mobile reserve per factory per turn, skips stored
-   Atlas/Trigger and has no deliberate transport loading/unloading strategy.
-   Target selection, sequencing, deployment triggers and retreats therefore
-   change campaign difficulty. Fixing this requires observed PCE decision
-   traces, not merely making our AI stronger. The documented PCE Atlas
-   deployment threshold is incomplete when infantry are involved.
-2. **Exact arithmetic and randomness.** The published formula suppresses the
-   original multiply/divide instruction order. Fraction-sensitive experience
-   and support cases need execution traces. The 14 weights are supported by
-   published experiments, but the original PRNG, seeding, table implementation
-   and correlation between opposing rolls have not been recovered. Our seeded
-   Mulberry32 and independent rolls are approximations. The forecast's joint
-   probabilities inherit that independence assumption.
-3. **ZOC edges and original bugs.** Verify escape from ZOC, terrain charging
-   on the guaranteed one-hex move, friendly occupied ZOC hexes, and buggy
-   retreat after killing/non-killing attacks. The documented PCE/Windows
-   capture bug temporarily removes hostile ZOC from the factory hex; we do
-   not emulate it because its duration and exact trigger are not established.
-4. **Rare action ordering.** Confirm aircraft stopping on hostile factories,
-   adjacent-factory deployment/transfer, whether unloading allows a subsequent
-   carrier attack, inventory ordering, and elimination timing after capture,
-   storage, simultaneous destruction and the final turn. Normal UI action
-   limits are enforced, but not every internal engine mutation is a hardened
-   standalone command API (for example caller-supplied cached movement ranges).
-5. **Campaign completeness.** PCE has 16 normal plus 16 advanced missions.
-   We have the 16 normal maps extracted from the official 1997 Windows port;
-   direct PCE binary equivalence has not been demonstrated. The advanced
-   campaign is missing. Existing redistribution authorization covers only the
-   imported normal campaign; no additional original maps were imported here.
+1. **Exact original CPU behavior.** Documented transport, factory and base-defense
+   behaviors are implemented. Scoring, action order, exact threat thresholds and
+   the additional PCE Atlas infantry trigger still require original traces.
+2. **Original random stream.** The Windows byte generator, percentile conversion,
+   damage mapping and two successive battle draws are identified. Frame activity
+   also changes that state. PCE equivalence and full call/timing behavior remain
+   unverified; the runtime generator is unchanged. Ordinary damage flooring is
+   confirmed for Windows. See `ORIGINAL_EXECUTABLE_NOTES.md`.
+3. **PCE edge cases.** Starting-in-ZOC terrain charging, buggy retreat boundaries,
+   adjacent-factory transfers, aircraft on hostile factories, inventory ordering,
+   capture-ZOC bug lifetime and exact victory-check timing still need traces.
+4. **Excluded by request.** Battle presentation, soundtrack, Manual and Surrender
+   remain outside this implementation pass. All extra features remain in place.
 
 ## Remake facilities and compatibility
 
@@ -190,9 +210,13 @@ deleted. Missing old Mule passenger restrictions are migrated on restoration.
 
 ## Verification
 
-`node test/run-tests.js` exercises all 40 maps, combat, transport timing and
+`node test/run-tests.js` exercises all 56 maps, combat, transport timing and
 terrain, factory/base behavior, victory exceptions, save/resume and UI actions.
-Final result: **44,190 checks, zero failures**, including all 40 self-play maps.
+The normal campaign extraction is byte-identical after adding the advanced
+selector. All 56 maps undergo validation and AI self-play. Targeted CPU tests
+cover boarding/delivery/capture, passenger timing, terrain barriers, Atlas
+deployment, guarded factories and base defense. Browser smoke tests verified
+TLOVER rendering and Save & Menu → Continue using isolated in-memory storage.
 The local browser also restored an existing match and exposed Atlas factory
 deployment destinations; the preview was cancelled without changing the match.
 `test/fidelity-tests.js` adds independent published battle examples rather than
@@ -201,6 +225,6 @@ the previous assumptions that tanks fit in Mule, passengers unload immediately,
 and bases behave like factories.
 
 For the next fidelity pass, capture reproducible original PCE inputs and outputs
-for the five gaps above. Record release/region, map, initial state, action order
+for the unresolved gaps above. Record release/region, map, initial state, action order
 and resulting state. Matching those fixtures will be stronger evidence than
 additional self-play runs.

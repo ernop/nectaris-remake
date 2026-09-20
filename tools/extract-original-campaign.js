@@ -1,9 +1,10 @@
 #!/usr/bin/env node
-/* Extract the 16 normal-campaign maps from Hudson's official 1997 Windows
+/* Extract the normal or advanced campaign from Hudson's official 1997 Windows
  * PC Engine remake.
  *
  * Usage:
  *   node tools/extract-original-campaign.js path/to/Nec.exe > js/data-maps.js
+ *   node tools/extract-original-campaign.js path/to/Nec.exe --advanced > js/data-advanced-maps.js
  *
  * The tables below identify the built-in terrain, deployments and factory
  * inventories in the 1997-11-05 executable. The executable itself is not
@@ -24,6 +25,7 @@ var TERRAIN_DEFENSE = 0x42b160;
 var TERRAIN_POINTERS = 0x47f750;
 var FACTORY_COORDINATES = 0x47f7d0;
 var UNIT_POINTERS = 0x46b988;
+var MAP_NAMES = 0x42a9c8;
 
 var NAMES = [
   "REVOLT", "ICARUS", "CYRANO", "RAMSEY",
@@ -156,10 +158,13 @@ function factoryCoordinates(buffer, mapIndex) {
 }
 
 function decodeMap(buffer, mapIndex) {
-  var width = buffer[fileOffset(WIDTHS) + mapIndex];
-  var height = buffer[fileOffset(HEIGHTS) + mapIndex];
+  // 0x40a4c0 selects roster = stage + 16 * campaign. Dimensions, terrain
+  // and factory-coordinate tables use stage only (0x405b24/0x423c4a).
+  var terrainIndex = mapIndex % 16;
+  var width = buffer[fileOffset(WIDTHS) + terrainIndex];
+  var height = buffer[fileOffset(HEIGHTS) + terrainIndex];
   var terrain = decompressTerrain(
-    buffer, readPointer(buffer, TERRAIN_POINTERS, mapIndex), width * height
+    buffer, readPointer(buffer, TERRAIN_POINTERS, terrainIndex), width * height
   );
   var grid = [];
   var buildings = [];
@@ -185,7 +190,7 @@ function decodeMap(buffer, mapIndex) {
   buildings.forEach(function (building) {
     byCell[building.col + "," + building.row] = building;
   });
-  var factoryCells = factoryCoordinates(buffer, mapIndex);
+  var factoryCells = factoryCoordinates(buffer, terrainIndex);
   var units = [];
   var record = fileOffset(readPointer(buffer, UNIT_POINTERS, mapIndex));
 
@@ -220,8 +225,11 @@ function decodeMap(buffer, mapIndex) {
   }
 
   return {
-    name: NAMES[mapIndex],
-    blurb: BLURBS[mapIndex],
+    name: buffer.toString("ascii", fileOffset(MAP_NAMES) + mapIndex * 8,
+      fileOffset(MAP_NAMES) + mapIndex * 8 + 6),
+    blurb: mapIndex < 16 ? BLURBS[mapIndex] :
+      "Original advanced mission " + (mapIndex + 1) + ": " + NAMES[terrainIndex] +
+      " terrain with the official advanced deployments and factory reserves.",
     turnLimit: 50,
     grid: grid,
     buildings: buildings,
@@ -253,6 +261,8 @@ function mapLiteral(map) {
 
 var executable = process.argv[2];
 if (!executable) fail("usage: node tools/extract-original-campaign.js path/to/Nec.exe");
+var advanced = process.argv[3] === "--advanced";
+if (process.argv[3] && !advanced) fail("Unknown option: " + process.argv[3]);
 var buffer = fs.readFileSync(executable);
 var digest = crypto.createHash("sha256").update(buffer).digest("hex");
 if (digest !== EXPECTED_SHA256) {
@@ -265,19 +275,21 @@ expectedDefense.forEach(function (defense, code) {
   }
 });
 
-var maps = NAMES.map(function (_, index) { return decodeMap(buffer, index); });
-console.log("/* Nectaris remake — official Hudson normal campaign.");
+var maps = NAMES.map(function (_, index) { return decodeMap(buffer, index + (advanced ? 16 : 0)); });
+var variable = advanced ? "ADVANCED_CAMPAIGN" : "CAMPAIGN";
+console.log("/* Nectaris remake — official Hudson " + (advanced ? "advanced" : "normal") + " campaign.");
 console.log(" *");
 console.log(" * Generated from Hudson's official 1997 Windows freeware port with:");
-console.log(" *   node tools/extract-original-campaign.js path/to/Nec.exe > js/data-maps.js");
+console.log(" *   node tools/extract-original-campaign.js path/to/Nec.exe" +
+  (advanced ? " --advanced > js/data-advanced-maps.js" : " > js/data-maps.js"));
 console.log(" * Terrain, buildings, deployments and factory inventories reproduce the");
 console.log(" * Windows remake's built-in campaign. English unit IDs follow the");
 console.log(" * TurboGrafx-16 release.");
 console.log(" */");
 console.log("\"use strict\";");
 console.log("");
-console.log("var CAMPAIGN = [");
+console.log("var " + variable + " = [");
 console.log(maps.map(mapLiteral).join(",\n\n"));
 console.log("];");
 console.log("");
-console.log("if (typeof module !== \"undefined\") module.exports = CAMPAIGN;");
+console.log("if (typeof module !== \"undefined\") module.exports = " + variable + ";");

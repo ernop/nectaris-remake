@@ -22,9 +22,10 @@ global.ENGINE = ENGINE;
 var AI = require(path.join(__dirname, "../js/ai.js"));
 var RENDER = require(path.join(__dirname, "../js/render.js"));
 var CAMPAIGN = require(path.join(__dirname, "../js/data-maps.js"));
+var ADVANCED_CAMPAIGN = require(path.join(__dirname, "../js/data-advanced-maps.js"));
 var EXPANSION_LEVELS = require(path.join(__dirname, "../js/data-expansion-maps.js"));
 var BASE_NECTARIS_LEVELS = require(path.join(__dirname, "../js/data-basenectaris-maps.js")).BASE_NECTARIS_LEVELS;
-var ALL_MAPS = CAMPAIGN.concat(EXPANSION_LEVELS, BASE_NECTARIS_LEVELS);
+var ALL_MAPS = CAMPAIGN.concat(ADVANCED_CAMPAIGN, EXPANSION_LEVELS, BASE_NECTARIS_LEVELS);
 
 var failures = 0, checks = 0;
 function ok(cond, msg) {
@@ -119,6 +120,27 @@ CAMPAIGN.forEach(function (m, i) {
     m.grid.length === expected[2], m.name + ": original name and dimensions");
   ok(forces[0] === expected[3] && forces[1] === expected[4] &&
     neutral === expected[5], m.name + ": original initial force totals");
+});
+
+var advancedPayload = ADVANCED_CAMPAIGN.map(function (m) {
+  return {grid:m.grid, buildings:m.buildings, units:m.units};
+});
+ok(ADVANCED_CAMPAIGN.length === 16 && cryptoModule.createHash("sha256")
+  .update(JSON.stringify(advancedPayload)).digest("hex") ===
+  "e0f11254f8afcb071143a0cc67cc8ef8f4f799e762d1d345db85051e7a26c593",
+  "all sixteen advanced missions match the extracted official deployments and reserves");
+var advancedTotals = [[9,8,0],[9,11,0],[13,15,0],[5,7,11],[6,15,24],[10,11,11],
+  [13,16,21],[15,22,2],[9,9,35],[19,14,23],[14,19,18],[18,13,25],
+  [14,19,23],[13,16,27],[18,18,18],[3,7,8]];
+ADVANCED_CAMPAIGN.forEach(function(m,i) {
+  var forces = [0,0,0];
+  m.units.forEach(function(u) { forces[u.o]++; });
+  m.buildings.forEach(function(b) { forces[b.owner < 0 ? 2 : b.owner] += (b.stored || []).length; });
+  ok(m.name === CAMPAIGN[i].name.split("").reverse().join("") && m.turnLimit === 50,
+    m.name + ": original advanced name and turn limit");
+  ok(JSON.stringify(m.grid) === JSON.stringify(CAMPAIGN[i].grid), m.name + ": advanced campaign reuses its original battlefield");
+  ok(JSON.stringify(forces) === JSON.stringify(advancedTotals[i]), m.name + ": advanced force totals cross-checked against the PCE stage guide");
+  ok(JSON.stringify(m.units) !== JSON.stringify(CAMPAIGN[i].units), m.name + ": advanced deployment is distinct from normal");
 });
 
 /* ---------- 2. rules ---------- */
@@ -1035,6 +1057,9 @@ ok(aiRabbit.moved && aiRabbit.movePointsLeft === 0,
   "AI closes the Rabbit activation after post-attack movement");
 
 /* ---------- 3. AI self-play ---------- */
+
+section("documented CPU transport and defense tactics");
+require("./ai-fidelity-tests.js")(ok);
 
 section("AI self-play (all included maps)");
 ALL_MAPS.forEach(function (m, mi) {

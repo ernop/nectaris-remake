@@ -4,9 +4,9 @@
  * activates each fielded unit with a simple evaluate-attacks-else-advance
  * policy. Returns a list of visual events so the UI can animate the turn.
  *
- * Not a clone of the original AI (never published); tuned for similar
- * behavior: aggressive on favorable trades, sends infantry at factories and
- * the base, retreats badly damaged units to repair, holds good terrain.
+ * Reconstructs documented transport, factory and base-defense tactics.
+ * Scoring and tie-breaking remain a remake heuristic, not a disassembly of
+ * the original CPU. Sources and the unresolved cases: FIDELITY_AUDIT.md.
  */
 "use strict";
 
@@ -15,6 +15,8 @@ if (typeof module !== "undefined") {
 }
 
 var AI = (function () {
+  // Capture the stock policy before a restored/custom roster replaces types.
+  var ATLAS_DEPLOYMENT_ENEMIES = UNIT_TYPES.ATLAS.aiDeploymentEnemies;
 
   function isRangedType(t) { return (t.rngG || 0) > 1 || (t.rngA || 0) > 1; }
 
@@ -60,7 +62,10 @@ var AI = (function () {
         b = game.buildings[k];
         if (b.owner === unit.player) continue;
         d = HEX.distance(unit.col, unit.row, b.col, b.row);
-        var weight = b.kind === "base" ? d * 0.7 : d; // prefer the base
+        var weight = b.kind === "base" ? d * 0.7 : d;
+        // Anka l5: infantry divert to another factory when an enemy has
+        // secured the approaches, including with indirect weapons.
+        if (b.kind === "factory" && guardedBuilding(game, b, unit.player)) weight += 20;
         if (weight < bestD) { bestD = weight; best = { col: b.col, row: b.row }; }
       }
       if (best) return best;
@@ -77,6 +82,152 @@ var AI = (function () {
       }
     }
     return best;
+  }
+
+  function guardedBuilding(game, building, player) {
+    return game.playerUnits(1 - player).some(function (enemy) {
+      var distance = HEX.distance(enemy.col, enemy.row, building.col, building.row);
+      return distance <= 1 || COMBAT.canAttackAt(enemy.type, false, distance);
+    });
+  }
+
+  function threatenedBase(game, player) {
+    var bases = Object.keys(game.buildings).map(function (key) { return game.buildings[key]; })
+      .filter(function (b) { return b.kind === "base" && b.owner === player; });
+    var enemies = game.playerUnits(1 - player);
+    for (var i = 0; i < bases.length; i++) {
+      for (var j = 0; j < enemies.length; j++) {
+        var carrier = enemies[j];
+        if (carrier.typeId !== "PELICAN" || !carrier.cargo.some(function (u) { return u.type.capture; })) continue;
+        // The original responds before an infantry airlift reaches its base
+        // (Anka l5). The exact detection radius has not been recovered.
+        if (HEX.distance(carrier.col, carrier.row, bases[i].col, bases[i].row) <= carrier.type.move + 1) return bases[i];
+      }
+    }
+    return null;
+  }
+
+  /* Terrain-aware remaining walking distance, used only for transport
+   * planning. Actual actions always go through the engine's ZOC/legal moves. */
+  function walkingDistances(game, passenger, goal) {
+    var distances = {}, open = [{ col: goal.col, row: goal.row, cost: 0 }];
+    distances[HEX.key(goal.col, goal.row)] = 0;
+    while (open.length) {
+      open.sort(function (a, b) { return a.cost - b.cost; });
+      var current = open.shift();
+      if (current.cost !== distances[HEX.key(current.col, current.row)]) continue;
+      var terrain = game.terrainAt(current.col, current.row);
+      var cost = terrainCost(terrain, passenger.type.moveType, passenger.type);
+      if (cost === null) continue;
+      if (terrain.costsAllMovement && passenger.type.moveType !== "air") cost = Math.max(1, passenger.type.move);
+      HEX.neighbors(current.col, current.row).forEach(function (n) {
+        var terr = game.terrainAt(n.col, n.row);
+        if (!terr || terrainCost(terr, passenger.type.moveType, passenger.type) === null) return;
+        var key = HEX.key(n.col, n.row), next = current.cost + cost;
+        if (distances[key] === undefined || next < distances[key]) {
+          distances[key] = next;
+          open.push({ col: n.col, row: n.row, cost: next });
+        }
+      });
+    }
+    return distances;
+  }
+
+  function wantsTransport(game, passenger, carrier, fromFactory) {
+    if (!game.canLoad(carrier, passenger, fromFactory)) return false;
+    if (!passenger.type.move) return fromFactory;
+    var goal = nearestGoal(game, passenger);
+    if (!goal) return false;
+    var range = game.movementRange(passenger), target = range[HEX.key(goal.col, goal.row)];
+    if (!fromFactory && target && target.canStop && !target.load) return false;
+    // Avoid spending an activation boarding for a destination already nearby.
+    return HEX.distance(passenger.col, passenger.row, goal.col, goal.row) > passenger.type.move + 1;
+  }
+
+  function boardOnePassenger(game, player) {
+    var units = game.playerUnits(player);
+    for (var i = 0; i < units.length; i++) {
+      var passenger = units[i];
+      if (passenger.moved || !passenger.type.move || passenger.type.cargo || passenger.type.moveType === "air") continue;
+      var range = game.movementRange(passenger);
+      for (var j = 0; j < units.length; j++) {
+        var carrier = units[j];
+        if (!carrier.type.cargo || carrier.moved || !wantsTransport(game, passenger, carrier, false)) continue;
+        var destination = range[HEX.key(carrier.col, carrier.row)];
+        if (!destination || !destination.load) continue;
+        var from = { col: passenger.col, row: passenger.row };
+        game.moveUnit(passenger, carrier.col, carrier.row, range);
+        return { t: "move", unit: passenger, from: from,
+          to: { col: carrier.col, row: carrier.row }, reason: "load", effects: [] };
+      }
+    }
+    return null;
+  }
+
+  function planTransport(game, carrier, range) {
+    if (!carrier.cargo.length) {
+      // Rendezvous with a passenger, including reserves with no open exit.
+      var candidates = game.playerUnits(carrier.player).filter(function (u) {
+        return !u.moved && !u.type.cargo && wantsTransport(game, u, carrier, false);
+      });
+      game.playerFactories(carrier.player).forEach(function (b) {
+        b.stored.forEach(function (u) {
+          if (!u.moved && wantsTransport(game, u, carrier, true)) candidates.push(u);
+        });
+      });
+      candidates.sort(function (a, b) {
+        return Number(!!b.type.capture) - Number(!!a.type.capture) ||
+          HEX.distance(carrier.col, carrier.row, a.col, a.row) - HEX.distance(carrier.col, carrier.row, b.col, b.row);
+      });
+      if (!candidates.length) return null;
+      var passenger = candidates[0], best = null, distance = Infinity;
+      Object.keys(range).forEach(function (key) {
+        var rec = range[key];
+        if (!rec.canStop || rec.load || rec.enterBuilding || game.unitAt(rec.col, rec.row) && game.unitAt(rec.col, rec.row) !== carrier) return;
+        var d = HEX.distance(rec.col, rec.row, passenger.col, passenger.row);
+        if (d < distance) { distance = d; best = rec; }
+      });
+      return best && (best.col !== carrier.col || best.row !== carrier.row) ?
+        { kind: "move", dest: best, range: range, reason: "pickup" } : { kind: "finish" };
+    }
+
+    var cargo = carrier.cargo[0];
+    var origin = { col: carrier.col, row: carrier.row };
+    var goalUnit = Object.assign({}, cargo, origin);
+    var goal = nearestGoal(game, goalUnit);
+    if (!goal) return { kind: "finish" };
+    var distances = walkingDistances(game, cargo, goal);
+    var chosen = null, score = Infinity;
+    Object.keys(range).forEach(function (key) {
+      var rec = range[key], occupant = game.unitAt(rec.col, rec.row);
+      if (!rec.canStop || rec.load || rec.enterBuilding || occupant && occupant !== carrier) return;
+      var wasMoved = cargo.moved;
+      try {
+        carrier.col = rec.col; carrier.row = rec.row;
+        // Newly boarded cargo waits until next turn, but its landing site
+        // must still be planned now. No action flag escapes this simulation.
+        cargo.moved = false;
+        game.unloadTargets(carrier, cargo).forEach(function (drop) {
+          if (game.buildingAt(drop.col, drop.row)) return;
+          var remaining = distances[HEX.key(drop.col, drop.row)];
+          if (remaining === undefined) return;
+          if (!cargo.type.move) {
+            var d = HEX.distance(drop.col, drop.row, goal.col, goal.row);
+            remaining = Math.abs(d - Math.max(1, cargo.type.rngG || 1));
+          }
+          var value = remaining * 20 + rec.cost * 0.1;
+          if (game.inEnemyZOC(drop.col, drop.row, cargo.player)) value += 5;
+          // Leave a prison hex clear for the passenger's following turn.
+          if (game.buildingAt(rec.col, rec.row)) value += 2;
+          if (value < score) { score = value; chosen = { dest: rec, drop: drop, remaining: remaining }; }
+        });
+      } finally {
+        carrier.col = origin.col; carrier.row = origin.row; cargo.moved = wasMoved;
+      }
+    });
+    if (!chosen) return { kind: "finish" };
+    return { kind: "transport", dest: chosen.dest, range: range, cargo: cargo,
+      drop: !cargo.moved && chosen.remaining <= Math.max(1, cargo.type.move) ? chosen.drop : null };
   }
 
   function nearestOwnedRepair(game, unit) {
@@ -192,7 +343,28 @@ var AI = (function () {
       }
     }
 
+    if (unit.type.cargo) {
+      var transportPlan = planTransport(game, unit, range);
+      if (transportPlan) return transportPlan;
+    }
+
+    var base = !unit.type.capture && threatenedBase(game, unit.player);
     var plan = bestAttackPlan(game, unit);
+    var captureGoal = unit.type.capture && nearestGoal(game, unit);
+    if (captureGoal && plan && plan.dest &&
+        HEX.distance(plan.dest.col, plan.dest.row, captureGoal.col, captureGoal.row) >
+        HEX.distance(unit.col, unit.row, captureGoal.col, captureGoal.row)) {
+      var captureStep = bestStepToward(game, unit, range, captureGoal, false);
+      if (captureStep) return { kind: "move", dest: captureStep, range: range, reason: "advance" };
+    }
+    if (base && unit.type.move > 0 && (!plan ||
+        HEX.distance(plan.target.col, plan.target.row, base.col, base.row) > 4)) {
+      var defense = bestStepToward(game, unit, range, base, false);
+      if (defense && HEX.distance(defense.col, defense.row, base.col, base.row) <
+          HEX.distance(unit.col, unit.row, base.col, base.row)) {
+        return { kind: "move", dest: defense, range: range, reason: "defend" };
+      }
+    }
     if (plan && plan.score > -2) {
       return { kind: "attack", dest: plan.dest, target: plan.target, range: range };
     }
@@ -210,32 +382,43 @@ var AI = (function () {
 
   function deployOneFactory(game, building) {
     // Emit one deployment per animation step; revisit until no reserve has
-    // a legal exit. Prefer the exit nearest the opposing base.
+    // a legal exit. Scan clockwise from upper-left for each reserve;
+    // compatible carriers count as open destinations in that same scan.
+    var neighbors = HEX.neighbors(building.col, building.row);
+    // HEX.neighbors starts lower-right and runs counterclockwise.
+    var exitOrder = [3, 2, 1, 0, 5, 4]; // upper-left, up, upper-right, lower-right, down, lower-left
     for (var s = building.stored.length - 1; s >= 0; s--) {
       var su = building.stored[s];
       if (su.moved) continue;
+      var carriers = game.transportDeployTargets(building, su);
       var exits = game.deployTargets(building, su);
-      if (!exits.length) continue;
-      var goal = null;
-      for (var k in game.buildings) {
-        var enemyBuilding = game.buildings[k];
-        if (enemyBuilding.kind === "base" &&
-            enemyBuilding.owner === 1 - building.owner) {
-          goal = enemyBuilding;
-          break;
-        }
+      if (su.typeId === "ATLAS") {
+        // Anka d6 documents four enemy squads in the prospective firing
+        // band, counting aircraft too. A separate infantry trigger is still
+        // undocumented and is deliberately not guessed here.
+        exits = exits.filter(function (exit) {
+          return game.playerUnits(1 - building.owner).filter(function (enemy) {
+            var d = HEX.distance(exit.col, exit.row, enemy.col, enemy.row);
+            return d >= 2 && d <= su.type.rngG;
+          }).length >= (su.type.aiDeploymentEnemies === undefined ?
+            ATLAS_DEPLOYMENT_ENEMIES : su.type.aiDeploymentEnemies);
+        });
       }
-      exits.sort(function (a, b) {
-        if (!goal) return 0;
-        return HEX.distance(a.col, a.row, goal.col, goal.row) -
-          HEX.distance(b.col, b.row, goal.col, goal.row);
-      });
-      var exit = exits[0];
-      game.deployFromFactory(building, su, exit.col, exit.row);
-      return {
-        t: "deploy", unit: su, building: building,
-        to: { col: exit.col, row: exit.row },
-      };
+      for (var i = 0; i < neighbors.length; i++) {
+        var exit = neighbors[exitOrder[i]];
+        var carrier = game.unitAt(exit.col, exit.row);
+        if (carriers.indexOf(carrier) >= 0) {
+          game.loadFromFactory(building, su, carrier);
+          return { t: "move", unit: su, from: { col: building.col, row: building.row },
+            to: { col: exit.col, row: exit.row }, reason: "load", effects: [] };
+        }
+        if (!exits.some(function (n) { return n.col === exit.col && n.row === exit.row; })) continue;
+        game.deployFromFactory(building, su, exit.col, exit.row);
+        return {
+          t: "deploy", unit: su, building: building,
+          to: { col: exit.col, row: exit.row },
+        };
+      }
     }
     return null;
   }
@@ -244,6 +427,7 @@ var AI = (function () {
     var units = game.playerUnits(player).slice();
     units.sort(function (a, b) {
       function rank(u) {
+        if (u.type.cargo) return -1;
         if (u.type.moveOrFire || isRangedType(u.type)) return 0;
         if (u.type.capture) return 2;
         return 1;
@@ -262,6 +446,8 @@ var AI = (function () {
     var units = null;
     var unitIndex = 0;
     var pending = [];
+    var boardingDone = false;
+    var finalFactoryScan = false;
 
     function queuePostAttackMove(unit) {
       pending.push(function () {
@@ -285,6 +471,19 @@ var AI = (function () {
     }
 
     function queueAction(unit, action) {
+      if (action.kind === "transport") {
+        if (action.dest.col !== unit.col || action.dest.row !== unit.row) {
+          queueAction(unit, { kind: "move", dest: action.dest, range: action.range, reason: "transport" });
+        } else {
+          queueAction(unit, { kind: "finish" });
+        }
+        if (action.drop) pending.push(function () {
+          var from = { col: unit.col, row: unit.row };
+          game.unload(unit, action.cargo, action.drop.col, action.drop.row);
+          return { t: "move", unit: action.cargo, from: from, to: action.drop, reason: "unload", effects: [] };
+        });
+        return;
+      }
       if (action.kind === "finish") {
         pending.push(function () {
           var effects = game.finishUnit(unit);
@@ -350,8 +549,8 @@ var AI = (function () {
 
     function next() {
       while (true) {
-        if (pending.length) return pending.shift()();
         if (game.winner !== null) return null;
+        if (pending.length) return pending.shift()();
 
         if (factoryIndex < factories.length) {
           var deployed = deployOneFactory(game, factories[factoryIndex]);
@@ -360,8 +559,24 @@ var AI = (function () {
           continue;
         }
 
+        if (!boardingDone) {
+          var boarded = boardOnePassenger(game, player);
+          if (boarded) return boarded;
+          boardingDone = true;
+        }
+
         if (!units) units = activationOrder(game, player);
-        if (unitIndex >= units.length) return null;
+        if (unitIndex >= units.length) {
+          // Captures and carrier rendezvous can create deployment options
+          // during the turn. Spend those ready reserves in this same phase.
+          if (!finalFactoryScan) {
+            finalFactoryScan = true;
+            factories = game.playerFactories(player);
+            factoryIndex = 0;
+            continue;
+          }
+          return null;
+        }
         var unit = units[unitIndex++];
         if (game.units.indexOf(unit) < 0 || unit.moved || unit.carriedBy) continue;
         queueAction(unit, planUnit(game, unit));

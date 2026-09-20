@@ -77,7 +77,9 @@ PCE traces; this is not a claim of an independently verified original exception.
   Remaining strength is `floor(max(0, HP − damage) / 100)`.
 
 The published reconstruction suppresses some integer-operation ordering.
-Our exact intermediate floors therefore remain a verification gap. Adjacent
+The 1997 Windows executable confirms these floor stages at `0x41bb32` and
+`0x420cf6` (see `ORIGINAL_EXECUTABLE_NOTES.md`); direct PCE instruction-level
+verification remains outstanding. Adjacent
 exchanges use both pre-battle strengths. A counter requires the defender's
 range band to include distance one against that target domain. Indirect bands
 start at two; indirect exchanges have no support, surround or counterattack.
@@ -131,6 +133,16 @@ Ready reserves can deploy immediately; the capturer must wait. Deployment
 uses adjacent legal exits or compatible transports. There is no production
 or resource economy. The TG-16 FAQ independently describes loaded-carrier repair.
 
+Per the user's corrected original-game recollection (2026-09-20), CPU factory deployment
+scans adjacent hexes clockwise from upper-left and chooses the first legal destination
+for each ready reserve. A friendly compatible transport with cargo space counts
+as an available destination at its place in that scan, including a used carrier
+or one just deployed from the factory. The scan restarts for each reserve and
+skips blocked, incompatible and off-map destinations. The order is upper-left,
+up, upper-right, lower-right, down and lower-left. This follows the user's
+recollection; an original execution trace remains outstanding.
+The Atlas ground-deployment threshold still applies.
+
 **Bases are prison camps, not repair factories.** Units may stand on them;
 ground units receive +35 defense. Infantry capture of the enemy base wins.
 The earlier remake extension that stored units in bases has been removed.
@@ -145,7 +157,9 @@ Default turn limit is 50 rounds; expiration awards Xenon the win. Custom maps
 may override it. Exact victory-check timing in rare simultaneous/capture cases
 still needs verification.
 
-The original CPU, original PRNG and all 32 PCE missions are not reproduced.
-The remake has 16 normal campaign missions plus separate custom packs. Modern
+All 32 original normal/advanced missions are included. The CPU now performs
+documented transport, guarded-factory and base-defense tactics, including the
+four-enemy Atlas deployment condition. Exact CPU choices and the original
+frame-dependent random stream remain unreproduced. Modern
 UI, profiles, saves, hotseat, editor and forecasts are deliberate additions.
 Read `FIDELITY_AUDIT.md` before describing the game as fully faithful.

@@ -66,6 +66,16 @@ any unit on the native map fixture in `tools/art-pilot.html`. Icons remain 32×3
 at every zoom; small viewports scroll rather than shrink them. Production
 terrain, buildings and flattened map geometry for Remake remain to be migrated.
 
+## Nearby unit inspection (2026-09-20)
+
+Hovering a unit shows a compact stats card beside its hex, including when
+another unit is selected. It shares the sidebar's stats and experience
+formatting, adds faction identity, and stays anchored to the hex. Placement
+flips at viewport edges and favors space with fewer units underneath.
+The card never covers its own hex and passes pointer events through to the map.
+It clears on empty terrain, map exit, Escape, panning, combat and modal panels.
+The sidebar remains available for persistent selection and detailed forecasts.
+
 ## Strength chrome (2026-08-30)
 
 Full-strength units do **not** show `8`. Squad size 8 is the default, so
@@ -73,7 +83,7 @@ printing it on every healthy unit is redundant. The remaining count is shown
 only when damaged (1–7):
 
 - Map unit chrome (bottom-left badge)
-- Sidebar unit inspector (Strength row omitted when full)
+- Sidebar and nearby hover unit inspectors (Strength row omitted when full)
 - Factory stored-unit list
 - Battle-preview name line
 
@@ -173,6 +183,13 @@ The project owner confirmed redistribution permission on 2026-09-03. Original
 tile and unit bitmaps are not included; the remake continues to render its own
 terrain and unit art.
 
+The user requested the advanced campaign on 2026-09-20. A separate Advanced
+section now contains missions 17–32 from the same official executable, with
+stable campaign indices 16–31. Normal mission indices, saves, extra packs,
+forecasts and all other modern features remain unchanged. The next-mission flow
+continues from NECTOR into TLOVER and ends at ROTCEN. Provenance and the two
+cross-source roster discrepancies are documented in `LEVEL_SOURCES.md`.
+
 ## Building capture, storage and deployment (updated 2026-09-20)
 
 The latest maximum-fidelity request restores the 1989 PCE distinction:
@@ -221,6 +238,11 @@ prevents unrelated temporary servers from changing the project URL, while the
 Caddy hostname removes the need to remember the port during normal use.
 
 ## Movement, target inspection and combat controls (2026-09-20)
+
+Stopping a loaded transport offers **Unload [unit]** beside the map controls
+and in the sidebar. Ending the carrier's activation keeps eligible passenger
+actions open, with Close to dismiss them. Cargo that already acted (including
+boarding this turn) must wait; the sidebar explains this or a lack of legal exits.
 
 Selecting a movable unit shows only its legal movement destinations and
 boardable transports. Distant enemies are never red shortcuts for an automatic

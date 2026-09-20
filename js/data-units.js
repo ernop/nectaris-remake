@@ -30,6 +30,7 @@
  *   cargoTypes       optional passenger type whitelist for ground boarding
  *   cargoFactoryTypes additional passengers allowed directly from factories
  *   cannotEnter      terrain ids this specific unit may never enter
+ *   aiDeploymentEnemies documented minimum nearby enemies for CPU deployment
  *
  * No unit gives or receives a counterattack in an indirect exchange: a
  * defender counters only in adjacent combat, and only when its own range
@@ -61,7 +62,7 @@ var UNIT_TYPES = {
   // Self-propelled guns — move or fire, never both.
   HADRIAN: { name: "Hadrian SG-4",  cls: "artillery", move: 4, moveType: "treads", rngG: 5, rngA: 0, atkG: 45, atkA: 0, def: 30, moveOrFire: true },
   OCTOPUS: { name: "Octopus MR-22", cls: "artillery", move: 4, moveType: "treads", rngG: 4, rngA: 0, atkG: 60, atkA: 0, def: 30, moveOrFire: true },
-  ATLAS:   { name: "Atlas SS-80",   cls: "artillery", move: 0, moveType: "treads", rngG: 6, rngA: 0, atkG: 90, atkA: 0, def: 20, moveOrFire: true, placeByTransport: true },
+  ATLAS:   { name: "Atlas SS-80",   cls: "artillery", move: 0, moveType: "treads", rngG: 6, rngA: 0, atkG: 90, atkA: 0, def: 20, moveOrFire: true, placeByTransport: true, aiDeploymentEnemies: 4 },
 
   // Missile buggies — may keep moving after attacking. They ride on wheels
   // but the original rates them with the fighting vehicles, not the carriers.

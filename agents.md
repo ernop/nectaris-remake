@@ -15,7 +15,7 @@ Facts wei need across sessions:
   logic module ends with `if (typeof module !== "undefined") module.exports`
   so the node test suite loads them.
 - **Tests:** `node test/run-tests.js` — map validation, rule unit-tests, and
-  AI-vs-AI self-play on all 16 campaign + 12 Lunar Frontiers maps. Run it
+  AI-vs-AI self-play on all 32 normal/advanced campaign + 24 extra-pack maps. Run it
   after any engine, data, or map change.
 - **Local development:** `./serve.sh` serves the repo on fixed backend port
   `127.0.0.1:8001`; do not substitute a random port. The machine's shared
@@ -34,6 +34,8 @@ Facts wei need across sessions:
   Engine normal-campaign layouts, deployments and factory inventories now in
   `js/data-maps.js`; `tools/extract-original-campaign.js` records their
   deterministic provenance from Hudson's official 1997 Windows freeware port.
+  The user explicitly requested the 16 advanced missions on 2026-09-20;
+  `js/data-advanced-maps.js` and `LEVEL_SOURCES.md` record that import.
   Remake art, music, and the 12 Lunar Frontiers layouts remain original. Do not import
   other original assets, sounds, map data, or community archive files without
   explicit redistribution permission. The other archive-derived exception is
@@ -86,6 +88,15 @@ Facts wei need across sessions:
   `js/data-terrain.js`, roster in `js/data-units.js`, experience tiers in
   `js/combat.js` (top). `MECHANICS.md` records the combat formula, source, and
   remaining exact-arithmetic and PRNG gaps.
+
+- **CPU factory exits (2026-09-20):** the user corrected the scan to start
+  upper-left and run clockwise, choosing the first available legal destination
+  for each reserve. A friendly
+  compatible Mule/Pelican with room counts as available at its position in that
+  scan, even if already used. Restart the scan for each reserve. This follows
+  the user's recollection; see `MECHANICS.md` and
+  `test/ai-fidelity-tests.js`. Keep this ordering instead of scoring exits by
+  distance to an objective or requiring a tactical reason to board a carrier.
 
 - **Profiles/save state:** `js/profiles.js` stores browser-local profiles; engine
   snapshots preserve cargo identity and RNG state. UI checkpoints committed human

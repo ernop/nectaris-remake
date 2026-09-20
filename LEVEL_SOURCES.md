@@ -85,6 +85,35 @@ documented in `art/legacy/README.md` and is outside these campaign grants.
 Only the functional level data and the
 reproducible extractor are included.
 
+## Included advanced campaign (2026-09-20)
+
+The user explicitly requested the advanced campaign on 2026-09-20.
+`js/data-advanced-maps.js` adds the 16 missions TLOVER–ROTCEN from the same
+SHA-256-verified 1997-11-05 executable described above. This records the user's
+specific import authorization, not an independently obtained third-party license.
+No installer, executable or audiovisual assets are included.
+
+Reproduce it with:
+
+```sh
+node tools/extract-original-campaign.js path/to/Nec.exe --advanced > js/data-advanced-maps.js
+```
+
+Disassembly confirms that the advanced campaign reuses the 16 terrain/dimension/
+factory-coordinate records and selects unit-pointer entries 16–31. Names come
+from the executable's 32-entry name table. These are distinct deployments and
+inventories, not an invented harder ruleset. Generating the normal campaign with
+the extended extractor still produces the existing file byte-for-byte.
+
+All initial force totals and 14 full mission rosters agree with
+[Izuito's advanced PCE stage guide](https://izuito.net/game/pce-nectaris/stage2.htm).
+Two roster discrepancies are retained explicitly: LACSAP's executable deploys
+two Xenon **Atlas**, where the guide lists Hadrian; RESIAK deploys two Union
+**Seeker**, where the guide lists Hawkeye. The official executable is authoritative
+for this import; direct comparison with the PCE ROM remains unperformed.
+The generated functional payload SHA-256 is
+`e0f11254f8afcb071143a0cc67cc8ef8f4f799e762d1d345db85051e7a26c593`.
+
 ## Historical Nectaris map archives
 
 Research performed 2026-08-26 found historical fan maps, but no active archive

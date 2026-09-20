@@ -4,6 +4,8 @@
 (function () {
   function $(id) { return document.getElementById(id); }
 
+  var ORIGINAL_CAMPAIGN = CAMPAIGN.concat(ADVANCED_CAMPAIGN);
+
   var CUSTOM_LEVELS_KEY = "nectaris-custom-levels";
   var CUSTOM_UNITS_KEY = "nectaris-custom-units";
   var profiles;
@@ -155,11 +157,11 @@
         $("gameover-again").onclick = function () { startGame(mapDef, opts); };
         $("gameover-menu").onclick = function () { showMenu(); };
         var next = $("gameover-next");
-        if (opts.campaignIndex !== undefined && opts.campaignIndex + 1 < CAMPAIGN.length) {
+        if (opts.campaignIndex !== undefined && opts.campaignIndex + 1 < ORIGINAL_CAMPAIGN.length) {
           next.classList.remove("hidden");
           next.onclick = function () {
             var ni = opts.campaignIndex + 1;
-            startGame(CAMPAIGN[ni], { campaignIndex: ni, hotseat: !!opts.hotseat });
+            startGame(ORIGINAL_CAMPAIGN[ni], { campaignIndex: ni, hotseat: !!opts.hotseat });
           };
         } else {
           next.classList.add("hidden");
@@ -289,7 +291,9 @@
     var labels = CARD_LABELS[lang()];
     var list = $("mission-list");
     list.innerHTML = "";
-    CAMPAIGN.forEach(function (m, i) {
+    var advancedList = $("advanced-mission-list");
+    advancedList.innerHTML = "";
+    ORIGINAL_CAMPAIGN.forEach(function (m, i) {
       var div = document.createElement("div");
       div.className = "mission" + (cleared.indexOf(i) >= 0 ? " cleared" : "");
       div.innerHTML = "<span class='mnum'>" + String(i + 1).padStart(2, "0") + "</span>" +
@@ -302,7 +306,7 @@
         startGame(m, { campaignIndex: i, hotseat: $("chk-hotseat").checked });
       };
       appendLevelRecord(div, m, {campaignIndex: i});
-      list.appendChild(div);
+      (i < CAMPAIGN.length ? list : advancedList).appendChild(div);
     });
 
     renderLevelCards($("expansion-list"), EXPANSION_LEVELS, function (lv, i) {
@@ -436,7 +440,7 @@
     jump.appendChild(placeholder);
     var campaignGroup = document.createElement("optgroup");
     campaignGroup.label = "Campaign";
-    CAMPAIGN.forEach(function (m, i) {
+    ORIGINAL_CAMPAIGN.forEach(function (m, i) {
       var option = document.createElement("option");
       option.value = "c:" + i;
       option.textContent = String(i + 1).padStart(2, "0") + " · " + m.name;
@@ -466,7 +470,7 @@
       var parts = this.value.split(":");
       var i = +parts[1];
       if (parts[0] === "c") {
-        startGame(CAMPAIGN[i], { campaignIndex: i, hotseat: !!currentOptions.hotseat });
+        startGame(ORIGINAL_CAMPAIGN[i], { campaignIndex: i, hotseat: !!currentOptions.hotseat });
       } else if (parts[0] === "b") {
         startGame(BASE_NECTARIS_LEVELS[i], { baseNecIndex: i, hotseat: !!currentOptions.hotseat });
       } else {
