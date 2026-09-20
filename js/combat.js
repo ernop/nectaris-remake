@@ -151,7 +151,17 @@ var COMBAT = (function () {
     );
     return { attacker: a, defender: d, ranged: ranged, counter: counter, dist: dist,
       surrounded: surrounded, attackerTerrain: game.terrainAt(attacker.col, attacker.row).name,
-      defenderTerrain: game.terrainAt(defender.col, defender.row).name };
+      defenderTerrain: game.terrainAt(defender.col, defender.row).name,
+      tactical: {
+        attackerInZOC: game.inEnemyZOC(attacker.col, attacker.row, attacker.player),
+        defenderInZOC: game.inEnemyZOC(defender.col, defender.row, defender.player),
+        attackSupporters: ranged ? [] : game.adjacentAllies(defender.col, defender.row, attacker.player, attacker).map(function (u) {
+          return {name: u.type.name, strength: u.strength, value: atkStat(u.type, isAir(defender))};
+        }),
+        defenseSupporters: ranged ? [] : game.adjacentAllies(attacker.col, attacker.row, defender.player, defender).map(function (u) {
+          return {name: u.type.name, strength: u.strength, value: u.type.def};
+        }),
+      } };
   }
 
   function randomCoefficient(rng) {

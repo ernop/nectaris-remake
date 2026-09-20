@@ -83,6 +83,11 @@ Facts wei need across sessions:
   `js/combat.js` (top). `MECHANICS.md` records the combat formula, source, and
   remaining random-distribution gap.
 
+- **Profiles/save state:** `js/profiles.js` stores browser-local profiles; engine
+  snapshots preserve cargo identity and RNG state. UI checkpoints committed human
+  actions and complete AI turns; unfinished AI turns resume from their start.
+  Tests in `test/profiles-tests.js` run through the main suite. See `PRODUCT.md`.
+
 - **Combat UI (2026-09-20):** select a unit, choose a position (click its own
   hex to stay), then choose among red targets. Never restore automatic
   move-and-attack enemy shortcuts. Hover forecasts and calculations live in

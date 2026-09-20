@@ -37,6 +37,7 @@ an original procedural chiptune score, and a level editor with URL sharing.
 | `art/units/pixel-art.js` | Editable indexed unit art; export with `node tools/build-unit-art.js` |
 | `js/music.js` | Original synthesized military chiptune (Web Audio; no audio files) |
 | `js/ui.js`, `js/main.js` | Game UI and boot/menu |
+| `js/profiles.js` | Local player profiles, match saves and result history |
 | `js/editor.js` | Editor logic |
 | `test/run-tests.js` | Node test suite (`node test/run-tests.js`) |
 | `tools/unit-sheet.html` | Native roster review: Union, Xenon, attacking, spent, contrast and silhouette checks |
@@ -60,6 +61,24 @@ Static files, no build step, no dependencies. Copy the folder to any web
 server (or open `index.html` from disk — no modules, plain scripts). All
 state (campaign progress, custom levels, custom units) lives in
 `localStorage`.
+
+## Player profiles and saved games
+
+On your first visit, choose a username. The menu remembers your profile and
+lets you switch players or create another profile. Each has independent campaign
+stars, win/loss history, and one unfinished match. Mission cards show your record;
+**Match history** includes why each match ended, when, and on which turn.
+Use **Show older matches** to browse beyond the latest ten results.
+
+Progress saves automatically after actions. **Save & Menu** leaves the match;
+**Continue match** restores it, including after closing and reopening the page.
+Starting a different match asks before replacing your current save. An interrupted
+AI turn resumes from its start; unconfirmed movement is cancelled on resume.
+Hotseat results record the winning faction separately from solo wins/losses.
+
+Profiles stay in this browser at the same address—there is no cloud sync.
+Clearing site data removes them. Existing campaign stars migrate to your first
+profile. Storage problems display an error instead of claiming progress is saved.
 
 ## Controls
 

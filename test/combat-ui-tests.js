@@ -58,6 +58,26 @@ module.exports = function (ok) {
       "hovering a red target shows identity, calculation and the 100k-seed heatmap");
     ok(JSON.stringify(ui.game.snapshot()) === provisional && ui.game.rng.getState() === seed,
       "hover projection cannot change the match, its units, or its hidden RNG");
+    ok(nodes["combat-inspector"].innerHTML.includes("Target unit information") &&
+      nodes["combat-inspector"].innerHTML.includes("Ground / air range") &&
+      nodes["combat-inspector"].innerHTML.includes("ZOC &amp; support"),
+      "hover includes the target's full statistics and explicit ZOC/support explanation");
+    var secondTarget = ENGINE.makeUnit("CHARLIE", 1, 2, 0, 5, 4);
+    ui.game.units.push(secondTarget);
+    ui.pickTargets = ui.previewTargets(unit);
+    var bothBefore = JSON.stringify(ui.game.snapshot());
+    ui.onMouseMove({offsetX: 2, offsetY: 0});
+    var secondHtml = nodes["combat-inspector"].innerHTML;
+    ok(secondHtml.includes("Charlie GX-77") && secondHtml.includes("100,000") &&
+      secondHtml.includes("5</dd>") && secondHtml.includes("+30% damage"),
+      "hovering the second red enemy refreshes its identity, damage, experience and forecast");
+    ui.onMouseMove({offsetX: 3, offsetY: 1});
+    ok(nodes["combat-inspector"].innerHTML !== secondHtml &&
+      nodes["combat-inspector"].innerHTML.includes("<h3>Polar PT-6</h3>") &&
+      JSON.stringify(ui.game.snapshot()) === bothBefore,
+      "switching back updates the matchup without mutating any match state");
+    ui.game.units.pop(); ui.pickTargets = ui.previewTargets(unit);
+    ui.onMouseMove({offsetX: 3, offsetY: 1});
     var cached = Object.values(ui._forecastCache)[0];
     ui.onMouseMove({ offsetX: 3, offsetY: 1 });
     ok(Object.values(ui._forecastCache)[0] === cached, "repeated hover reuses the current forecast");
@@ -109,6 +129,33 @@ module.exports = function (ok) {
     action("Cancel").onclick();
     ok(JSON.stringify(ui.game.snapshot()) === before && unit.attacked,
       "cancelling post-attack movement cannot undo the already committed battle");
+
+    ["RABBIT", "LYNX"].forEach(function (type) {
+      ui = fixture(type, 4); unit = ui.selected;
+      var firingCol = 4 - unit.type.rngG, allowance = unit.movePointsLeft;
+      var approachCost = ui.range[HEX.key(firingCol, 1)].cost;
+      ui.onHexClick(firingCol, 1);
+      ok(ui.pickTargets.length === 1, type + " can choose a firing position before attacking");
+      ui.onHexClick(4, 1); ui.animationDone();
+      ok(ui.mode === "unitSelected" && !unit.moved && unit.attacked &&
+        unit.movePointsLeft === allowance - approachCost,
+        type + " offers remaining movement after moving and attacking a surviving target");
+      ok(nodes["action-status"].textContent.includes("Attack complete") &&
+        nodes["action-status"].textContent.includes(unit.movePointsLeft + " movement points left"),
+        type + " explains the remaining post-attack allowance");
+      before = JSON.stringify(ui.game.snapshot());
+      ui.onHexClick(firingCol - 1, 1);
+      ok(ui.mode === "moved" && !ui.pickTargets.length &&
+        nodes["action-status"].textContent.includes("Cancel reverts only this move"),
+        type + " offers a retreat with no second attack");
+      ok(JSON.stringify(ui.snapshotForSave()) === before,
+        type + " saving a provisional retreat preserves the committed attack");
+      action("Cancel").onclick();
+      ok(JSON.stringify(ui.game.snapshot()) === before, type + " may cancel and choose another retreat");
+      ui.onHexClick(firingCol - 1, 1); action("End").onclick();
+      ok(unit.col === firingCol - 1 && unit.moved && unit.attacked && ui.mode === "idle",
+        type + " End commits the retreat and spends its activation");
+    });
 
     // Conservative target bounds include the whole hex, not just the icon.
     [0.2, 0.5, 1, 2, 4].forEach(function (zoom) {

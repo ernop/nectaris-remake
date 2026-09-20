@@ -204,6 +204,7 @@ var UI = (function () {
     $("status-units").textContent = "Units " + counts[0] + " : " + counts[1];
     var hovered = this.renderer.hoverHex;
     if (hovered) this.showHexInfo(hovered.col, hovered.row);
+    if (this.options && this.options.onStateChange) this.options.onStateChange(this);
   };
 
   GameUI.prototype.refreshWatchButton = function () {
@@ -370,7 +371,8 @@ var UI = (function () {
       "<tr><td>Range G / A</td><td>" + bandText(t, false) + " / " + bandText(t, true) + "</td></tr>" +
       "<tr><td>Terrain</td><td>" + terr.name + " +" + (t.moveType === "air" ? 0 : terr.def) + " DEF</td></tr>" +
       (t.capture ? "<tr><td colspan='2'>Can capture buildings</td></tr>" : "") +
-      (t.moveAfterAttack ? "<tr><td colspan='2'>May move after attacking</td></tr>" : "") +
+      (t.moveAfterAttack ? "<tr><td>Movement left</td><td>" + unit.movePointsLeft + " / " + t.move +
+        "</td></tr><tr><td colspan='2'>May spend remaining movement after one attack</td></tr>" : "") +
       (t.moveOrFire ? "<tr><td colspan='2'>May move or fire, never both</td></tr>" : "") +
       "</table>";
   };
@@ -493,7 +495,8 @@ var UI = (function () {
       }
     });
     transport.classList.remove("hidden");
-    $("action-status").textContent = this.pickTargets.length ?
+    $("action-status").textContent = unit.attacked ?
+      "Attack complete. End confirms this position; Cancel reverts only this move." : this.pickTargets.length ?
       "Hover to compare. Click a red target to attack." :
       "No attack from this position. Cancel reverts the move; End finishes this unit.";
     $("action-status").classList.remove("hidden");
@@ -656,7 +659,9 @@ var UI = (function () {
     }
     this.renderer.highlights = hl;
     this.showUnitInfo(unit);
-    $("action-status").textContent = "Choose a blue destination, or click this unit again to aim without moving.";
+    $("action-status").textContent = unit.attacked ?
+      "Attack complete. " + unit.movePointsLeft + " movement points left. Choose a blue destination, or click this unit to stay." :
+      "Choose a blue destination, or click this unit again to aim without moving.";
     $("action-status").classList.remove("hidden");
     this.draw();
   };
@@ -980,7 +985,12 @@ var UI = (function () {
 
     if (this.options.hotseat) { this.toast(RENDER.PLAYER_COLORS[g.currentPlayer].name + " — your turn"); this.draw(); return; }
 
-    // AI turn
+    this.beginAITurn();
+  };
+
+  GameUI.prototype.beginAITurn = function () {
+    var self = this, g = this.game;
+    // A resumed AI turn starts from its saved turn-boundary checkpoint.
     this.mode = "aiTurn";
     this.busy = true;
     $("status-player").textContent = RENDER.PLAYER_COLORS[g.currentPlayer].name + " (thinking…)";

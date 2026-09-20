@@ -450,6 +450,7 @@ try { gd.unload(gdMule, gdMine, 2, 1); } catch (e) { threw = true; }
 ok(!threw, "a mine can be set down on plains");
 
 section("missile buggy move after attack");
+require("./buggy-movement-tests.js")(ok);
 ok(UNIT_TYPES.RABBIT.moveAfterAttack && UNIT_TYPES.LYNX.moveAfterAttack,
   "Rabbit and Lynx both declare move-after-attack");
 var buggyGame = new ENGINE.Game({
@@ -1019,6 +1020,12 @@ require("./forecast-tests.js")(ok);
 section("movement-first combat interaction");
 require("./combat-ui-tests.js")(ok);
 
+section("profiles and saved matches");
+require("./profiles-tests.js")(ok);
+
+section("completed match outcomes");
+require("./outcome-tests.js")(ok);
+require("./outcome-menu-tests.js")(ok);
 
 /* ---------- summary ---------- */
 

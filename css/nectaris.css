@@ -421,6 +421,48 @@ textarea#custom-units-json {
   line-height: 1.4;
 }
 
-/* Keep appearance controls visible on narrow screens. */
+/* Player identity, resume and match history. */
+.profile-panel {
+  margin-top: 28px; padding: 22px; background: #221e17;
+  border: 1px solid #625337; border-radius: 8px;
+}
+.profile-panel h2 { margin: 6px 0 18px; overflow-wrap: anywhere; }
+.profile-eyebrow { font-size: 11px; letter-spacing: 3px; color: #ffd94a; }
+.profile-actions { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+button.primary { background: #ffd94a; color: #211b0a; font-weight: 700; border-color: #ffd94a; }
+button.primary:hover { background: #ffe985; }
+#continue-match { display: flex; flex-wrap: wrap; gap: 16px; align-items: center;
+  justify-content: space-between; border-top: 1px solid #625337; padding-top: 18px; margin-top: 18px; }
+#continue-detail { color: #b0a890; font-size: 13px; margin-bottom: 0; }
+#profile-record { color: #e4cf98; }
+#history-section { margin-top: 20px; }
+#history-section summary { cursor: pointer; }
+#profile-history { padding-left: 22px; color: #b0a890; font-size: 14px; line-height: 1.8; }
+#profile-dialog { width: min(460px, calc(100vw - 32px)); padding: 28px;
+  color: #e8e2d4; background: #221e17; border: 1px solid #857044; border-radius: 10px; }
+#profile-dialog::backdrop { background: rgba(0,0,0,.8); }
+#profile-dialog p { line-height: 1.5; }
+#profile-dialog label { display: block; margin-bottom: 8px; }
+#profile-name { width: 100%; padding: 12px; font: inherit; background: #14110c;
+  color: #fff; border: 1px solid #857044; border-radius: 4px; }
+#profile-error { color: #ffb2a2; font-size: 14px; }
+#save-error { position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+  padding: 12px 20px; background: #652a1f; color: #fff; text-align: center; }
+#playing-profile { padding: 0 0 14px; overflow-wrap: anywhere; color: #e4cf98; font-size: 12px; letter-spacing: 1px; }
 #topbar { flex-wrap: wrap; gap: 10px 14px; }
 #topbar > * { white-space: nowrap; flex-shrink: 0; }
+
+#profile-history li { margin-bottom: 12px; }
+#profile-history strong, #profile-history li > span { display: block; }
+.outcome-win { color: #bfe95c; }
+.outcome-loss { color: #ffb2a2; }
+.outcome-hotseat { color: #e4cf98; }
+.mission:has(.mission-record) { flex-wrap: wrap; }
+.mission-record { flex-basis: 100%; color: #c9bc9b; font-size: 12px; margin-top: 4px; }
+#gameover-record { color: #e4cf98; font-size: 14px; }
+.forecast-unit { margin: 8px 0 12px; padding: 8px; background: #242018; border: 1px solid #454030; font-size: 11px; }
+.forecast-unit > div { color: #d4b878; text-transform: capitalize; }
+.forecast-unit dl { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; margin: 7px 0 0; }
+.forecast-unit dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+.forecast-unit p { margin: 6px 0 0; color: #b8b09a; }
+.forecast-tactics h4 { margin-bottom: 4px; color: #ffe5a1; }

@@ -4,15 +4,101 @@
 (function () {
   function $(id) { return document.getElementById(id); }
 
-  var PROGRESS_KEY = "nectaris-progress";
   var CUSTOM_LEVELS_KEY = "nectaris-custom-levels";
   var CUSTOM_UNITS_KEY = "nectaris-custom-units";
+  var profiles;
+  var activeProfile = null;
+  var currentMatchId = null;
+  var currentProfileId = null;
+  var readyToSave = false;
+  var historyLimit = 10;
+  var historyProfileId = null;
 
-  function getProgress() {
-    try { return JSON.parse(localStorage.getItem(PROGRESS_KEY)) || { cleared: 0 }; }
-    catch (e) { return { cleared: 0 }; }
+  function reportSaveError(error) {
+    $("save-error").textContent = error.message;
+    $("save-error").classList.remove("hidden");
   }
-  function setProgress(p) { localStorage.setItem(PROGRESS_KEY, JSON.stringify(p)); }
+
+  function saveMatch(ui) {
+    if (!readyToSave || !ui || !currentMatchId) return true;
+    try {
+      var state = ui.snapshotForSave();
+      if (!state) return true;
+      profiles.checkpoint(currentProfileId, {id: currentMatchId, options: currentOptions,
+        savedAt: new Date().toISOString(), state: state});
+      $("save-error").classList.add("hidden");
+      return true;
+    } catch (error) { reportSaveError(error); return false; }
+  }
+
+  function openProfileForm() {
+    $("profile-error").textContent = "";
+    $("profile-name").value = "";
+    $("profile-cancel").classList.toggle("hidden", !activeProfile);
+    $("profile-dialog").showModal();
+    $("profile-name").focus();
+  }
+
+  function renderProfile() {
+    activeProfile = profiles.active();
+    var select = $("profile-select");
+    select.replaceChildren();
+    profiles.read().profiles.forEach(function (p) {
+      var option = document.createElement("option");
+      option.value = p.id; option.textContent = p.name;
+      select.appendChild(option);
+    });
+    select.value = activeProfile ? activeProfile.id : "";
+    select.disabled = !activeProfile;
+    $("profile-heading").textContent = activeProfile ? "Welcome back, " + activeProfile.name : "Choose your player profile";
+    var results = activeProfile ? activeProfile.results : [];
+    var solo = results.filter(function (r) { return !r.hotseat; });
+    var wins = solo.filter(function (r) { return r.outcome === "win"; }).length;
+    var losses = solo.length - wins, hotseatCount = results.length - solo.length;
+    $("profile-record").textContent = wins + (wins === 1 ? " win · " : " wins · ") +
+      losses + (losses === 1 ? " loss · " : " losses · ") + hotseatCount +
+      (hotseatCount === 1 ? " hotseat match" : " hotseat matches");
+    var saved = activeProfile && activeProfile.savedMatch;
+    $("continue-match").classList.toggle("hidden", !saved);
+    $("continue-detail").textContent = saved ? saved.state.map.name + " · Turn " + saved.state.turn +
+      " · " + (saved.options.hotseat ? "Hotseat" : "Solo") + " · Saved " + new Date(saved.savedAt).toLocaleString() : "";
+    if (historyProfileId !== (activeProfile && activeProfile.id)) historyLimit = 10;
+    historyProfileId = activeProfile && activeProfile.id;
+    renderHistory();
+  }
+
+  function renderHistory() {
+    var results = activeProfile ? activeProfile.results : [];
+    var history = $("profile-history");
+    history.replaceChildren();
+    results.slice(-historyLimit).reverse().forEach(function (result) {
+      var row = document.createElement("li");
+      var title = document.createElement("strong");
+      title.textContent = result.name + " — " + PROFILES.outcomeLabel(result);
+      title.className = result.hotseat ? "outcome-hotseat" : "outcome-" + result.outcome;
+      var detail = document.createElement("span");
+      detail.textContent = PROFILES.reasonLabel(result.reason) + " · " +
+        (result.hotseat ? "Hotseat" : "Solo") + " · Turn " + result.turn + " · " +
+        new Date(result.endedAt).toLocaleString();
+      row.appendChild(title); row.appendChild(detail);
+      history.appendChild(row);
+    });
+    $("history-count").textContent = "Showing " + Math.min(historyLimit, results.length) + " of " + results.length + " matches";
+    $("history-more").classList.toggle("hidden", historyLimit >= results.length);
+    $("history-section").classList.toggle("hidden", !results.length);
+  }
+
+  function appendLevelRecord(host, map, options) {
+    var record = PROFILES.levelRecord(activeProfile, map, options);
+    if (!record.latest) return;
+    var status = document.createElement("div");
+    status.className = "mission-record";
+    status.textContent = record.wins + "W / " + record.losses + "L" +
+      (record.hotseat ? " · " + record.hotseat + " hotseat" : "") +
+      " · Last: " + PROFILES.outcomeLabel(record.latest);
+    status.title = PROFILES.reasonLabel(record.latest.reason);
+    host.appendChild(status);
+  }
 
   function getCustomLevels() {
     try { return JSON.parse(localStorage.getItem(CUSTOM_LEVELS_KEY)) || []; }
@@ -29,8 +115,23 @@
   var currentUI = null;
   var currentOptions = {};
 
-  function startGame(mapDef, opts) {
+  function startGame(mapDef, opts, saved) {
     opts = opts || {};
+    if (!activeProfile) { openProfileForm(); return; }
+    if (!saveMatch(currentUI)) return;
+    var profile;
+    var game;
+    try {
+      profile = profiles.active();
+      if (!profile || profile.id !== activeProfile.id) throw new Error("Profile changed. Return to the menu and choose your profile.");
+      if (!saved && profile.savedMatch && !window.confirm("Start a new match? This replaces " +
+          profile.savedMatch.state.map.name + " in " + profile.name + "’s saved match. Your results are kept.")) return;
+      if (mapDef.customUnits) mergeUnitTypes(mapDef.customUnits);
+      game = saved ? ENGINE.Game.restore(saved.state) : new ENGINE.Game(mapDef, { seed: opts.seed });
+    } catch (error) { reportSaveError(error); return; }
+    readyToSave = false;
+    currentMatchId = saved ? saved.id : PROFILES.newId();
+    currentProfileId = profile.id;
     if (currentUI) currentUI.destroy();
     currentUI = null;
     currentOptions = opts;
@@ -42,15 +143,15 @@
       (opts.expansionIndex !== undefined ? "e:" + opts.expansionIndex :
       (opts.baseNecIndex !== undefined ? "b:" + opts.baseNecIndex : ""));
 
-    var game = new ENGINE.Game(mapDef, { seed: opts.seed });
     currentUI = new UI.GameUI($("game-canvas"), game, {
       hotseat: !!opts.hotseat,
       onMenu: showMenu,
+      onStateChange: saveMatch,
       onGameOver: function (winner) {
-        if (winner === 0 && opts.campaignIndex !== undefined) {
-          var p = getProgress();
-          if (opts.campaignIndex + 1 > p.cleared) { p.cleared = opts.campaignIndex + 1; setProgress(p); }
-        }
+        var recorded = saveMatch(currentUI);
+        $("gameover-record").textContent = (opts.hotseat ?
+          (winner === 0 ? "Union victory" : "Xenon victory") : (winner === 0 ? "Victory" : "Defeat")) +
+          (recorded ? " · Recorded for " + profile.name : " · Not saved yet — keep this page open");
         $("gameover-again").onclick = function () { startGame(mapDef, opts); };
         $("gameover-menu").onclick = function () { showMenu(); };
         var next = $("gameover-next");
@@ -67,14 +168,22 @@
       },
     });
     currentUI.resize();
+    $("playing-profile").textContent = "PLAYER · " + profile.name;
+    readyToSave = true;
+    saveMatch(currentUI);
+    if (game.winner !== null) currentUI.checkGameOver();
+    else if (!opts.hotseat && game.currentPlayer === 1) currentUI.beginAITurn();
   }
 
   function showMenu() {
+    if (!saveMatch(currentUI)) return;
+    readyToSave = false;
     if (currentUI) currentUI.destroy();
     currentUI = null;
     $("game-screen").classList.add("hidden");
     $("menu-screen").classList.remove("hidden");
     buildMenu();
+    if (!activeProfile && !$("profile-dialog").open) openProfileForm();
   }
 
   var LANG_KEY = "nectaris-lang";
@@ -122,7 +231,7 @@
       labels.xenon + "</span><strong>" + counts[1] + "</strong></span>";
   }
 
-  function renderLevelCards(host, levels, onPick) {
+  function renderLevelCards(host, levels, onPick, pack) {
     var L = CARD_LABELS[lang()];
     host.innerHTML = "";
     levels.forEach(function (lv, i) {
@@ -161,6 +270,8 @@
       card.appendChild(description);
       card.appendChild(special);
       card.appendChild(footer);
+      var recordOptions = {}; recordOptions[pack] = i;
+      appendLevelRecord(card, lv, recordOptions);
       card.onclick = function () { onPick(lv, i); };
       host.appendChild(card);
     });
@@ -173,31 +284,33 @@
       localStorage.setItem(LANG_KEY, sel.value);
       buildMenu();
     };
-    var p = getProgress();
+    try { renderProfile(); } catch (error) { reportSaveError(error); }
+    var cleared = activeProfile ? activeProfile.cleared : [];
     var labels = CARD_LABELS[lang()];
     var list = $("mission-list");
     list.innerHTML = "";
     CAMPAIGN.forEach(function (m, i) {
       var div = document.createElement("div");
-      div.className = "mission" + (i < p.cleared ? " cleared" : "");
+      div.className = "mission" + (cleared.indexOf(i) >= 0 ? " cleared" : "");
       div.innerHTML = "<span class='mnum'>" + String(i + 1).padStart(2, "0") + "</span>" +
         "<span class='mname'>" + m.name + "</span>" +
         "<span class='mission-forces'>" +
         forceCountHtml(m, labels, "mission-force") + "</span>" +
-        (i < p.cleared ? "<span class='mstar'>★</span>" : "");
+        (cleared.indexOf(i) >= 0 ? "<span class='mstar'>★</span>" : "");
       div.title = m.blurb || "";
       div.onclick = function () {
         startGame(m, { campaignIndex: i, hotseat: $("chk-hotseat").checked });
       };
+      appendLevelRecord(div, m, {campaignIndex: i});
       list.appendChild(div);
     });
 
     renderLevelCards($("expansion-list"), EXPANSION_LEVELS, function (lv, i) {
       startGame(lv, { expansionIndex: i, hotseat: $("chk-hotseat").checked });
-    });
+    }, "expansionIndex");
     renderLevelCards($("basenec-list"), BASE_NECTARIS_LEVELS, function (lv, i) {
       startGame(lv, { baseNecIndex: i, hotseat: $("chk-hotseat").checked });
-    });
+    }, "baseNecIndex");
 
     var clist = $("custom-list");
     clist.innerHTML = "";
@@ -210,6 +323,7 @@
         forceCountHtml(lv, labels, "mission-force") + "</span>" +
         "<span class='mstar'>✎</span>";
       div.onclick = function () { startGame(lv, { hotseat: $("chk-hotseat").checked }); };
+      appendLevelRecord(div, lv, {});
       clist.appendChild(div);
     });
     if (!customs.length) clist.innerHTML = "<em>None yet — build one in the editor, or import JSON below.</em>";
@@ -274,6 +388,45 @@
   }
 
   window.addEventListener("DOMContentLoaded", function () {
+    try { profiles = new PROFILES.Store(localStorage); activeProfile = profiles.active(); }
+    catch (error) { reportSaveError(error); }
+    $("profile-form").onsubmit = function (event) {
+      event.preventDefault();
+      try {
+        if (!profiles) profiles = new PROFILES.Store(localStorage);
+        activeProfile = profiles.create($("profile-name").value);
+        $("profile-dialog").close();
+        $("save-error").classList.add("hidden");
+        buildMenu();
+      } catch (error) { $("profile-error").textContent = error.message; }
+    };
+    $("profile-dialog").addEventListener("cancel", function (event) {
+      if (!activeProfile) event.preventDefault();
+    });
+    $("profile-cancel").onclick = function () { $("profile-dialog").close(); };
+    $("profile-new").onclick = openProfileForm;
+    $("history-more").onclick = function () { historyLimit += 10; renderHistory(); };
+    $("profile-select").onchange = function () {
+      try { profiles.switchTo(this.value); buildMenu(); }
+      catch (error) { reportSaveError(error); }
+    };
+    $("continue-button").onclick = function () {
+      try {
+        var saved = profiles.active().savedMatch;
+        if (saved) startGame(saved.state.map, saved.options, saved);
+      } catch (error) { reportSaveError(error); }
+    };
+    window.addEventListener("pagehide", function () { saveMatch(currentUI); });
+    document.addEventListener("visibilitychange", function () {
+      if (document.visibilityState === "hidden") saveMatch(currentUI);
+    });
+    window.addEventListener("storage", function (event) {
+      if (event.key !== PROFILES.KEY && event.key !== null) return;
+      // Another tab owns the newest save: stop this view without overwriting it.
+      readyToSave = false;
+      showMenu();
+      reportSaveError(new Error("Profiles changed in another tab. Choose Continue to use the latest saved match."));
+    });
     loadCustomUnits();
     MUSIC.init();
     var jump = $("map-jump");
@@ -337,7 +490,7 @@
     if (location.search.indexOf("playtest=1") >= 0) {
       var lv = JSON.parse(localStorage.getItem("nectaris-playtest"));
       if (lv && lv.customUnits) mergeUnitTypes(lv.customUnits);
-      if (lv) { startGame(lv, { hotseat: false }); return; }
+      if (lv && activeProfile) { startGame(lv, { hotseat: false }); return; }
     }
     showMenu();
   });

@@ -15,6 +15,16 @@ module.exports = function (ok) {
     "sampled casualty means agree with exhaustive damage expectations");
   ok(pv.attacker.modifiers.supportAttack > 0 && pv.defender.modifiers.terrain === 20,
     "forecast calculation exposes support and terrain modifiers");
+  var reference = projection.bins.map(function (row) { return row.map(function () { return 0; }); });
+  for (var sample = 0; sample < 100000; sample++) {
+    var result = COMBAT.resolve(game, attacker, defender,
+      COMBAT.makeRng(Math.imul(sample + 1, 0x9e3779b9) ^ 0xa341316c));
+    reference[result.dmgToAttacker][result.dmgToDefender]++;
+    attacker.strength = 6; attacker.exp = 3; defender.strength = 7; defender.exp = 2;
+  }
+  ok(JSON.stringify(reference) === JSON.stringify(projection.bins),
+    "all joint bins match 100,000 real combat resolutions using the same independent seeds");
+  ok(JSON.stringify(game.snapshot()) === before, "reference simulations leave the original match unchanged after resetting trial units");
   var jointKills = projection.bins[attacker.strength][defender.strength] / projection.samples;
   ok(jointKills === projection.mutualDestruction, "joint grid includes simultaneous destruction probability");
   game.rng(); game.rng();

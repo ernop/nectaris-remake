@@ -60,23 +60,56 @@ var COMBAT_VIEW = (function () {
       "; EXP ×" + (COMBAT.EXP_DAMAGE[shooter.exp] / 100).toFixed(2) + " → " + experienced +
       ".<br>Squad damage: floor(" + experienced + " × " + shooter.strength + " machines × roll 0.2–4.0).</p>";
   }
+  function band(type, air) {
+    var range = COMBAT.rangeBand(type, air);
+    return range ? (range.min === range.max ? "" + range.max : range.min + "–" + range.max) : "—";
+  }
+  function targetInfo(unit) {
+    var t = unit.type;
+    return "<section class='forecast-unit' aria-label='Target unit information'>" +
+      "<div>" + esc(t.cls) + " · " + esc(t.moveType) + "</div>" +
+      "<dl><dt>Power G / A · Defense</dt><dd>" + (t.atkG || 0) + " / " + (t.atkA || 0) + " · " + t.def + "</dd>" +
+      "<dt>Move · Ground / air range</dt><dd>" + t.move + " · " + band(t, false) + " / " + band(t, true) + "</dd>" +
+      (unit.strength < 8 ? "<dt>Strength</dt><dd>" + unit.strength + "</dd>" : "") +
+      "<dt>Experience</dt><dd>" + unit.exp + " · +" + COMBAT.experienceBonus(unit.exp).damage + "% damage</dd></dl>" +
+      (t.capture ? "<p>Can capture buildings.</p>" : "") +
+      (t.moveOrFire ? "<p>May move or fire.</p>" : "") +
+      (t.moveAfterAttack ? "<p>May move after attacking.</p>" : "") + "</section>";
+  }
+  function tactics(pv, attacker) {
+    var tactical = pv.tactical;
+    if (!tactical) return "";
+    function support(units, label, total) {
+      var terms = units.map(function (u) { return esc(u.name) + " (" + u.value + " × " + u.strength + ")"; });
+      return "<p><strong>" + label + "</strong>: " + (terms.length ? terms.join(" + ") +
+        "<br>floor(total / (2 × " + attacker.strength + ")) = +" + total : "none (+0)") + ".</p>";
+    }
+    return "<section class='forecast-tactics'><h4>ZOC &amp; support</h4><p>Your position: " +
+      (tactical.attackerInZOC ? "inside enemy ZOC" : "outside enemy ZOC") + ". Target: " +
+      (tactical.defenderInZOC ? "inside your ZOC" : "outside your ZOC") + ".<br>" +
+      (pv.surrounded ? "Target surrounded: attack and defense are halved." : "Target is not surrounded.") +
+      " ZOC restricts movement; it is not a separate damage bonus.</p>" +
+      (pv.ranged ? "<p>Indirect fire ignores support and surround.</p>" :
+        support(tactical.attackSupporters, "Your attack support", pv.attacker.modifiers.supportAttack) +
+        support(tactical.defenseSupporters, "Target defense support", pv.defender.modifiers.supportDefense)) + "</section>";
+  }
   function html(attacker, defender, pv, projection) {
     return "<div class='forecast-eyebrow'>ATTACK PREVIEW · " + pv.dist + " HEX" + (pv.dist === 1 ? "" : "ES") + "</div>" +
-      "<h3>" + esc(defender.type.name) + "</h3><div class='forecast-matchup'>" + esc(attacker.type.name) + " → " + esc(defender.type.name) + "</div>" +
+      "<h3>" + esc(defender.type.name) + "</h3>" + targetInfo(defender) + "<div class='forecast-matchup'>" + esc(attacker.type.name) + " → " + esc(defender.type.name) + "</div>" +
       "<p class='forecast-note'>" + (pv.ranged ? "Indirect fire · no counterattack, support or surround." :
         (pv.counter ? "Direct fire · both squads fire at pre-battle strength." : "Direct fire · target cannot counterattack.")) + "</p>" +
       "<div class='forecast-final'><span>Your ATK / DEF <strong>" + pv.attacker.ap + " / " + pv.attacker.da +
       "</strong></span><span>Target ATK / DEF <strong>" + pv.defender.ap + " / " + pv.defender.da + "</strong></span></div>" +
+      "<div class='forecast-eyebrow forecast-chart-title'>OUTCOME RATES · " + projection.samples.toLocaleString("en-US") + " SIMULATIONS</div>" +
+      heatmap(projection, attacker.strength, defender.strength) +
       "<div class='forecast-summary'><div><strong>" + projection.meanDefenderLoss.toFixed(2) + "</strong><span>Mean enemy losses</span></div>" +
       "<div><strong>" + projection.meanAttackerLoss.toFixed(2) + "</strong><span>Mean your losses</span></div>" +
       "<div><strong>" + esc(percent(projection.defenderDestroyed)) + "</strong><span>Enemy destroyed</span></div>" +
       "<div><strong>" + esc(percent(projection.attackerDestroyed)) + "</strong><span>Your squad lost</span></div></div>" +
-      "<div class='forecast-eyebrow forecast-chart-title'>OUTCOME RATES · " + projection.samples.toLocaleString("en-US") + " SIMULATIONS</div>" +
-      heatmap(projection, attacker.strength, defender.strength) +
       "<p class='forecast-note'>Cell labels are %. Brighter = more likely. Hover or focus a cell for its rate.<br>Independent seeds · mutual destruction " +
       esc(percent(projection.mutualDestruction)) + ".</p>" +
       "<details class='forecast-calculations' open><summary>Combat calculation</summary><div class='forecast-sides'>" +
-      side(attacker, pv.attacker, pv.attackerTerrain, "Your squad") + side(defender, pv.defender, pv.defenderTerrain, "Target") + "</div>" +
+      side(attacker, pv.attacker, pv.attackerTerrain, "Your squad") + side(defender, pv.defender, pv.defenderTerrain, "Target") + "</div>" + tactics(pv, attacker) +
       damageLine(attacker, pv.attacker.ap, pv.defender.da, "Attack") +
       (pv.counter ? damageLine(defender, pv.defender.ap, pv.attacker.da, "Counter") : "") +
       "<p>Stats cap at 100. Fractions are discarded at each step. Temporary HP = strength × 100, plus 50 for squads of 2–8. " +

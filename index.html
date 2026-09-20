@@ -5,9 +5,24 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nectaris — hex tactics remake</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='24,16 20,23 12,23 8,16 12,9 20,9' fill='%23ffd94a'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/nectaris.css">
+<link rel="stylesheet" href="css/nectaris.css?v=20260920-battle-forecast">
 </head>
 <body>
+<div id="save-error" class="hidden" role="alert"></div>
+<dialog id="profile-dialog" aria-labelledby="profile-dialog-title">
+  <form id="profile-form">
+    <p class="profile-eyebrow">YOUR LUNAR CAMPAIGN</p>
+    <h2 id="profile-dialog-title">Choose your username</h2>
+    <p>Your profile keeps your results and unfinished match on this browser.</p>
+    <label for="profile-name">Username</label>
+    <input id="profile-name" name="username" type="text" maxlength="24" required autocomplete="off" placeholder="Commander name">
+    <p id="profile-error" role="alert"></p>
+    <div class="profile-actions">
+      <button type="submit" class="primary">Create profile</button>
+      <button type="button" id="profile-cancel">Cancel</button>
+    </div>
+  </form>
+</dialog>
 
 <!-- ============ Mission menu ============ -->
 <div id="menu-screen">
@@ -17,6 +32,28 @@
     Original code, selectable art; the rules are the real thing: ZOC, support &amp; surround fire,
     experience, terrain, factories, transports.</p>
   </header>
+
+  <section class="profile-panel" aria-labelledby="profile-heading">
+    <p class="profile-eyebrow">PLAYER PROFILE</p>
+    <h2 id="profile-heading">Choose your player profile</h2>
+    <div class="profile-actions">
+      <label for="profile-select">Switch profile</label>
+      <select id="profile-select"></select>
+      <button id="profile-new">New profile</button>
+    </div>
+    <p id="profile-record"></p>
+    <p class="section-note">Saved automatically in this browser. Use the same address when you return.</p>
+    <div id="continue-match" class="hidden">
+      <div><strong>Unfinished match</strong><p id="continue-detail"></p></div>
+      <button id="continue-button" class="primary">Continue match</button>
+    </div>
+    <details id="history-section" class="hidden">
+      <summary>Match history</summary>
+      <ol id="profile-history"></ol>
+      <p id="history-count" class="section-note" role="status"></p>
+      <button id="history-more" class="hidden">Show older matches</button>
+    </details>
+  </section>
 
   <section class="menu-section">
     <h2>Campaign</h2>
@@ -70,7 +107,7 @@
 <!-- ============ Game ============ -->
 <div id="game-screen" class="hidden">
   <div id="topbar">
-    <button id="btn-menu">◄ Menu</button>
+    <button id="btn-menu">◄ Save &amp; Menu</button>
     <span id="map-title"></span>
     <select id="map-jump" aria-label="Jump to campaign map"></select>
     <span id="status-turn"></span>
@@ -88,6 +125,7 @@
   </div>
   <div id="game-main">
     <div id="sidebar">
+      <div id="playing-profile" title="Current profile"></div>
       <div id="action-status" class="hidden" role="status"></div>
       <div id="transport-actions" class="hidden"></div>
       <div id="attack-targets" class="hidden" role="group" aria-label="Preview attack targets"></div>
@@ -122,6 +160,7 @@
   <div id="gameover-panel" class="hidden popup">
     <div class="popup-title">Battle over</div>
     <div id="gameover-text"></div>
+    <p id="gameover-record" role="status"></p>
     <div class="popup-buttons">
       <button id="gameover-next">Next Mission</button>
       <button id="gameover-again">Replay</button>
@@ -132,23 +171,24 @@
   <div id="toast" class="hidden"></div>
 </div>
 
-<script src="js/hex.js"></script>
-<script src="js/data-terrain.js"></script>
-<script src="js/data-units.js"></script>
-<script src="js/combat.js"></script>
-<script src="js/engine.js"></script>
-<script src="js/ai.js"></script>
-<script src="js/data-maps.js"></script>
-<script src="js/data-expansion-maps.js"></script>
-<script src="js/data-basenectaris-maps.js"></script>
-<script src="js/data-unit-art.js"></script>
-<script src="js/data-unit-art-legacy.js"></script>
-<script src="js/unit-icon-sets.js"></script>
-<script src="js/legacy-terrain.js"></script>
-<script src="js/render.js"></script>
-<script src="js/music.js"></script>
-<script src="js/combat-view.js"></script>
-<script src="js/ui.js"></script>
-<script src="js/main.js"></script>
+<script src="js/hex.js?v=20260920-battle-forecast"></script>
+<script src="js/data-terrain.js?v=20260920-battle-forecast"></script>
+<script src="js/data-units.js?v=20260920-battle-forecast"></script>
+<script src="js/combat.js?v=20260920-battle-forecast"></script>
+<script src="js/engine.js?v=20260920-battle-forecast"></script>
+<script src="js/ai.js?v=20260920-battle-forecast"></script>
+<script src="js/data-maps.js?v=20260920-battle-forecast"></script>
+<script src="js/data-expansion-maps.js?v=20260920-battle-forecast"></script>
+<script src="js/data-basenectaris-maps.js?v=20260920-battle-forecast"></script>
+<script src="js/data-unit-art.js?v=20260920-battle-forecast"></script>
+<script src="js/data-unit-art-legacy.js?v=20260920-battle-forecast"></script>
+<script src="js/unit-icon-sets.js?v=20260920-battle-forecast"></script>
+<script src="js/legacy-terrain.js?v=20260920-battle-forecast"></script>
+<script src="js/render.js?v=20260920-battle-forecast"></script>
+<script src="js/music.js?v=20260920-battle-forecast"></script>
+<script src="js/combat-view.js?v=20260920-battle-forecast"></script>
+<script src="js/ui.js?v=20260920-battle-forecast"></script>
+<script src="js/profiles.js?v=20260920-battle-forecast"></script>
+<script src="js/main.js?v=20260920-battle-forecast"></script>
 </body>
 </html>

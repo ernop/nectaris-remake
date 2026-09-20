@@ -262,3 +262,56 @@ raised beveled turrets and recessed hatches. Polar has the widest single-turret
 armor envelope and segmented skirts; Giant retains its twin guns, Titan its
 missile rack, and Lenet a small scout chassis. These original pixel constructions
 use the local captures as visual references only.
+
+## Player profiles and resumable matches (2026-09-20)
+
+First visit asks for a username (1–24 characters, unique ignoring case).
+The last-used profile stays selected; the mission menu offers Switch profile
+and New profile. Each browser-local profile has its own campaign stars, complete
+match-result history (ten per page, with Show older matches), and one unfinished match. Solo results
+are wins/losses from Union's perspective; hotseat records name the winning side
+and are counted separately. A later campaign win marks only that mission.
+The first profile inherits old `nectaris-progress` stars once.
+
+Committed human actions save automatically, including during combat animation.
+Save & Menu, page hiding, and navigation also checkpoint. Uncommitted moves are
+rolled back in the saved copy. Animated AI turns retain their start checkpoint
+until completion; resuming replays that turn deterministically. Snapshots preserve
+unit identities, cargo, factory inventory/ownership, action flags, movement
+budgets, custom types, turn/player and the random generator state. The menu's
+Continue match restores the save; starting another match asks before replacing
+it. Match IDs make recording outcomes idempotent.
+
+`js/profiles.js` owns versioned localStorage data under `nectaris-profiles-v1`.
+These are local profiles without accounts or cloud sync. The browser and origin
+must match; clearing site data removes profiles. Storage failures are visible;
+corrupt data is never silently overwritten. A storage change from another tab
+stops this tab's match and returns to the menu without writing stale state.
+
+
+## Outcome history (2026-09-20)
+
+Match history exposes all recorded results, ten at a time, newest first. Each
+entry shows victory/defeat (or the hotseat winning faction), ending reason,
+turn and timestamp. Mission cards show the profile's solo win/loss totals,
+hotseat count and latest result. New entries identify their campaign/pack and
+mission index; custom map keys include the title and layout. Old entries without
+keys remain readable and match by title.
+
+The result screen confirms which profile recorded the outcome. Completed match
+IDs are immutable: repeated callbacks cannot duplicate a result, resurrect a
+finished match, or clear a newer save. Turn-limit records show the last playable
+turn. Regression tests cover actual engine wins and losses by base capture and
+elimination, turn-limit defeat, reloads, history pagination and profile switching.
+
+## Per-battle hover information (2026-09-20)
+
+After choosing a firing position, moving over each red target updates one
+inspector with that target's class, movement type, ground/air power and range,
+defense, damage and experience. The joint casualty plot uses enemy losses on X
+and your losses on Y; each cell is a percentage from 100,000 independent seeds.
+The plot precedes the mean-loss summary to keep it closer to the target details.
+The calculation section names support contributors and their weighted values,
+shows the support divisor, terrain, experience, caps, counterattack eligibility
+and ZOC/surround status. Ordinary ZOC restricts movement; it is not a separate
+combat bonus. Forecasting never reads or advances the live match RNG.

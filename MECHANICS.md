@@ -138,6 +138,32 @@ with a source, the maps are ours to tune.
   ends the move. ZOC is cross-domain: aircraft block tanks and vice versa.
 - Friendly units can be moved through, not stopped on. One unit per hex.
 
+### Missile buggy movement after attack (2026-09-20)
+
+Rabbit (8 movement points) and Lynx (6) share one movement allowance across
+their approach and retreat. Attacking once leaves the unused points available;
+it does not refill them. Spending the whole allowance before attacking leaves
+no retreat. Lynx still fires at ground targets exactly two hexes away, or at
+adjacent aircraft, after moving.
+
+The [TG-16 walkthrough](https://gamefaqs.gamespot.com/tg16/589030-military-madness/faqs/53871)
+warns that spending shift points on the approach can prevent retreat. The
+Japanese [unit guide, buggy section](https://anka.sakura.ne.jp/nectaris/d2.html)
+explicitly describes attacking during movement with an unchanged total
+allowance (that page does not identify a release, so it is corroborating
+evidence rather than separate version confirmation).
+
+The remake now separates stopping at enemy ZOC from discarding a buggy's
+remaining allowance before combat. The approach still stops there. After the
+attack, movement is recalculated: a surviving adjacent enemy limits the retreat
+to one hex under our existing ZOC rule; eliminating that enemy can open a longer
+retreat. This is the adopted interaction of the two rules, not an independently
+verified ZOC exception for every original release. Normal terrain costs and
+passability still apply. Ending at an owned building stores and repairs the
+buggy. Player controls and AI both use this flow; cancelling a provisional
+retreat never undoes combat. Regression coverage is in
+`test/buggy-movement-tests.js` and `test/combat-ui-tests.js`.
+
 ## Combat: community-recovered original formula
 
 The remake uses the arithmetic reconstructed by contributors to a 2ch

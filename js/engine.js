@@ -358,7 +358,10 @@ var ENGINE = (function () {
       return { loaded: true };
     }
     unit.col = col; unit.row = row;
-    if (rec.stop) unit.movePointsLeft = 0;
+    // ZOC ends this move, but a buggy can use its unspent allowance after
+    // attacking. Recalculate ZOC for that second move after casualties.
+    // Terrain that drains movement already charged the full budget above.
+    if (rec.stop && (!unit.type.moveAfterAttack || unit.attacked)) unit.movePointsLeft = 0;
     this.log.push({ t: "move", unit: unit.id, col: col, row: row });
     return { loaded: false };
   };
