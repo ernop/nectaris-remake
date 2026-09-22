@@ -259,10 +259,12 @@ var RENDER = (function () {
     if (legacyMap()) {
       var at = this.hexCenter(c, r), building = g.buildingAt(c, r);
       var neighbors = HEX.neighbors(c, r).map(function(n) { var t = g.inBounds(n.col,n.row) && g.terrainAt(n.col,n.row); return t ? t.id : null; });
-      LEGACY_TILES.draw(ctx,at.x,at.y,this.zoom,terr.id,neighbors,(c*3+r*7)%8,building ? building.owner : -1);
+      LEGACY_TILES.draw(ctx,at.x,at.y,this.zoom,terr.id,neighbors,(c*3+r*7)%8,building ? building.owner : -1,this._activeTerrainRaster);
       if (building && terr.id === "factory" && building.stored.length) {
         ctx.fillStyle="#fff9e5";ctx.font="bold 9px monospace";ctx.textAlign="center";
-        ctx.fillText(String(building.stored.length),Math.round(at.x+7),Math.round(at.y+10));
+        var label=String(building.stored.length),x=Math.round(at.x+7),y=Math.round(at.y+10);
+        if(this._activeTerrainRaster)this._activeTerrainRaster.text(ctx,label,x,y);
+        else ctx.fillText(label,x,y);
       }
       return;
     }
@@ -1206,7 +1208,7 @@ var RENDER = (function () {
       });
       if (neighbors.indexOf("mountain") < 0) return;
       var at = renderer.hexCenter(c, r);
-      LEGACY_TILES.draw(renderer.ctx, at.x, at.y, renderer.zoom, "void", neighbors, 0, -1);
+      LEGACY_TILES.draw(renderer.ctx, at.x, at.y, renderer.zoom, "void", neighbors, 0, -1,renderer._activeTerrainRaster);
     }
     // Finish mountain contours in the missing outer hex corners. These are
     // decorative pixels only; board dimensions and selectable hexes stay exact.
@@ -1253,6 +1255,12 @@ var RENDER = (function () {
     }
     this.ctx.save();
     try {
+      if(layer && canvas.width && canvas.height && legacyMap() && LEGACY_TILES.Frame) {
+        if(!this._legacyRaster || this._legacyRaster.width!==canvas.width || this._legacyRaster.height!==canvas.height)
+          this._legacyRaster=new LEGACY_TILES.Frame(this.ctx,canvas.width,canvas.height);
+        this._activeTerrainRaster=this._legacyRaster;
+        this._activeTerrainRaster.clear();
+      }
       this.ctx.fillStyle = "#181510";
       this.ctx.fillRect(0, 0, canvas.width, canvas.height);
       this.drawTerrainBorder(bounds);
@@ -1260,7 +1268,9 @@ var RENDER = (function () {
         for (var col = bounds.minCol; col <= bounds.maxCol; col++) this.drawTerrainHex(col, row);
       }
       this.drawRoadNetwork(bounds);
+      if(this._activeTerrainRaster)this._activeTerrainRaster.paint(this.ctx);
     } finally {
+      this._activeTerrainRaster=null;
       this.ctx.restore(); this.ctx = ctx;
     }
     if (layer) { this._terrainKey = key; ctx.drawImage(layer, 0, 0); }

@@ -93,3 +93,61 @@ Remaining costs: camera changes rebuild visible terrain (Legacy is still the
 most expensive), while hover benefits from the cache. Large custom games can
 still spend time in combat's linear unit lookups. Watch-AI mode retains its
 intentional animation delays; this work changes computation, not pacing.
+
+## Interaction investigation — 2026-09-22
+
+The stationary-hover benchmark missed the remaining severe lag: each camera
+change still rebuilt the terrain with hundreds of Canvas `fillRect` calls per
+Legacy tile. On the large fjord maps, full neighbor-name cache keys also
+exceeded the 1,024-tile limit and cleared the entire tile cache repeatedly.
+
+The second pass makes these changes:
+
+- Terrain cache keys encode only visible connections, texture variant,
+  mountain board-edge masks and relevant building ownership. The limit stays
+  at 1,024 tiles, with least-recently-used eviction instead of wholesale clears.
+  Including decorative border tiles, Twisted Fjords needs 709 distinct tiles
+  and Shattered Fjords 922; both complete a second full scan with zero misses.
+- Camera redraws write the visible Legacy terrain into one reusable RGBA
+  buffer, then upload it to Canvas once. Source-column lookup tables preserve
+  the original rounded pixel boundaries at every zoom. Transparent source
+  pixels preserve prior tiles. Factory labels still use Canvas's font
+  rasterization in the original drawing order, synchronizing only their small
+  bounding rectangles. The viewport cache still handles stationary redraws.
+- Buffer memory scales with viewport area, not map area: four bytes per
+  viewport pixel plus a source-column lookup. Cached source color arrays add
+  at most 6 MiB across 1,024 tiles. Resizing replaces the viewport buffer.
+  Remake, Classic and Neon drawing paths are unchanged.
+
+Matched browser CPU measurements on Twisted Fjords, Legacy art, 1,200×712
+viewport, 24 events per phase. Both paths use the corrected tile cache and
+identical production UI handlers. The harness renders synchronously to avoid
+background-iframe animation-frame throttling; these are CPU redraw times,
+not measured end-to-end FPS.
+
+| Interaction | Rectangle runs, median / p95 | Shared buffer, median / p95 |
+|---|---:|---:|
+| Continuous pan at zoom 1 | 61.4 / 65.9 ms | 6.7 / 8.5 ms |
+| Wheel zoom | 82.9 / 98.8 ms | 9.3 / 12.4 ms |
+| Stationary fit-view hover | 1.2 / 2.0 ms | 1.2 / 1.6 ms |
+| Select and cancel | 0.6 / 0.9 ms | 0.6 / 0.7 ms |
+
+The synthetic 960×640 Legacy viewport rebuild also fell from the original
+74.2 ms to 6.4 ms, including full pixel readback. Cached redraws remain 1.8 ms.
+
+Validation: all 770 individual browser raster comparisons and all 68 full-scene
+comparisons passed, including fractional zoom, negative/offscreen positions,
+mountain borders, factory text, captures, inventories, map edits and resizing.
+Node tests add 1,600 independently generated terrain comparisons, hot-cache
+survival under eviction pressure and 200 layered raster scenes against the
+original rectangle algorithm. The isolated commit's full suite passed 65,494
+checks, zero failures; the active workspace suite also passed with concurrent
+rule/UI changes included (66,729 checks).
+
+Run `node test/terrain-performance-tests.js` for the focused regression tests.
+Open [the interaction benchmark](http://nectaris.localhost/tools/benchmark-interaction.html)
+and use **Run interactions** to compare **Original rectangle runs** with
+**Shared pixel buffer** on the same map. **Compare tile rasterization** runs the
+770 fractional-position/scale checks. The harness creates an isolated match
+without writing profile saves. Run browser benchmarks sequentially so another
+benchmark's synchronous work cannot inflate the interaction timings.

@@ -8,6 +8,14 @@ var LEGACY_TERRAIN = (function () {
     "#28212a","#49404a","#7a6268","#fff9e5","#215783","#48a8c1",
     "#24562c","#77a753","#65716c"];
   var cache = new Map(), mountainShapes = new Map();
+  // Interpret RGBA bytes through a Uint32 view so this also works on a
+  // big-endian host. Each run writes one opaque palette color at a time.
+  var colorWords = {};
+  palette.concat(["#181510"]).forEach(function (color) {
+    if (!color) return;
+    var rgb = parseInt(color.slice(1), 16);
+    colorWords[color] = new Uint32Array(new Uint8Array([rgb >> 16, rgb >> 8 & 255, rgb & 255, 255]).buffer)[0];
+  });
   // Same order as HEX.neighbors, expressed on the flattened source grid.
   var offsets = [[32,16],[32,-16],[0,-32],[-32,-16],[-32,16],[0,32]];
   function hash(x,y,seed) {
@@ -42,8 +50,23 @@ var LEGACY_TERRAIN = (function () {
     mountainShapes.set(mask,pixels);return pixels;
   }
   function tile(id, neighbors, variant, owner) {
-    var key=[id,neighbors.join(","),variant,owner].join("/");
-    if(cache.has(key))return cache.get(key);
+    // Only visual connections belong in the key. A plain next to a road
+    // has the same pixels as a plain next to a factory, for example. Full
+    // neighbor names exceeded the old cache on the large fjord maps.
+    var mountainMask=id==="mountain"?64:0, hillMask=0, valleyMask=0, roadMask=0, edgeMask=0;
+    neighbors.forEach(function(n,i) {
+      if(n==="mountain")mountainMask|=1<<i;
+      if(id==="mountain"&&n===null)edgeMask|=1<<i;
+      if(id==="hill"&&n==="hill")hillMask|=1<<i;
+      if((id==="valley"||id==="bridge")&&(n==="valley"||n==="bridge"))valleyMask|=1<<i;
+      if((id==="road"||id==="bridge")&&connects(n))roadMask|=1<<i;
+    });
+    var key=[id,mountainMask,hillMask,valleyMask,roadMask,edgeMask,id==="void"?0:variant,
+      id==="base"||id==="factory"?owner:-1].join("/");
+    if(cache.has(key)) {
+      var cached=cache.get(key);
+      cache.delete(key);cache.set(key,cached);return cached;
+    }
     var pixels=new Uint8Array(48*32), runs=[];
     function put(x,y,v) {if(x>=0&&x<48&&y>=0&&y<32&&pixels[y*48+x])pixels[y*48+x]=v;}
     function rect(x,y,w,h,v){for(var yy=y;yy<y+h;yy++)for(var xx=x;xx<x+w;xx++)put(xx,yy,v);}
@@ -52,8 +75,6 @@ var LEGACY_TERRAIN = (function () {
       offsets.forEach(function (p,i) {if(neighbors[i]===id)d=Math.min(d,segmentDistance(x*.8,y*1.15,p[0]*.8,p[1]*1.15));});
       return d;
     }
-    var mountainMask=id==="mountain"?64:0;
-    neighbors.forEach(function(n,i){if(n==="mountain")mountainMask|=1<<i;});
     var mountains=mountainShape(mountainMask);
     for(var y=0;y<32;y++)for(var x=0;x<48;x++) {
       var dx=x+.5-24,dy=y+.5-16;
@@ -121,15 +142,63 @@ var LEGACY_TERRAIN = (function () {
       if(value)runs.push([start,ry,rx-start,palette[value]]);
     }
     var result={width:48,height:32,pixels:pixels,runs:runs};
-    if(cache.size>=1024)cache.clear();cache.set(key,result);return result;
+    // Evict the least recently used tile, never the whole working set.
+    if(cache.size>=1024)cache.delete(cache.keys().next().value);
+    cache.set(key,result);return result;
   }
-  function draw(ctx,cx,cy,scale,id,neighbors,variant,owner) {
+  // One viewport-sized buffer replaces hundreds of Canvas calls per tile.
+  // Rounded run boundaries are identical to the original renderer, including
+  // fractional zoom and camera offsets. Transparent pixels leave prior tiles.
+  function Frame(ctx, width, height) {
+    this.width=width;this.height=height;
+    this.image=ctx.createImageData(width,height);
+    this.words=new Uint32Array(this.image.data.buffer);
+    this.xs=new Int32Array(49);this.ys=new Int32Array(33);
+    this.sourceX=new Uint8Array(width);
+  }
+  Frame.prototype.clear=function() {this.words.fill(colorWords["#181510"]);};
+  Frame.prototype.draw=function(data,left,top,scale) {
+    var xs=this.xs,ys=this.ys,width=this.width,height=this.height,words=this.words,i;
+    for(i=0;i<=48;i++)xs[i]=Math.max(0,Math.min(width,Math.round(left+i*scale)));
+    for(i=0;i<=32;i++)ys[i]=Math.max(0,Math.min(height,Math.round(top+i*scale)));
+    if(!data.colors) {
+      data.colors=new Uint32Array(data.pixels.length);
+      for(i=0;i<data.pixels.length;i++)data.colors[i]=colorWords[palette[data.pixels[i]]]||0;
+    }
+    var sourceX=this.sourceX,colors=data.colors,leftEdge=xs[0],rightEdge=xs[48];
+    for(i=0;i<48;i++)sourceX.fill(i,xs[i],xs[i+1]);
+    for(var sy=0;sy<32;sy++)for(var y=ys[sy];y<ys[sy+1];y++) {
+      var row=y*width,sourceRow=sy*48;
+      for(var x=leftEdge;x<rightEdge;x++) {
+        var color=colors[sourceRow+sourceX[x]];
+        if(color)words[row+x]=color;
+      }
+    }
+  };
+  Frame.prototype.text=function(ctx,text,x,y) {
+    // Keep Canvas's exact font rasterization and original tile/text ordering.
+    // Only synchronize the tiny label rectangle; later tiles may cover it.
+    var metrics=ctx.measureText(text);
+    var left=Math.max(0,Math.floor(x-metrics.actualBoundingBoxLeft)-1);
+    var top=Math.max(0,Math.floor(y-metrics.actualBoundingBoxAscent)-1);
+    var right=Math.min(this.width,Math.ceil(x+metrics.actualBoundingBoxRight)+1);
+    var bottom=Math.min(this.height,Math.ceil(y+metrics.actualBoundingBoxDescent)+1);
+    if(right<=left||bottom<=top)return;
+    ctx.putImageData(this.image,0,0,left,top,right-left,bottom-top);
+    ctx.fillText(text,x,y);
+    var label=ctx.getImageData(left,top,right-left,bottom-top);
+    var words=new Uint32Array(label.data.buffer),stride=right-left;
+    for(var row=0;row<bottom-top;row++)this.words.set(words.subarray(row*stride,(row+1)*stride),(top+row)*this.width+left);
+  };
+  Frame.prototype.paint=function(ctx) {ctx.putImageData(this.image,0,0);};
+  function draw(ctx,cx,cy,scale,id,neighbors,variant,owner,frame) {
     var data=tile(id,neighbors,variant,owner),left=cx-24*scale,top=cy-16*scale;
+    if(frame){frame.draw(data,left,top,scale);return;}
     data.runs.forEach(function(run){
       var x=Math.round(left+run[0]*scale),y=Math.round(top+run[1]*scale);
       ctx.fillStyle=run[3];ctx.fillRect(x,y,Math.round(left+(run[0]+run[2])*scale)-x,Math.round(top+(run[1]+1)*scale)-y);
     });
   }
-  return {tile:tile,draw:draw,palette:palette,offsets:offsets};
+  return {tile:tile,draw:draw,Frame:Frame,palette:palette,offsets:offsets};
 })();
 if(typeof module!=="undefined")module.exports=LEGACY_TERRAIN;

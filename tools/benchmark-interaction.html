@@ -1,0 +1,12 @@
+<!doctype html><html lang="en"><meta charset="utf-8">
+<title>Nectaris interaction benchmark</title>
+<style>body{margin:16px;background:#181510;color:#eee;font:14px monospace}button,select{font:inherit;padding:6px}iframe{display:block;width:1200px;height:800px;border:1px solid #777}pre{white-space:pre-wrap;max-height:220px;overflow:auto}</style>
+<h1>Actual-map interaction benchmark</h1>
+<p>Runs production UI work in an isolated match without writing profile saves. Draws run synchronously to measure work without background iframe frame throttling. Timings are CPU work, not FPS.</p>
+<label>Map <select id="map"></select></label>
+<label>Art <select id="art"><option value="legacy">Legacy</option><option value="remake">Remake</option></select></label>
+<label>Legacy renderer <select id="method"><option value="buffer">Shared pixel buffer</option><option value="runs">Original rectangle runs</option></select></label>
+<button id="run" disabled>Run interactions</button>
+<button id="raster" disabled>Compare tile rasterization</button>
+<pre id="results">Loading the game UI…</pre><iframe title="Benchmark match"></iframe>
+<script src="benchmark-interaction.js"></script></html>

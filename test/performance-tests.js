@@ -71,6 +71,7 @@ function run(ok) {
     assert.deepEqual(battle.snapshot(), before);
   });
   ok(true, "forecast sample-cache replacement preserves exact direct/indirect outcomes and match state");
+  require("./terrain-performance-tests.js")(ok);
 }
 
 module.exports = run;

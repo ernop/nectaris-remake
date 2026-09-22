@@ -39,13 +39,20 @@ document.getElementById("run").onclick = async function () {
   function frame(bounds, cold) {
     renderer.visibleTileBounds = bounds;
     if (cold) renderer._terrainKey = null;
+    // The full-map reference uses the original rectangle renderer. This
+    // checks the pixel buffer, including label/terrain overlap at low zoom.
+    var rasterFrame = LEGACY_TERRAIN.Frame;
+    if (bounds === fullBounds) LEGACY_TERRAIN.Frame = null;
     renderer.ctx.save();
-    var start = performance.now(); renderer.draw();
-    // Readback ensures canvas work has completed before timing ends.
-    var pixels = renderer.ctx.getImageData(0, 0, canvas.width, canvas.height).data;
-    var elapsed = performance.now() - start;
-    renderer.ctx.restore();
-    return {ms: elapsed, pixels: pixels};
+    try {
+      var start = performance.now(); renderer.draw();
+      // Readback ensures canvas work has completed before timing ends.
+      var pixels = renderer.ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+      return {ms: performance.now() - start, pixels: pixels};
+    } finally {
+      LEGACY_TERRAIN.Frame = rasterFrame;
+      renderer.ctx.restore();
+    }
   }
   try {
     for (var config of cases) {
