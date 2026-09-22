@@ -78,12 +78,13 @@ aircraft: their visual lift is authored inside the frame, not a runtime offset.
 
 ## Display, picking and map integration
 
-- **Every unit icon is displayed at 32×32, in every view.** No enlarged map
-  icons, inspector portraits, contact sheets or hover previews. Remove icon
-  zoom controls. Pan a constrained viewport rather than scaling the art.
+- **Map icons scale with their hexes** (2026-09-21 user correction). Render the
+  32×32 source at `32 × map zoom` so its footprint stays proportional to terrain.
+  This supersedes the old prohibition against enlarging map icons. Inspector,
+  factory and review icons remain native 32×32.
 - Use pixel-aligned placement and nearest-neighbor sampling with smoothing
   disabled. Account for device pixel ratio without changing the icon's
-  32×32 layout size. Test fractional browser/device scaling.
+  intended proportions. Test fractional browser/device scaling.
 - **Horizontally center the visible artwork**, including its outline, gun and
   contact shadow, within the frame and therefore within its hex. Equal left
   and right transparent padding is mandatory in each facing. Author an even
@@ -290,9 +291,8 @@ outlines and remain subject to the safe envelope; they are not solid rectangles.
    plus 184 state/direction PNGs. Distinct opaque silhouettes, small infantry,
    exact centering and safe hex fit are enforced by the exporter and tests.
 2. **Unit integration complete.** Game/editor maps and factories use generated
-   native data. Integer placement and fixed 32×32 frames remain invariant at
-   fractional and whole map zooms. Pixel-mode minimum zoom prevents crowding;
-   larger maps scroll. Classic/neon retain their existing vector artwork.
+   native data. Map sprites scale proportionally at fractional and whole map
+   zooms, with shared pixel boundaries rounded for crisp rendering. Larger maps scroll. Classic/neon retain their existing vector artwork.
 3. **Geometry and terrain pending.** The review fixture uses the planned 48×32
    geometry, connected hills/valley/roads and domed base. Production still uses
    its earlier terrain and regular hex projection. Centralize flattened map
@@ -319,8 +319,8 @@ No fractional sprite dimensions or half-pixel overdraw remains in pixel mode.
 ## Decision status
 
 The user selected 32×32 unit frames, original flattened geometry, smaller
-infantry, original-style bases, exact horizontal centering and native-size-only
-icon display. These replace the first 64-pixel pilot and enlarged review views.
+infantry, original-style bases and exact horizontal centering. The 2026-09-21
+correction scales map icons with zoom; standalone previews remain native-sized. These replace the first 64-pixel pilot and enlarged review views.
 Angular military proportions replace the rejected rounded/chibi construction.
 Upper-left lighting, selective charcoal contours and native pixel authoring remain.
 

@@ -1,0 +1,1259 @@
+{
+  "method": {
+    "seed": 19890922,
+    "draws": 240000,
+    "feasibleDraws": 29974,
+    "candidates": 25858,
+    "weights": [
+      0.25,
+      0.15,
+      0.2,
+      0.2,
+      0.2
+    ],
+    "groupNames": [
+      "Firepower",
+      "Armor",
+      "Range bands",
+      "Terrain mobility",
+      "Turn / mission rules"
+    ],
+    "budgetCeiling": 2.69281045751634,
+    "terrains": [
+      "road",
+      "plain",
+      "hill",
+      "waste",
+      "mountain",
+      "valley"
+    ],
+    "coverage": {
+      "meanBefore": 0.2227256190686653,
+      "meanAfter": 0.16851461401627754,
+      "maxBefore": 0.43194444444444446,
+      "maxAfter": 0.2826388888888889
+    },
+    "sensitivity": [
+      {
+        "name": "Firepower",
+        "topGap": 0.4537037037037037,
+        "top": {
+          "moveType": "treads",
+          "move": 0,
+          "atkG": 50,
+          "atkA": 85,
+          "def": 70,
+          "rngG": 2,
+          "rngA": 2,
+          "placeByTransport": true,
+          "moveOrFire": true
+        }
+      },
+      {
+        "name": "Armor",
+        "topGap": 0.4192506459948321,
+        "top": {
+          "moveType": "treads",
+          "move": 0,
+          "atkG": 50,
+          "atkA": 85,
+          "def": 60,
+          "rngG": 2,
+          "rngA": 2,
+          "placeByTransport": true,
+          "moveOrFire": true
+        }
+      },
+      {
+        "name": "Range bands",
+        "topGap": 0.4777777777777778,
+        "top": {
+          "moveType": "treads",
+          "move": 0,
+          "atkG": 50,
+          "atkA": 85,
+          "def": 60,
+          "rngG": 2,
+          "rngA": 2,
+          "placeByTransport": true,
+          "moveOrFire": true
+        }
+      },
+      {
+        "name": "Terrain mobility",
+        "topGap": 0.3926767676767677,
+        "top": {
+          "moveType": "treads",
+          "move": 0,
+          "atkG": 50,
+          "atkA": 85,
+          "def": 60,
+          "rngG": 2,
+          "rngA": 2,
+          "placeByTransport": true,
+          "moveOrFire": true
+        }
+      },
+      {
+        "name": "Turn / mission rules",
+        "topGap": 0.397875816993464,
+        "top": {
+          "moveType": "wheels",
+          "move": 3,
+          "atkG": 80,
+          "atkA": 70,
+          "def": 10,
+          "rngG": 2,
+          "rngA": 2,
+          "moveOrFire": true,
+          "capture": true
+        }
+      }
+    ]
+  },
+  "stock": [
+    {
+      "name": "Charlie GX-77",
+      "cls": "infantry",
+      "move": 3,
+      "moveType": "foot",
+      "rngG": 1,
+      "rngA": 1,
+      "atkG": 10,
+      "atkA": 10,
+      "def": 4,
+      "capture": true,
+      "id": "CHARLIE"
+    },
+    {
+      "name": "Kilroy GX-87",
+      "cls": "infantry",
+      "move": 2,
+      "moveType": "foot",
+      "rngG": 1,
+      "rngA": 1,
+      "atkG": 40,
+      "atkA": 10,
+      "def": 10,
+      "capture": true,
+      "id": "KILROY"
+    },
+    {
+      "name": "Panther CBX-1",
+      "cls": "infantry",
+      "move": 9,
+      "moveType": "wheels",
+      "rngG": 1,
+      "rngA": 1,
+      "atkG": 10,
+      "atkA": 10,
+      "def": 8,
+      "capture": true,
+      "id": "PANTHER"
+    },
+    {
+      "name": "Bison S-61",
+      "cls": "tank",
+      "move": 6,
+      "moveType": "treads",
+      "rngG": 1,
+      "rngA": 0,
+      "atkG": 50,
+      "atkA": 0,
+      "def": 40,
+      "id": "BISON"
+    },
+    {
+      "name": "Lenet TT-1",
+      "cls": "tank",
+      "move": 5,
+      "moveType": "treads",
+      "rngG": 1,
+      "rngA": 0,
+      "atkG": 45,
+      "atkA": 0,
+      "def": 30,
+      "id": "LENET"
+    },
+    {
+      "name": "Polar PT-6",
+      "cls": "tank",
+      "move": 4,
+      "moveType": "treads",
+      "rngG": 1,
+      "rngA": 0,
+      "atkG": 60,
+      "atkA": 0,
+      "def": 60,
+      "id": "POLAR"
+    },
+    {
+      "name": "Grizzly T-79",
+      "cls": "tank",
+      "move": 4,
+      "moveType": "treads",
+      "rngG": 1,
+      "rngA": 0,
+      "atkG": 70,
+      "atkA": 0,
+      "def": 50,
+      "id": "GRIZZLY"
+    },
+    {
+      "name": "Slagger GS-81",
+      "cls": "tank",
+      "move": 7,
+      "moveType": "treads",
+      "rngG": 1,
+      "rngA": 0,
+      "atkG": 50,
+      "atkA": 0,
+      "def": 50,
+      "id": "SLAGGER"
+    },
+    {
+      "name": "Titan GT-86",
+      "cls": "tank",
+      "move": 5,
+      "moveType": "treads",
+      "rngG": 1,
+      "rngA": 0,
+      "atkG": 60,
+      "atkA": 0,
+      "def": 50,
+      "id": "TITAN"
+    },
+    {
+      "name": "Giant HMB-2",
+      "cls": "tank",
+      "move": 2,
+      "moveType": "treads",
+      "rngG": 1,
+      "rngA": 1,
+      "atkG": 90,
+      "atkA": 40,
+      "def": 80,
+      "cannotEnter": [
+        "waste"
+      ],
+      "id": "GIANT"
+    },
+    {
+      "name": "Hadrian SG-4",
+      "cls": "artillery",
+      "move": 4,
+      "moveType": "treads",
+      "rngG": 5,
+      "rngA": 0,
+      "atkG": 45,
+      "atkA": 0,
+      "def": 30,
+      "moveOrFire": true,
+      "id": "HADRIAN"
+    },
+    {
+      "name": "Octopus MR-22",
+      "cls": "artillery",
+      "move": 4,
+      "moveType": "treads",
+      "rngG": 4,
+      "rngA": 0,
+      "atkG": 60,
+      "atkA": 0,
+      "def": 30,
+      "moveOrFire": true,
+      "id": "OCTOPUS"
+    },
+    {
+      "name": "Atlas SS-80",
+      "cls": "artillery",
+      "move": 0,
+      "moveType": "treads",
+      "rngG": 6,
+      "rngA": 0,
+      "atkG": 90,
+      "atkA": 0,
+      "def": 20,
+      "moveOrFire": true,
+      "placeByTransport": true,
+      "aiDeploymentEnemies": 4,
+      "id": "ATLAS"
+    },
+    {
+      "name": "Rabbit MB-5",
+      "cls": "buggy",
+      "move": 8,
+      "moveType": "treads",
+      "rngG": 1,
+      "rngA": 1,
+      "atkG": 70,
+      "atkA": 10,
+      "def": 20,
+      "moveAfterAttack": true,
+      "id": "RABBIT"
+    },
+    {
+      "name": "Lynx MB-4",
+      "cls": "buggy",
+      "move": 6,
+      "moveType": "treads",
+      "rngG": 2,
+      "rngA": 1,
+      "atkG": 40,
+      "atkA": 10,
+      "def": 20,
+      "moveAfterAttack": true,
+      "id": "LYNX"
+    },
+    {
+      "name": "Seeker AAG-4",
+      "cls": "antiair",
+      "move": 6,
+      "moveType": "treads",
+      "rngG": 1,
+      "rngA": 1,
+      "atkG": 30,
+      "atkA": 65,
+      "def": 30,
+      "id": "SEEKER"
+    },
+    {
+      "name": "Hawkeye MM107",
+      "cls": "antiair",
+      "move": 5,
+      "moveType": "treads",
+      "rngG": 0,
+      "rngA": 5,
+      "atkG": 0,
+      "atkA": 85,
+      "def": 30,
+      "moveOrFire": true,
+      "id": "HAWKEYE"
+    },
+    {
+      "name": "Mule NC-1",
+      "cls": "transport",
+      "move": 6,
+      "moveType": "wheels",
+      "rngG": 1,
+      "rngA": 1,
+      "atkG": 10,
+      "atkA": 10,
+      "def": 10,
+      "cargo": 1,
+      "cargoTypes": [
+        "CHARLIE",
+        "KILROY",
+        "ATLAS",
+        "TRIGGER"
+      ],
+      "cargoFactoryTypes": [
+        "PANTHER"
+      ],
+      "id": "MULE"
+    },
+    {
+      "name": "Trigger M-77",
+      "cls": "mine",
+      "move": 0,
+      "moveType": "treads",
+      "rngG": 0,
+      "rngA": 0,
+      "atkG": 0,
+      "atkA": 0,
+      "def": 80,
+      "placeByTransport": true,
+      "id": "TRIGGER"
+    }
+  ],
+  "distributions": {
+    "atkG": {
+      "0": 2,
+      "10": 3,
+      "30": 1,
+      "40": 2,
+      "45": 2,
+      "50": 2,
+      "60": 3,
+      "70": 2,
+      "90": 2
+    },
+    "atkA": {
+      "0": 10,
+      "10": 6,
+      "40": 1,
+      "65": 1,
+      "85": 1
+    },
+    "def": {
+      "4": 1,
+      "8": 1,
+      "10": 2,
+      "20": 3,
+      "30": 5,
+      "40": 1,
+      "50": 3,
+      "60": 1,
+      "80": 2
+    },
+    "move": {
+      "0": 2,
+      "2": 2,
+      "3": 1,
+      "4": 4,
+      "5": 3,
+      "6": 4,
+      "7": 1,
+      "8": 1,
+      "9": 1
+    },
+    "rngG": {
+      "0": 2,
+      "1": 13,
+      "2": 1,
+      "4": 1,
+      "5": 1,
+      "6": 1
+    },
+    "rngA": {
+      "0": 10,
+      "1": 8,
+      "5": 1
+    },
+    "moveType": {
+      "foot": 2,
+      "wheels": 2,
+      "treads": 15
+    }
+  },
+  "selected": [
+    {
+      "moveType": "treads",
+      "move": 0,
+      "atkG": 50,
+      "atkA": 85,
+      "def": 60,
+      "rngG": 2,
+      "rngA": 2,
+      "placeByTransport": true,
+      "moveOrFire": true,
+      "id": "PROTOTYPE_01",
+      "rank": 1,
+      "gap": 0.43194444444444446,
+      "baselineGap": 0.43194444444444446,
+      "percentile": 100,
+      "nearest": [
+        {
+          "id": "TRIGGER",
+          "distance": 0.43194444444444446,
+          "components": [
+            0.7777777777777778,
+            0.25,
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "ATLAS",
+          "distance": 0.4355555555555556,
+          "components": [
+            0.7222222222222222,
+            0.5,
+            0.9,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "HAWKEYE",
+          "distance": 0.4701388888888889,
+          "components": [
+            0.2777777777777778,
+            0.375,
+            0.875,
+            0.3472222222222222,
+            0.5
+          ]
+        }
+      ],
+      "prior": {
+        "id": "TRIGGER",
+        "distance": 0.43194444444444446
+      },
+      "budget": 2.5305555555555554
+    },
+    {
+      "moveType": "treads",
+      "move": 1,
+      "atkG": 90,
+      "atkA": 85,
+      "def": 10,
+      "rngG": 3,
+      "rngA": 3,
+      "id": "PROTOTYPE_02",
+      "rank": 2,
+      "gap": 0.3881944444444444,
+      "baselineGap": 0.3919117647058824,
+      "percentile": 99.85691082063578,
+      "nearest": [
+        {
+          "id": "SEEKER",
+          "distance": 0.3919117647058824,
+          "components": [
+            0.4509803921568628,
+            0.25,
+            1,
+            0.20833333333333334,
+            0
+          ]
+        },
+        {
+          "id": "HAWKEYE",
+          "distance": 0.39305555555555555,
+          "components": [
+            0.5,
+            0.25,
+            0.75,
+            0.1527777777777778,
+            0.25
+          ]
+        },
+        {
+          "id": "OCTOPUS",
+          "distance": 0.41250000000000003,
+          "components": [
+            0.6666666666666667,
+            0.25,
+            0.6666666666666667,
+            0.125,
+            0.25
+          ]
+        }
+      ],
+      "prior": {
+        "id": "PROTOTYPE_01",
+        "distance": 0.3881944444444444
+      },
+      "budget": 2.6861111111111113
+    },
+    {
+      "moveType": "treads",
+      "move": 8,
+      "atkG": 10,
+      "atkA": 40,
+      "def": 80,
+      "rngG": 3,
+      "rngA": 2,
+      "moveOrFire": true,
+      "id": "PROTOTYPE_03",
+      "rank": 3,
+      "gap": 0.3738153594771242,
+      "baselineGap": 0.3738153594771242,
+      "percentile": 99.50498878490215,
+      "nearest": [
+        {
+          "id": "HAWKEYE",
+          "distance": 0.3738153594771242,
+          "components": [
+            0.3202614379084967,
+            0.625,
+            0.875,
+            0.12499999999999996,
+            0
+          ]
+        },
+        {
+          "id": "HADRIAN",
+          "distance": 0.3817401960784314,
+          "components": [
+            0.4297385620915033,
+            0.625,
+            0.75,
+            0.1527777777777778,
+            0
+          ]
+        },
+        {
+          "id": "OCTOPUS",
+          "distance": 0.38590686274509806,
+          "components": [
+            0.5130718954248366,
+            0.625,
+            0.6666666666666667,
+            0.1527777777777778,
+            0
+          ]
+        }
+      ],
+      "prior": {
+        "id": "HAWKEYE",
+        "distance": 0.3738153594771242
+      },
+      "budget": 2.545588235294118
+    },
+    {
+      "moveType": "treads",
+      "move": 0,
+      "atkG": 10,
+      "atkA": 40,
+      "def": 20,
+      "rngG": 1,
+      "rngA": 4,
+      "placeByTransport": true,
+      "moveOrFire": true,
+      "id": "PROTOTYPE_04",
+      "rank": 4,
+      "gap": 0.36339869281045756,
+      "baselineGap": 0.3638480392156863,
+      "percentile": 99.09892489751721,
+      "nearest": [
+        {
+          "id": "SEEKER",
+          "distance": 0.3638480392156863,
+          "components": [
+            0.25816993464052285,
+            0.125,
+            0.5,
+            0.40277777777777773,
+            0.5
+          ]
+        },
+        {
+          "id": "MULE",
+          "distance": 0.36564542483660134,
+          "components": [
+            0.1764705882352941,
+            0.125,
+            0.5,
+            0.2638888888888889,
+            0.75
+          ]
+        },
+        {
+          "id": "ATLAS",
+          "distance": 0.36993464052287583,
+          "components": [
+            0.6797385620915033,
+            0,
+            1,
+            0,
+            0
+          ]
+        }
+      ],
+      "prior": {
+        "id": "PROTOTYPE_01",
+        "distance": 0.36339869281045756
+      },
+      "budget": 1.2066993464052287
+    },
+    {
+      "moveType": "wheels",
+      "move": 5,
+      "atkG": 10,
+      "atkA": 85,
+      "def": 10,
+      "rngG": 2,
+      "rngA": 2,
+      "moveAfterAttack": true,
+      "capture": true,
+      "id": "PROTOTYPE_05",
+      "rank": 5,
+      "gap": 0.33611111111111114,
+      "baselineGap": 0.34861111111111115,
+      "percentile": 97.96968056307526,
+      "nearest": [
+        {
+          "id": "HAWKEYE",
+          "distance": 0.34861111111111115,
+          "components": [
+            0.05555555555555555,
+            0.25,
+            0.875,
+            0.1111111111111111,
+            0.5
+          ]
+        },
+        {
+          "id": "LYNX",
+          "distance": 0.3540441176470588,
+          "components": [
+            0.6078431372549019,
+            0.125,
+            0.5,
+            0.16666666666666666,
+            0.25
+          ]
+        },
+        {
+          "id": "PANTHER",
+          "distance": 0.3834885620915033,
+          "components": [
+            0.4411764705882353,
+            0.024999999999999994,
+            1,
+            0.09722222222222221,
+            0.25
+          ]
+        }
+      ],
+      "prior": {
+        "id": "PROTOTYPE_02",
+        "distance": 0.33611111111111114
+      },
+      "budget": 2.5666666666666664
+    },
+    {
+      "moveType": "foot",
+      "move": 3,
+      "atkG": 0,
+      "atkA": 10,
+      "def": 10,
+      "rngG": 0,
+      "rngA": 2,
+      "moveAfterAttack": true,
+      "id": "PROTOTYPE_06",
+      "rank": 6,
+      "gap": 0.32513888888888887,
+      "baselineGap": 0.32513888888888887,
+      "percentile": 95.37087168381159,
+      "nearest": [
+        {
+          "id": "CHARLIE",
+          "distance": 0.32513888888888887,
+          "components": [
+            0.05555555555555555,
+            0.075,
+            1,
+            0,
+            0.5
+          ]
+        },
+        {
+          "id": "HAWKEYE",
+          "distance": 0.33112745098039215,
+          "components": [
+            0.4411764705882353,
+            0.25,
+            0.375,
+            0.2916666666666667,
+            0.25
+          ]
+        },
+        {
+          "id": "LYNX",
+          "distance": 0.33819444444444446,
+          "components": [
+            0.2222222222222222,
+            0.125,
+            1,
+            0.3194444444444444,
+            0
+          ]
+        }
+      ],
+      "prior": {
+        "id": "CHARLIE",
+        "distance": 0.32513888888888887
+      },
+      "budget": 0.9509803921568627
+    },
+    {
+      "moveType": "treads",
+      "move": 1,
+      "atkG": 80,
+      "atkA": 30,
+      "def": 60,
+      "rngG": 2,
+      "rngA": 5,
+      "moveOrFire": true,
+      "id": "PROTOTYPE_07",
+      "rank": 7,
+      "gap": 0.319812091503268,
+      "baselineGap": 0.319812091503268,
+      "percentile": 94.41565472967747,
+      "nearest": [
+        {
+          "id": "OCTOPUS",
+          "distance": 0.319812091503268,
+          "components": [
+            0.2875816993464052,
+            0.375,
+            0.8333333333333334,
+            0.125,
+            0
+          ]
+        },
+        {
+          "id": "GIANT",
+          "distance": 0.3327614379084967,
+          "components": [
+            0.11437908496732027,
+            0.25,
+            1,
+            0.08333333333333333,
+            0.25
+          ]
+        },
+        {
+          "id": "POLAR",
+          "distance": 0.34689542483660135,
+          "components": [
+            0.2875816993464052,
+            0,
+            1,
+            0.125,
+            0.25
+          ]
+        }
+      ],
+      "prior": {
+        "id": "OCTOPUS",
+        "distance": 0.319812091503268
+      },
+      "budget": 2.4529411764705884
+    },
+    {
+      "moveType": "wheels",
+      "move": 1,
+      "atkG": 80,
+      "atkA": 40,
+      "def": 10,
+      "rngG": 1,
+      "rngA": 2,
+      "moveOrFire": true,
+      "capture": true,
+      "id": "PROTOTYPE_08",
+      "rank": 8,
+      "gap": 0.31911764705882356,
+      "baselineGap": 0.31911764705882356,
+      "percentile": 94.25322917472349,
+      "nearest": [
+        {
+          "id": "KILROY",
+          "distance": 0.31911764705882356,
+          "components": [
+            0.3986928104575163,
+            0,
+            0.5,
+            0.3472222222222222,
+            0.25
+          ]
+        },
+        {
+          "id": "PANTHER",
+          "distance": 0.33397875816993466,
+          "components": [
+            0.565359477124183,
+            0.024999999999999994,
+            0.5,
+            0.19444444444444442,
+            0.25
+          ]
+        },
+        {
+          "id": "RABBIT",
+          "distance": 0.3434232026143791,
+          "components": [
+            0.23202614379084963,
+            0.125,
+            0.5,
+            0.3333333333333333,
+            0.5
+          ]
+        }
+      ],
+      "prior": {
+        "id": "KILROY",
+        "distance": 0.31911764705882356
+      },
+      "budget": 1.7705882352941176
+    },
+    {
+      "moveType": "treads",
+      "move": 9,
+      "atkG": 0,
+      "atkA": 10,
+      "def": 80,
+      "rngG": 0,
+      "rngA": 1,
+      "id": "PROTOTYPE_09",
+      "rank": 9,
+      "gap": 0.3163398692810458,
+      "baselineGap": 0.317483660130719,
+      "percentile": 93.99412174182072,
+      "nearest": [
+        {
+          "id": "TRIGGER",
+          "distance": 0.317483660130719,
+          "components": [
+            0.058823529411764705,
+            0,
+            0.5,
+            0.513888888888889,
+            0.5
+          ]
+        },
+        {
+          "id": "GIANT",
+          "distance": 0.33300653594771246,
+          "components": [
+            0.6764705882352942,
+            0,
+            0.5,
+            0.3194444444444445,
+            0
+          ]
+        },
+        {
+          "id": "PANTHER",
+          "distance": 0.335,
+          "components": [
+            0.05555555555555555,
+            0.9,
+            0.5,
+            0.18055555555555555,
+            0.25
+          ]
+        }
+      ],
+      "prior": {
+        "id": "PROTOTYPE_03",
+        "distance": 0.3163398692810458
+      },
+      "budget": 2.1176470588235294
+    },
+    {
+      "moveType": "foot",
+      "move": 4,
+      "atkG": 10,
+      "atkA": 40,
+      "def": 30,
+      "rngG": 2,
+      "rngA": 3,
+      "id": "PROTOTYPE_10",
+      "rank": 10,
+      "gap": 0.3093954248366013,
+      "baselineGap": 0.3156454248366013,
+      "percentile": 93.68860700750251,
+      "nearest": [
+        {
+          "id": "LYNX",
+          "distance": 0.3156454248366013,
+          "components": [
+            0.3431372549019608,
+            0.125,
+            0.5,
+            0.3055555555555555,
+            0.25
+          ]
+        },
+        {
+          "id": "SEEKER",
+          "distance": 0.32565359477124184,
+          "components": [
+            0.25816993464052285,
+            0,
+            1,
+            0.3055555555555555,
+            0
+          ]
+        },
+        {
+          "id": "HAWKEYE",
+          "distance": 0.3411764705882353,
+          "components": [
+            0.3202614379084967,
+            0,
+            0.75,
+            0.3055555555555555,
+            0.25
+          ]
+        }
+      ],
+      "prior": {
+        "id": "PROTOTYPE_06",
+        "distance": 0.3093954248366013
+      },
+      "budget": 1.7511437908496732
+    },
+    {
+      "moveType": "treads",
+      "move": 0,
+      "atkG": 30,
+      "atkA": 20,
+      "def": 50,
+      "rngG": 4,
+      "rngA": 1,
+      "placeByTransport": true,
+      "moveOrFire": true,
+      "id": "PROTOTYPE_11",
+      "rank": 11,
+      "gap": 0.3087826797385621,
+      "baselineGap": 0.30899509803921565,
+      "percentile": 92.24998066362441,
+      "nearest": [
+        {
+          "id": "ATLAS",
+          "distance": 0.30899509803921565,
+          "components": [
+            0.4509803921568628,
+            0.375,
+            0.7,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "TRIGGER",
+          "distance": 0.327328431372549,
+          "components": [
+            0.28431372549019607,
+            0.375,
+            1,
+            0,
+            0
+          ]
+        },
+        {
+          "id": "LYNX",
+          "distance": 0.33206699346405233,
+          "components": [
+            0.11437908496732026,
+            0.375,
+            0.33333333333333337,
+            0.40277777777777773,
+            0.5
+          ]
+        }
+      ],
+      "prior": {
+        "id": "PROTOTYPE_01",
+        "distance": 0.3087826797385621
+      },
+      "budget": 1.4936274509803922
+    },
+    {
+      "moveType": "treads",
+      "move": 1,
+      "atkG": 50,
+      "atkA": 85,
+      "def": 70,
+      "rngG": 5,
+      "rngA": 1,
+      "moveOrFire": true,
+      "id": "PROTOTYPE_12",
+      "rank": 12,
+      "gap": 0.30714869281045754,
+      "baselineGap": 0.30714869281045754,
+      "percentile": 91.76270399876248,
+      "nearest": [
+        {
+          "id": "GIANT",
+          "distance": 0.30714869281045754,
+          "components": [
+            0.4869281045751634,
+            0.125,
+            0.5,
+            0.08333333333333333,
+            0.25
+          ]
+        },
+        {
+          "id": "SEEKER",
+          "distance": 0.3238562091503268,
+          "components": [
+            0.22875816993464057,
+            0.5,
+            0.5,
+            0.20833333333333334,
+            0.25
+          ]
+        },
+        {
+          "id": "HADRIAN",
+          "distance": 0.3319444444444445,
+          "components": [
+            0.5277777777777778,
+            0.5,
+            0.5,
+            0.125,
+            0
+          ]
+        }
+      ],
+      "prior": {
+        "id": "GIANT",
+        "distance": 0.30714869281045754
+      },
+      "budget": 2.6916666666666664
+    },
+    {
+      "moveType": "foot",
+      "move": 2,
+      "atkG": 10,
+      "atkA": 70,
+      "def": 10,
+      "rngG": 3,
+      "rngA": 1,
+      "moveOrFire": true,
+      "id": "PROTOTYPE_13",
+      "rank": 13,
+      "gap": 0.2948529411764706,
+      "baselineGap": 0.2948529411764706,
+      "percentile": 88.00757985923119,
+      "nearest": [
+        {
+          "id": "SEEKER",
+          "distance": 0.2948529411764706,
+          "components": [
+            0.14052287581699346,
+            0.25,
+            0.5,
+            0.3611111111111111,
+            0.25
+          ]
+        },
+        {
+          "id": "CHARLIE",
+          "distance": 0.3078186274509804,
+          "components": [
+            0.3529411764705882,
+            0.075,
+            0.5,
+            0.041666666666666664,
+            0.5
+          ]
+        },
+        {
+          "id": "LYNX",
+          "distance": 0.3208741830065359,
+          "components": [
+            0.5196078431372548,
+            0.125,
+            0.25,
+            0.3611111111111111,
+            0.25
+          ]
+        }
+      ],
+      "prior": {
+        "id": "SEEKER",
+        "distance": 0.2948529411764706
+      },
+      "budget": 1.231862745098039
+    },
+    {
+      "moveType": "foot",
+      "move": 4,
+      "atkG": 80,
+      "atkA": 0,
+      "def": 10,
+      "rngG": 2,
+      "rngA": 0,
+      "moveAfterAttack": true,
+      "capture": true,
+      "id": "PROTOTYPE_14",
+      "rank": 14,
+      "gap": 0.2875,
+      "baselineGap": 0.2875,
+      "percentile": 85.38943460437775,
+      "nearest": [
+        {
+          "id": "OCTOPUS",
+          "distance": 0.2875,
+          "components": [
+            0.1111111111111111,
+            0.25,
+            0.33333333333333337,
+            0.2777777777777778,
+            0.5
+          ]
+        },
+        {
+          "id": "LYNX",
+          "distance": 0.30012254901960783,
+          "components": [
+            0.28104575163398693,
+            0.125,
+            0.5,
+            0.3055555555555555,
+            0.25
+          ]
+        },
+        {
+          "id": "HADRIAN",
+          "distance": 0.31666666666666665,
+          "components": [
+            0.19444444444444442,
+            0.25,
+            0.375,
+            0.2777777777777778,
+            0.5
+          ]
+        }
+      ],
+      "prior": {
+        "id": "OCTOPUS",
+        "distance": 0.2875
+      },
+      "budget": 2.1083333333333334
+    },
+    {
+      "moveType": "treads",
+      "move": 9,
+      "atkG": 30,
+      "atkA": 60,
+      "def": 10,
+      "rngG": 5,
+      "rngA": 3,
+      "moveOrFire": true,
+      "id": "PROTOTYPE_15",
+      "rank": 15,
+      "gap": 0.28398692810457515,
+      "baselineGap": 0.2854575163398693,
+      "percentile": 84.58890865496171,
+      "nearest": [
+        {
+          "id": "HADRIAN",
+          "distance": 0.2854575163398693,
+          "components": [
+            0.4362745098039216,
+            0.25,
+            0.5,
+            0.1944444444444445,
+            0
+          ]
+        },
+        {
+          "id": "HAWKEYE",
+          "distance": 0.299264705882353,
+          "components": [
+            0.3137254901960784,
+            0.25,
+            0.75,
+            0.16666666666666666,
+            0
+          ]
+        },
+        {
+          "id": "SEEKER",
+          "distance": 0.3170751633986928,
+          "components": [
+            0.029411764705882304,
+            0.25,
+            1,
+            0.11111111111111112,
+            0.25
+          ]
+        }
+      ],
+      "prior": {
+        "id": "PROTOTYPE_02",
+        "distance": 0.28398692810457515
+      },
+      "budget": 2.5642156862745096
+    }
+  ]
+}

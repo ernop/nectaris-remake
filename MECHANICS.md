@@ -13,6 +13,14 @@ imported campaign to compensate for rule corrections.
 
 ## Units and actions
 
+Clicking a mobile unit immediately opens movement destinations; **Attack** aims
+from its current position. A move commits its movement phase: attack or End if
+there is a shot, otherwise finish automatically. Sidebar undo reverses noncombat
+actions up to the last battle or turn boundary. This is an intentional modern
+control-flow change; the underlying movement/attack restrictions are preserved.
+Atlas aims immediately and stationary units never offer movement.
+See `PRODUCT.md` and the historical booklet review in `MANUAL_AUDIT.md`.
+
 There are **23 unit types**, each a squad of 1–8 machines. Full strength is
 omitted from the map label. `js/data-units.js` follows the
 [original PCE manual](https://dds.konami.com/games/manual/pcemini/jp_Nectaris.pdf)
@@ -29,7 +37,7 @@ or aboard a compatible transport.
 **Rabbit (8 movement) and Lynx (6) may move, attack once, then spend the
 remainder of the same allowance.** Attacking never refills it. Lynx attacks
 ground targets exactly two hexes away and aircraft at distance one. The UI
-and AI preserve the remaining allowance; cancelling a provisional retreat
+and AI preserve the remaining allowance; undoing a completed retreat
 cannot undo combat. Sources: [PCE supplement](https://anka.sakura.ne.jp/nectaris/d1.html)
 and the [TG-16 FAQ](https://gamefaqs.gamespot.com/tg16/589030-military-madness/faqs/53871).
 

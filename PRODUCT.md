@@ -23,8 +23,9 @@ Both sets provide all 23 units in native 32×32 frames and all game states.
 
 Legacy also selects reconstructed original-style terrain and buildings, with
 48×32 flattened hexes, 32×32 pitch, 16-pixel odd-column stagger, connected roads
-and relief, integer pixel drawing and no permanent grid. Its minimum map zoom
-is 1; units are never scaled. Remake keeps its existing production terrain
+and relief, integer pixel drawing and no permanent grid. Minimum zoom now adapts
+to the map and viewport, allowing a full overview in every style and art set
+(2026-09-22); unit icons scale with map zoom. Remake keeps its existing production terrain
 until its separate terrain migration is complete. Classic/neon keep their
 existing vector appearance and disable the art-set picker.
 
@@ -42,8 +43,9 @@ transparent frame, centered at (16,16). Planned terrain hexes have a **48×32** 
 original's flattened geometry. Sprite corners remain transparent so visible
 art fits the hex; see the explicit safe mask in that specification.
 
-All icon displays remain 32×32, including map, inspector and review sheets;
-never enlarge icons. Center the visible silhouette horizontally with equal
+Map icons scale from their 32×32 frame with hex zoom (2026-09-21 correction,
+superseding the old prohibition on enlarging them). Inspector, factory and
+review icons remain native 32×32. Center the visible silhouette horizontally with equal
 left/right transparent padding in every facing. Infantry stays smaller within
 its frame (Charlie 18×17, Kilroy 22×17, Panther 22×14 visible). Bases are low domed compounds with
 open service areas, following the original art's structure.
@@ -62,15 +64,21 @@ the same pixel density and light. Normal terrain has no permanent hex borders.
 
 All 46 directional unit frames are now integrated into pixel mode in the game,
 editor and factory. Review all states in `tools/unit-sheet.html` or substitute
-any unit on the native map fixture in `tools/art-pilot.html`. Icons remain 32×32
-at every zoom; small viewports scroll rather than shrink them. Production
+any unit on the native map fixture in `tools/art-pilot.html`. Map sprites scale
+proportionally with zoom; clipped maps can be grabbed with the left mouse button.
+Click without dragging retains normal selection and command behavior. Production
 terrain, buildings and flattened map geometry for Remake remain to be migrated.
 
-## Nearby unit inspection (2026-09-20)
+## Nearby unit inspection (updated 2026-09-21)
 
-Hovering a unit shows a compact stats card beside its hex, including when
-another unit is selected. It shares the sidebar's stats and experience
-formatting, adds faction identity, and stays anchored to the hex. Placement
+Hovering a unit immediately shows a compact card beside its hex, including
+when another unit is selected; leaving it immediately hides the card. The card
+and sidebar share a fixed layout: icon with experience stars and bold faction-colored
+name; ground attack, air attack and defense across the main row; corresponding
+ranges and Shift directly below; terrain defense and experience damage bonus
+in the footer. Damaged strength has a reserved header slot. No faction heading,
+stats table, movement chassis, capture explanation or action-rule reminders.
+The card stays anchored to the hex. Placement
 flips at viewport edges and favors space with fewer units underneath.
 The card never covers its own hex and passes pointer events through to the map.
 It clears on empty terrain, map exit, Escape, panning, combat and modal panels.
@@ -78,12 +86,14 @@ The sidebar remains available for persistent selection and detailed forecasts.
 
 ## Strength chrome (2026-08-30)
 
+The map corner strength numeral and its backing are 1.6× their previous size
+(2026-09-21), and the inspector corner numeral is similarly enlarged.
 Full-strength units do **not** show `8`. Squad size 8 is the default, so
 printing it on every healthy unit is redundant. The remaining count is shown
 only when damaged (1–7):
 
 - Map unit chrome (bottom-left badge)
-- Sidebar and nearby hover unit inspectors (Strength row omitted when full)
+- Sidebar and nearby hover unit inspectors (Strength header badge omitted when full)
 - Factory stored-unit list
 - Battle-preview name line
 
@@ -119,8 +129,8 @@ in `inspiration/nectaris-original/`:
   used only for missiles, rockets and bombs, so a yellow accent itself means
   "carries ordnance". Custom unit types render as their class's base chassis
   or as a stock sprite named by `sprite: "GRIZZLY"`; an unknown name is an
-  error. Sprites are drawn at one native pixel per canvas pixel, independent
-  of map zoom or icon slot size.
+  error. Map sprites scale with hex zoom using crisp integer pixel boundaries;
+  standalone icons use one native pixel per canvas pixel.
 - **Pixel is the default style.** The storage key moved to
   `nectaris-style-v2` so every existing browser sees the new set once instead
   of its saved neon; neon and classic remain selectable.
@@ -168,6 +178,23 @@ in factories already owned by that side; neutral-factory inventory belongs to
 neither side and is excluded. The numbers are larger than their labels and use
 tabular figures so force size can be compared before choosing a mission.
 
+## AI-made fjord levels (2026-09-22)
+
+The AI-made category preserves four separate original maps, with stable
+`aiMadeIndex` values 0–3 in the menu, map selector and profile records.
+Twisted Fjords (65×49) is a winding tree; Shattered Fjords (65×49) and
+Fractured Fjords (40×40) introduce angular, variable-width passages and
+connections between branches. Each has fifteen neutral factories with twelve
+ground units, five small clearings, and corner armies of five tanks and three
+infantry. Honeycomb Fjords (28×28) scales down to eight factories with ten units,
+three staging spaces, and four tanks plus three infantry per side. Its passage
+mesh covers the board, separating sixteen mountain pockets of at most nineteen
+hexes. Every factory has exactly one road exit and five mountain neighbors;
+normal transport loading rules still apply. All four maps exclude aircraft.
+Importable JSON lives under `levels/`; `tools/build-ai-fjords.js` rebuilds it and
+the runtime data deterministically. Earlier layouts remain intact when a new
+part is added.
+
 ## Official normal campaign (2026-09-03)
 
 The main campaign reproduces the normal campaign built into Hudson's official
@@ -190,7 +217,13 @@ forecasts and all other modern features remain unchanged. The next-mission flow
 continues from NECTOR into TLOVER and ends at ROTCEN. Provenance and the two
 cross-source roster discrepancies are documented in `LEVEL_SOURCES.md`.
 
-## Building capture, storage and deployment (updated 2026-09-20)
+## Building capture, storage and deployment (updated 2026-09-21)
+
+Each ready inventory row is a full-width native Deploy button, including its
+icon and name. Unavailable and unowned rows remain non-actionable. Experience
+uses the map's traditional 3/2/3 star overlay (General at 8) on the icon, with
+an accessible label; there is no separate numeric experience row.
+
 
 The latest maximum-fidelity request restores the 1989 PCE distinction:
 owned factories store and repair every chassis, including aircraft and loaded
@@ -214,8 +247,8 @@ also lists its contents in the sidebar, even when a unit occupies its hex or
 another unit is selected. A valid movement click still moves the selected unit;
 an unreachable building opens for inspection on the same click.
 
-At an owned base or factory, a ready unit has a
-**Deploy** action; a unit that cannot deploy states either **AVAILABLE NEXT
+At an owned base or factory, a ready unit's entire row is its
+**Deploy** button; a unit that cannot deploy states either **AVAILABLE NEXT
 TURN** or **NO DESTINATION**. Choosing a ready unit highlights all valid
 destinations among the six neighboring hexes:
 
@@ -237,19 +270,27 @@ The permanent local backend port is **8001**, bound to `127.0.0.1` by
 prevents unrelated temporary servers from changing the project URL, while the
 Caddy hostname removes the need to remember the port during normal use.
 
-## Movement, target inspection and combat controls (2026-09-20)
+## Shift, target inspection and combat controls (updated 2026-09-21)
 
 Stopping a loaded transport offers **Unload [unit]** beside the map controls
 and in the sidebar. Ending the carrier's activation keeps eligible passenger
 actions open, with Close to dismiss them. Cargo that already acted (including
 boarding this turn) must wait; the sidebar explains this or a lack of legal exits.
 
-Selecting a movable unit shows only its legal movement destinations and
-boardable transports. Distant enemies are never red shortcuts for an automatic
-move-and-attack. The player chooses the firing position explicitly. Clicking
-the selected unit's own hex chooses to stay, including for stationary artillery.
+Selecting a ready mobile unit immediately opens its legal movement destinations
+and boardable transports. **Attack** switches to targets from its current hex;
+it is disabled if no target exists. A deployed Atlas aims immediately, Trigger
+has no movement/attack, and Pelican cannot attack. This 2026-09-21 speed-flow
+correction supersedes the earlier separate Shift-selection step.
 
-After choosing a destination, only enemies attackable from that position turn
+A destination click commits the movement immediately. With a legal shot, show
+red targets and **End**. Without a legal shot, end the unit automatically and
+return to the map. Shift-or-fire units therefore end immediately after moving.
+A unit with a remaining shot can be reselected to fire, but cannot move again.
+Surviving buggies immediately show their remaining movement after attacking.
+Enemy clicks during movement still inspect; never add automatic move-and-attack.
+
+After choosing Attack or a Shift destination, only enemies attackable from that position turn
 red. Hovering one shows its identity, both units' combat stats, support, terrain,
 surround, experience, counterattack eligibility and the resulting calculation
 in the sidebar, outside the map. The last hovered matchup remains readable
@@ -267,21 +308,26 @@ PRNG correlation remains unverified. They must never read, reveal, advance or de
 seeds from the match RNG. Hovering and cancelling must leave combat state and
 the future real result unchanged. Cache projections for the current activation.
 
-Replace the floating action popup with exactly two compact controls, **Cancel**
-and **End**, normally beneath the selected unit. Cancel restores the provisional
-move and its remaining movement; End commits that unit without attacking and
-does not end the side's turn. Keep attack hexes unobstructed; if the controls
-cannot fit below the unit without covering a red hex, use the reserved strip
-below the map. Reposition them on pan, zoom and resize. Transport unloading
-controls live in the sidebar, not in this two-button strip.
+Keep unit controls clear of attack/destination hexes, using the reserved strip
+below the map if needed. Reposition on pan, zoom and resize. After a committed
+move there is no Cancel confirmation; **End** finishes without attacking.
+Escape clears selection. Unload remains available for eligible passengers.
+Results close automatically after the casualty animation and lock input while
+resolving.
 
-Ordinary moves remain provisional even when no attack is available, including
-move-or-fire units that have moved. Entering storage, capturing and boarding
-remain immediate committed actions. To attack without moving, choose the unit's
-current hex. There is no separate Shift-click calculator modal. Results still
-close automatically after the casualty animation; combat locks input until it
-finishes. Mobile missile units retain their remaining movement, and cancelling
-a later move cannot undo an attack already committed.
+### Sidebar undo history (2026-09-21)
+
+**Undo last** reverses noncombat actions across units, with no fixed step limit.
+Movement (including subsequent End), boarding, unloading, deployment, storage,
+repair and factory capture restore the entire previous board and action state.
+History persists with the saved match. Each record holds dynamic state once;
+map/roster definitions are shared by the save. Undo clears stale targeting and
+selection state and preserves cargo/factory identity relationships.
+
+Combat clears all earlier history immediately, before its result animation.
+Later moves may be undone only back to that postbattle state, never across the
+battle. Turn changes and match completion also clear history. Undo is disabled
+during combat/AI processing. There is no redo or way to reroll a battle.
 
 ## Heavier tanks (2026-09-05)
 

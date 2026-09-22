@@ -15,7 +15,7 @@ Facts wei need across sessions:
   logic module ends with `if (typeof module !== "undefined") module.exports`
   so the node test suite loads them.
 - **Tests:** `node test/run-tests.js` — map validation, rule unit-tests, and
-  AI-vs-AI self-play on all 32 normal/advanced campaign + 24 extra-pack maps. Run it
+  AI-vs-AI self-play on all 32 normal/advanced campaign + 24 extra-pack + 4 AI-made maps. Run it
   after any engine, data, or map change.
 - **Local development:** `./serve.sh` serves the repo on fixed backend port
   `127.0.0.1:8001`; do not substitute a random port. The machine's shared
@@ -64,8 +64,9 @@ Facts wei need across sessions:
   contours on shadow-facing edges. Use angular military silhouettes: long low
   hulls, flat turrets, straight wings, narrow fuselages and small helmets.
   The user rejected chibi/toy proportions. Always horizontally
-  center the visible unit silhouette in its tile. Never enlarge icons: maps,
-  inspectors and review sheets all show the native 32×32 frame. Charlie must
+  center the visible unit silhouette in its tile. Map icons scale with hex zoom, preserving their intended proportions
+  (updated 2026-09-21; supersedes the old no-enlargement rule). Inspectors,
+  factories and review sheets use the native 32×32 frame. Charlie must
   stay small within its frame; bases use original-style domed compounds. Review changes in
   `tools/unit-sheet.html`. Union is blue, Xenon green, red means "attacking".
 - **Rules are sourced, not guessed** (since 2026-09-01): movement costs,
@@ -103,12 +104,16 @@ Facts wei need across sessions:
   actions and complete AI turns; unfinished AI turns resume from their start.
   Tests in `test/profiles-tests.js` run through the main suite. See `PRODUCT.md`.
 
-- **Combat UI (2026-09-20):** select a unit, choose a position (click its own
-  hex to stay), then choose among red targets. Never restore automatic
-  move-and-attack enemy shortcuts. Hover forecasts and calculations live in
-  the sidebar; the two map controls are Cancel / End, kept clear of target
-  hexes with a reserved rail fallback. Ordinary moves stay reversible until
-  End or combat; storage/capture/boarding still commit immediately.
+- **Combat UI (2026-09-21, latest correction):** click a unit to move immediately;
+  **Attack** aims in place. Atlas aims immediately. After moving, attack or End
+  if a shot exists; otherwise finish automatically. This supersedes the separate
+  Shift-selection/confirmation flow. Sidebar **Undo last** reverses noncombat
+  actions across units, including factory/cargo changes, and survives saves.
+  Battle, turn and match-end boundaries clear history; never undo/redo combat.
+  Buggies retain their remaining movement only after attacking. Keep action
+  controls clear of target hexes with the reserved rail fallback. Never restore
+  automatic move-and-attack shortcuts. `PRODUCT.md` records the current flow;
+  `MANUAL_AUDIT.md` is the historical booklet review.
   `COMBAT.forecast` uses 100,000 independent simulation seeds and must never
   read or advance the match RNG. `js/combat-view.js` renders the joint casualty
   heatmap. See `PRODUCT.md`, `test/combat-ui-tests.js`, and `test/forecast-tests.js`.

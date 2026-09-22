@@ -1,14 +1,14 @@
 /* Nectaris remake — game UI: input handling, action flow, panels.
  *
  * Interaction model (mirrors the original's flow, minus its screen limits):
- *   click own unit  -> show movement destinations only
+ *   click own unit  -> show legal destinations immediately
+ *   Attack          -> aim from the current hex without moving
  *   click dest hex  -> unit steps there; enemies stay directly clickable
  *   hover red enemy -> inspect calculations and independent casualty forecast
  *   click red enemy -> resolve from the chosen position
- *   End             -> commit this unit without attacking
- *   Cancel          -> unit returns to where it was
- * Right-click / Esc cancels. Wheel zooms; middle/right-drag pans only on axes
- * where the zoomed map is larger than the viewport.
+ *   move destination -> commit movement; a legal shot remains available
+ *   Undo last       -> reverse noncombat actions since the last battle/turn
+ * Right-click / Esc cancels. Wheel zooms; drag pans when terrain is offscreen.
  */
 "use strict";
 
@@ -20,27 +20,13 @@ var UI = (function () {
       .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
 
-  function experienceStarsHtml(level) {
-    if (level === COMBAT.MAX_EXP) {
-      return "<div class='exp-master' aria-label='General experience rank'>" +
-        "<span class='exp-master-star'></span><strong>GENERAL</strong></div>";
-    }
-    var capacities = [3, 2, 3];
-    var slot = 0;
-    var columns = capacities.map(function (capacity) {
-      var stars = "";
-      for (var i = 0; i < capacity; i++, slot++) {
-        stars += "<span class='exp-star-slot" + (slot < level ? " filled" : "") + "'></span>";
-      }
-      return "<span class='exp-star-column'>" + stars + "</span>";
-    }).join("");
-    return "<div class='exp-columns' aria-label='Experience " + level + " of 8'>" +
-      columns + "</div>";
-  }
-
-  function experienceEffectHtml(level) {
-    var bonus = COMBAT.experienceBonus(level);
-    return "<div class='exp-effect'>Damage +" + bonus.damage + "%</div>";
+  function actionButton(parent, label, fn, disabled) {
+    var button = document.createElement("button");
+    button.textContent = label;
+    button.disabled = !!disabled;
+    button.onclick = function () { if (!button.disabled) fn(); };
+    parent.appendChild(button);
+    return button;
   }
 
   /* Human-readable attack band vs one domain, e.g. "1", "2–5", or "—". */
@@ -56,10 +42,10 @@ var UI = (function () {
     this.game = game;
     this.options = options || {};
     this.renderer = new RENDER.Renderer(canvas, game);
-    this.mode = "idle"; // idle | unitSelected | moved | unload | factory | deployPick | battle | aiTurn | over
+    this.mode = "idle"; // idle | command | unitSelected (movement) | moved (aim) | unload | factory | deployPick | battle | aiTurn | over
     this.selected = null;
     this.range = null;
-    this.pendingMoveFrom = null;   // {col,row,movePointsLeft,attackSpent}
+    this.undoHistory = JSON.parse(JSON.stringify(this.options.undoHistory || []));
     this.busy = false;
     this.destroyed = false;
     this.watchAI = localStorage.getItem("nectaris-watch-ai") !== "off";
@@ -74,7 +60,12 @@ var UI = (function () {
       mousemove: function (e) { self.onMouseMove(e); },
       mouseleave: function () { self.onMouseLeave(); },
       mouseup: function (e) { self.onMouseUp(e); },
-      windowMouseup: function () { self.dragging = null; },
+      windowMouseup: function () { self.dragging = null; self.updateMapCursor(); },
+      windowMousemove: function (e) {
+        if (!self.dragging || e.target === canvas) return;
+        var rect = canvas.getBoundingClientRect();
+        self.onMouseMove({ offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top });
+      },
       wheel: function (e) { self.onWheel(e); },
       contextmenu: function (e) { e.preventDefault(); },
       keydown: function (e) { self.onKey(e); },
@@ -83,6 +74,7 @@ var UI = (function () {
     this.resize();
     window.addEventListener("resize", this.handlers.resize);
     window.addEventListener("mouseup", this.handlers.windowMouseup);
+    window.addEventListener("mousemove", this.handlers.windowMousemove);
     canvas.addEventListener("mousedown", this.handlers.mousedown);
     canvas.addEventListener("mousemove", this.handlers.mousemove);
     canvas.addEventListener("mouseleave", this.handlers.mouseleave);
@@ -91,6 +83,7 @@ var UI = (function () {
     canvas.addEventListener("contextmenu", this.handlers.contextmenu);
     document.addEventListener("keydown", this.handlers.keydown);
 
+    $("btn-undo").onclick = function () { self.undoLast(); };
     $("btn-endturn").onclick = function () { self.endTurn(); };
     $("btn-menu").onclick = this.options.onMenu || function () { location.reload(); };
     $("btn-watch").onclick = function () {
@@ -136,17 +129,54 @@ var UI = (function () {
     // pre-AI checkpoint until the complete turn has resolved.
     if (this.mode === "aiTurn") return null;
     var state = this.game.snapshot();
-    if (this.pendingMoveFrom && this.selected && !(this.mode === "battle" && this.busy)) {
-      var id = this.selected.id;
-      var unit = state.units.find(function (u) { return u.id === id; });
-      if (unit) {
-        var original = Object.assign({}, this.pendingMoveFrom);
-        delete original.logLength;
-        Object.assign(unit, original);
-      }
-      if (this.pendingMoveFrom.logLength !== undefined) state.log.length = this.pendingMoveFrom.logLength;
-    }
+    if (this.undoHistory && this.undoHistory.length) state.undoHistory = this.undoHistory;
     return state;
+  };
+
+  GameUI.prototype.recordUndo = function (state, label) {
+    // The map and roster are constant within a match. Store only dynamic state
+    // so a long move history does not duplicate those definitions in the save.
+    delete state.map; delete state.types;
+    if (!this.undoHistory) this.undoHistory = [];
+    this.undoHistory.push({ state: state, label: label });
+    this.refreshUndoButton();
+  };
+
+  GameUI.prototype.canUndo = function () {
+    var entry = this.undoHistory && this.undoHistory[this.undoHistory.length - 1];
+    return !!entry && !this.busy && this.game.winner === null &&
+      this.mode !== "aiTurn" && this.mode !== "battle" && this.mode !== "over" &&
+      entry.state.turn === this.game.turn && entry.state.currentPlayer === this.game.currentPlayer;
+  };
+
+  GameUI.prototype.refreshUndoButton = function () {
+    var button = $("btn-undo"), enabled = this.canUndo();
+    button.disabled = !enabled;
+    button.textContent = "Undo last" + (enabled ? " (" + this.undoHistory.length + ")" : "");
+    button.title = enabled ? "Undo " + this.undoHistory[this.undoHistory.length - 1].label :
+      "No moves to undo since the last battle or turn boundary";
+  };
+
+  GameUI.prototype.clearUndo = function () {
+    this.undoHistory = [];
+    this.refreshUndoButton();
+  };
+
+  GameUI.prototype.undoLast = function () {
+    if (!this.canUndo()) return;
+    var entry = this.undoHistory[this.undoHistory.length - 1];
+    var current = this.game.snapshot();
+    var restored = ENGINE.Game.restore(Object.assign({}, entry.state, {map: current.map, types: current.types}));
+    this.undoHistory.pop();
+    this.closeFactoryPanel();
+    this.deployPending = null; this.unloadCargo = null;
+    // Keep the match object shared with main.js and the renderer; restore all
+    // unit/cargo/building identities together, never individual coordinates.
+    Object.assign(this.game, restored);
+    this.renderer.game = this.game;
+    this.deselect();
+    this.refreshStatus();
+    this.updateHoverInfo();
   };
 
   GameUI.prototype.resize = function () {
@@ -158,6 +188,7 @@ var UI = (function () {
 
   GameUI.prototype.draw = function () {
     var self = this;
+    this.updateMapCursor();
     if (this.destroyed || this._drawPending) return;
     this._drawPending = true;
     this._drawFrame = requestAnimationFrame(function () {
@@ -177,6 +208,7 @@ var UI = (function () {
     var h = this.handlers;
     window.removeEventListener("resize", h.resize);
     window.removeEventListener("mouseup", h.windowMouseup);
+    window.removeEventListener("mousemove", h.windowMousemove);
     this.canvas.removeEventListener("mousedown", h.mousedown);
     this.canvas.removeEventListener("mousemove", h.mousemove);
     this.canvas.removeEventListener("mouseleave", h.mouseleave);
@@ -200,6 +232,7 @@ var UI = (function () {
 
   GameUI.prototype.refreshStatus = function () {
     var g = this.game;
+    this.refreshUndoButton();
     $("status-turn").textContent = "Turn " + g.turn + " / " + g.turnLimit;
     var pc = RENDER.PLAYER_COLORS[g.currentPlayer];
     var el = $("status-player");
@@ -243,7 +276,7 @@ var UI = (function () {
       action += effect.t === "capture" ? " and captured " + effect.kind : " and repaired to full strength";
     }
     this.showWatchPanel(
-      event.t === "deploy" ? "XENON DEPLOYMENT" : "XENON MOVEMENT",
+      event.t === "deploy" ? "XENON DEPLOYMENT" : "XENON SHIFT",
       "<div class='watch-move'><strong>" + esc(event.unit.type.name) + "</strong> " +
         esc(action) +
       "</div>"
@@ -363,25 +396,37 @@ var UI = (function () {
     var t = unit.type;
     var terr = game.terrainAt(unit.col, unit.row);
     var strCap = COMBAT.strengthCaption(unit.strength);
-    return "<div class='ui-name'>" + esc(t.name) + "</div>" +
-      "<div class='experience-card'>" + experienceStarsHtml(unit.exp) +
-      experienceEffectHtml(unit.exp) + "</div>" +
-      "<table class='ui-stats'>" +
-      (strCap ? "<tr><td>Strength</td><td>" + strCap + "</td></tr>" : "") +
-      "<tr><td>Atk G / A</td><td>" + (t.atkG || "—") + " / " + (t.atkA || "—") + "</td></tr>" +
-      "<tr><td>Defense</td><td>" + t.def + "</td></tr>" +
-      "<tr><td>Move</td><td>" + (t.move || "—") + " (" + esc(t.moveType) + ")</td></tr>" +
-      "<tr><td>Range G / A</td><td>" + bandText(t, false) + " / " + bandText(t, true) + "</td></tr>" +
-      "<tr><td>Terrain</td><td>" + esc(terr.name) + " +" + (t.moveType === "air" ? 0 : terr.def) + " DEF</td></tr>" +
-      (t.capture ? "<tr><td colspan='2'>Can capture buildings</td></tr>" : "") +
-      (t.moveAfterAttack ? "<tr><td>Movement left</td><td>" + unit.movePointsLeft + " / " + t.move +
-        "</td></tr><tr><td colspan='2'>May spend remaining movement after one attack</td></tr>" : "") +
-      (t.moveOrFire ? "<tr><td colspan='2'>May move or fire, never both</td></tr>" : "") +
-      "</table>";
+    var faction = RENDER.PLAYER_COLORS[unit.player < 0 ? 2 : unit.player];
+    function stat(label, value, secondary) {
+      return "<div class='unit-stat" + (secondary ? " secondary" : "") + "'><span>" + label +
+        "</span><strong>" + value + "</strong></div>";
+    }
+    var shift = t.moveAfterAttack && unit.player === game.currentPlayer ? unit.movePointsLeft + "/" + t.move : t.move;
+    return "<div class='unit-card-head'><canvas class='unit-card-icon' width='32' height='32' role='img' aria-label='" +
+      esc(t.name) + ", experience " + unit.exp + " of 8'></canvas>" +
+      "<strong class='ui-name' style='color:" + faction.light + "'>" + esc(t.name) + "</strong>" +
+      "<span class='unit-strength'>" + (strCap ? "<span>Strength</span><strong>" + strCap + "</strong>" : "") + "</span></div>" +
+      "<div class='unit-combat-grid'>" + stat("Ground ATK", t.atkG || "—") + stat("Air ATK", t.atkA || "—") +
+      stat("Defense", t.def) + stat("Range", bandText(t, false), true) + stat("Range", bandText(t, true), true) +
+      stat("Shift", shift, true) + "</div>" +
+      "<div class='unit-card-foot'><span>" + esc(terr.name) + " <strong>+" + (t.moveType === "air" ? 0 : terr.def) +
+      " DEF</strong></span><span>Damage <strong>+" + COMBAT.experienceBonus(unit.exp).damage + "%</strong></span></div>";
   }
 
+  GameUI.prototype.renderUnitInfo = function (container, unit) {
+    var html = unitInfoHtml(this.game, unit);
+    var attacking = unit && this.renderer.attackingUnitId === unit.id;
+    var spent = unit && !attacking && unit.moved && this.game.currentPlayer === unit.player;
+    var key = html + RENDER.getStyle() + RENDER.getIconSet() + attacking + spent;
+    if (container._unitCardKey === key) return;
+    container._unitCardKey = key;
+    container.innerHTML = html;
+    if (unit) RENDER.drawUnitIcon(container.querySelector(".unit-card-icon"), unit,
+      { experience: true, attacking: attacking, spent: spent });
+  };
+
   GameUI.prototype.showUnitInfo = function (unit) {
-    $("unit-info").innerHTML = unitInfoHtml(this.game, unit);
+    this.renderUnitInfo($("unit-info"), unit);
   };
 
   // Anchor to the hex, not the moving pointer. Prefer a side with fewer
@@ -421,8 +466,7 @@ var UI = (function () {
       return;
     }
     var faction = RENDER.PLAYER_COLORS[unit.player];
-    var html = "<div class='hover-faction'>" + esc(faction.name) + "</div>" + unitInfoHtml(this.game, unit);
-    if (this._hoverHtml !== html) { card.innerHTML = html; this._hoverHtml = html; }
+    this.renderUnitInfo(card, unit);
     card.style.borderColor = faction.light;
     card.classList.remove("hidden");
     var radius = Math.max(18, r.hexSize * r.zoom);
@@ -489,6 +533,9 @@ var UI = (function () {
     var menu = $("action-menu"), renderer = this.renderer;
     if (!this.selected || menu.classList.contains("hidden")) return;
     var centers = (this.pickTargets || []).map(function (target) { return renderer.hexCenter(target.col, target.row); });
+    if (this.mode === "unitSelected") centers = Object.keys(this.range || {}).filter(function (key) {
+      return this.range[key].canStop && this.range[key].cost > 0;
+    }, this).map(function (key) { var rec = this.range[key]; return renderer.hexCenter(rec.col, rec.row); }, this);
     var pos = actionPosition(renderer.hexCenter(this.selected.col, this.selected.row),
       renderer.hexSize * renderer.zoom, centers, menu.offsetWidth, menu.offsetHeight,
       this.canvas.width, this.canvas.height);
@@ -536,16 +583,12 @@ var UI = (function () {
     this.pickTargets.forEach(function (target) {
       self.renderer.highlights[HEX.key(target.col, target.row)] = "rgba(255,80,60,0.55)";
     });
-    function add(parent, label, fn) {
-      var button = document.createElement("button");
-      button.textContent = label;
-      button.onclick = fn;
-      parent.appendChild(button);
-    }
-    if (unit.moved) add(menu, "Close", function () { self.deselect(); });
+    if (unit.moved) actionButton(menu, "Close", function () { self.deselect(); });
     else {
-      add(menu, "Cancel", function () { self.cancelMove(unit); });
-      add(menu, "End", function () { self.commitUnit(unit); });
+      if (!unit.shifted) actionButton(menu, "Cancel", function () {
+        if (unit.type.move) self.selectUnit(unit); else self.deselect();
+      });
+      actionButton(menu, "End", function () { self.commitUnit(unit); });
     }
     var targetList = $("attack-targets");
     targetList.innerHTML = "";
@@ -557,12 +600,23 @@ var UI = (function () {
       targetList.appendChild(button);
     });
     targetList.classList.remove("hidden");
-    var transport = $("transport-actions");
+    this.showTransportActions(unit, menu);
+    $("action-status").textContent = unit.moved ? "Choose a passenger to unload." :
+      this.pickTargets.length ? "Click a red target to attack, or End this unit." : "No targets in range.";
+    $("action-status").classList.remove("hidden");
+    this.showUnitInfo(unit);
+    menu.classList.remove("hidden");
+    this.positionActionMenu();
+    this.draw();
+  };
+
+  GameUI.prototype.showTransportActions = function (unit, menu) {
+    var self = this, transport = $("transport-actions");
     transport.innerHTML = "";
     (unit.cargo || []).forEach(function (cargo) {
       if (self.hasUnloadDestination(unit, cargo)) {
-        add(transport, "Unload " + cargo.type.name, function () { self.enterUnload(unit, cargo); });
-        add(menu, "Unload " + cargo.type.name, function () { self.enterUnload(unit, cargo); });
+        actionButton(transport, "Unload " + cargo.type.name, function () { self.enterUnload(unit, cargo); });
+        actionButton(menu, "Unload " + cargo.type.name, function () { self.enterUnload(unit, cargo); });
       } else {
         var reason = document.createElement("div");
         reason.textContent = cargo.type.name + (cargo.moved ?
@@ -572,16 +626,6 @@ var UI = (function () {
       }
     });
     transport.classList.remove("hidden");
-    $("action-status").textContent = unit.moved ?
-      "Transport has acted. Its ready passenger may still unload." : unit.attacked ?
-      "Attack complete. End confirms this position; Cancel reverts only this move." : this.pickTargets.length ?
-      "Hover to compare. Click a red target to attack." :
-      "No attack from this position. Cancel reverts the move; End finishes this unit.";
-    $("action-status").classList.remove("hidden");
-    this.showUnitInfo(unit);
-    menu.classList.remove("hidden");
-    this.positionActionMenu();
-    this.draw();
   };
 
   GameUI.prototype.closeActionMenu = function () {
@@ -610,49 +654,49 @@ var UI = (function () {
       (canDeploy ? "Choose a ready unit to deploy." : "Capture with infantry to deploy.") :
       "No stored units.";
     building.stored.forEach(function (su) {
-      var row = document.createElement("div");
+      var groundTargets = canDeploy && !su.moved ? g.deployTargets(building, su) : [];
+      var transportTargets = canDeploy && !su.moved ? g.transportDeployTargets(building, su) : [];
+      var ready = canDeploy && !su.moved && (groundTargets.length || transportTargets.length);
+      var row = document.createElement(ready ? "button" : "div");
       row.className = "factory-row";
+      if (ready) { row.type = "button"; row.setAttribute("aria-label", "Deploy " + su.type.name); }
       var storedCap = COMBAT.strengthCaption(su.strength);
-      var unit = document.createElement("div");
+      var unit = document.createElement("span");
       unit.className = "factory-unit";
       var icon = document.createElement("canvas");
       icon.className = "factory-unit-icon";
       icon.width = 32;
       icon.height = 32;
       icon.setAttribute("role", "img");
-      icon.setAttribute("aria-label", su.type.name + " unit icon");
-      var details = document.createElement("div");
+      icon.setAttribute("aria-label", su.type.name + ", experience " + su.exp + " of 8");
+      var details = document.createElement("span");
       details.className = "factory-unit-details";
       var name = document.createElement("strong");
       name.textContent = su.type.name;
-      var stats = document.createElement("span");
-      stats.textContent = (storedCap ? "Strength " + storedCap + " · " : "") +
-        "Experience " + su.exp;
       details.appendChild(name);
-      details.appendChild(stats);
+      name.style.color = RENDER.PLAYER_COLORS[su.player < 0 ? 2 : su.player].light;
+      if (storedCap) {
+        var stats = document.createElement("span");
+        stats.textContent = "Strength " + storedCap;
+        details.appendChild(stats);
+      }
       unit.appendChild(icon);
       unit.appendChild(details);
       row.appendChild(unit);
-      RENDER.drawUnitIcon(icon, su);
+      RENDER.drawUnitIcon(icon, su, { experience: true, spent: canDeploy && su.moved });
       if (!canDeploy) {
         list.appendChild(row);
         return;
       }
-      var groundTargets = g.deployTargets(building, su);
-      var transportTargets = g.transportDeployTargets(building, su);
-      var btn;
+      var btn = document.createElement("span");
+      btn.className = "factory-unit-status";
       if (su.moved) {
-        btn = document.createElement("span");
-        btn.className = "factory-unit-status";
         btn.textContent = "AVAILABLE NEXT TURN";
       } else if (!groundTargets.length && !transportTargets.length) {
-        btn = document.createElement("span");
-        btn.className = "factory-unit-status";
         btn.textContent = "NO DESTINATION";
       } else {
-        btn = document.createElement("button");
-        btn.textContent = "Deploy";
-        btn.onclick = function () {
+        btn.textContent = "Deploy →";
+        row.onclick = function () {
           try {
             var exits = g.deployTargets(building, su);
             var transports = g.transportDeployTargets(building, su);
@@ -708,6 +752,7 @@ var UI = (function () {
     panel.classList.remove("hidden");
     var attackerBefore = attacker.strength, defenderBefore = defender.strength;
     var result = g.attack(attacker, defender);
+    this.clearUndo(); // Combat is an irreversible boundary, including during animation.
     this.refreshStatus();
     this.animateBattleResult({ attacker: attacker, defender: defender,
       attackerBefore: attackerBefore, defenderBefore: defenderBefore, result: result,
@@ -729,7 +774,7 @@ var UI = (function () {
     // The enemy's last activation may be spent. Preview its next full turn
     // against the current board without resetting or mutating the real unit.
     var preview = Object.assign({}, unit, {
-      moved: false, attacked: false, attackSpent: false, movePointsLeft: unit.type.move,
+      moved: false, shifted: false, attacked: false, attackSpent: false, movePointsLeft: unit.type.move,
     });
     this.range = this.game.movementRange(preview);
     var highlights = {};
@@ -738,17 +783,17 @@ var UI = (function () {
     }
     this.renderer.highlights = highlights;
     this.showUnitInfo(unit);
-    $("action-status").textContent = "Enemy movement · Orange hexes show its next-turn range on the current board, including terrain and ZOC. Inspection only. Esc to clear.";
+    $("action-status").textContent = "Enemy Shift range · Orange hexes show its next-turn range on the current board, including terrain and ZOC. Inspection only. Esc to clear.";
     $("action-status").classList.remove("hidden");
     this.draw();
   };
 
   GameUI.prototype.selectUnit = function (unit) {
+    if (unit.player !== this.game.currentPlayer || unit.carriedBy || unit.inFactory) return;
     if (unit.moved || (unit.attacked && !unit.type.moveAfterAttack)) {
       var self = this;
       if (unit.cargo.some(function (cargo) { return self.hasUnloadDestination(unit, cargo); })) {
         this.selected = unit;
-        this.pendingMoveFrom = null;
         this.openActionMenu(unit);
       }
       return;
@@ -756,6 +801,26 @@ var UI = (function () {
     this.closeActionMenu();
     this.selected = unit;
     this.pickTargets = [];
+    this.mode = "command";
+    this.range = this.game.movementRange(unit);
+    this.renderer.highlights = null;
+    if ((unit.shifted || !unit.type.move) && (unit.type.rngG || unit.type.rngA)) {
+      this.openActionMenu(unit);
+      return;
+    }
+    if (unit.type.move) { this.beginShift(unit); return; }
+    var self = this, menu = $("action-menu");
+    menu.innerHTML = "";
+    actionButton(menu, "Close", function () { self.deselect(); });
+    actionButton(menu, "End", function () { self.commitUnit(unit); });
+    menu.classList.remove("hidden");
+    this.showUnitInfo(unit);
+    this.draw();
+  };
+
+  GameUI.prototype.beginShift = function (unit) {
+    if (this.mode !== "command" || this.selected !== unit || unit.moved || unit.shifted || !unit.type.move) return;
+    this.closeActionMenu();
     this.mode = "unitSelected";
     this.range = this.game.movementRange(unit);
     var hl = {};
@@ -766,9 +831,22 @@ var UI = (function () {
     }
     this.renderer.highlights = hl;
     this.showUnitInfo(unit);
-    $("action-status").textContent = unit.attacked ?
-      "Attack complete. " + unit.movePointsLeft + " movement points left. Choose a blue destination, or click this unit to stay." :
-      "Choose a blue destination, or click this unit again to aim without moving.";
+    var self = this, menu = $("action-menu");
+    menu.innerHTML = "";
+    var canAttack = this.previewTargets(unit).length > 0;
+    if (unit.type.rngG || unit.type.rngA) {
+      var attack = actionButton(menu, "Attack", function () { self.openActionMenu(unit); }, !canAttack);
+      attack.title = unit.attacked ? "Already attacked this turn" : canAttack ? "Attack from this hex" : "No targets in range";
+    }
+    actionButton(menu, "Cancel", function () { self.deselect(); });
+    actionButton(menu, "End", function () { self.commitUnit(unit); });
+    this.showTransportActions(unit, menu);
+    menu.classList.remove("hidden");
+    var canMove = Object.keys(this.range).some(function (key) { return self.range[key].cost > 0 && self.range[key].canStop; });
+    $("action-status").textContent = (canMove ? "Choose a blue destination." : "No legal move.") +
+      (unit.attacked ? " Attack complete. " + unit.movePointsLeft + " Shift points left." :
+        canAttack ? " Attack fires from this hex." :
+        unit.type.rngG || unit.type.rngA ? " No targets in range." : "");
     $("action-status").classList.remove("hidden");
     this.draw();
   };
@@ -782,7 +860,6 @@ var UI = (function () {
     this.selected = null;
     this.mode = "idle";
     this.range = null;
-    this.pendingMoveFrom = null;
     this.renderer.highlights = null;
     this.closeActionMenu();
     this.showUnitInfo(null);
@@ -792,27 +869,21 @@ var UI = (function () {
   GameUI.prototype.tryMove = function (unit, col, row) {
     var rec = this.range && this.range[HEX.key(col, row)];
     if (!rec || !rec.canStop) return false;
-    this.pendingMoveFrom = {
-      col: unit.col, row: unit.row,
-      movePointsLeft: unit.movePointsLeft, attackSpent: unit.attackSpent,
-      logLength: this.game.log.length,
-    };
-    var res = this.game.moveUnit(unit, col, row, this.range);
-    this.renderer.highlights = null;
-    this.draw();
-    if (res.loaded) {
-      this.pendingMoveFrom = null; // loading commits immediately
-      this.deselect();
-      this.refreshStatus();
-      return true;
+    var before = this.game.snapshot();
+    this.game.moveUnit(unit, col, row, this.range);
+    var events = this.game.finishMovement(unit);
+    this.recordUndo(before, unit.type.name + " move");
+    this.deselect();
+    this.refreshStatus();
+    this.showMoveEffects(events);
+    this.checkGameOver();
+    if (this.game.winner === null && !unit.inFactory && !unit.carriedBy &&
+        (this.previewTargets(unit).length || unit.cargo.some(function (cargo) {
+          return this.hasUnloadDestination(unit, cargo);
+        }, this))) {
+      this.selected = unit;
+      this.openActionMenu(unit);
     }
-    if (rec.enterBuilding) {
-      this.commitUnit(unit);
-      return true;
-    }
-
-    this.mode = "moved";
-    this.openActionMenu(unit);
     return true;
   };
 
@@ -820,35 +891,27 @@ var UI = (function () {
     return this.game.unloadTargets(transport, cargoUnit).length > 0;
   };
 
-  GameUI.prototype.cancelMove = function (unit) {
-    if (this.pendingMoveFrom) {
-      unit.col = this.pendingMoveFrom.col;
-      unit.row = this.pendingMoveFrom.row;
-      unit.movePointsLeft = this.pendingMoveFrom.movePointsLeft;
-      unit.attackSpent = this.pendingMoveFrom.attackSpent;
-      if (this.pendingMoveFrom.logLength !== undefined) this.game.log.length = this.pendingMoveFrom.logLength;
-      this.pendingMoveFrom = null;
-    }
-    this.closeActionMenu();
-    this.selectUnit(unit);
-  };
-
   GameUI.prototype.commitUnit = function (unit) {
+    var before = this.game.snapshot();
     var events = this.game.finishUnit(unit);
+    if (!unit.shifted) this.recordUndo(before, unit.type.name + " end");
     this.closeActionMenu();
-    this.pendingMoveFrom = null;
     this.deselect();
     this.refreshStatus();
-    for (var i = 0; i < events.length; i++) {
-      if (events[i].t === "capture") this.toast("Captured " + events[i].kind + "!");
-      if (events[i].t === "repair") this.toast("Repaired to full strength");
-    }
+    this.showMoveEffects(events);
     this.checkGameOver();
     if (this.game.winner === null && !unit.inFactory && unit.cargo.some(function (cargo) {
       return this.hasUnloadDestination(unit, cargo);
     }, this)) {
       this.selected = unit;
       this.openActionMenu(unit);
+    }
+  };
+
+  GameUI.prototype.showMoveEffects = function (events) {
+    for (var i = 0; i < events.length; i++) {
+      if (events[i].t === "capture") this.toast("Captured " + events[i].kind + "!");
+      if (events[i].t === "repair") this.toast("Repaired to full strength");
     }
   };
 
@@ -869,39 +932,48 @@ var UI = (function () {
 
   /* --- input -------------------------------------------------------------- */
 
+  GameUI.prototype.updateMapCursor = function () {
+    var axes = this.renderer.panAxes();
+    this.canvas.style.cursor = this.dragging && this.dragging.moved ? "grabbing" :
+      axes.x || axes.y ? "grab" : "crosshair";
+  };
+
   GameUI.prototype.onMouseDown = function (e) {
-    if (e.button === 2 || e.button === 1) {
-      this.dragging = { x: e.offsetX, y: e.offsetY, moved: false, pan: true };
-      $("unit-hover").classList.add("hidden");
-      return;
-    }
-    this.dragging = { x: e.offsetX, y: e.offsetY, moved: false, pan: false };
+    if (e.button > 2) return;
+    e.preventDefault();
+    var axes = this.renderer.panAxes();
+    this.dragging = { x: e.offsetX, y: e.offsetY, moved: false,
+      pan: axes.x || axes.y, button: e.button };
   };
 
   GameUI.prototype.onMouseMove = function (e) {
     if (this.dragging) {
       var dx = e.offsetX - this.dragging.x, dy = e.offsetY - this.dragging.y;
-      if (this.dragging.pan && Math.abs(dx) + Math.abs(dy) > 4) {
-        var viewMoved = this.renderer.panBy(dx, dy);
+      if (this.dragging.pan && (this.dragging.moved || Math.abs(dx) + Math.abs(dy) > 4)) {
+        // Once a drag is recognized, releasing at a map boundary is still a
+        // drag, even if constraints prevented the last camera movement.
+        this.dragging.moved = true;
+        this.renderer.panBy(dx, dy);
         this.dragging.x = e.offsetX; this.dragging.y = e.offsetY;
-        if (viewMoved) {
-          this.dragging.moved = true;
-          this.draw();
-        }
+        this.renderer.hoverHex = null;
+        $("unit-hover").classList.add("hidden");
+        this.draw();
+        return;
       }
-      if (this.dragging.pan) return;
+      if (this.dragging.pan || this.dragging.button !== 0) return;
     }
     var hex = this.renderer.pixelToHex(e.offsetX, e.offsetY);
     var changed = HEX.key((this.renderer.hoverHex || {}).col, (this.renderer.hoverHex || {}).row) !==
                   HEX.key((hex || {}).col, (hex || {}).row);
     this.renderer.hoverHex = hex;
+    // Show/hide the card in this event, before sidebar or forecast work.
+    this.updateHoverInfo();
     if (hex) {
-      this.showHexInfo(hex.col, hex.row);
+      if (changed) this.showHexInfo(hex.col, hex.row);
       var u = this.game.unitAt(hex.col, hex.row);
       if (u && this.mode === "idle") this.showUnitInfo(u);
       if (u && this.mode === "moved") this.showCombatPreview(u);
     }
-    this.updateHoverInfo();
     if (changed) this.draw();
   };
 
@@ -913,13 +985,14 @@ var UI = (function () {
 
   GameUI.prototype.onMouseUp = function (e) {
     var wasDrag = this.dragging && this.dragging.moved;
-    var wasPan = this.dragging && this.dragging.pan;
+    var button = this.dragging ? this.dragging.button : e.button;
     this.dragging = null;
     if (wasDrag) return;
-    if (wasPan) { // plain right-click = cancel
+    if (button === 2) { // plain right-click = cancel
       this.onCancel();
       return;
     }
+    if (button === 1) return;
     if (this.busy || this.mode === "aiTurn" || this.mode === "battle" ||
         this.mode === "factory" || this.mode === "over") return;
     var hex = this.renderer.pixelToHex(e.offsetX, e.offsetY);
@@ -930,9 +1003,7 @@ var UI = (function () {
   GameUI.prototype.onCancel = function () {
     if (this.busy || this.mode === "aiTurn" || this.mode === "over") return;
     if (this.mode === "battle") return;
-    if (this.mode === "moved" && this.selected && this.selected.moved) this.deselect();
-    else if (this.mode === "moved" && this.selected) this.cancelMove(this.selected);
-    else if (this.mode === "unload" && this.selected) { this.openActionMenu(this.selected); this.mode = "moved"; this.draw(); }
+    if (this.mode === "unload" && this.selected) this.selectUnit(this.selected);
     else if (this.mode === "deployPick") { this.deployPending = null; this.deselect(); }
     else if (this.mode === "factory") this.closeFactoryPanel();
     else this.deselect();
@@ -954,6 +1025,7 @@ var UI = (function () {
     r.zoom = nz;
     r.constrainView();
     r.hoverHex = r.pixelToHex(e.offsetX, e.offsetY);
+    this.updateHoverInfo();
     this.draw();
   };
 
@@ -962,23 +1034,22 @@ var UI = (function () {
     var self = this;
     var unit = g.unitAt(col, row);
     if (this.mode === "enemyInspect") this.deselect();
+    if (this.mode === "command") {
+      if (unit === this.selected) return;
+      this.deselect();
+    }
 
 
     if (this.mode === "unload") {
       var t = this.selected;
       try {
+        var before = g.snapshot();
+        var cargoName = this.unloadCargo.type.name;
         g.unload(t, this.unloadCargo, col, row);
-        // Unloading is the passenger's action. A provisional carrier move
-        // becomes committed, but unloading in place leaves a ready carrier
-        // free to move afterwards. Never allow Cancel to undo only the carrier.
-        if (this.pendingMoveFrom && (t.col !== this.pendingMoveFrom.col || t.row !== this.pendingMoveFrom.row)) {
-          this.commitUnit(t);
-        } else {
-          this.pendingMoveFrom = null;
-          this.deselect();
-          this.refreshStatus();
-          this.checkGameOver();
-        }
+        this.recordUndo(before, cargoName + " unload");
+        this.deselect();
+        this.refreshStatus();
+        this.checkGameOver();
       } catch (err) { this.toast(err.message); }
       return;
     }
@@ -998,8 +1069,10 @@ var UI = (function () {
               break;
             }
           }
+          var before = g.snapshot();
           if (transport) g.loadFromFactory(pend.building, pend.unit, transport);
           else g.deployFromFactory(pend.building, pend.unit, col, row);
+          this.recordUndo(before, pend.unit.type.name + " deployment");
         }
         catch (err) { this.toast(err.message); }
         this.refreshStatus();
@@ -1012,8 +1085,9 @@ var UI = (function () {
       if (unit && this.pickTargets.indexOf(unit) >= 0) {
         this.closeActionMenu();
         this.quickAttack(this.selected, unit);
+        return;
       }
-      return;
+      this.deselect();
     }
 
     if (this.mode === "unitSelected") {
@@ -1043,7 +1117,6 @@ var UI = (function () {
     var g = this.game, self = this;
     if (this.mode !== "moved" || this.previewTargets(unit).indexOf(enemy) < 0) return;
     this.showBattle(unit, enemy, function () {
-      self.pendingMoveFrom = null;
       if (g.units.indexOf(unit) >= 0 && unit.type.moveAfterAttack && unit.movePointsLeft > 0 && !unit.moved) self.selectUnit(unit);
       else self.deselect();
       self.refreshStatus(); self.checkGameOver();
@@ -1110,7 +1183,7 @@ var UI = (function () {
   GameUI.prototype.endTurn = function () {
     if (this.mode === "over" || this.mode === "battle" || this.busy) return;
     var g = this.game, self = this;
-    if (this.pendingMoveFrom && this.selected) this.cancelMove(this.selected);
+    this.clearUndo();
     this.closeFactoryPanel();
     this.deselect();
     g.endTurn();
@@ -1128,6 +1201,7 @@ var UI = (function () {
     // A resumed AI turn starts from its saved turn-boundary checkpoint.
     this.mode = "aiTurn";
     this.busy = true;
+    this.clearUndo();
     $("status-player").textContent = RENDER.PLAYER_COLORS[g.currentPlayer].name + " (thinking…)";
     this._aiTimer = setTimeout(function () {
       if (self.destroyed) return;
@@ -1145,6 +1219,7 @@ var UI = (function () {
     var g = this.game;
     if (g.winner === null) return;
     this.mode = "over";
+    this.clearUndo();
     var reasons = {
       base: "base captured",
       elimination: "all enemy forces destroyed",

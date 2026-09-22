@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nectaris — hex tactics remake</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='24,16 20,23 12,23 8,16 12,9 20,9' fill='%23ffd94a'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/nectaris.css?v=20260920-unit-hover">
+<link rel="stylesheet" href="css/nectaris.css?v=20260921-fast-move">
 </head>
 <body>
 <div id="save-error" class="hidden" role="alert"></div>
@@ -53,6 +53,12 @@
       <p id="history-count" class="section-note" role="status"></p>
       <button id="history-more" class="hidden">Show older matches</button>
     </details>
+  </section>
+
+  <section class="menu-section" id="ai-made-section">
+    <h2>AI-made</h2>
+    <p class="section-note">Original battlefields made to your specifications.</p>
+    <div id="ai-made-list" class="level-library"></div>
   </section>
 
   <section class="menu-section">
@@ -105,7 +111,7 @@
   </section>
 
   <footer class="menu-footer">
-    Controls: select a unit, choose a position, then hover red targets to preview or click to attack · Cancel undoes the move · End finishes the unit · right-click or Esc cancels · wheel zooms · E ends the side's turn.
+    Controls: click a unit to move · Attack aims from its current hex · after moving, attack or End; no shot ends automatically · Undo last in the sidebar reverses moves since the last battle or turn boundary · right-click or Esc clears selection · wheel zooms · left-drag pans when terrain is offscreen · E ends the side's turn.
     See <a href="MECHANICS.md">MECHANICS.md</a> for the full rules reconstruction.
   </footer>
 </div>
@@ -132,6 +138,7 @@
   <div id="game-main">
     <div id="sidebar">
       <div id="playing-profile" title="Current profile"></div>
+      <button id="btn-undo" disabled>Undo last</button>
       <div id="action-status" class="hidden" role="status"></div>
       <div id="transport-actions" class="hidden"></div>
       <div id="attack-targets" class="hidden" role="group" aria-label="Preview attack targets"></div>
@@ -182,21 +189,22 @@
 <script src="js/data-terrain.js?v=20260920-fidelity"></script>
 <script src="js/data-units.js?v=20260920-cpu-tactics"></script>
 <script src="js/combat.js?v=20260920-fidelity"></script>
-<script src="js/engine.js?v=20260920-fidelity"></script>
+<script src="js/engine.js?v=20260921-fast-move"></script>
 <script src="js/ai.js?v=20260920-cpu-tactics"></script>
 <script src="js/data-maps.js?v=20260920-battle-forecast"></script>
 <script src="js/data-advanced-maps.js?v=20260920-advanced"></script>
 <script src="js/data-expansion-maps.js?v=20260920-fidelity"></script>
 <script src="js/data-basenectaris-maps.js?v=20260920-fidelity"></script>
+<script src="js/data-ai-maps.js?v=20260922-fjords"></script>
 <script src="js/data-unit-art.js?v=20260920-battle-forecast"></script>
 <script src="js/data-unit-art-legacy.js?v=20260920-battle-forecast"></script>
 <script src="js/unit-icon-sets.js?v=20260920-battle-forecast"></script>
 <script src="js/legacy-terrain.js?v=20260922-mountain-joins"></script>
-<script src="js/render.js?v=20260920-battle-forecast"></script>
+<script src="js/render.js?v=20260922-fjord-zoom"></script>
 <script src="js/music.js?v=20260920-battle-forecast"></script>
-<script src="js/combat-view.js?v=20260920-fidelity"></script>
-<script src="js/ui.js?v=20260920-transport-unload"></script>
-<script src="js/profiles.js?v=20260920-battle-forecast"></script>
-<script src="js/main.js?v=20260920-advanced"></script>
+<script src="js/combat-view.js?v=20260921-shift-attack"></script>
+<script src="js/ui.js?v=20260921-fast-move"></script>
+<script src="js/profiles.js?v=20260922-fjords"></script>
+<script src="js/main.js?v=20260922-fjords"></script>
 </body>
 </html>

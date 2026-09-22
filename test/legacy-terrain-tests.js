@@ -8,7 +8,7 @@ module.exports = function(ok) {
     for(var yy=y;yy<y+h;yy++)for(var xx=x;xx<x+w;xx++)raster[xx+","+yy]=this.fillStyle;
   }};
   var renderer=new R.Renderer({width:800,height:600,getContext:function(){return ctx;}},g);
-  [1,1.15,2,4].forEach(function(z){renderer.zoom=z;renderer.originX=40.3;renderer.originY=30.7;
+  [0.15,0.35,1,1.15,2,4].forEach(function(z){renderer.zoom=z;renderer.originX=40.3;renderer.originY=30.7;
     for(var c=0;c<9;c++)for(var r=0;r<8;r++) {
       var p=renderer.hexCenter(c,r);
       [[0,0],[20,0],[-20,0],[0,14],[0,-14],[8,12],[-8,-12]].forEach(function(d){
@@ -19,7 +19,7 @@ module.exports = function(ok) {
     ok(renderer.pixelToHex(-1000,-1000)===null,"outside map cannot select a cell");
   });
   ok(renderer.mapDimensions().width===304&&renderer.mapDimensions().height===272,"Legacy map bounds use 48x32 hexes with 32px pitch");
-  ok(renderer.minimumZoom()===1,"Legacy prevents native unit overlap at small zoom");
+  ok(renderer.minimumZoom()<=0.2,"Legacy permits overview zoom below native size");
   var origin=renderer.hexCenter(2,2);
   H.neighbors(2,2).forEach(function(n,i){var p=renderer.hexCenter(n.col,n.row);
     ok((p.x-origin.x)/renderer.zoom===T.offsets[i][0]&&(p.y-origin.y)/renderer.zoom===T.offsets[i][1],"terrain edge direction matches logical neighbor "+i);
@@ -42,6 +42,6 @@ module.exports = function(ok) {
   });
   var blue=T.tile("base",[],0,0),green=T.tile("base",[],0,1);
   ok(blue.pixels.some(function(v,i){return v!==green.pixels[i];}),"capturing a Legacy building changes its ownership palette");
-  R.setIconSet("remake");ok(renderer.minimumZoom()===.65,"Remake restores its existing map layout");
+  R.setIconSet("remake");ok(renderer.minimumZoom()<=0.2,"Remake also permits the full-map overview");
   R.setIconSet(oldSet);R.setStyle(oldStyle);
 };

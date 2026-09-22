@@ -157,7 +157,14 @@ var RENDER = (function () {
     this.originY = (this.canvas.height - mapH * this.zoom) / 2 + (legacyMap() ? 16 : s) * this.zoom;
   };
 
-  Renderer.prototype.minimumZoom = function () { return legacyMap() ? 1 : theme.id === "pixel" ? 0.65 : 0.2; };
+  Renderer.prototype.minimumZoom = function () {
+    // Even very large custom maps must fit. Leave another 25% of zoom-out
+    // room below the overview, in every art style and on small viewports.
+    var dims = this.mapDimensions();
+    var fit = Math.min(Math.max(1, this.canvas.width - 40) / dims.width,
+      Math.max(1, this.canvas.height - 40) / dims.height);
+    return Math.min(0.2, fit * 0.75);
+  };
 
   Renderer.prototype.mapDimensions = function () {
     if (legacyMap()) return {width: this.game.width * 32 + 16, height: this.game.height * 32 + (this.game.width > 1 ? 16 : 0)};
@@ -169,9 +176,11 @@ var RENDER = (function () {
 
   Renderer.prototype.panAxes = function () {
     var dims = this.mapDimensions();
+    var left = this.originX - (legacyMap() ? 24 : this.hexSize) * this.zoom;
+    var top = this.originY - (legacyMap() ? 16 : this.hexSize) * this.zoom;
     return {
-      x: dims.width * this.zoom > this.canvas.width,
-      y: dims.height * this.zoom > this.canvas.height,
+      x: left < 0 || left + dims.width * this.zoom > this.canvas.width,
+      y: top < 0 || top + dims.height * this.zoom > this.canvas.height,
     };
   };
 
@@ -184,7 +193,7 @@ var RENDER = (function () {
     var mapW = dims.width * z, mapH = dims.height * z;
     var margin = 16;
 
-    if (!axes.x) {
+    if (mapW <= this.canvas.width) {
       this.originX = (this.canvas.width - mapW) / 2 + offsetX * z;
     } else {
       this.originX = Math.max(
@@ -192,7 +201,7 @@ var RENDER = (function () {
         Math.min(offsetX * z + margin, this.originX)
       );
     }
-    if (!axes.y) {
+    if (mapH <= this.canvas.height) {
       this.originY = (this.canvas.height - mapH) / 2 + offsetY * z;
     } else {
       this.originY = Math.max(
@@ -422,12 +431,28 @@ var RENDER = (function () {
     return center;
   };
 
-  Renderer.prototype.drawRoadNetwork = function () {
+  /* Include a generous border for terrain decorations and road joins. Work
+   * follows viewport size even when most of a large map is off screen. */
+  Renderer.prototype.visibleTileBounds = function () {
+    var legacy = legacyMap(), s = this.hexSize * this.zoom;
+    var pitchX = legacy ? 32 * this.zoom : 1.5 * s;
+    var pitchY = legacy ? 32 * this.zoom : Math.sqrt(3) * s;
+    var margin = legacy ? 64 * this.zoom : 2 * s;
+    return {
+      minCol: Math.max(0, Math.floor((-this.originX - margin) / pitchX)),
+      maxCol: Math.min(this.game.width - 1, Math.ceil((this.canvas.width - this.originX + margin) / pitchX)),
+      minRow: Math.max(0, Math.floor((-this.originY - margin) / pitchY - 0.5)),
+      maxRow: Math.min(this.game.height - 1, Math.ceil((this.canvas.height - this.originY + margin) / pitchY)),
+    };
+  };
+
+  Renderer.prototype.drawRoadNetwork = function (bounds) {
     if (legacyMap()) return; // Connections are drawn on the same integer tile grid.
     var ctx = this.ctx, g = this.game;
+    bounds = bounds || this.visibleTileBounds();
     var segments = [], bridges = [];
-    for (var r = 0; r < g.height; r++) {
-      for (var c = 0; c < g.width; c++) {
+    for (var r = bounds.minRow; r <= bounds.maxRow; r++) {
+      for (var c = bounds.minCol; c <= bounds.maxCol; c++) {
         var terr = g.terrainAt(c, r);
         if (terr.id !== "road" && terr.id !== "bridge") continue;
         var center = this.hexCenter(c, r);
@@ -511,9 +536,9 @@ var RENDER = (function () {
     GIANT:   { hull: 29, turret: "angular", turretW: 8.4, barrel: 18, barrelWidth: 2.9, barrels: 2, skirts: true },
   };
 
-  function drawUnitBody(ctx, unit, u, colors) {
+  function drawUnitBody(ctx, unit, u, colors, pixelScale) {
     ctx.save();
-    if (theme.id === "pixel") drawUnitBodyPixel(ctx, unit, u, colors);
+    if (theme.id === "pixel") drawUnitBodyPixel(ctx, unit, pixelScale || 1, colors);
     else {
       if (unit.player === 1) ctx.scale(-1, 1);
       if (theme.id === "classic") drawUnitBodyClassic(ctx, unit, u, colors);
@@ -567,7 +592,7 @@ var RENDER = (function () {
     return base;
   }
 
-  function drawUnitBodyPixel(ctx, unit, u, colors) {
+  function drawUnitBodyPixel(ctx, unit, scale, colors) {
     var id = spriteIdFor(unit.type), facing = unit.player === 1 ? "left" : "right";
     var faction = colors === theme.attackColors ? "attack" :
       (unit.player < 0 || unit.player === 2 ? "neutral" : unit.player === 1 ? "xenon" : "union");
@@ -586,12 +611,14 @@ var RENDER = (function () {
       }
       nativeRunCache[key] = runs;
     }
-    // One native pixel per canvas pixel, independent of map zoom or icon slot.
-    // Cached horizontal runs avoid repeated palette decoding and overdraw.
+    // Scale the native frame with its hex. Round shared pixel boundaries so
+    // fractional zooms stay crisp without gaps between cached horizontal runs.
     ctx.imageSmoothingEnabled = false;
     for (var i = 0; i < runs.length; i++) {
       var run = runs[i]; ctx.fillStyle = run.color;
-      ctx.fillRect(run.x, run.y, run.w, 1);
+      var x = Math.round(run.x * scale), y = Math.round(run.y * scale);
+      ctx.fillRect(x, y, Math.round((run.x + run.w) * scale) - x,
+        Math.round((run.y + 1) * scale) - y);
     }
   }
 
@@ -1034,7 +1061,7 @@ var RENDER = (function () {
     var ctx = this.ctx;
     var ctr = this.hexCenter(unit.col, unit.row);
     var s = this.hexSize * this.zoom;
-    var u = theme.id === "pixel" ? 0.8 : s / 34;
+    var u = theme.id === "pixel" ? 0.8 * this.zoom : s / 34;
     var attacking = this.attackingUnitId !== null && this.attackingUnitId === unit.id;
     var colors = attacking ? theme.attackColors : PLAYER_COLORS[unit.player];
 
@@ -1051,7 +1078,7 @@ var RENDER = (function () {
     // flash overlay ring during battles
     var flash = this.flashUnits[unit.id];
 
-    drawUnitBody(ctx, unit, u, colors);
+    drawUnitBody(ctx, unit, u, colors, this.zoom);
 
     // No stencil badge: the silhouettes are the identification, as in the
     // original, and the sidebar names the unit under the cursor.
@@ -1062,14 +1089,31 @@ var RENDER = (function () {
     var strCap = COMBAT.strengthCaption(shownStrength);
     if (strCap) {
       ctx.fillStyle = theme.chrome.strengthBg;
-      ctx.fillRect(-15 * u, 5 * u, 10 * u, 11 * u);
+      ctx.fillRect(-15 * u, -1.6 * u, 16 * u, 17.6 * u);
       ctx.fillStyle = shownStrength <= 2 ? theme.chrome.strengthLow : theme.chrome.strengthOk;
-      ctx.font = "bold " + Math.round(9 * u) + "px monospace";
+      ctx.font = "bold " + Math.round(14.4 * u) + "px monospace";
       ctx.textAlign = "center"; ctx.textBaseline = "middle";
-      ctx.fillText(strCap, -10 * u, 10.5 * u);
+      ctx.fillText(strCap, -7 * u, 7.2 * u);
     }
 
-    // Experience advances through 3/2/3 star columns; level 8 becomes General.
+    drawExperience(ctx, unit, u);
+
+    // cargo marker
+    if (unit.cargo && unit.cargo.length) {
+      ctx.fillStyle = "#fff";
+      ctx.font = "bold " + Math.round(8 * u) + "px monospace";
+      ctx.fillText("C", 12 * u, 12 * u);
+    }
+
+    if (flash) {
+      ctx.strokeStyle = flash; ctx.lineWidth = 3 * u;
+      ctx.beginPath(); ctx.arc(0, 0, 15 * u, 0, 7); ctx.stroke();
+    }
+    ctx.restore();
+  };
+
+  // Shared by map, inspector and inventory: 3/2/3 columns, then General.
+  function drawExperience(ctx, unit, u) {
     if (unit.exp > 0) {
       ctx.fillStyle = theme.chrome.pip;
       if (unit.exp >= 8) {
@@ -1093,34 +1137,24 @@ var RENDER = (function () {
       }
     }
 
-    // cargo marker
-    if (unit.cargo && unit.cargo.length) {
-      ctx.fillStyle = "#fff";
-      ctx.font = "bold " + Math.round(8 * u) + "px monospace";
-      ctx.fillText("C", 12 * u, 12 * u);
-    }
-
-    if (flash) {
-      ctx.strokeStyle = flash; ctx.lineWidth = 3 * u;
-      ctx.beginPath(); ctx.arc(0, 0, 15 * u, 0, 7); ctx.stroke();
-    }
-    ctx.restore();
-  };
+  }
 
   /* Standalone unit icon (factory panel, tools/unit-sheet.html). `opts` is
    * optional: { attacking: true } uses the attack palette, { spent: true }
-   * applies the completed-activation greyscale. */
+   * applies the completed-activation greyscale. { experience: true } includes
+   * the same star overlay as the map. Pixel UI icons use their native frame. */
   function drawUnitIcon(canvas, unit, opts) {
     var ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("Factory unit icon requires a 2D canvas context");
     var base = opts && opts.attacking ? theme.attackColors : PLAYER_COLORS[unit.player === -1 ? 2 : unit.player];
     if (!base) throw new Error("Factory unit icon has invalid player " + unit.player);
-    var u = Math.min(canvas.width / 44, canvas.height / 38);
+    var u = theme.id === "pixel" ? 0.8 : Math.min(canvas.width / 44, canvas.height / 38);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.save();
     if (opts && opts.spent) ctx.filter = "grayscale(1)";
     ctx.translate(Math.round(canvas.width / 2), Math.round(canvas.height / 2));
     drawUnitBody(ctx, unit, u, base);
+    if (opts && opts.experience) drawExperience(ctx, unit, u);
     ctx.restore();
   }
 
@@ -1163,14 +1197,52 @@ var RENDER = (function () {
 
   /* --- frame ------------------------------------------------------------ */
 
+  Renderer.prototype.drawTerrainLayer = function (bounds) {
+    var g = this.game, canvas = this.canvas, ctx = this.ctx;
+    // A viewport-sized surface keeps memory bounded even on custom maps.
+    // Non-browser renderers (including recording contexts in tests) fall back
+    // to direct drawing. The editor also uses this path without extra hooks.
+    if (!this._terrainCanvas && canvas.ownerDocument && ctx.drawImage) {
+      this._terrainCanvas = canvas.ownerDocument.createElement("canvas");
+    }
+    var layer = this._terrainCanvas;
+    if (layer) {
+      var signature = [canvas.width, canvas.height, g.width, g.height,
+        this.originX, this.originY, this.zoom, this.hexSize, theme.id, ICON_SETS.current().id,
+        bounds.minCol, bounds.maxCol, bounds.minRow, bounds.maxRow];
+      // Include one neighbor ring: connected roads and terrain use it even
+      // if a changed neighbor is just outside the drawn rectangle.
+      for (var r = Math.max(0, bounds.minRow - 1); r <= Math.min(g.height - 1, bounds.maxRow + 1); r++) {
+        for (var c = Math.max(0, bounds.minCol - 1); c <= Math.min(g.width - 1, bounds.maxCol + 1); c++) {
+          var building = g.buildingAt(c, r);
+          signature.push(g.terrainAt(c, r).id, building ? building.owner : "",
+            building ? building.stored.length : "");
+        }
+      }
+      var key = signature.join("|");
+      if (key === this._terrainKey) { ctx.drawImage(layer, 0, 0); return; }
+      // Reset drawing state as well as pixels so prior frames cannot affect
+      // stroke joins or text alignment in the new terrain image.
+      layer.width = canvas.width; layer.height = canvas.height;
+      this.ctx = layer.getContext("2d");
+    }
+    this.ctx.save();
+    try {
+      this.ctx.fillStyle = "#181510";
+      this.ctx.fillRect(0, 0, canvas.width, canvas.height);
+      for (var row = bounds.minRow; row <= bounds.maxRow; row++) {
+        for (var col = bounds.minCol; col <= bounds.maxCol; col++) this.drawTerrainHex(col, row);
+      }
+      this.drawRoadNetwork(bounds);
+    } finally {
+      this.ctx.restore(); this.ctx = ctx;
+    }
+    if (layer) { this._terrainKey = key; ctx.drawImage(layer, 0, 0); }
+  };
+
   Renderer.prototype.draw = function () {
     var ctx = this.ctx, g = this.game;
-    ctx.fillStyle = "#181510";
-    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-
-    var r, c;
-    for (r = 0; r < g.height; r++) for (c = 0; c < g.width; c++) this.drawTerrainHex(c, r);
-    this.drawRoadNetwork();
+    this.drawTerrainLayer(this.visibleTileBounds());
 
     // movement / attack highlights (fill + bright outline for visibility)
     if (this.highlights) {

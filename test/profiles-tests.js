@@ -73,10 +73,9 @@ module.exports = function (ok) {
   ui.game = new ENGINE.Game({name: "MOVE", grid: ["......", "......"],
     units: [{t: "BISON", o: 0, x: 0, y: 0}, {t: "POLAR", o: 1, x: 3, y: 0}]}, {seed: 4});
   ui.selected = ui.game.units[0];
-  ui.pendingMoveFrom = {col: 0, row: 0, movePointsLeft: ui.selected.movePointsLeft};
-  ui.game.moveUnit(ui.selected, 1,0); ui.mode = "moved";
+  ui.game.moveUnit(ui.selected, 1,0); ui.game.finishMovement(ui.selected); ui.mode = "moved";
   var provisional = ui.snapshotForSave();
-  ok(provisional.units[0].col === 0 && ui.selected.col === 1, "uncommitted move rolls back only in save, not live board");
+  ok(provisional.units[0].col === 1 && provisional.units[0].shifted, "completed movement saves its actual position and movement phase");
   ui.mode = "battle"; ui.busy = true;
   ok(ui.snapshotForSave().units[0].col === 1, "committed combat keeps its firing position during animation");
   ui.mode = "aiTurn";

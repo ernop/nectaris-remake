@@ -5,9 +5,9 @@ direction. These are original constructions, not traced or extracted assets.
 This is **1 · Remake**, the first/default registered set. The separate
 [Legacy set](../legacy/README.md) is an explicitly requested chart import.
 
-- One **32×32 transparent frame**, displayed at 1:1 in pixel mode, including
-  maps, factories and review pages. Map zoom changes terrain spacing only;
-  constrained zoom and scrolling prevent icons from colliding.
+- One **32×32 transparent frame**. Map icons scale with terrain zoom, preserving
+  their footprint within the hex (2026-09-21 correction). Factories, inspectors
+  and review pages show the native frame.
 - **46 directional frames**, separately shaded for fixed upper-left light.
   The visible art, including weapons and shadows, is horizontally centered.
 - Low hulls, flat turrets, straight wings, charcoal recesses and broad pale
@@ -43,8 +43,8 @@ fallbacks still use the corresponding stock art.
 The exporter and regression tests enforce exact dimensions, palette indices,
 safe fit in the planned flattened hex, equal horizontal padding and small
 infantry. Tests also check unique opaque silhouettes, generated-source parity,
-both facings and every state through the real renderer, and native pixel size
-at fractional/whole map zoom levels and larger UI slots.
+both facings and every state through the real renderer, and proportional, crisp rendering
+at fractional/whole map zoom levels with native frames in UI slots.
 
 Validation on 2026-09-20: all 184 PNGs passed dimension, binary-alpha, palette
 and centering checks; the full suite passed **41,256 checks with zero failures**.

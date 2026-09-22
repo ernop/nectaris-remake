@@ -20,7 +20,7 @@ module.exports = function (ok) {
       save: function () { stack.push([this.x, this.y, this.fillStyle, this.filter]); },
       restore: function () { var s = stack.pop(); this.x=s[0]; this.y=s[1]; this.fillStyle=s[2]; this.filter=s[3]; },
       translate: function (x, y) { this.x+=x; this.y+=y; },
-      scale: function () { throw new Error("Native art must never be scaled or mirrored"); },
+      scale: function () { throw new Error("Pixel runs must be rasterized directly without mirroring"); },
       clearRect: function () { this.pixels={}; },
       fillRect: function (x, y, w, h) {
         x+=this.x; y+=this.y;
@@ -30,10 +30,15 @@ module.exports = function (ok) {
     };
     return { width:width, height:height, getContext:function () { return ctx; }, ctx:ctx };
   }
-  function expected(rows, palette, dx, dy, filter) {
-    var pixels={};
+  function expected(rows, palette, dx, dy, filter, scale) {
+    var pixels={}; scale = scale || 1;
     rows.forEach(function (row,y) { row.split("").forEach(function (code,x) {
-      if (code!==".") pixels[(x+dx)+","+(y+dy)]=palette[parseInt(code,16)]+"/"+(filter||"none");
+      if (code!==".") {
+        var left = Math.round((x-16)*scale)+dx+16, right = Math.round((x-15)*scale)+dx+16;
+        var top = Math.round((y-16)*scale)+dy+16, bottom = Math.round((y-15)*scale)+dy+16;
+        for (var py=top; py<bottom; py++) for (var px=left; px<right; px++)
+          pixels[px+","+py]=palette[parseInt(code,16)]+"/"+(filter||"none");
+      }
     }); });
     return JSON.stringify(Object.entries(pixels).sort());
   }
@@ -70,14 +75,34 @@ module.exports = function (ok) {
       [0.65,1,1.25,1.5,2,4].forEach(function (zoom) {
         var c=canvas(800,600),r=new RENDER.Renderer(c,{currentPlayer:player});r.zoom=zoom;r.originX=40.3;r.originY=40.7;
         r.drawUnit(unit);var center=r.hexCenter(1,1);
-        ok(raster(c)===expected(rows,art.palettes[faction],Math.round(center.x)-16,Math.round(center.y)-16),id+"/"+facing+" map art stays native and aligned at zoom "+zoom);
+        ok(raster(c)===expected(rows,art.palettes[faction],Math.round(center.x)-16,Math.round(center.y)-16,"none",zoom),id+"/"+facing+" map art scales crisply with its hex at zoom "+zoom);
       });
     });
     var neutral=canvas(32,32);RENDER.drawUnitIcon(neutral,{typeId:id,type:types[id],player:-1});
     ok(raster(neutral)===expected(art.frames[id].right,art.palettes.neutral,0,0),id+" neutral factory inventory uses grey faction art");
   });
+  // Inventory/inspector experience is the very same overlay as map chrome.
+  function starCanvas() {
+    var paths = [], points;
+    var ctx = new Proxy({
+      beginPath: function () { points = []; },
+      moveTo: function (x,y) { points.push([x,y]); },
+      lineTo: function (x,y) { points.push([x,y]); },
+      arc: function (x,y,r) { points.push([x,y,r]); },
+      fill: function () { paths.push(points); },
+    }, { get: function (target,key) { return target[key] || function () {}; } });
+    return { width:32, height:32, paths:paths, getContext:function () { return ctx; } };
+  }
+  for (var level=0; level<=8; level++) {
+    var unit={id:1,typeId:"BISON",type:types.BISON,player:0,col:0,row:0,strength:8,exp:level};
+    var icon=starCanvas(), map=starCanvas();
+    RENDER.drawUnitIcon(icon,unit,{experience:true});
+    new RENDER.Renderer(map,{currentPlayer:0}).drawUnit(unit);
+    ok(JSON.stringify(icon.paths) === JSON.stringify(map.paths) && icon.paths.length === (level===8 ? 3 : level),
+      pack.id+": experience "+level+" uses identical stars on the icon and map, including the General emblem");
+  }
   var small=new RENDER.Renderer(canvas(240,160),{width:30,height:20});small.fitToMap();
-  ok(small.zoom>=0.65 && small.panAxes().x && small.panAxes().y,"large maps scroll instead of overlapping fixed native units");
+  ok(small.zoom<0.65 && !small.panAxes().x && !small.panAxes().y,"large maps fit completely below the former minimum zoom");
   });
   RENDER.setIconSet(previousSet);
   RENDER.setStyle(previousStyle);

@@ -1,0 +1,279 @@
+{
+  "name": "HONEYCOMB FJORDS",
+  "pack": "AI-made",
+  "author": "Codex · original level",
+  "source": "levels/honeycomb-fjords.json",
+  "description": "Part 4 is a dense 28×28 web of angled tunnels and fjords around small mountain pockets. Two-hex narrows, branching passages and three small staging spaces cover the board. Opposite corner camps each start with four tanks and three infantry.",
+  "special": "Eight neutral factories hold ten ground units each, with one road mouth and five mountain walls. Every mountain pocket is small; alternate routes run throughout the map. Plains, roads, +20 hills and +30 wasteland; no aircraft.",
+  "tags": [
+    "part 4",
+    "28×28",
+    "8 factories",
+    "dense tunnels"
+  ],
+  "turnLimit": 120,
+  "grid": [
+    ".h..........h.hhh-h.h.hw..hh",
+    "wBh.--.hw---h..--M--.h.hwh..",
+    "-...MM---MMM---MMMMM--hMMMw.",
+    "...MMMw-MMM--w-MMMMM.h--MMMw",
+    "-MMMMMh-MMFMMh-MMMMM..MMFMMh",
+    "--MMM..-MMMMMh--MMM.w.MMMMMh",
+    "h.--h.h---M.w.h.--wwhhh.Mhh.",
+    "....--.-w.--...w..-...whhh..",
+    "hMMMh--wh...--.MMM--h...h.wh",
+    "MMMMh--hhM..h-.MM--.h..Mww..",
+    "MMFMM--MMMMM.-MMFMMw.MMMMMh.",
+    "MM-MM--MMMMM.-MMMMM..MMMMMh.",
+    "hw---h-MMMMM.h--M...wMMMMMh.",
+    "..-.h.--MMMw...w--h-hhMMMh.w",
+    "....wh-.--hhwh..h.--.w..hhh.",
+    "...M..-w-.--.h...M.h--..w...",
+    "hMMMMM---MMM--.MMMMM.-hMMM..",
+    ".MMMMM-.--MMM--MMMMM.-MMMMM.",
+    ".MMMMM-.MMFMM--MMMMM.-MMFMM.",
+    "h.MMM--wMMMMM--hMMMhh-MM-MM.",
+    ".h.h-.wwhhM.h--....h..---h..",
+    "hhh.-.....w..--w.w...h.h--h.",
+    "hMMM--.hw.w..--MMMw.h.hh.h-h",
+    "wMM--.hwhMw.w.--MMMh...M.w-.",
+    "MMFMMw.MMMMMh.MMFMMw.MMMM...",
+    "MMMMMhhMMMMMwhMMMMMh.MMM....",
+    ".wM.hh.MMMMM..hww..w.MMM..B.",
+    "....h.hwMMM..h.h.whw..MM...h"
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 1,
+      "owner": 0
+    },
+    {
+      "col": 26,
+      "row": 26,
+      "owner": 1
+    },
+    {
+      "col": 10,
+      "row": 4,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "HADRIAN",
+        "MULE",
+        "KILROY",
+        "POLAR",
+        "OCTOPUS",
+        "RABBIT",
+        "PANTHER",
+        "SLAGGER"
+      ]
+    },
+    {
+      "col": 24,
+      "row": 4,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LENET",
+        "HADRIAN",
+        "MULE",
+        "KILROY",
+        "GRIZZLY",
+        "OCTOPUS",
+        "LYNX",
+        "PANTHER",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 2,
+      "row": 10,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "POLAR",
+        "HADRIAN",
+        "MULE",
+        "KILROY",
+        "SLAGGER",
+        "OCTOPUS",
+        "RABBIT",
+        "PANTHER",
+        "GIANT"
+      ]
+    },
+    {
+      "col": 16,
+      "row": 10,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "GRIZZLY",
+        "HADRIAN",
+        "MULE",
+        "KILROY",
+        "TITAN",
+        "OCTOPUS",
+        "LYNX",
+        "PANTHER",
+        "BISON"
+      ]
+    },
+    {
+      "col": 10,
+      "row": 18,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "SLAGGER",
+        "HADRIAN",
+        "MULE",
+        "KILROY",
+        "GIANT",
+        "OCTOPUS",
+        "RABBIT",
+        "PANTHER",
+        "LENET"
+      ]
+    },
+    {
+      "col": 24,
+      "row": 18,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "TITAN",
+        "HADRIAN",
+        "MULE",
+        "KILROY",
+        "BISON",
+        "OCTOPUS",
+        "LYNX",
+        "PANTHER",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 2,
+      "row": 24,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "GIANT",
+        "HADRIAN",
+        "MULE",
+        "KILROY",
+        "LENET",
+        "OCTOPUS",
+        "RABBIT",
+        "PANTHER",
+        "GRIZZLY"
+      ]
+    },
+    {
+      "col": 16,
+      "row": 24,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "HADRIAN",
+        "MULE",
+        "KILROY",
+        "POLAR",
+        "OCTOPUS",
+        "LYNX",
+        "PANTHER",
+        "SLAGGER"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 3,
+      "y": 2
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 1,
+      "y": 3
+    },
+    {
+      "t": "POLAR",
+      "o": 0,
+      "x": 2,
+      "y": 3
+    },
+    {
+      "t": "GRIZZLY",
+      "o": 0,
+      "x": 3,
+      "y": 1
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 1,
+      "y": 2
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 2,
+      "y": 2
+    },
+    {
+      "t": "KILROY",
+      "o": 0,
+      "x": 0,
+      "y": 3
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 25,
+      "y": 24
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 26,
+      "y": 24
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 24,
+      "y": 25
+    },
+    {
+      "t": "GRIZZLY",
+      "o": 1,
+      "x": 27,
+      "y": 24
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 25,
+      "y": 25
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 26,
+      "y": 25
+    },
+    {
+      "t": "KILROY",
+      "o": 1,
+      "x": 24,
+      "y": 26
+    }
+  ]
+}

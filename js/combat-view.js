@@ -69,12 +69,13 @@ var COMBAT_VIEW = (function () {
     return "<section class='forecast-unit' aria-label='Target unit information'>" +
       "<div>" + esc(t.cls) + " · " + esc(t.moveType) + "</div>" +
       "<dl><dt>Power G / A · Defense</dt><dd>" + (t.atkG || 0) + " / " + (t.atkA || 0) + " · " + t.def + "</dd>" +
-      "<dt>Move · Ground / air range</dt><dd>" + t.move + " · " + band(t, false) + " / " + band(t, true) + "</dd>" +
+      "<dt>Shift · Ground / air range</dt><dd>" + t.move + " · " + band(t, false) + " / " + band(t, true) + "</dd>" +
       (unit.strength < 8 ? "<dt>Strength</dt><dd>" + unit.strength + "</dd>" : "") +
       "<dt>Experience</dt><dd>" + unit.exp + " · +" + COMBAT.experienceBonus(unit.exp).damage + "% damage</dd></dl>" +
       (t.capture ? "<p>Can capture buildings.</p>" : "") +
-      (t.moveOrFire ? "<p>May move or fire.</p>" : "") +
-      (t.moveAfterAttack ? "<p>May move after attacking.</p>" : "") + "</section>";
+      (!t.move ? "<p>Stationary once placed; cannot shift or reboard.</p>" :
+        t.moveOrFire ? "<p>Shift or attack this turn, never both.</p>" : "") +
+      (t.moveAfterAttack ? "<p>May use remaining Shift points after attacking.</p>" : "") + "</section>";
   }
   function tactics(pv, attacker) {
     var tactical = pv.tactical;

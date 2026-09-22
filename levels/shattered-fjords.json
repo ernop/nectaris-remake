@@ -1,0 +1,461 @@
+{
+  "name": "SHATTERED FJORDS",
+  "pack": "AI-made",
+  "author": "Codex · original level",
+  "source": "levels/shattered-fjords.json",
+  "description": "A fresh mountain labyrinth: angular fjords pinch to two hexes, open into small battlefields and reconnect through four cross-routes. Alternating factory approaches flare into bowls or taper into narrow necks. Opposite corner camps each begin with five tanks and three infantry.",
+  "special": "Fifteen neutral factories hold 12 ground units apiece, each behind a single road exit and five mountain walls. Plains, roads, +20 hills and +30 wasteland vary the fighting ground. No aircraft. Vehicles can take alternate routes; infantry can cross the mountains.",
+  "tags": [
+    "15 fjords",
+    "linked branches",
+    "2-hex narrows",
+    "ground only"
+  ],
+  "turnLimit": 180,
+  "grid": [
+    "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
+    "MMM.MMM.MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
+    "Mw.w..h-..M.MMMMMMMMMMMMMMMMMMMMMMMMMMMMMwMMMMMMMMMMMMMMMMMMMMMMM",
+    "M.hB-.-w--.h.wMMMhM.w.MMMMMMMMMMMMMMMM.w.-whMMM.MwMhMMMMMMMwMMMMM",
+    "Mhw....M.h--.....-.--.MMMMMMMMMMMMMMMF---.-.whh-h-.-h.h..h.-.hMMM",
+    "MM...MMMMh.h-----w-w-hMMMMMFMMMMMMMMMMMMh.-----w-h-w-------h-wMMM",
+    "MMMMMMMMMM.h-w.w.Mh.-.MMMMM-M.MMMMMMMMMMw.w.--.MhM.Mw...ww..--hMM",
+    "MMMMMMMMMMM.-.MMMMMw-hMMMMh-w..MMMMMMMMMh....-wMMMMMMMMMMMMMh-whM",
+    "MMMMMMMMMMM.-.MMMMM.-.MMMM.w-h.MMMMMMMMMMMhMMM-.MMMMMMMMMMMMh.-hM",
+    "MMMMMMMMMMMw-hMMMMMh-.MMMMh.-hhMMMMMMMMhMhMMM--hMMMMMMMMMMMMMh-.M",
+    "MMMMMMMMMM.--.MMMMh--hMMMMMh-wMMMMMMMhw-w-wh.-wMMMMMMMMMMMMMh--hM",
+    "MMMMMMMMMMh-.MMMMMh-whMMMMh--hMMMMMMw--.-w----.MMMMMMMM.hwMhh-hMM",
+    "MMMMMMMMMM.-hMMMMM.---.hMh.-hhhwhhwhh-.MhM.hh.hMMMMMMMh..-.-h-.MM",
+    "MMMFMMMMMMMFMMMMMM.-.h--h-.----------.hMMMMMMMMMMMMMMF---h-.-hwMM",
+    "MMM-MwMMMMMMMMMMMMw.-.MM-.--...w.h..--MMMMMMMMMMMMMMMMM.w.hM.MMMM",
+    "MMh.-..MMMMMMMMMMMM.-hMMMMh-wh.MMMMMwM-.MMMMMMMMMMMMMMMMhMMMMMMMM",
+    "MM..-hwMMMMMMMMMMMM.-.MMMMhw-wMMMMMMMM-wMMMMMMMMMMMMMMMMMMMMMMMMM",
+    "MMw.-h.MMMMMMMMMMMMw-hMMMMMw-.MMMMMMM--hMMMMMMMMMMMMMMMMMMMMMMMMM",
+    "MMM.-.MMMMMMMMMMMMMh-.MMMMh.-hwMMMMMh-.MMMMMMMMMMMMMMMMMMMMMMMMMM",
+    "MMM.--w.MMMMMMMMMMMh-wMMMMhh--hMMMMMh-hMMMMMMFMMMMMMMh.hMMMMMMMMM",
+    "MMMMh-h-hwhMMMMMMMMh-wMMMMh.h-.MMMMM.-hMMMMMM-MMMMMFM...hh.hhwMMM",
+    "MMMM.--h----FMMMMMM.-.MMMMMMMFMMMMMMhh-wMMMMh.-wMMMM----------wMM",
+    "MMMMh.-h.h..MMMMMMM.--hwMMMMMMMMMMMMMM--MMMMMM-.MMMM.whh.MMM.-.MM",
+    "MMMMMw-.MMMMMMMMMMMM.h-hMMMMMMMMMMMMMMM-.MMMM--.MMMMMMhMMMMM.-.MM",
+    "MMMMM.--wMMMMMMMMMMMMh--hMMMMMMMMMMMMMM-.MMMM-hMMMMMMMMMMMMM-.hMM",
+    "MMMMM..-.MMMMMMMMMMMM.w-hMMMMMMMMMMMMM-..MM..-hMMMMMMMMw.hMM-wMMM",
+    "MMMMw--hhMMMMMM.M.Mh..-hwMMMMMMMMMMMM.-wMh..-hwMMMMMM..---.h-.MMM",
+    "MMM.w-hwh.w...h-.-w-.--.hwMMMMMMMMMhwh-.h----.MMMMMMM--hwh---hMMM",
+    "MMM.-----------M-M-h------...hhh.hh.h----Mhh-.MMMMMMFM.MMw--hMMMM",
+    "MMMM.w.MMMw-.MMMMMMM.-....-------------.MMM.-.MMMMMMMMMMMM.-.hMMM",
+    "MMMMMMMMMMh-.MMMMMMMM-hMMM......w..w.-w.MMM.-hMMMMMMMMMMMMhh-.MMM",
+    "MMMMMMMMMMM-hMMMMMMMM-wMMMMMMMMMMMMMhw-hMMM.-wMMMMMMMMMMMMM.--.MM",
+    "MMMMMMMMMMM-.MMMMMMMM-.MMMMMMMMMMMMMMh--.MMw-.MMMMMMMMMMMMMM.-wMM",
+    "MMMMMMMMMMM-hMMMMMMMM-.MMMMMMMMMMMMMM.h-wM.--.MMMMMMMMMMMMMM.-.MM",
+    "MMMMMMMMMMM-.MMMMMM.h-hMMMMMMMMMMMMMMh-..hw-.wMwMhM.MMMMMMMM.-.MM",
+    "MMMFMMMMMMM-.MMh.wh-w-.MMMMMFMMMMMMMh---.-h-.-w-.-.-hhMMMMMMh-.MM",
+    "MMM-MhMMMM.-whh----h--hMMMM.-wMMMMMM.--h-h---h-.-.-.--.hMMMhh-.MM",
+    "MMhh-hhMMM.----..hh--h.MMMMM-.MMMMMMw-wMhM.-..hMhM.--.--.h.---hMM",
+    "MMh.-h.MMh.-h.hMMMM-.MMMMMMM-.MMMMMMh-.MMMwh-.MMMMM-.M..---hw-.MM",
+    "MM.h-h.MMh-w.MMMMM-.hMMMMMMM-hMMMMMM.-.MMMM.-wMMMMM-..MMw...-..MM",
+    "MMMh--wMM.-wMMMMMM-wMMMMMMMM-hMMMMMMw-.MMMM.-.MMMMh-hwhMMMMw-hMMM",
+    "MMMM.-hh.--.MMMMMM-.MMMMMMMM-.MMMMMh.-wwMMMw-.MMMMh.-.hMMMM.-.MMM",
+    "MMM..-.---.hMMMMMM--MMMMMMMM--MMMMM..-.hMMMM-MMMMM.h--.MMMM.-hMMM",
+    "MMM.---..h-w..hh..M-hMMMMMM.h-.MMMMww-..MMMMFMMMMMMMMFMMMMMh-.wMM",
+    "MMM.-hhMM.--------.-h.Mhh.h-.-hMMMMMw-.MMMMMMMMMMMMMMMMMMMM.....M",
+    "MMMMwMMMMMw..hh.w.--w-h----.-whMMMMMMFMMMMMMMMMMMMMMMMMMMMM..BhwM",
+    "MMMMMMMMMMMMMMMMMM..-h-wh.wM.MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMh.w..M",
+    "MMMMMMMMMMMMMMMMMMMM.M.MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMh.hMM",
+    "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM"
+  ],
+  "buildings": [
+    {
+      "col": 3,
+      "row": 3,
+      "owner": 0
+    },
+    {
+      "col": 61,
+      "row": 45,
+      "owner": 1
+    },
+    {
+      "col": 27,
+      "row": 5,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "HADRIAN",
+        "MULE",
+        "KILROY",
+        "POLAR",
+        "OCTOPUS",
+        "RABBIT",
+        "PANTHER",
+        "SLAGGER",
+        "SEEKER",
+        "GIANT"
+      ]
+    },
+    {
+      "col": 37,
+      "row": 4,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LENET",
+        "HADRIAN",
+        "MULE",
+        "KILROY",
+        "GRIZZLY",
+        "OCTOPUS",
+        "LYNX",
+        "PANTHER",
+        "TITAN",
+        "SEEKER",
+        "BISON"
+      ]
+    },
+    {
+      "col": 3,
+      "row": 13,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "POLAR",
+        "HADRIAN",
+        "MULE",
+        "KILROY",
+        "SLAGGER",
+        "OCTOPUS",
+        "RABBIT",
+        "PANTHER",
+        "GIANT",
+        "SEEKER",
+        "LENET"
+      ]
+    },
+    {
+      "col": 11,
+      "row": 13,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "GRIZZLY",
+        "HADRIAN",
+        "MULE",
+        "KILROY",
+        "TITAN",
+        "OCTOPUS",
+        "LYNX",
+        "PANTHER",
+        "BISON",
+        "SEEKER",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 53,
+      "row": 13,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "SLAGGER",
+        "HADRIAN",
+        "MULE",
+        "KILROY",
+        "GIANT",
+        "OCTOPUS",
+        "RABBIT",
+        "PANTHER",
+        "LENET",
+        "SEEKER",
+        "GRIZZLY"
+      ]
+    },
+    {
+      "col": 12,
+      "row": 21,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "TITAN",
+        "HADRIAN",
+        "MULE",
+        "KILROY",
+        "BISON",
+        "OCTOPUS",
+        "LYNX",
+        "PANTHER",
+        "POLAR",
+        "SEEKER",
+        "SLAGGER"
+      ]
+    },
+    {
+      "col": 29,
+      "row": 21,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "GIANT",
+        "HADRIAN",
+        "MULE",
+        "KILROY",
+        "LENET",
+        "OCTOPUS",
+        "RABBIT",
+        "PANTHER",
+        "GRIZZLY",
+        "SEEKER",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 45,
+      "row": 19,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "HADRIAN",
+        "MULE",
+        "KILROY",
+        "POLAR",
+        "OCTOPUS",
+        "LYNX",
+        "PANTHER",
+        "SLAGGER",
+        "SEEKER",
+        "GIANT"
+      ]
+    },
+    {
+      "col": 51,
+      "row": 20,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LENET",
+        "HADRIAN",
+        "MULE",
+        "KILROY",
+        "GRIZZLY",
+        "OCTOPUS",
+        "RABBIT",
+        "PANTHER",
+        "TITAN",
+        "SEEKER",
+        "BISON"
+      ]
+    },
+    {
+      "col": 52,
+      "row": 28,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "POLAR",
+        "HADRIAN",
+        "MULE",
+        "KILROY",
+        "SLAGGER",
+        "OCTOPUS",
+        "LYNX",
+        "PANTHER",
+        "GIANT",
+        "SEEKER",
+        "LENET"
+      ]
+    },
+    {
+      "col": 3,
+      "row": 35,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "GRIZZLY",
+        "HADRIAN",
+        "MULE",
+        "KILROY",
+        "TITAN",
+        "OCTOPUS",
+        "RABBIT",
+        "PANTHER",
+        "BISON",
+        "SEEKER",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 28,
+      "row": 35,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "SLAGGER",
+        "HADRIAN",
+        "MULE",
+        "KILROY",
+        "GIANT",
+        "OCTOPUS",
+        "LYNX",
+        "PANTHER",
+        "LENET",
+        "SEEKER",
+        "GRIZZLY"
+      ]
+    },
+    {
+      "col": 37,
+      "row": 45,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "TITAN",
+        "HADRIAN",
+        "MULE",
+        "KILROY",
+        "BISON",
+        "OCTOPUS",
+        "RABBIT",
+        "PANTHER",
+        "POLAR",
+        "SEEKER",
+        "SLAGGER"
+      ]
+    },
+    {
+      "col": 44,
+      "row": 43,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "GIANT",
+        "HADRIAN",
+        "MULE",
+        "KILROY",
+        "LENET",
+        "OCTOPUS",
+        "LYNX",
+        "PANTHER",
+        "GRIZZLY",
+        "SEEKER",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 53,
+      "row": 43,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "HADRIAN",
+        "MULE",
+        "KILROY",
+        "POLAR",
+        "OCTOPUS",
+        "RABBIT",
+        "PANTHER",
+        "SLAGGER",
+        "SEEKER",
+        "GIANT"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 5,
+      "y": 4
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 3,
+      "y": 5
+    },
+    {
+      "t": "POLAR",
+      "o": 0,
+      "x": 4,
+      "y": 5
+    },
+    {
+      "t": "GRIZZLY",
+      "o": 0,
+      "x": 5,
+      "y": 3
+    },
+    {
+      "t": "SLAGGER",
+      "o": 0,
+      "x": 3,
+      "y": 4
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 4
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 2,
+      "y": 5
+    },
+    {
+      "t": "KILROY",
+      "o": 0,
+      "x": 5,
+      "y": 2
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 61,
+      "y": 43
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 59,
+      "y": 44
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 60,
+      "y": 44
+    },
+    {
+      "t": "GRIZZLY",
+      "o": 1,
+      "x": 61,
+      "y": 44
+    },
+    {
+      "t": "SLAGGER",
+      "o": 1,
+      "x": 62,
+      "y": 44
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 59,
+      "y": 45
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 60,
+      "y": 45
+    },
+    {
+      "t": "KILROY",
+      "o": 1,
+      "x": 63,
+      "y": 44
+    }
+  ]
+}

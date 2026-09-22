@@ -25,7 +25,8 @@ var CAMPAIGN = require(path.join(__dirname, "../js/data-maps.js"));
 var ADVANCED_CAMPAIGN = require(path.join(__dirname, "../js/data-advanced-maps.js"));
 var EXPANSION_LEVELS = require(path.join(__dirname, "../js/data-expansion-maps.js"));
 var BASE_NECTARIS_LEVELS = require(path.join(__dirname, "../js/data-basenectaris-maps.js")).BASE_NECTARIS_LEVELS;
-var ALL_MAPS = CAMPAIGN.concat(ADVANCED_CAMPAIGN, EXPANSION_LEVELS, BASE_NECTARIS_LEVELS);
+var AI_MADE_LEVELS = require(path.join(__dirname, "../js/data-ai-maps.js"));
+var ALL_MAPS = CAMPAIGN.concat(ADVANCED_CAMPAIGN, EXPANSION_LEVELS, BASE_NECTARIS_LEVELS, AI_MADE_LEVELS);
 
 var failures = 0, checks = 0;
 function ok(cond, msg) {
@@ -89,6 +90,9 @@ ALL_MAPS.forEach(function (m, mi) {
   catch (e) { ok(false, label + ": Game constructor threw: " + e.message); }
 });
 console.log("  " + ALL_MAPS.length + " maps checked");
+
+section("AI-made fjord layout and factory bottlenecks");
+require("./ai-maps-tests.js")(ok);
 
 var campaignPayload = CAMPAIGN.map(function (m) {
   return { grid: m.grid, buildings: m.buildings, units: m.units };
@@ -703,6 +707,9 @@ var g8e = new ENGINE.Game({
 ok(g8e.isSurrounded(g8e.unitAt(3, 0)) === false,
    "a unit against the map edge can never be surrounded");
 
+section("original manual roster contract");
+require("./manual-contract-tests.js")(ok);
+
 section("per-domain ranges and move-or-fire");
 // Lynx: ground targets only at exactly two hexes, air only adjacent,
 // re-move preserved; artillery may move or fire but not both.
@@ -1089,7 +1096,7 @@ require("./factory-ui-tests.js")(ok);
 section("independent combat forecasts");
 require("./forecast-tests.js")(ok);
 
-section("movement-first combat interaction");
+section("movement, direct attack and undo history");
 require("./combat-ui-tests.js")(ok);
 
 section("profiles and saved matches");
@@ -1100,6 +1107,9 @@ require("./outcome-tests.js")(ok);
 require("./outcome-menu-tests.js")(ok);
 
 /* ---------- summary ---------- */
+
+section("performance algorithm equivalence");
+require("./performance-tests.js")(ok);
 
 console.log("\n" + checks + " checks, " + failures + " failures");
 process.exit(failures ? 1 : 0);

@@ -143,10 +143,12 @@
     $("map-title").textContent = mapDef.name;
     $("map-jump").value = opts.campaignIndex !== undefined ? "c:" + opts.campaignIndex :
       (opts.expansionIndex !== undefined ? "e:" + opts.expansionIndex :
-      (opts.baseNecIndex !== undefined ? "b:" + opts.baseNecIndex : ""));
+      (opts.baseNecIndex !== undefined ? "b:" + opts.baseNecIndex :
+      (opts.aiMadeIndex !== undefined ? "a:" + opts.aiMadeIndex : "")));
 
     currentUI = new UI.GameUI($("game-canvas"), game, {
       hotseat: !!opts.hotseat,
+      undoHistory: saved && saved.state.undoHistory,
       onMenu: showMenu,
       onStateChange: saveMatch,
       onGameOver: function (winner) {
@@ -315,6 +317,9 @@
     renderLevelCards($("basenec-list"), BASE_NECTARIS_LEVELS, function (lv, i) {
       startGame(lv, { baseNecIndex: i, hotseat: $("chk-hotseat").checked });
     }, "baseNecIndex");
+    renderLevelCards($("ai-made-list"), AI_MADE_LEVELS, function (lv, i) {
+      startGame(lv, { aiMadeIndex: i, hotseat: $("chk-hotseat").checked });
+    }, "aiMadeIndex");
 
     var clist = $("custom-list");
     clist.innerHTML = "";
@@ -465,6 +470,15 @@
       baseNecGroup.appendChild(option);
     });
     jump.appendChild(baseNecGroup);
+    var aiMadeGroup = document.createElement("optgroup");
+    aiMadeGroup.label = "AI-made";
+    AI_MADE_LEVELS.forEach(function (m, i) {
+      var option = document.createElement("option");
+      option.value = "a:" + i;
+      option.textContent = String(i + 1).padStart(2, "0") + " · " + m.name;
+      aiMadeGroup.appendChild(option);
+    });
+    jump.appendChild(aiMadeGroup);
     jump.onchange = function () {
       if (this.value === "") return;
       var parts = this.value.split(":");
@@ -473,6 +487,8 @@
         startGame(ORIGINAL_CAMPAIGN[i], { campaignIndex: i, hotseat: !!currentOptions.hotseat });
       } else if (parts[0] === "b") {
         startGame(BASE_NECTARIS_LEVELS[i], { baseNecIndex: i, hotseat: !!currentOptions.hotseat });
+      } else if (parts[0] === "a") {
+        startGame(AI_MADE_LEVELS[i], { aiMadeIndex: i, hotseat: !!currentOptions.hotseat });
       } else {
         startGame(EXPANSION_LEVELS[i], { expansionIndex: i, hotseat: !!currentOptions.hotseat });
       }

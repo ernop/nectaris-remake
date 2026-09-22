@@ -110,11 +110,11 @@ var AI = (function () {
   /* Terrain-aware remaining walking distance, used only for transport
    * planning. Actual actions always go through the engine's ZOC/legal moves. */
   function walkingDistances(game, passenger, goal) {
-    var distances = {}, open = [{ col: goal.col, row: goal.row, cost: 0 }];
+    var distances = {}, open = new ENGINE.CostQueue();
+    open.push({ col: goal.col, row: goal.row, cost: 0 });
     distances[HEX.key(goal.col, goal.row)] = 0;
-    while (open.length) {
-      open.sort(function (a, b) { return a.cost - b.cost; });
-      var current = open.shift();
+    var current;
+    while ((current = open.pop()) !== null) {
       if (current.cost !== distances[HEX.key(current.col, current.row)]) continue;
       var terrain = game.terrainAt(current.col, current.row);
       var cost = terrainCost(terrain, passenger.type.moveType, passenger.type);
@@ -133,28 +133,37 @@ var AI = (function () {
     return distances;
   }
 
-  function wantsTransport(game, passenger, carrier, fromFactory) {
+  function wantsTransport(game, passenger, carrier, fromFactory, range) {
     if (!game.canLoad(carrier, passenger, fromFactory)) return false;
     if (!passenger.type.move) return fromFactory;
     var goal = nearestGoal(game, passenger);
     if (!goal) return false;
-    var range = game.movementRange(passenger), target = range[HEX.key(goal.col, goal.row)];
-    if (!fromFactory && target && target.canStop && !target.load) return false;
+    if (!fromFactory) {
+      range = range || game.movementRange(passenger);
+      var target = range[HEX.key(goal.col, goal.row)];
+      if (target && target.canStop && !target.load) return false;
+    }
     // Avoid spending an activation boarding for a destination already nearby.
     return HEX.distance(passenger.col, passenger.row, goal.col, goal.row) > passenger.type.move + 1;
   }
 
   function boardOnePassenger(game, player) {
     var units = game.playerUnits(player);
+    var carriers = units.filter(function (u) {
+      return u.type.cargo && !u.moved && u.cargo.length < u.type.cargo;
+    });
+    if (!carriers.length) return null;
     for (var i = 0; i < units.length; i++) {
       var passenger = units[i];
       if (passenger.moved || !passenger.type.move || passenger.type.cargo || passenger.type.moveType === "air") continue;
-      var range = game.movementRange(passenger);
-      for (var j = 0; j < units.length; j++) {
-        var carrier = units[j];
-        if (!carrier.type.cargo || carrier.moved || !wantsTransport(game, passenger, carrier, false)) continue;
+      var range = null;
+      for (var j = 0; j < carriers.length; j++) {
+        var carrier = carriers[j];
+        if (!game.canLoad(carrier, passenger, false)) continue;
+        range = range || game.movementRange(passenger);
         var destination = range[HEX.key(carrier.col, carrier.row)];
         if (!destination || !destination.load) continue;
+        if (!wantsTransport(game, passenger, carrier, false, range)) continue;
         var from = { col: passenger.col, row: passenger.row };
         game.moveUnit(passenger, carrier.col, carrier.row, range);
         return { t: "move", unit: passenger, from: from,
@@ -292,18 +301,18 @@ var AI = (function () {
    * attack from where they stand; everything else (including the Lynx, whose
    * ground band is exactly 2) searches move destinations, with attackTargets
    * applying the per-domain range bands at each candidate hex. */
-  function bestAttackPlan(game, unit) {
-    var plans = [];
+  function bestAttackPlan(game, unit, range) {
+    var best = null;
     var i, t, targets, trade;
     if (unit.type.moveOrFire) {
       targets = game.attackTargets(unit);
       for (i = 0; i < targets.length; i++) {
         t = targets[i];
         trade = expectedTrade(game, unit, t);
-        plans.push({ dest: null, target: t, trade: trade, score: scoreAttack(game, unit, t, trade) });
+        var score = scoreAttack(game, unit, t, trade);
+        if (!best || score > best.score) best = { dest: null, target: t, score: score };
       }
     } else if (unit.type.rngG || unit.type.rngA) {
-      var range = game.movementRange(unit);
       for (var k in range) {
         var rec = range[k];
         if (!rec.canStop || rec.load || rec.enterBuilding) continue;
@@ -319,14 +328,12 @@ var AI = (function () {
           var sc = scoreAttack(game, unit, t, trade);
           // prefer attacking from defensive terrain
           if (unit.type.moveType !== "air") sc += game.terrainAt(rec.col, rec.row).def * 0.05;
-          plans.push({ dest: rec, target: t, trade: trade, score: sc });
+          if (!best || sc > best.score) best = { dest: rec, target: t, score: sc };
         }
         unit.col = oc; unit.row = orow;
       }
     }
-    if (!plans.length) return null;
-    plans.sort(function (a, b) { return b.score - a.score; });
-    return plans[0];
+    return best;
   }
 
   function planUnit(game, unit) {
@@ -349,7 +356,7 @@ var AI = (function () {
     }
 
     var base = !unit.type.capture && threatenedBase(game, unit.player);
-    var plan = bestAttackPlan(game, unit);
+    var plan = bestAttackPlan(game, unit, range);
     var captureGoal = unit.type.capture && nearestGoal(game, unit);
     if (captureGoal && plan && plan.dest &&
         HEX.distance(plan.dest.col, plan.dest.row, captureGoal.col, captureGoal.row) >

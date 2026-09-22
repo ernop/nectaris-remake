@@ -36,6 +36,40 @@ if (typeof module !== "undefined") {
 var ENGINE = (function () {
   var nextUnitId = 1;
 
+  /* Stable minimum-cost heap for both movement and AI walking distances.
+   * FIFO ties retain the old searches' path and AI tie-breaking order. */
+  function CostQueue() { this.items = []; this.order = 0; }
+  function precedes(a, b) {
+    return a.value.cost < b.value.cost ||
+      (a.value.cost === b.value.cost && a.order < b.order);
+  }
+  CostQueue.prototype.push = function (value) {
+    var item = { value: value, order: this.order++ }, items = this.items;
+    var i = items.length;
+    items.push(item);
+    while (i > 0) {
+      var parent = (i - 1) >> 1;
+      if (!precedes(item, items[parent])) break;
+      items[i] = items[parent]; i = parent;
+    }
+    items[i] = item;
+  };
+  CostQueue.prototype.pop = function () {
+    var items = this.items;
+    if (!items.length) return null;
+    var first = items[0], last = items.pop(), i = 0;
+    if (items.length) {
+      while (i * 2 + 1 < items.length) {
+        var child = i * 2 + 1;
+        if (child + 1 < items.length && precedes(items[child + 1], items[child])) child++;
+        if (!precedes(items[child], last)) break;
+        items[i] = items[child]; i = child;
+      }
+      items[i] = last;
+    }
+    return first.value;
+  };
+
   function makeUnit(typeId, player, col, row, strength, exp) {
     var type = UNIT_TYPES[typeId];
     if (!type) throw new Error("Unknown unit type: " + typeId);
@@ -279,22 +313,38 @@ var ENGINE = (function () {
    * hexes, including the start. `load` marks a friendly transport hex the
    * unit could board; `enterBuilding` ends the activation in storage/capture. */
   Game.prototype.movementRange = function (unit) {
-    var self = this;
     var result = {};
     var startKey = HEX.key(unit.col, unit.row);
-    var startInZOC = this.inEnemyZOC(unit.col, unit.row, unit.player);
+    result[startKey] = { col: unit.col, row: unit.row, cost: 0, canStop: true, prev: null };
+    if (unit.shifted || unit.movePointsLeft <= 0) return result;
+
+    // Index only for this synchronous search. Units are also moved directly
+    // during AI simulations/editor operations, so a persistent cache could
+    // silently use stale positions after a move, undo, deployment or load.
+    var occupants = Object.create(null), zones = Object.create(null);
+    for (var i = 0; i < this.units.length; i++) {
+      var u = this.units[i], key = HEX.key(u.col, u.row);
+      if (!u.carriedBy && !u.inFactory && !occupants[key]) occupants[key] = u;
+    }
+    function enemyZOC(col, row, key) {
+      if (zones[key] !== undefined) return zones[key];
+      var neighbors = HEX.neighbors(col, row);
+      for (var j = 0; j < neighbors.length; j++) {
+        var other = occupants[HEX.key(neighbors[j].col, neighbors[j].row)];
+        if (other && other.player !== unit.player) return (zones[key] = true);
+      }
+      return (zones[key] = false);
+    }
+    var startInZOC = enemyZOC(unit.col, unit.row, startKey);
     var budget = startInZOC ? Math.min(1, unit.movePointsLeft) : unit.movePointsLeft;
 
     // For a 1-hex-in-ZOC move we still honor terrain passability but charge 1.
-    var frontier = [{ col: unit.col, row: unit.row, cost: 0 }];
-    result[startKey] = { col: unit.col, row: unit.row, cost: 0, canStop: true, prev: null };
-
-    while (frontier.length) {
-      // small maps: linear extract-min is fine
-      var bi = 0;
-      for (var i = 1; i < frontier.length; i++) if (frontier[i].cost < frontier[bi].cost) bi = i;
-      var cur = frontier.splice(bi, 1)[0];
+    var frontier = new CostQueue();
+    frontier.push({ col: unit.col, row: unit.row, cost: 0 });
+    var cur;
+    while ((cur = frontier.pop()) !== null) {
       var curKey = HEX.key(cur.col, cur.row);
+      if (cur.cost !== result[curKey].cost) continue;
       if (result[curKey].stop && curKey !== startKey) continue; // ZOC: no expansion past
       var ns = HEX.neighbors(cur.col, cur.row);
       for (i = 0; i < ns.length; i++) {
@@ -312,7 +362,12 @@ var ENGINE = (function () {
           stepCost = budget - cur.cost;
           if (stepCost < 1) continue;
         }
-        var occ = this.unitAt(n.col, n.row);
+        var newCost = cur.cost + stepCost;
+        if (newCost > budget) continue;
+        var k = HEX.key(n.col, n.row);
+        var rec = result[k];
+        if (rec && newCost >= rec.cost) continue;
+        var occ = occupants[k];
         var isLoad = false;
         if (occ) {
           if (occ.player !== unit.player) continue;             // enemies block
@@ -321,13 +376,9 @@ var ENGINE = (function () {
           }
           // friendly non-transport: can pass through, not stop
         }
-        var newCost = cur.cost + stepCost;
-        if (newCost > budget) continue;
-        var k = HEX.key(n.col, n.row);
-        var enteringZOC = this.inEnemyZOC(n.col, n.row, unit.player);
+        var enteringZOC = enemyZOC(n.col, n.row, k);
         var canStopHere = !occ || isLoad;
         if (!isLoad && !this.canStopAtBuilding(unit, n.col, n.row)) canStopHere = false;
-        var rec = result[k];
         if (!rec || newCost < rec.cost) {
           result[k] = {
             col: n.col, row: n.row, cost: newCost,
@@ -361,7 +412,7 @@ var ENGINE = (function () {
   /* --- Actions ---------------------------------------------------------- */
 
   Game.prototype.moveUnit = function (unit, col, row, range) {
-    if (unit.moved || unit.carriedBy || unit.inFactory ||
+    if (unit.moved || unit.shifted || unit.carriedBy || unit.inFactory ||
         this.unitAt(unit.col, unit.row) !== unit) throw new Error("Unit cannot move now");
     range = range || this.movementRange(unit);
     var rec = range[HEX.key(col, row)];
@@ -387,6 +438,19 @@ var ENGINE = (function () {
     if (rec.stop && (!unit.type.moveAfterAttack || unit.attacked)) unit.movePointsLeft = 0;
     this.log.push({ t: "move", unit: unit.id, col: col, row: row });
     return { loaded: false };
+  };
+
+  /* Commit the movement phase without consuming a legal follow-up shot.
+   * Buggies retain their unused allowance, unlocked only after their attack. */
+  Game.prototype.finishMovement = function (unit) {
+    unit.shifted = true;
+    if (!unit.type.moveAfterAttack || unit.attacked) unit.movePointsLeft = 0;
+    if (unit.moved || unit.carriedBy || unit.inFactory) return [];
+    if (this.entersBuilding(unit, unit.col, unit.row) || unit.attacked ||
+        (unit.type.moveOrFire && unit.attackSpent) || !this.attackTargets(unit).length) {
+      return this.finishUnit(unit);
+    }
+    return [];
   };
 
   /* Factory storage repairs the carrier and passenger separately. Entering
@@ -474,6 +538,7 @@ var ENGINE = (function () {
       attacker.attacked = true;
       if (attacker.type.moveAfterAttack && attacker.movePointsLeft > 0) {
         // The activation remains open so the remaining movement can be spent.
+        attacker.shifted = false;
       } else {
         this.finishUnit(attacker);
       }
@@ -636,6 +701,7 @@ var ENGINE = (function () {
       u.moved = false;
       u.attacked = false;
       u.attackSpent = false;
+      delete u.shifted;
       u.movePointsLeft = u.type.move;
     }
     // Stored units refresh too, so anything stored last turn may deploy.
@@ -645,6 +711,7 @@ var ENGINE = (function () {
         stored[j].moved = false;
         stored[j].attacked = false;
         stored[j].attackSpent = false;
+        delete stored[j].shifted;
         stored[j].movePointsLeft = stored[j].type.move;
       }
     }
@@ -678,7 +745,7 @@ var ENGINE = (function () {
     return out;
   };
 
-  return { Game: Game, makeUnit: makeUnit };
+  return { Game: Game, makeUnit: makeUnit, CostQueue: CostQueue };
 })();
 
 if (typeof module !== "undefined") module.exports = ENGINE;

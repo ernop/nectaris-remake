@@ -33,9 +33,11 @@ var COMBAT = (function () {
   // floating-point boundary drift; resolution, forecasts and AI share them.
   var RANDOM_WEIGHTS = [[20,3], [50,7], [60,8], [70,9], [80,6], [90,9],
     [100,10], [110,10], [120,6], [130,9], [140,10], [150,6], [200,5], [400,2]];
-  var RANDOM_BUCKETS = [];
-  RANDOM_WEIGHTS.forEach(function (entry) {
-    for (var i = 0; i < entry[1]; i++) RANDOM_BUCKETS.push(entry[0]);
+  var RANDOM_BUCKETS = [], RANDOM_INDICES = [];
+  RANDOM_WEIGHTS.forEach(function (entry, index) {
+    for (var i = 0; i < entry[1]; i++) {
+      RANDOM_BUCKETS.push(entry[0]); RANDOM_INDICES.push(index);
+    }
   });
 
   function experienceBonus(level) {
@@ -200,12 +202,33 @@ var COMBAT = (function () {
 
   function expectedCasualties(shooter, target, modifiedAttack, modifiedDefense) {
     var total = 0;
-    for (var i = 0; i < RANDOM_BUCKETS.length; i++) {
+    for (var i = 0; i < RANDOM_WEIGHTS.length; i++) {
       total += damageResult(
-        shooter, target, modifiedAttack, modifiedDefense, RANDOM_BUCKETS[i]
-      ).casualties;
+        shooter, target, modifiedAttack, modifiedDefense, RANDOM_WEIGHTS[i][0]
+      ).casualties * RANDOM_WEIGHTS[i][1];
     }
     return total / RANDOM_BUCKETS.length;
+  }
+
+  // The seeds and coefficient weights do not depend on either squad. Count
+  // each sampled pair once, then map the 14 x 14 counts onto battle losses.
+  // This preserves every simulated outcome, including finite-sample noise;
+  // it is not an analytic probability approximation. Keep at most two tables.
+  var defaultRollCounts = null, otherRollCounts = null;
+  function forecastRollCounts(samples) {
+    var cached = samples === 100000 ? defaultRollCounts : otherRollCounts;
+    if (cached && cached.samples === samples) return cached.counts;
+    var size = RANDOM_WEIGHTS.length, counts = new Uint32Array(size * size);
+    for (var i = 0; i < samples; i++) {
+      var rng = makeRng(Math.imul(i + 1, 0x9e3779b9) ^ 0xa341316c);
+      var attack = RANDOM_INDICES[Math.floor(rng() * RANDOM_BUCKETS.length)];
+      var counter = RANDOM_INDICES[Math.floor(rng() * RANDOM_BUCKETS.length)];
+      counts[attack * size + counter]++;
+    }
+    cached = { samples: samples, counts: counts };
+    if (samples === 100000) defaultRollCounts = cached;
+    else otherRollCounts = cached;
+    return counts;
   }
 
   /* A joint casualty forecast, deliberately accepting no game or match RNG.
@@ -218,22 +241,23 @@ var COMBAT = (function () {
     }
     var attackLosses = [], counterLosses = [], bins = [];
     for (var a = 0; a <= attacker.strength; a++) bins.push(new Array(defender.strength + 1).fill(0));
-    for (var bucket = 0; bucket < RANDOM_BUCKETS.length; bucket++) {
-      var c = RANDOM_BUCKETS[bucket];
+    for (var bucket = 0; bucket < RANDOM_WEIGHTS.length; bucket++) {
+      var c = RANDOM_WEIGHTS[bucket][0];
       attackLosses.push(damageResult(attacker, defender, pv.attacker.ap, pv.defender.da, c).casualties);
       counterLosses.push(pv.counter ? damageResult(defender, attacker, pv.defender.ap, pv.attacker.da, c).casualties : 0);
     }
     var totalA = 0, totalD = 0, lostA = 0, lostD = 0, mutual = 0;
-    var coefficients = RANDOM_BUCKETS.length;
-    for (var i = 0; i < samples; i++) {
-      var rng = makeRng(Math.imul(i + 1, 0x9e3779b9) ^ 0xa341316c);
-      var dLoss = attackLosses[Math.floor(rng() * coefficients)];
-      var aLoss = pv.counter ? counterLosses[Math.floor(rng() * coefficients)] : 0;
-      bins[aLoss][dLoss]++;
-      totalA += aLoss; totalD += dLoss;
-      if (aLoss === attacker.strength) lostA++;
-      if (dLoss === defender.strength) lostD++;
-      if (aLoss === attacker.strength && dLoss === defender.strength) mutual++;
+    var coefficients = RANDOM_WEIGHTS.length, counts = forecastRollCounts(samples);
+    for (var i = 0; i < coefficients; i++) {
+      for (var j = 0; j < coefficients; j++) {
+        var count = counts[i * coefficients + j];
+        var dLoss = attackLosses[i], aLoss = counterLosses[j];
+        bins[aLoss][dLoss] += count;
+        totalA += aLoss * count; totalD += dLoss * count;
+        if (aLoss === attacker.strength) lostA += count;
+        if (dLoss === defender.strength) lostD += count;
+        if (aLoss === attacker.strength && dLoss === defender.strength) mutual += count;
+      }
     }
     return { samples: samples, bins: bins,
       meanAttackerLoss: totalA / samples, meanDefenderLoss: totalD / samples,

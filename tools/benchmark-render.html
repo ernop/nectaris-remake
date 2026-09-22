@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en"><meta charset="utf-8"><title>Nectaris rendering benchmark</title>
+<style>body{background:#181510;color:#eee;font:15px monospace;margin:24px}canvas{max-width:100%;border:1px solid #777}pre{white-space:pre-wrap}button{font:inherit;padding:10px}</style>
+<h1>Rendering performance and pixel equivalence</h1>
+<p>Compares viewport drawing with full-map drawing of the same scene. No match or profile is changed.</p>
+<button id="run">Run benchmark</button><pre id="results">Ready.</pre>
+<canvas id="view" width="960" height="640"></canvas>
+<script src="../js/hex.js"></script><script src="../js/data-terrain.js"></script>
+<script src="../js/data-units.js"></script><script src="../js/combat.js"></script>
+<script src="../js/engine.js"></script><script src="../js/data-unit-art.js"></script>
+<script src="../js/data-unit-art-legacy.js"></script><script src="../js/unit-icon-sets.js"></script>
+<script src="../js/legacy-terrain.js"></script><script src="../js/render.js"></script>
+<script>
+"use strict";
+document.getElementById("run").onclick = async function () {
+  this.disabled = true;
+  var output = document.getElementById("results"), canvas = document.getElementById("view");
+  var savedStyle = RENDER.getStyle(), savedSet = RENDER.getIconSet();
+  var terrain = ".-whMv=FB", grid = [], buildings = [];
+  for (var r = 0; r < 49; r++) {
+    var row = "";
+    for (var c = 0; c < 65; c++) {
+      var ch = terrain[(c * 7 + r * 11) % terrain.length]; row += ch;
+      if (ch === "F" || ch === "B") buildings.push({col: c, row: r, owner: (c + r) % 3 - 1, stored: ["BISON"]});
+    }
+    grid.push(row);
+  }
+  var game = new ENGINE.Game({grid: grid, buildings: buildings, units: [
+    {t: "BISON", o: 0, x: 30, y: 22}, {t: "FALCON", o: 1, x: 31, y: 23}
+  ]}, {seed: 7});
+  var renderer = new RENDER.Renderer(canvas, game), visibleBounds = renderer.visibleTileBounds;
+  function fullBounds() { return {minCol: 0, minRow: 0, maxCol: game.width - 1, maxRow: game.height - 1}; }
+  var cases = [{style: "pixel", set: "remake"}, {style: "pixel", set: "legacy"},
+    {style: "classic", set: "remake"}, {style: "neon", set: "remake"}];
+  var report = [], checks = 0;
+  function frame(bounds, cold) {
+    renderer.visibleTileBounds = bounds;
+    if (cold) renderer._terrainKey = null;
+    renderer.ctx.save();
+    var start = performance.now(); renderer.draw();
+    // Readback ensures canvas work has completed before timing ends.
+    var pixels = renderer.ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    var elapsed = performance.now() - start;
+    renderer.ctx.restore();
+    return {ms: elapsed, pixels: pixels};
+  }
+  try {
+    for (var config of cases) {
+      RENDER.setStyle(config.style); RENDER.setIconSet(config.set);
+      var before = [], after = [], cached = [];
+      for (var zoom of [0.35, 1, 2.5]) {
+        for (var center of [[0,0], [30,22], [64,48]]) {
+          renderer.zoom = zoom; renderer.originX = 0; renderer.originY = 0;
+          var point = renderer.hexCenter(center[0], center[1]);
+          renderer.originX = canvas.width / 2 - point.x + 0.37;
+          renderer.originY = canvas.height / 2 - point.y + 0.63;
+          var full = frame(fullBounds, true), clipped = frame(visibleBounds, true);
+          var different = 0;
+          for (var i = 0; i < full.pixels.length; i++) if (full.pixels[i] !== clipped.pixels[i]) different++;
+          if (different) throw new Error(config.style + "/" + config.set + " zoom " + zoom + " center " + center + ": " + different + " differing channels");
+          var reused = frame(visibleBounds);
+          for (var j = 0; j < clipped.pixels.length; j++) {
+            if (clipped.pixels[j] !== reused.pixels[j]) throw new Error("Cached frame changed pixels");
+          }
+          checks++;
+        }
+      }
+      renderer.zoom = 1; renderer.originX = -1000; renderer.originY = -600;
+      frame(fullBounds); frame(visibleBounds);
+      for (var trial = 0; trial < 7; trial++) {
+        before.push(frame(fullBounds, true).ms); after.push(frame(visibleBounds, true).ms);
+        cached.push(frame(visibleBounds).ms);
+      }
+      before.sort(function(a,b){return a-b;}); after.sort(function(a,b){return a-b;});
+      cached.sort(function(a,b){return a-b;});
+      var b = renderer.visibleTileBounds(), tiles = (b.maxCol-b.minCol+1)*(b.maxRow-b.minRow+1);
+      report.push({style: config.style + "/" + config.set, fullMapMs: +before[3].toFixed(2),
+        viewportMs: +after[3].toFixed(2), speedup: +(before[3]/after[3]).toFixed(2), tilesDrawn: tiles, mapTiles: 65*49});
+      report[report.length - 1].cachedRedrawMs = +cached[3].toFixed(2);
+      output.textContent = JSON.stringify({pixelChecks: checks, results: report}, null, 2);
+      await new Promise(function (resolve) { setTimeout(resolve, 0); });
+    }
+    output.textContent = "PASS: all " + checks + " pixel comparisons identical.\n" + output.textContent;
+  } catch (error) { output.textContent = "FAIL: " + error.stack; }
+  finally { RENDER.setStyle(savedStyle); RENDER.setIconSet(savedSet); this.disabled = false; }
+};
+</script></html>

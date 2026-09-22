@@ -23,13 +23,27 @@ module.exports = function (ok) {
     localStorage:storage,PROFILES:PROFILES,window:{addEventListener:function(name,fn){listeners[name]=fn;}},
     MUSIC:{init:function(){}}, location:{search:""},
     CAMPAIGN:[{name:"Test mission",grid:[".."],units:[]}],
-    ADVANCED_CAMPAIGN:require("../js/data-advanced-maps.js"), EXPANSION_LEVELS:[],BASE_NECTARIS_LEVELS:[]};
+    ADVANCED_CAMPAIGN:require("../js/data-advanced-maps.js"), EXPANSION_LEVELS:[],BASE_NECTARIS_LEVELS:[],
+    AI_MADE_LEVELS:require("../js/data-ai-maps.js")};
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,"../js/main.js"),"utf8"),context);
   listeners.DOMContentLoaded();
   ok(get("mission-list").children.length === 1 && get("advanced-mission-list").children.length === 16,
     "menu lists normal and all sixteen advanced missions in separate sections");
   ok(get("map-jump").children[1].children.length === 17,
     "map jump includes the advanced campaign without hiding other packs");
+  ok(get("ai-made-list").children.length === 4 &&
+    get("ai-made-list").children[0].children[0].textContent.includes("TWISTED FJORDS") &&
+    get("ai-made-list").children[1].children[0].textContent.includes("SHATTERED FJORDS") &&
+    get("ai-made-list").children[2].children[0].textContent.includes("FRACTURED FJORDS") &&
+    get("ai-made-list").children[3].children[0].textContent.includes("HONEYCOMB FJORDS"),
+    "AI-made category keeps all four independently named fjord levels");
+  var aiGroup = get("map-jump").children.find(function(g) { return g.label === "AI-made"; });
+  ok(aiGroup && aiGroup.children[0].value === "a:0" && aiGroup.children[1].value === "a:1" &&
+    aiGroup.children[2].value === "a:2" && aiGroup.children[3].value === "a:3",
+    "map jump offers all four AI-made levels");
+  ok(PROFILES.levelKey(context.AI_MADE_LEVELS[0], {aiMadeIndex: 0}) === "ai-made:0" &&
+    PROFILES.levelKey(context.AI_MADE_LEVELS[0], {}) !== "ai-made:0",
+    "AI-made results have their own stable pack identity");
   ok(get("profile-history").children.length === 10, "menu initially shows the newest ten outcomes");
   ok(get("history-count").textContent === "Showing 10 of 15 matches" && !get("history-more").classList.contains("hidden"),
     "older outcomes have a visible navigation control");

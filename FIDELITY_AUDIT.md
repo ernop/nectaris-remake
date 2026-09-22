@@ -11,6 +11,21 @@ for maximum fidelity; it supersedes the earlier custom base-storage and
 all-reserves-count decisions. Windows, PlayStation and TG-16 sources are
 identified separately. This audit does not claim their releases are identical.
 
+## Full booklet review and action correction — 2026-09-21
+
+See [MANUAL_AUDIT.md](MANUAL_AUDIT.md) for the complete page-by-page review of
+both original booklets, current code evidence and the limits of certification.
+The previous audit missed the absent initial Shift/Attack choice: engine legality
+was correct, while UI tests enforced movement-first selection. Selection now
+offers **Shift / Attack**, and Atlas immediately exposes its stationary targets.
+All player-facing command labels use Shift. Regression cases cover the actual
+selection flow, and an independently transcribed fixture checks all 23 unit rows.
+
+The original **combat-results army-strength graph** is also missing; this was
+not identified in the earlier differences table. Profile history and forecast
+heatmaps are not equivalent. The original PCE/TG-16 manuals also explicitly
+document two-player play, so that capability is not solely a later-port feature.
+
 ## Requested implementation pass — 2026-09-20
 
 Scope confirmed by the user: implement missing gameplay behavior and the advanced
@@ -66,6 +81,7 @@ lacked it. “Unverified” is not the same as “incorrect.”
 | Original random sequence generation is replaced | Mulberry32 with independent opposing rolls, rather than a recovered original generator. | The Windows generator has now been located, but it shares state with frame activity and presentation calls. PCE equivalence and exact call sequencing remain unverified; transplanting the generator alone would not reproduce the original stream. |
 | Original audiovisual battle presentation is replaced | Map explosions and casualty counters, recreated terrain/art options and new procedural music. Legacy unit icons do not reproduce the entire original presentation. | The renderer and music were authored for this remake; full original combat scenes/audio were not implemented or imported. |
 | Original in-game Manual and Surrender command are missing | Markdown help and Save & Menu; no original tutorial/manual mode or command to concede the match. | Those interfaces/actions were not implemented. Saving and leaving is not surrendering. |
+| Original combat-results graph is missing | Profiles record match outcomes; no turn-by-turn army-strength graph is shown. | The booklet's results display was not implemented; see `MANUAL_AUDIT.md`. |
 
 Evidence for CPU transport attacks: [TG-16 firsthand strategy guide](https://gamefaqs.gamespot.com/tg16/589030-military-madness/faqs/30552).
 For CPU response to loaded Pelicans: [Anka's factory tactics](https://anka.sakura.ne.jp/nectaris/l5.html).

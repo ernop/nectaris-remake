@@ -12,6 +12,7 @@ var PROFILES = (function () {
     if (options.campaignIndex !== undefined) return "campaign:" + options.campaignIndex;
     if (options.expansionIndex !== undefined) return "expansion:" + options.expansionIndex;
     if (options.baseNecIndex !== undefined) return "base:" + options.baseNecIndex;
+    if (options.aiMadeIndex !== undefined) return "ai-made:" + options.aiMadeIndex;
     // Custom levels with the same title but different layouts are distinct.
     return "custom:" + JSON.stringify([map.name, map.grid]);
   }

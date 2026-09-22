@@ -1,4 +1,4 @@
-/* Movement-first combat, reversible choices, hover forecasts and map controls. */
+/* Default movement, direct attack, committed moves, undo barriers and map controls. */
 "use strict";
 module.exports = function (ok) {
   var ENGINE = require("../js/engine.js"), COMBAT = require("../js/combat.js"), UI = require("../js/ui.js");
@@ -9,6 +9,9 @@ module.exports = function (ok) {
     return { style: {}, children: [], textContent: "", offsetWidth: 108, offsetHeight: 26,
       set innerHTML(value) { html = value; this.children = []; }, get innerHTML() { return html; },
       appendChild: function (child) { this.children.push(child); }, setAttribute: function () {},
+      querySelector: function () { return { width: 32, height: 32, getContext: function () {
+        return new Proxy({}, { get: function (target, key) { return target[key] || function () {}; } });
+      } }; },
       classList: { add: function (c) { classes.add(c); }, remove: function (c) { classes.delete(c); },
         contains: function (c) { return classes.has(c); } },
     };
@@ -16,9 +19,9 @@ module.exports = function (ok) {
   global.document = { getElementById: function (id) { return nodes[id] || (nodes[id] = element()); }, createElement: element };
   global.COMBAT_VIEW = require("../js/combat-view.js");
   global.RENDER = require("../js/render.js");
-  function fixture(type, enemyX) {
+  function fixture(type, enemyX, commands) {
     var game = new ENGINE.Game({name: "Combat UI", grid: ["........", "........", "........"],
-      units: [{t: type, o: 0, x: 1, y: 1}, {t: "POLAR", o: 1, x: enemyX, y: 1}]}, {seed: 7});
+      units: [{t: type, o: 0, x: 1, y: 1}, {t: type === "HAWKEYE" || type === "FALCON" ? "EAGLE" : "POLAR", o: 1, x: enemyX, y: 1}]}, {seed: 7});
     var ui = Object.create(UI.GameUI.prototype);
     ui.game = game; ui.canvas = { width: 800, height: 600 }; ui.renderer = {
       hexSize: 34, zoom: 1,
@@ -32,190 +35,187 @@ module.exports = function (ok) {
   }
   function action(label) { return nodes["action-menu"].children.find(function (button) { return button.textContent === label; }); }
   try {
-    var ui = fixture("BISON", 4), unit = ui.selected;
-    var before = JSON.stringify(ui.game.snapshot());
-    ok(!ui.renderer.highlights[HEX.key(4, 1)] && ui.pickTargets.length === 0,
-      "selecting a tank never highlights a distant move-and-attack shortcut");
-    ui.onHexClick(4, 1);
-    ok(JSON.stringify(ui.game.snapshot()) === before && !ui.busy,
-      "clicking a distant enemy cannot move or attack automatically");
-    ok(ui.mode === "enemyInspect" && ui.selected === ui.game.units[1] &&
-      Object.keys(ui.renderer.highlights).length > 1,
-      "clicking an enemy displays its movement range in inspection mode");
-    var enemy = ui.selected;
-    enemy.moved = true; enemy.movePointsLeft = 0;
-    before = JSON.stringify(ui.game.snapshot());
-    ui.onHexClick(enemy.col, enemy.row);
-    ok(Object.keys(ui.renderer.highlights).length > 1 &&
-      JSON.stringify(ui.game.snapshot()) === before,
-      "spent enemies show next-turn movement without altering the saved game");
-    ui.onHexClick(5, 1);
-    ok(ui.mode === "idle" && !ui.renderer.highlights &&
-      JSON.stringify(ui.game.snapshot()) === before,
-      "clicking an inspected enemy destination clears inspection without moving it");
-    ui.onHexClick(enemy.col, enemy.row);
-    ui.onCancel();
-    ok(ui.mode === "idle" && !ui.selected && !ui.renderer.highlights,
-      "Escape clears enemy movement inspection");
-    ui.onHexClick(enemy.col, enemy.row);
-    ui.onHexClick(1, 1);
-    ok(ui.mode === "unitSelected" && ui.selected.player === 0,
-      "a friendly unit can be selected directly after enemy inspection");
-    ui = fixture("BISON", 2); unit = ui.selected;
-    ok(!ui.renderer.highlights[HEX.key(2, 1)], "even adjacent targets stay unhighlighted until a position is chosen");
-    ui.onHexClick(1, 1);
-    ok(ui.mode === "moved" && ui.pickTargets[0] === ui.game.units[1], "choosing the current hex allows stationary attacks");
-
-    ui = fixture("BISON", 3); unit = ui.selected;
-    before = JSON.stringify(ui.game.snapshot());
-    ui.onHexClick(2, 1);
-    ok(ui.mode === "moved" && !unit.moved && ui.renderer.highlights[HEX.key(3, 1)],
-      "choosing a firing position exposes only its real attack targets");
-    ok(nodes["action-menu"].children.map(function (button) { return button.textContent; }).join(",") === "Cancel,End",
-      "map controls contain exactly Cancel and End");
-    var provisional = JSON.stringify(ui.game.snapshot()), seed = ui.game.rng.getState();
-    ui.onMouseMove({ offsetX: 3, offsetY: 1 });
-    ok(!nodes["combat-inspector"].classList.contains("hidden") &&
-      nodes["combat-inspector"].innerHTML.includes("Polar PT-6") && nodes["combat-inspector"].innerHTML.includes("100,000") &&
-      nodes["combat-inspector"].innerHTML.includes("Joint casualty probabilities"),
-      "hovering a red target shows identity, calculation and the 100k-seed heatmap");
-    ok(JSON.stringify(ui.game.snapshot()) === provisional && ui.game.rng.getState() === seed,
-      "hover projection cannot change the match, its units, or its hidden RNG");
-    ok(nodes["combat-inspector"].innerHTML.includes("Target unit information") &&
-      nodes["combat-inspector"].innerHTML.includes("Ground / air range") &&
-      nodes["combat-inspector"].innerHTML.includes("ZOC &amp; support"),
-      "hover includes the target's full statistics and explicit ZOC/support explanation");
-    var secondTarget = ENGINE.makeUnit("CHARLIE", 1, 2, 0, 5, 4);
-    ui.game.units.push(secondTarget);
-    ui.pickTargets = ui.previewTargets(unit);
-    var bothBefore = JSON.stringify(ui.game.snapshot());
-    ui.onMouseMove({offsetX: 2, offsetY: 0});
-    var secondHtml = nodes["combat-inspector"].innerHTML;
-    ok(secondHtml.includes("Charlie GX-77") && secondHtml.includes("100,000") &&
-      secondHtml.includes("5</dd>") && secondHtml.includes("+30% damage"),
-      "hovering the second red enemy refreshes its identity, damage, experience and forecast");
-    ui.onMouseMove({offsetX: 3, offsetY: 1});
-    ok(nodes["combat-inspector"].innerHTML !== secondHtml &&
-      nodes["combat-inspector"].innerHTML.includes("<h3>Polar PT-6</h3>") &&
-      JSON.stringify(ui.game.snapshot()) === bothBefore,
-      "switching back updates the matchup without mutating any match state");
-    ui.game.units.pop(); ui.pickTargets = ui.previewTargets(unit);
-    ui.onMouseMove({offsetX: 3, offsetY: 1});
-    var cached = Object.values(ui._forecastCache)[0];
-    ui.onMouseMove({ offsetX: 3, offsetY: 1 });
-    ok(Object.values(ui._forecastCache)[0] === cached, "repeated hover reuses the current forecast");
-    ui.onMouseMove({ offsetX: 5, offsetY: 2 });
-    ok(!nodes["combat-inspector"].classList.contains("hidden"), "last matchup remains readable when moving off its hex");
-    ok(JSON.stringify(ui.snapshotForSave()) === before, "saving a test move preserves the original position and log");
-    action("Cancel").onclick();
-    ok(ui.mode === "unitSelected" && JSON.stringify(ui.game.snapshot()) === before &&
-      nodes["combat-inspector"].classList.contains("hidden") && !ui.renderer.attackingUnitId,
-      "Cancel restores position, allowance, flags and log and clears the preview");
-    ui.onHexClick(2, 1);
-    var baseline = ENGINE.Game.restore(ui.game.snapshot());
-    baseline.attack(baseline.units[0], baseline.units[1]);
-    ui.onMouseMove({offsetX: 3, offsetY: 1});
-    ui.onHexClick(3, 1);
-    ok(unit.attacked && ui.busy && ui.mode === "battle", "clicking the chosen red target commits combat and locks input");
-    ok(JSON.stringify(ui.game.snapshot()) === JSON.stringify(baseline.snapshot()),
-      "the actual battle is identical with or without prior previews and cancelled test moves");
-    var player = ui.game.currentPlayer;
-    ui.onCancel(); ui.endTurn();
-    ok(ui.mode === "battle" && ui.game.currentPlayer === player, "Cancel and End Turn cannot interrupt committed combat");
-    ui.animationDone();
-    ok(ui.mode === "idle" && !ui.busy && nodes["battle-panel"].classList.contains("hidden"), "battle results close automatically");
-
-    ui = fixture("BISON", 7); unit = ui.selected;
-    ui.onHexClick(2, 1);
-    ok(ui.mode === "moved" && !ui.pickTargets.length && !unit.moved, "moves without a target still offer a reversible choice");
-    action("End").onclick();
-    ok(unit.col === 2 && unit.moved && !unit.attacked && ui.game.currentPlayer === 0 && ui.mode === "idle",
-      "End commits this unit's move without attacking or ending the side's turn");
-
-    ui = fixture("HADRIAN", 6); unit = ui.selected;
-    ui.onHexClick(2, 1);
-    ok(ui.mode === "moved" && !ui.pickTargets.length && unit.attackSpent && !unit.moved,
-      "move-or-fire artillery can undo a move but cannot fire after moving");
-    action("Cancel").onclick(); ui.onHexClick(1, 1);
-    ok(ui.pickTargets.length === 1 && !unit.attackSpent, "cancelling restores artillery's option to fire in place");
-    nodes["attack-targets"].children[0].onfocus();
-    ok(nodes["combat-inspector"].innerHTML.includes("Indirect fire"), "keyboard target preview supports stationary artillery");
-
-    ui = fixture("RABBIT", 2); unit = ui.selected;
-    ui.onHexClick(1, 1); ui.onHexClick(2, 1); ui.animationDone();
-    ok(ui.mode === "unitSelected" && ui.selected === unit && unit.attacked && unit.movePointsLeft > 0,
-      "surviving missile buggy retains movement after attacking");
-    before = JSON.stringify(ui.game.snapshot());
-    var destination = Object.values(ui.range).find(function (rec) { return rec.cost > 0 && rec.canStop && !rec.load && !rec.enterBuilding; });
-    ui.onHexClick(destination.col, destination.row);
-    ok(!ui.pickTargets.length, "post-attack movement cannot offer a second attack");
-    action("Cancel").onclick();
-    ok(JSON.stringify(ui.game.snapshot()) === before && unit.attacked,
-      "cancelling post-attack movement cannot undo the already committed battle");
-
-    ["RABBIT", "LYNX"].forEach(function (type) {
-      ui = fixture(type, 4); unit = ui.selected;
-      var firingCol = 4 - unit.type.rngG, allowance = unit.movePointsLeft;
-      var approachCost = ui.range[HEX.key(firingCol, 1)].cost;
-      ui.onHexClick(firingCol, 1);
-      ok(ui.pickTargets.length === 1, type + " can choose a firing position before attacking");
-      ui.onHexClick(4, 1); ui.animationDone();
-      ok(ui.mode === "unitSelected" && !unit.moved && unit.attacked &&
-        unit.movePointsLeft === allowance - approachCost,
-        type + " offers remaining movement after moving and attacking a surviving target");
-      ok(nodes["action-status"].textContent.includes("Attack complete") &&
-        nodes["action-status"].textContent.includes(unit.movePointsLeft + " movement points left"),
-        type + " explains the remaining post-attack allowance");
-      before = JSON.stringify(ui.game.snapshot());
-      ui.onHexClick(firingCol - 1, 1);
-      ok(ui.mode === "moved" && !ui.pickTargets.length &&
-        nodes["action-status"].textContent.includes("Cancel reverts only this move"),
-        type + " offers a retreat with no second attack");
-      ok(JSON.stringify(ui.snapshotForSave()) === before,
-        type + " saving a provisional retreat preserves the committed attack");
+    Object.keys(UNIT_TYPES).forEach(function (type) {
+      if (["ATLAS", "TRIGGER"].indexOf(type) >= 0) return;
+      var ready = fixture(type, ["HADRIAN","OCTOPUS","HAWKEYE"].includes(type) ? 4 : type === "LYNX" ? 3 : 2);
+      ok(ready.mode === "unitSelected" && ready.renderer.highlights && !action("Shift") && !ready.pickTargets.length,
+        type + " selection immediately opens movement without spending an action");
+      ok(type === "PELICAN" ? !action("Attack") : action("Attack") && !action("Attack").disabled,
+        type + " offers its legal direct attack alongside default movement");
+      var untouched = JSON.stringify(ready.game.snapshot());
       action("Cancel").onclick();
-      ok(JSON.stringify(ui.game.snapshot()) === before, type + " may cancel and choose another retreat");
-      ui.onHexClick(firingCol - 1, 1); action("End").onclick();
-      ok(unit.col === firingCol - 1 && unit.moved && unit.attacked && ui.mode === "idle",
-        type + " End commits the retreat and spends its activation");
+      ok(ready.mode === "idle" && JSON.stringify(ready.game.snapshot()) === untouched,
+        type + " cancelling selection consumes no action");
+    });
+    ["HADRIAN", "OCTOPUS", "HAWKEYE"].forEach(function (type) {
+      var ui = fixture(type, 4), unit = ui.selected;
+      var untouched = JSON.stringify(ui.game.snapshot());
+      action("Attack").onclick();
+      ok(ui.mode === "moved" && ui.pickTargets.length === 1 && JSON.stringify(ui.game.snapshot()) === untouched,
+        type + " Attack immediately aims in place without moving");
+      action("Cancel").onclick();
+      ok(ui.mode === "unitSelected" && !action("Attack").disabled, type + " cancelling aim returns to movement");
+      ui.onHexClick(2,1);
+      ok(ui.mode === "idle" && unit.moved && unit.attackSpent && ui.canUndo(),
+        type + " moving immediately finishes its action and is undoable");
+      var rejected = false;
+      try { ui.game.attack(unit,ui.game.units[1]); } catch (error) { rejected = true; }
+      ok(rejected, type + " cannot fire after moving");
+      ui.undoLast(); unit = ui.game.units[0];
+      ok(JSON.stringify(ui.game.snapshot()) === untouched, type + " Undo restores its complete ready state");
+      ui.onHexClick(1,1); action("Attack").onclick(); ui.onHexClick(4,1);
+      ok(unit.attacked && unit.moved && unit.col === 1 && unit.row === 1 && !ui.canUndo(),
+        type + " direct attack consumes its action and cannot be undone");
+      ui.animationDone();
+    });
+    var atlasUI = fixture("ATLAS",4), atlas = atlasUI.selected;
+    ok(atlasUI.mode === "moved" && atlasUI.pickTargets.length === 1 && !action("Attack"),
+      "Atlas immediately shows targets without a movement phase");
+    atlasUI.onCancel();
+    ok(atlasUI.mode === "idle" && !atlas.moved, "Atlas cancellation spends no action");
+    atlasUI.selectUnit(atlas); atlasUI.onHexClick(4,1);
+    ok(atlas.attacked && atlas.moved, "Atlas fires once and completes its activation");
+    atlasUI.animationDone();
+    var mineUI = fixture("TRIGGER",4);
+    ok(!action("Attack") && action("End"), "Trigger offers no illegal attack or move");
+
+    var ui = fixture("BISON",7), unit = ui.selected;
+    var before = JSON.stringify(ui.game.snapshot());
+    ok(action("Attack").disabled, "Attack is disabled when no targets are available");
+    action("Attack").onclick();
+    ok(ui.mode === "unitSelected" && JSON.stringify(ui.game.snapshot()) === before,
+      "disabled Attack cannot consume an action");
+    ui.onHexClick(2,1);
+    ok(unit.col === 2 && unit.moved && unit.shifted && ui.mode === "idle" && !ui.selected && ui.canUndo(),
+      "a move with no shot ends instantly and enables sidebar Undo");
+    ui.refreshUndoButton();
+    ok(!nodes["btn-undo"].disabled && nodes["btn-undo"].textContent === "Undo last (1)",
+      "the sidebar button exposes the pending move history");
+    var saved = JSON.parse(JSON.stringify(ui.snapshotForSave()));
+    ok(saved.units[0].col === 2 && saved.units[0].moved && saved.undoHistory.length === 1 &&
+      !saved.undoHistory[0].state.map && !saved.undoHistory[0].state.types,
+      "save keeps the committed move and compact undo history");
+    ui.game = ENGINE.Game.restore(saved); ui.undoHistory = saved.undoHistory;
+    ui.undoLast();
+    ok(JSON.stringify(ui.game.snapshot()) === before && !ui.canUndo(), "Undo works after save/reload and restores flags, log and RNG");
+
+    // More than one unit: no arbitrary stack limit, and End belongs to the move.
+    ui = fixture("BISON",7);
+    var second = ENGINE.makeUnit("BISON",0,0,2); ui.game.units.push(second);
+    before = JSON.stringify(ui.game.snapshot());
+    ui.onHexClick(2,1);
+    var firstMove = JSON.stringify(ui.game.snapshot());
+    ui.onHexClick(0,2); ui.onHexClick(1,2);
+    ok(ui.undoHistory.length === 2 && second.moved, "moves across units share one undo stack");
+    ui.undoLast();
+    ok(JSON.stringify(ui.game.snapshot()) === firstMove, "first undo restores only the most recent unit move");
+    ui.undoLast();
+    ok(JSON.stringify(ui.game.snapshot()) === before, "second undo restores the earlier unit move");
+
+    ui = fixture("BISON",3); unit = ui.selected;
+    before = JSON.stringify(ui.game.snapshot());
+    ui.onHexClick(2,1);
+    ok(ui.mode === "moved" && unit.shifted && !unit.moved && ui.pickTargets.length === 1 &&
+      action("End") && !action("Cancel") && Object.keys(ui.game.movementRange(unit)).length === 1,
+      "a committed move with a shot offers attack or End without another movement phase");
+    var rejected = false;
+    try { ui.game.moveUnit(unit,1,1); } catch (error) { rejected = true; }
+    ok(rejected, "reselecting cannot grant a second ordinary movement phase");
+    var committed = JSON.stringify(ui.game.snapshot()), seed = ui.game.rng.getState();
+    ui.onMouseMove({offsetX:3,offsetY:1});
+    ok(nodes["combat-inspector"].innerHTML.includes("Polar PT-6") &&
+      nodes["combat-inspector"].innerHTML.includes("100,000") &&
+      nodes["combat-inspector"].innerHTML.includes("Joint casualty probabilities") &&
+      JSON.stringify(ui.game.snapshot()) === committed && ui.game.rng.getState() === seed,
+      "hover forecast uses 100k independent trials without changing the committed board or RNG");
+    var secondTarget = ENGINE.makeUnit("CHARLIE",1,2,0,5,4);
+    ui.game.units.push(secondTarget); ui.pickTargets = ui.previewTargets(unit);
+    ui.onMouseMove({offsetX:2,offsetY:0});
+    ok(nodes["combat-inspector"].innerHTML.includes("Charlie GX-77") &&
+      nodes["combat-inspector"].innerHTML.includes("+30% damage"), "hovering another target replaces its full forecast");
+    ui.game.units.pop(); ui.pickTargets = ui.previewTargets(unit);
+    ui.onMouseMove({offsetX:3,offsetY:1});
+    var cached = ui._forecastCache;
+    ui.onMouseMove({offsetX:3,offsetY:1});
+    ok(ui._forecastCache === cached, "repeated hover reuses the forecast cache");
+    ui.onMouseMove({offsetX:5,offsetY:2});
+    ok(!nodes["combat-inspector"].classList.contains("hidden"), "last forecast remains readable away from its target");
+    action("End").onclick();
+    ok(unit.moved && ui.mode === "idle" && ui.undoHistory.length === 1, "End finishes the unit without adding a second undo step for the same move");
+    ui.undoLast();
+    ok(JSON.stringify(ui.game.snapshot()) === before && nodes["combat-inspector"].classList.contains("hidden"),
+      "one sidebar undo reverses the move plus End and clears stale forecast state");
+
+    // A battle is a hard boundary, even while its animation is still running.
+    unit = ui.game.units[0]; ui.onHexClick(1,1); ui.onHexClick(2,1);
+    var baseline = ENGINE.Game.restore(ui.game.snapshot()); baseline.attack(baseline.units[0],baseline.units[1]);
+    ui.onHexClick(3,1);
+    ok(ui.mode === "battle" && ui.busy && !ui.canUndo() && !ui.undoHistory.length &&
+      JSON.stringify(ui.game.snapshot()) === JSON.stringify(baseline.snapshot()),
+      "combat clears all earlier moves and preserves the actual seeded result");
+    var battleState = JSON.stringify(ui.game.snapshot());
+    ui.undoLast(); ui.onCancel(); ui.endTurn();
+    ok(JSON.stringify(ui.game.snapshot()) === battleState, "Undo, Cancel and End Turn cannot interrupt or replay a battle");
+    ui.animationDone();
+    ok(ui.mode === "idle" && !ui.busy && !ui.canUndo(), "battle results close automatically with no prebattle undo history");
+
+    ["RABBIT","LYNX"].forEach(function (type) {
+      ui = fixture(type,4); unit = ui.selected;
+      var firingCol = 4 - unit.type.rngG, allowance = unit.movePointsLeft;
+      var approachCost = ui.range[HEX.key(firingCol,1)].cost;
+      ui.onHexClick(firingCol,1);
+      ok(unit.shifted && unit.movePointsLeft === allowance - approachCost && ui.pickTargets.length,
+        type + " stores remaining allowance while preventing a second preattack move");
+      ui.onHexClick(4,1); ui.animationDone();
+      ok(ui.mode === "unitSelected" && unit.attacked && !unit.shifted && !unit.moved &&
+        unit.movePointsLeft === allowance - approachCost && !ui.canUndo(),
+        type + " unlocks remaining movement immediately after combat without undoing that battle");
+      before = JSON.stringify(ui.game.snapshot());
+      ui.onHexClick(firingCol-1,1);
+      ok(ui.mode === "idle" && unit.moved && unit.attacked && ui.canUndo(), type + " retreat ends immediately");
+      ui.undoLast();
+      ok(JSON.stringify(ui.game.snapshot()) === before && !ui.canUndo(), type + " retreat undo stops at the completed battle");
     });
 
+    ui = fixture("BISON",7); ui.onHexClick(2,1); ui.options = {hotseat:true}; ui.endTurn();
+    ok(!ui.canUndo() && !ui.undoHistory.length && ui.game.currentPlayer === 1,
+      "ending the turn prevents undoing the other player's turn");
+
     function transportUI() {
-      var transportUI = fixture("MULE", 7);
-      var passenger = ENGINE.makeUnit("CHARLIE",0,0,1);
-      transportUI.game.units.push(passenger);
-      transportUI.deselect();
-      transportUI.onHexClick(0,1); transportUI.onHexClick(1,1);
-      ok(passenger.carriedBy === transportUI.game.units[0].id && transportUI.mode === "idle",
-        "clicking a highlighted friendly transport boards it instead of switching selection");
-      transportUI.game.endTurn(); transportUI.game.endTurn();
-      return transportUI;
+      var ui = fixture("MULE",7);
+      var passenger = ENGINE.makeUnit("CHARLIE",0,0,1); ui.game.units.push(passenger);
+      ui.deselect(); ui.onHexClick(0,1);
+      var start = JSON.stringify(ui.game.snapshot());
+      ui.onHexClick(1,1);
+      ok(passenger.carriedBy === ui.game.units[0].id && ui.mode === "idle", "clicking a highlighted carrier boards it immediately");
+      ui.undoLast();
+      ok(JSON.stringify(ui.game.snapshot()) === start, "boarding undo restores cargo identity and the passenger's activation");
+      ui.onHexClick(0,1); ui.onHexClick(1,1);
+      ui.game.endTurn(); ui.game.endTurn(); ui.clearUndo();
+      return ui;
     }
     ui = transportUI(); unit = ui.game.units[0];
-    ui.onHexClick(1,1); ui.onHexClick(1,1);
-    ok(!!action("Unload " + unit.cargo[0].type.name),
-      "stopping a loaded transport offers Unload directly in its map controls");
-    nodes["transport-actions"].children[0].onclick(); ui.onHexClick(2,1);
-    ok(!unit.moved && !unit.cargo.length && ui.mode === "idle" && ui.game.unitAt(2,1).moved,
-      "unloading in place spends the passenger's turn while leaving the transport ready");
-    ui = transportUI(); unit = ui.game.units[0];
-    ui.onHexClick(1,1); ui.onHexClick(1,0); action("End").onclick();
-    ok(ui.selected === unit && ui.mode === "moved" &&
-      !!action("Unload " + unit.cargo[0].type.name),
-      "End keeps eligible cargo unloading available without reselecting the transport");
-    action("Close").onclick();
-    ui.onHexClick(1,0);
-    ok(unit.moved && ui.mode === "moved" && action("Close") && !action("End") && !ui.pickTargets.length,
-      "used transport can reopen only its passenger actions without a second move or attack");
-    nodes["transport-actions"].children[0].onclick(); ui.onHexClick(2,0);
-    ok(!unit.cargo.length && unit.moved && ui.game.unitAt(2,0).moved,
-      "ready passenger can unload after the carrier's movement was committed");
-    ui = transportUI(); unit = ui.game.units[0];
+    before = JSON.stringify(ui.game.snapshot());
     ui.onHexClick(1,1); ui.onHexClick(1,0);
-    nodes["transport-actions"].children[0].onclick(); ui.onHexClick(2,0);
+    ok(unit.moved && action("Unload " + unit.cargo[0].type.name), "moving a carrier ends immediately and keeps passenger unloading available");
+    var movedCarrier = JSON.stringify(ui.game.snapshot());
+    action("Unload " + unit.cargo[0].type.name).onclick(); ui.onHexClick(2,0);
+    ok(!unit.cargo.length && ui.game.unitAt(2,0).moved && ui.undoHistory.length === 2,
+      "unloading records a separate reversible action");
+    ui.undoLast(); unit = ui.game.units[0];
+    ok(JSON.stringify(ui.game.snapshot()) === movedCarrier && unit.cargo[0] === ui.game.units.find(function (u) { return u.id === unit.cargo[0].id; }),
+      "undo unloading reattaches the exact passenger object to the moved carrier");
+    ui.undoLast();
+    ok(JSON.stringify(ui.game.snapshot()) === before, "undo carrier movement restores both carrier and cargo state");
+
+    ui = fixture("BISON",4); before = JSON.stringify(ui.game.snapshot());
+    ui.onHexClick(4,1);
+    ok(ui.mode === "enemyInspect" && JSON.stringify(ui.game.snapshot()) === before, "clicking an enemy while moving inspects it without a move-and-attack shortcut");
+    ui.game.units[1].shifted = true; ui.game.units[1].moved = true; ui.game.units[1].movePointsLeft = 0;
+    ui.inspectEnemy(ui.game.units[1]);
+    ok(Object.keys(ui.renderer.highlights).length > 1, "enemy inspection previews its next turn despite completed movement");
     ui.onCancel();
-    ok(unit.moved && unit.col === 1 && unit.row === 0 && !unit.cargo.length && !ui.pendingMoveFrom,
-      "unloading after a provisional move commits that move and cannot detach cargo by cancellation");
+    ok(ui.mode === "idle" && !ui.selected, "Escape clears enemy inspection");
 
     // Conservative target bounds include the whole hex, not just the icon.
     [0.2, 0.5, 1, 2, 4].forEach(function (zoom) {
@@ -258,11 +258,12 @@ module.exports = function (ok) {
     ui.onMouseMove({offsetX: 3, offsetY: 1});
     var hover = nodes["unit-hover"];
     ok(!hover.classList.contains("hidden") && hover.innerHTML.includes("Polar PT-6") &&
-      hover.innerHTML.includes("Xenon") && !hover.innerHTML.includes("<td>Strength</td>"),
+      hover.innerHTML.includes(RENDER.PLAYER_COLORS[1].light) && !hover.innerHTML.includes("<span>Strength</span>") &&
+      !hover.innerHTML.includes("hover-faction") && !hover.innerHTML.includes("<table"),
       "hover inspects an enemy while retaining the selected unit and hides full strength");
     ui.game.units[1].strength = 5;
     ui.updateHoverInfo();
-    ok(hover.innerHTML.includes("<td>Strength</td><td>5</td>"), "hover refreshes changed squad strength");
+    ok(hover.innerHTML.includes("<span>Strength</span><strong>5</strong>"), "hover refreshes changed squad strength");
     ui.game.units[1].strength = 8;
     ui.onMouseMove({offsetX: 1, offsetY: 1});
     ok(hover.innerHTML.includes("Bison S-61") && !hover.innerHTML.includes("Polar PT-6"),
@@ -276,6 +277,45 @@ module.exports = function (ok) {
     ui.busy = true; ui.updateHoverInfo();
     ok(hover.classList.contains("hidden") && JSON.stringify(ui.game.snapshot()) === before,
       "committed combat hides hover details without changing game state");
+    // Real camera bounds plus real input dispatch: dragging must never act on a unit.
+    ui = fixture("BISON", 3);
+    ui.canvas = { width: 260, height: 150, style: {}, getContext: function () { return {}; } };
+    ui.renderer = new RENDER.Renderer(ui.canvas, ui.game);
+    ui.renderer.zoom = 3; ui.renderer.constrainView();
+    ui.mode = "idle";
+    var clicks = 0, cancels = 0;
+    ui.onHexClick = function () { clicks++; };
+    ui.onCancel = function () { cancels++; };
+    ui.updateHoverInfo = ui.showHexInfo = ui.showUnitInfo = function () {};
+    function pointer(button, x, y) { return { button: button, offsetX: x, offsetY: y, preventDefault: function () {} }; }
+    var cameraX = ui.renderer.originX, cameraY = ui.renderer.originY;
+    var state = JSON.stringify(ui.game.snapshot());
+    ui.onMouseDown(pointer(0, 130, 75));
+    ui.onMouseMove(pointer(0, 90, 45));
+    ui.updateMapCursor();
+    ok(ui.renderer.originX === cameraX - 40 && ui.renderer.originY === cameraY - 30 &&
+      ui.canvas.style.cursor === "grabbing", "left drag pans clipped terrain and displays the grabbing cursor");
+    ui.onMouseUp(pointer(0, 90, 45)); ui.updateMapCursor();
+    ok(!clicks && !cancels && JSON.stringify(ui.game.snapshot()) === state && ui.canvas.style.cursor === "grab",
+      "releasing a left drag performs no gameplay action and restores the grab cursor");
+    ui.onMouseDown(pointer(0, 100, 70)); ui.onMouseMove(pointer(0, 102, 70)); ui.onMouseUp(pointer(0, 102, 70));
+    ok(clicks === 1, "a slight hand movement below the drag threshold still selects normally while zoomed");
+    ui.renderer.panBy(100000, 100000);
+    ui.onMouseDown(pointer(0, 100, 70)); ui.onMouseMove(pointer(0, 150, 110)); ui.onMouseUp(pointer(0, 150, 110));
+    ok(clicks === 1 && !cancels, "dragging against the camera limit cannot become a unit command on release");
+    ui.onMouseDown(pointer(2, 100, 70)); ui.onMouseUp(pointer(2, 100, 70));
+    ok(cancels === 1, "a plain right click still cancels");
+    ui.onMouseDown(pointer(2, 100, 70)); ui.onMouseMove(pointer(2, 150, 110)); ui.onMouseUp(pointer(2, 150, 110));
+    ok(cancels === 1, "right dragging against the camera limit does not cancel the active command");
+    ui.onMouseDown(pointer(1, 100, 70)); ui.onMouseUp(pointer(1, 100, 70));
+    ok(clicks === 1 && cancels === 1, "middle click has no gameplay action");
+    ui.canvas.width = 1400; ui.canvas.height = 900; ui.renderer.fitToMap();
+    ui.updateMapCursor();
+    ui.onMouseDown(pointer(0, 100, 70));
+    ok(!ui.dragging.pan && ui.canvas.style.cursor === "crosshair", "a fully visible map does not enable grab panning");
+    ui.dragging = null; ui.renderer.originX = -50;
+    ok(ui.renderer.panAxes().x && ui.renderer.panBy(30, 0) && !ui.renderer.panAxes().x,
+      "a displaced map smaller than the viewport can be dragged back into view");
   } finally {
     if (savedDocument === undefined) delete global.document; else global.document = savedDocument;
     if (savedView === undefined) delete global.COMBAT_VIEW; else global.COMBAT_VIEW = savedView;

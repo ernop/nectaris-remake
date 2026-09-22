@@ -200,56 +200,36 @@ select, input[type="url"] {
   overflow-y: auto;
   font-size: 13px;
 }
+#btn-undo { width: 100%; margin: 10px 0 12px; text-align: left; }
 #hex-info { margin-top: 14px; color: #b0a890; }
 .ui-name { font-weight: 700; color: #ffd94a; margin-bottom: 6px; }
-.experience-card {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  min-height: 42px;
-  margin-bottom: 8px;
-  padding: 6px 8px;
-  background: #15120e;
-  border: 1px solid #3d382c;
-}
-.exp-columns { display: flex; gap: 4px; align-items: center; height: 32px; }
-.exp-star-column {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 2px;
-  height: 32px;
-}
-.exp-star-slot, .exp-master-star {
-  display: block;
-  width: 9px;
-  height: 9px;
-  background: #403a2d;
-  clip-path: polygon(50% 0%, 61% 35%, 100% 35%, 69% 57%, 80% 100%, 50% 73%, 20% 100%, 31% 57%, 0% 35%, 39% 35%);
-}
-.exp-star-slot.filled {
-  background: #ffd94a;
-  filter: drop-shadow(0 0 2px #b87319);
-}
-.exp-master { display: flex; align-items: center; gap: 7px; color: #ffd94a; letter-spacing: 1px; }
-.exp-master-star {
-  width: 34px;
-  height: 34px;
-  background: #ffd94a;
-  filter: drop-shadow(0 0 2px #fff2a0) drop-shadow(0 0 5px #b64b19);
-}
-.exp-effect { color: #d8d2c0; font: 11px/1.4 monospace; text-align: right; }
-.ui-stats { width: 100%; border-collapse: collapse; }
-.ui-stats td { padding: 2px 4px; border-bottom: 1px solid #2c2820; }
-.ui-stats td:last-child { text-align: right; color: #d8d2c0; }
+/* Stable slots shared by the nearby card and the selection inspector. */
+.unit-card-head { display: grid; grid-template-columns: 32px minmax(0, 1fr) 42px;
+  align-items: center; gap: 8px; height: 40px; margin-bottom: 8px; }
+.unit-card-icon { width: 32px; height: 32px; image-rendering: pixelated; }
+.unit-card-head .ui-name { font-size: 14px; line-height: 18px; margin: 0;
+  max-height: 36px; overflow: hidden; }
+.unit-strength { text-align: right; color: #ffca92; }
+.unit-strength span { display: block; font-size: 9px; }
+.unit-strength strong { font: 700 29px/29px monospace; }
+.unit-combat-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 3px; font-variant-numeric: tabular-nums; }
+.unit-stat { background: #15120e; padding: 5px 6px; }
+.unit-stat > span { display: block; color: #bcb39b; font-size: 10px; white-space: nowrap; }
+.unit-stat > strong { display: block; color: #fff1cb; font: 700 22px/26px monospace; }
+.unit-stat.secondary { display: flex; align-items: baseline; justify-content: space-between; gap: 3px; }
+.unit-stat.secondary > strong { font-size: 13px; line-height: 18px; }
+.unit-card-foot { display: flex; justify-content: space-between; gap: 6px;
+  margin-top: 8px; color: #aaa18d; font-size: 10px; white-space: nowrap; }
+.unit-card-foot > span:first-child { overflow: hidden; text-overflow: ellipsis; }
+.unit-card-foot strong { color: #e7dcc0; font-weight: 600; }
 
 #unit-hover {
   position: absolute;
   z-index: 9;
   width: 260px;
   max-width: calc(100% - 16px);
-  padding: 10px 12px;
+  padding: 9px 10px;
   background: #211d16;
   border: 1px solid #8e805d;
   border-radius: 5px;
@@ -259,9 +239,7 @@ select, input[type="url"] {
   pointer-events: none;
   overflow-wrap: anywhere;
 }
-#unit-hover .hover-faction { color: #bdb39a; font-size: 10px; letter-spacing: 1px; margin-bottom: 3px; }
-#unit-hover .ui-name { font-size: 15px; }
-#unit-hover .experience-card { min-height: 36px; padding: 2px 6px; margin-bottom: 6px; }
+#unit-hover { transition: none; animation: none; }
 
 /* ---------- popups ---------- */
 
@@ -324,9 +302,13 @@ select, input[type="url"] {
   justify-content: space-between;
   align-items: center;
   gap: 16px;
-  min-height: 52px;
-  padding: 5px 0;
-  border-bottom: 1px solid #302b22;
+  width: 100%;
+  min-height: 48px;
+  padding: 6px 8px;
+  margin: 3px 0;
+  text-align: left;
+  border: 1px solid #3d382c;
+  border-radius: 4px;
 }
 .factory-unit { display: flex; align-items: center; gap: 9px; min-width: 0; }
 .factory-unit-icon {
@@ -341,7 +323,8 @@ select, input[type="url"] {
 .factory-unit-details { display: flex; flex-direction: column; gap: 3px; }
 .factory-unit-details strong { color: #ffe9a0; }
 .factory-unit-details span { color: #fff; font: 11px monospace; white-space: nowrap; }
-.factory-row button { color: #fff; }
+button.factory-row:hover, button.factory-row:focus-visible { background: #3d382c; border-color: #c9ad63; }
+button.factory-row:focus-visible { outline: 2px solid #ffd94a; outline-offset: 1px; }
 .factory-unit-status {
   color: #fff;
   font: 700 11px monospace;

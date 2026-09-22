@@ -17,6 +17,7 @@ an original procedural chiptune score, and a level editor with URL sharing.
 | `editor.html` | Level editor: terrain, units, factories, custom unit types |
 | `PRODUCT.md` | Settled UI/product decisions |
 | `MECHANICS.md` | Full rules reconstruction, with sources |
+| `MANUAL_AUDIT.md` | Full original-manual review, implementation coverage and remaining gaps |
 | `inspiration/nectaris-original/README.md` | Manifest for local, gitignored visual references |
 | `inspiration/nectaris-original/index.html` | Local full-page viewer for those captures |
 | `js/hex.js` | Hex math (flat-top, odd-q offset, cube internals) |
@@ -28,6 +29,8 @@ an original procedural chiptune score, and a level editor with URL sharing.
 | `js/data-maps.js` / `js/data-advanced-maps.js` | Official normal and advanced campaigns, 16 missions each, from Hudson's 1997 PC Engine remake |
 | `js/data-expansion-maps.js` | 12-map Lunar Frontiers online expansion |
 | `js/data-basenectaris-maps.js` | 12-map Base Nectaris terrain pack (bilingual briefings) |
+| `js/data-ai-maps.js` | Four original AI-made fjord maps, from large branching valleys to a compact tunnel mesh |
+| `tools/build-ai-fjords.js` | Deterministic builder for the AI-made maps and importable JSON in `levels/` |
 | `tools/nmd-to-level.js` | Converts a Windows-edition `.nmd` map file to a level |
 | `js/render.js` | Canvas renderer with selectable Remake/Legacy art |
 | `js/data-unit-art.js` | Generated native 32×32 Remake art for all 23 unit types |
@@ -73,7 +76,8 @@ Use **Show older matches** to browse beyond the latest ten results.
 Progress saves automatically after actions. **Save & Menu** leaves the match;
 **Continue match** restores it, including after closing and reopening the page.
 Starting a different match asks before replacing your current save. An interrupted
-AI turn resumes from its start; unconfirmed movement is cancelled on resume.
+AI turn resumes from its start. Completed moves and their sidebar undo history
+survive a save or reload.
 Hotseat results record the winning faction separately from solo wins/losses.
 
 Profiles stay in this browser at the same address—there is no cloud sync.
@@ -83,30 +87,40 @@ profile. Storage problems display an error instead of claiming progress is saved
 ## Controls
 
 - Hover a unit for a compact stats card beside its hex. The card stays clear
-  of the unit, flips at map edges, and lets clicks pass through. Move away or
+  of the unit, flips at map edges, and lets clicks pass through. It appears and
+  disappears immediately, with fixed slots for attack, defense, range and Shift,
+  a faction-colored bold name, and the unit icon with experience stars. Move away or
   press Esc to dismiss it; the sidebar keeps the persistent selection details.
-- Click a unit to see its movement destinations and boardable transports.
-  Choose a destination, or click its current hex to stay and aim.
-- After choosing the position, attackable enemies turn red. Hover a target for
+- Click a unit to immediately show legal moves and boardable transports.
+  Choose **Attack** to fire from its current hex without moving.
+  Unavailable commands are disabled and explained. Hadrian, Octopus and Hawkeye
+  may shift or attack, never both in one turn. Atlas shows firing targets
+  immediately and cannot shift once placed. Trigger has neither action;
+  Pelican cannot attack. Rabbit and Lynx may use remaining Shift points after
+  their one attack.
+- After choosing Attack or a Shift destination, attackable enemies turn red. Hover a target for
   its identity, both sides' calculations and a casualty probability heatmap
   based on 100,000 independent simulations. The forecast never uses the match's
   actual random state. Click the red target to attack; there is no automatic
   approach to a distant enemy.
-- **Cancel** beneath the unit undoes the provisional move. **End** commits that
-  unit without attacking. These controls move to the strip below the map when
-  necessary to keep red targets clear. Unload controls appear in the sidebar.
-  Ordinary moves can be cancelled even when no attack is available; storage,
-  capture and boarding commit immediately. Battle results close automatically.
-- Right-click or Esc: cancel. Mouse wheel: zoom. Middle/right-drag pans only
-  when the zoomed map extends beyond the viewport.
+- After a move, attack a red target or choose **End**. If no attack is available,
+  the unit ends immediately and you can choose the next unit. Controls stay clear
+  of target hexes; transport passengers retain their Unload controls.
+- **Undo last** in the sidebar reverses any number of your noncombat actions in
+  order: movement, factory deployment/capture/storage, boarding and unloading.
+  A move plus **End** is one undo step. The history survives saving and reopening.
+  Battles, turn changes and match completion clear it; combat can never be undone
+  or replayed. Escape only clears selection; use Undo to change a completed move.
+- Right-click or Esc: cancel. Mouse wheel: zoom. Left-, middle- or right-drag
+  pans when terrain extends beyond the viewport; a plain left click still selects.
   `E`: end turn.
-- Unit chrome shows remaining strength only when damaged (1–7). Full
-  strength (8) is omitted — see `PRODUCT.md`.
+- Unit chrome shows remaining strength only when damaged (1–7), with a 1.6×
+  larger corner number. Full strength (8) is omitted — see `PRODUCT.md`.
 - Click any unoccupied base or factory to inspect its stored units: yours,
   neutral, or enemy, including empty buildings. Hovering also lists the contents
   in the sidebar. Capture with infantry to gain control of the reserves.
-  At an owned building, choose a ready unit and click
-  **Deploy**, then choose a highlighted destination among the six surrounding
+  At an owned building, click anywhere on a ready unit's row to deploy,
+  then choose a highlighted destination among the six surrounding
   hexes: an unoccupied deployable terrain hex, or an adjacent friendly Mule or
   Pelican with an empty cargo slot. Capturing infantry goes inside the factory
   and leaves the map; it can deploy again from the next turn. Stop a damaged
@@ -117,8 +131,8 @@ profile. Storage problems display an error instead of claiming progress is saved
   cannot load and unload in one turn.
 - **Watch AI: On** shows every Xenon move, combat matchup, and before/after
   squad strength. Turn it off for immediate AI turns.
-- The factory panel shows each stored unit's map icon, damage when present,
-  experience, and deployment control.
+- The factory panel shows each stored unit's map icon with experience stars,
+  damage when present, and a full-row deployment button.
 - Experience appears on units in three star columns holding 3, 2, and 3 stars.
   Selecting a unit shows the exact damage bonus; level 8 replaces
   the columns with the large **GENERAL** star.
@@ -139,6 +153,28 @@ profile. Storage problems display an error instead of claiming progress is saved
   chiptune. Browsers require the button press before audio may begin.
 
 ## Custom levels
+
+The **AI-made** category contains four original ground-only scenarios:
+
+| Level | Size | Factories | Starting forces per side |
+|---|---|---|---|
+| 1 · Twisted Fjords | 65×49 | 15 × 12 reserves | 5 tanks, 3 infantry |
+| 2 · Shattered Fjords | 65×49 | 15 × 12 reserves | 5 tanks, 3 infantry |
+| 3 · Fractured Fjords | 40×40 | 15 × 12 reserves | 5 tanks, 3 infantry |
+| 4 · Honeycomb Fjords | 28×28 | 8 × 10 reserves | 4 tanks, 3 infantry |
+
+All factories start neutral, with one road exit surrounded by five mountain
+hexes. Part 1 is a winding tree; Parts 2–3 add angular passages, two-hex
+narrows, varied terminal approaches and connections between branches. Part 4
+fills the board with an interconnected passage network around small mountain
+pockets (at most 19 mountain hexes each). Plains, roads and hills fill the
+fjords; Parts 2–4 also include wasteland. Infantry can cross mountains under
+the normal rules. All maps are available in the menu and map selector, with
+separate profile records and downloadable JSON from their source links.
+
+Map zoom fits the entire battlefield in every style and art set, with
+additional room to zoom out using the mouse wheel. Large maps no longer stop
+at the old native-art minimum zoom.
 
 The editor exports self-contained JSON. Schema:
 
@@ -196,8 +232,8 @@ domains the unit can attack.
 The first/default set, **1 · Remake**, gives all 23 unit types original native **32×32** art in pixel mode: angular
 military silhouettes, upper-left lighting, bright flat armor and selective
 charcoal contours. Both directions are separately shaded and horizontally
-centered. Infantry stays small. Icons stay native-sized at every map zoom and
-in factory panels. See [art/units/README.md](art/units/README.md) for source,
+centered. Infantry stays small within its frame. Icons scale proportionally
+with map zoom and use native 32×32 frames in factory panels and inspectors. See [art/units/README.md](art/units/README.md) for source,
 exports and review tools. The flattened 48×32 terrain geometry specified in
 [ART_DIRECTION.md](ART_DIRECTION.md) is present in the review fixture; production
 terrain and building migration for Remake are still pending.
@@ -206,7 +242,7 @@ Choose **Art set → Legacy** in the game or editor to use all 23 unit icons
 adapted from [ユニットデータ](https://anka.sakura.ne.jp/nectaris/d2.html), together
 with original-style pixel terrain: maroon plains, gray ridges, pink plateaus,
 pale connected roads and domed installations. Legacy uses 48×32 flattened
-hexes, 32×32 pitch and a 16-pixel column stagger. Units always stay 32×32.
+hexes, 32×32 pitch and a 16-pixel column stagger. The 32×32 unit frames scale with their hexes when zooming.
 The terrain is a reconstruction; the icons are JPEG-derived adaptations,
 not a bit-exact ROM atlas. Provenance and rebuilding: [art/legacy/README.md](art/legacy/README.md).
 
