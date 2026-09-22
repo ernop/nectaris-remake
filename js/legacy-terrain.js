@@ -81,6 +81,16 @@ var LEGACY_TERRAIN = (function () {
         if(edge<2)v=4;else if(edge<4)v=18;else if(edge<6)v=17;else if(edge<8)v=16;
       }
       if(mountains[y*48+x])v=mountains[y*48+x];
+      else if(id==="mountain") {
+        // Trim the tiny ground-colored hex tips outside a perimeter cliff.
+        // Null means an actual board edge; ordinary neighboring ground stays.
+        var nearest=Infinity,side=-1;
+        offsets.forEach(function(p,i){
+          var distance=p[0]?(24-Math.sign(p[0])*dx-Math.sign(p[1])*dy)/Math.SQRT2:16-Math.sign(p[1])*dy;
+          if(distance<nearest){nearest=distance;side=i;}
+        });
+        if(neighbors[side]===null)v=0;
+      }
       if(id==="road"||id==="bridge") {
         var roadDistance=Infinity,found=false;
         offsets.forEach(function(p,i){if(connects(neighbors[i])){found=true;roadDistance=Math.min(roadDistance,segmentDistance(dx,dy,p[0],p[1]));}});
