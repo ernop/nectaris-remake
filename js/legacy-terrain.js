@@ -7,7 +7,7 @@ var LEGACY_TERRAIN = (function () {
     "#624348","#876164","#a88081","#c39c9b","#100c12",
     "#28212a","#49404a","#7a6268","#fff9e5","#215783","#48a8c1",
     "#24562c","#77a753","#65716c"];
-  var cache = new Map();
+  var cache = new Map(), mountainShapes = new Map();
   // Same order as HEX.neighbors, expressed on the flattened source grid.
   var offsets = [[32,16],[32,-16],[0,-32],[-32,-16],[-32,16],[0,32]];
   function hash(x,y,seed) {
@@ -19,6 +19,28 @@ var LEGACY_TERRAIN = (function () {
     return Math.hypot(x-t*dx,y-t*dy);
   }
   function connects(id) {return ["road","bridge","base","factory"].indexOf(id)>=0;}
+  function mountainShape(mask) {
+    if(mountainShapes.has(mask))return mountainShapes.get(mask);
+    // Sample the same mountain range on both sides of a tile boundary. Its
+    // rounded skirt can reach into a neighboring tile's corner; clipping it
+    // to mountain hexes cuts a triangular notch into every vertical join.
+    var peaks=mask&64?[[0,0]]:[],ridges=[],pixels=new Uint8Array(48*32);
+    offsets.forEach(function(p,i){if(mask&(1<<i))peaks.push(p);});
+    peaks.forEach(function(a,i){peaks.slice(i+1).forEach(function(b){
+      if(offsets.some(function(p){return b[0]-a[0]===p[0]&&b[1]-a[1]===p[1];}))ridges.push([a,b]);
+    });});
+    if(mask)for(var y=0;y<32;y++)for(var x=0;x<48;x++) {
+      var dx=x+.5-24,dy=y+.5-16,d=Infinity;
+      if(Math.abs(dx)+Math.abs(dy)>24)continue;
+      peaks.forEach(function(p){d=Math.min(d,Math.hypot((dx-p[0])*.8,(dy-p[1])*1.15));});
+      ridges.forEach(function(pair){var a=pair[0],b=pair[1];
+        d=Math.min(d,segmentDistance((dx-a[0])*.8,(dy-a[1])*1.15,(b[0]-a[0])*.8,(b[1]-a[1])*1.15));
+      });
+      if(d<17)pixels[y*48+x]=d>14?11:d>11?12:d>8?13:14;
+    }
+    // Only 128 center/neighbor masks, reused across terrain types and textures.
+    mountainShapes.set(mask,pixels);return pixels;
+  }
   function tile(id, neighbors, variant, owner) {
     var key=[id,neighbors.join(","),variant,owner].join("/");
     if(cache.has(key))return cache.get(key);
@@ -30,6 +52,9 @@ var LEGACY_TERRAIN = (function () {
       offsets.forEach(function (p,i) {if(neighbors[i]===id)d=Math.min(d,segmentDistance(x*.8,y*1.15,p[0]*.8,p[1]*1.15));});
       return d;
     }
+    var mountainMask=id==="mountain"?64:0;
+    neighbors.forEach(function(n,i){if(n==="mountain")mountainMask|=1<<i;});
+    var mountains=mountainShape(mountainMask);
     for(var y=0;y<32;y++)for(var x=0;x<48;x++) {
       var dx=x+.5-24,dy=y+.5-16;
       if(Math.abs(dx)+Math.abs(dy)>24)continue;
@@ -38,14 +63,14 @@ var LEGACY_TERRAIN = (function () {
         var chunk=hash(Math.floor(x/3),Math.floor(y/2),variant+13)%13;
         v=chunk<4?1:chunk<7?11:chunk<10?13:14;
         if(n%7===0)v=chunk<7?2:12;
-      }else if(id==="hill"||id==="mountain") {
+      }else if(id==="hill") {
         var d=relief(dx,dy)+(hash(Math.floor(x/2),Math.floor(y/2),9)%3-1)*.6;
-        if(id==="hill"&&d<14) {
+        if(d<14) {
           var slope=relief(dx+1,dy+1)-relief(dx-1,dy-1);
           v=d>12?5:d>10?6:slope>1.1?9:slope>.1?8:slope>-.8?7:6;
           if(d<9&&n%13===0)v=Math.min(10,v+1);
           if(d<9&&(Math.abs(dx+dy*.7)%11<1||Math.abs(dx-dy)%17<1))v=Math.min(10,v+1);
-        }else if(id==="mountain"&&d<17) v=d>14?11:d>11?12:d>8?13:14;
+        }
       }else if(id==="valley"||id==="bridge") {
         v=n%17===0?16:15;
         var edge=Infinity;
@@ -54,6 +79,7 @@ var LEGACY_TERRAIN = (function () {
         }});
         if(edge<2)v=4;else if(edge<4)v=18;else if(edge<6)v=17;else if(edge<8)v=16;
       }
+      if(mountains[y*48+x])v=mountains[y*48+x];
       if(id==="road"||id==="bridge") {
         var roadDistance=Infinity,found=false;
         offsets.forEach(function(p,i){if(connects(neighbors[i])){found=true;roadDistance=Math.min(roadDistance,segmentDistance(dx,dy,p[0],p[1]));}});
