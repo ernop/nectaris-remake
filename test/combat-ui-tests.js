@@ -23,7 +23,7 @@ module.exports = function (ok) {
     var game = new ENGINE.Game({name: "Combat UI", grid: ["........", "........", "........"],
       units: [{t: type, o: 0, x: 1, y: 1}, {t: type === "HAWKEYE" || type === "FALCON" ? "EAGLE" : "POLAR", o: 1, x: enemyX, y: 1}]}, {seed: 7});
     var ui = Object.create(UI.GameUI.prototype);
-    ui.game = game; ui.canvas = { width: 800, height: 600 }; ui.renderer = {
+    ui.game = game; ui.canvas = { width: 800, height: 600, parentElement: { clientWidth: 800, clientHeight: 600 } }; ui.renderer = {
       hexSize: 34, zoom: 1,
       hexCenter: function (col, row) { var p = HEX.toPixel(col, row, 34); return {x: p.x + 200, y: p.y + 100}; },
       pixelToHex: function (col, row) { return { col: col, row: row }; },
@@ -217,21 +217,41 @@ module.exports = function (ok) {
     ui.onCancel();
     ok(ui.mode === "idle" && !ui.selected, "Escape clears enemy inspection");
 
-    // Conservative target bounds include the whole hex, not just the icon.
+    // Commands keep a fixed location across units, zoom and aiming modes.
+    ui = fixture("BISON", 3);
+    ui.renderer.originX = 40; ui.renderer.originY = 50;
     [0.2, 0.5, 1, 2, 4].forEach(function (zoom) {
-      var size = 34 * zoom, center = { x: 400, y: 280 };
-      var targets = HEX.neighbors(4, 4).map(function (n) {
-        var p = HEX.toPixel(n.col, n.row, size), origin = HEX.toPixel(4, 4, size);
-        return { x: p.x - origin.x + center.x, y: p.y - origin.y + center.y };
-      });
-      var pos = UI.actionPosition(center, size, targets, 108, 26, 800, 560);
-      ok(pos.y >= 560 || targets.every(function (target) {
-        return pos.x + 108 < target.x - size || pos.x > target.x + size ||
-          pos.y + 26 < target.y - size * Math.sqrt(3) / 2 || pos.y > target.y + size * Math.sqrt(3) / 2;
-      }), "all six attack hexes remain clear at zoom " + zoom);
+      ui.renderer.zoom = zoom;
+      ui.renderer.hexCenter = function () { return {x: 790 * zoom, y: 590 * zoom}; };
+      ui.positionActionMenu();
+      ok(ui.canvas.height === 564 && !nodes["map-action-rail"].classList.contains("hidden") &&
+        nodes["action-menu"].style.left === "8px" && nodes["action-menu"].style.top === "569px",
+        "commands stay below all map hexes at the same position at zoom " + zoom);
     });
-    var edge = UI.actionPosition({ x: 790, y: 550 }, 34, [], 108, 26, 800, 560);
-    ok(edge.y === 565 && edge.x + 108 <= 800, "edge placement uses the reserved rail inside viewport bounds");
+    ui.selected = ui.game.units[1]; ui.mode = "moved"; ui.pickTargets = [ui.game.units[0]];
+    ui.positionActionMenu();
+    ok(ui.canvas.height === 564 && ui.renderer.originX === 40 && ui.renderer.originY === 50 &&
+      nodes["action-menu"].style.left === "8px" && nodes["action-menu"].style.top === "569px",
+      "changing the selected unit and aiming mode keeps commands and the camera stable");
+    ui.closeActionMenu();
+    ok(ui.canvas.height === 600 && nodes["map-action-rail"].classList.contains("hidden"),
+      "closing controls returns the entire bottom strip to the battlefield");
+
+    var fits = 0;
+    ui.renderer.fitToMap = function () { fits++; };
+    Object.defineProperty(ui.canvas.parentElement, "clientWidth", { get: function () {
+      return nodes.sidebar.classList.contains("hidden") ? 800 : 460;
+    } });
+    Object.defineProperty(nodes["map-action-rail"], "offsetHeight", { get: function () {
+      return this.classList.contains("hidden") ? 0 : parseInt(this.style.height, 10);
+    } });
+    var layoutState = JSON.stringify(ui.game.snapshot());
+    ui.setDetailsOpen(true);
+    ok(ui.canvas.width === 460 && !nodes.sidebar.classList.contains("hidden"),
+      "opening Details makes room for its readable inspector");
+    ui.setDetailsOpen(false);
+    ok(ui.canvas.width === 800 && ui.canvas.height === 600 && fits === 2 &&
+      JSON.stringify(ui.game.snapshot()) === layoutState, "closing Details reclaims the full map without changing the match");
 
     // Hover details must stay near their hex even on the ultrawide SENECA
     // layout, and must not clip at any of the four viewport corners.
@@ -263,7 +283,8 @@ module.exports = function (ok) {
       "hover inspects an enemy while retaining the selected unit and hides full strength");
     ui.game.units[1].strength = 5;
     ui.updateHoverInfo();
-    ok(hover.innerHTML.includes("<span>Strength</span><strong>5</strong>"), "hover refreshes changed squad strength");
+    ok(hover.innerHTML.includes("aria-label='5 machines remaining'>5</span>") && !hover.innerHTML.includes(">Strength<"),
+      "hover refreshes the remaining-unit number on the icon without a Strength label");
     ui.game.units[1].strength = 8;
     ui.onMouseMove({offsetX: 1, offsetY: 1});
     ok(hover.innerHTML.includes("Bison S-61") && !hover.innerHTML.includes("Polar PT-6"),
@@ -311,11 +332,42 @@ module.exports = function (ok) {
     ok(clicks === 1 && cancels === 1, "middle click has no gameplay action");
     ui.canvas.width = 1400; ui.canvas.height = 900; ui.renderer.fitToMap();
     ui.updateMapCursor();
+    cameraX = ui.renderer.originX; cameraY = ui.renderer.originY;
     ui.onMouseDown(pointer(0, 100, 70));
-    ok(!ui.dragging.pan && ui.canvas.style.cursor === "crosshair", "a fully visible map does not enable grab panning");
-    ui.dragging = null; ui.renderer.originX = -50;
-    ok(ui.renderer.panAxes().x && ui.renderer.panBy(30, 0) && !ui.renderer.panAxes().x,
-      "a displaced map smaller than the viewport can be dragged back into view");
+    ok(ui.dragging.pan && ui.canvas.style.cursor === "grab", "a fully visible map still offers grab panning");
+    ui.onMouseMove(pointer(0, 220, 110)); ui.onMouseUp(pointer(0, 220, 110));
+    ok(ui.renderer.originX === cameraX + 120 && ui.renderer.originY === cameraY + 40 &&
+      clicks === 1 && cancels === 1 && JSON.stringify(ui.game.snapshot()) === state,
+      "dragging a fitted map moves both axes without issuing a unit command");
+    var unitCenter = ui.renderer.hexCenter(1, 1);
+    ui.onMouseDown(pointer(0, unitCenter.x, unitCenter.y));
+    ui.onMouseMove(pointer(0, unitCenter.x + 2, unitCenter.y));
+    ui.onMouseUp(pointer(0, unitCenter.x + 2, unitCenter.y));
+    ok(clicks === 2, "a small hand movement still counts as a click on a fitted map");
+    var oldStyle = RENDER.getStyle(), oldSet = RENDER.getIconSet();
+    [["pixel", "remake"], ["pixel", "legacy"], ["classic", "remake"], ["neon", "remake"]].forEach(function (look) {
+      RENDER.setStyle(look[0]); RENDER.setIconSet(look[1]);
+      ui.renderer.fitToMap();
+      ui.renderer.zoom = ui.renderer.minimumZoom(); ui.renderer.constrainView();
+      cameraX = ui.renderer.originX; cameraY = ui.renderer.originY;
+      ui.renderer.panBy(-80, 40);
+      ok(ui.renderer.originX === cameraX - 80 && ui.renderer.originY === cameraY + 40,
+        look.join("/") + " pans horizontally and vertically at minimum zoom");
+      [-1, 1].forEach(function (direction) {
+        ui.renderer.panBy(direction * 100000, direction * 100000);
+        var dims = ui.renderer.mapDimensions(), z = ui.renderer.zoom;
+        var left = ui.renderer.originX - (look[1] === "legacy" ? 24 : ui.renderer.hexSize) * z;
+        var top = ui.renderer.originY - (look[1] === "legacy" ? 16 : ui.renderer.hexSize) * z;
+        ok(left < ui.canvas.width && left + dims.width * z > 0 &&
+          top < ui.canvas.height && top + dims.height * z > 0,
+          look.join("/") + " keeps part of the map visible at the pan limit " + direction);
+        cameraX = ui.renderer.originX; cameraY = ui.renderer.originY;
+        ui.renderer.panBy(-direction * 20, -direction * 20);
+        ok(ui.renderer.originX === cameraX - direction * 20 && ui.renderer.originY === cameraY - direction * 20,
+          "map can be dragged back from each pan limit without snapping");
+      });
+    });
+    RENDER.setIconSet(oldSet); RENDER.setStyle(oldStyle);
   } finally {
     if (savedDocument === undefined) delete global.document; else global.document = savedDocument;
     if (savedView === undefined) delete global.COMBAT_VIEW; else global.COMBAT_VIEW = savedView;

@@ -8,7 +8,7 @@
  *   click red enemy -> resolve from the chosen position
  *   move destination -> commit movement; a legal shot remains available
  *   Undo last       -> reverse noncombat actions since the last battle/turn
- * Right-click / Esc cancels. Wheel zooms; drag pans when terrain is offscreen.
+ * Right-click / Esc cancels. Wheel zooms; drag pans at any zoom level.
  */
 "use strict";
 
@@ -50,6 +50,9 @@ var UI = (function () {
     this.destroyed = false;
     this.watchAI = localStorage.getItem("nectaris-watch-ai") !== "off";
     this.onGameOver = this.options.onGameOver || function () {};
+    this.detailsOpen = false;
+    try { this.detailsOpen = localStorage.getItem("nectaris-details-open") === "on"; } catch (e) { /* optional preference */ }
+    this.refreshDetailsPanel();
 
     // Keep exact function references so destroy() can remove every listener.
     // Starting a second map used to leave the first map's listeners alive;
@@ -82,7 +85,21 @@ var UI = (function () {
     canvas.addEventListener("wheel", this.handlers.wheel, { passive: false });
     canvas.addEventListener("contextmenu", this.handlers.contextmenu);
     document.addEventListener("keydown", this.handlers.keydown);
+    // Keep canvas dimensions in sync when the inspector or action strip changes.
+    if (typeof ResizeObserver !== "undefined") {
+      this._layoutObserver = new ResizeObserver(function () {
+        var wrap = canvas.parentElement;
+        if (canvas.width !== wrap.clientWidth ||
+            canvas.height !== Math.max(1, wrap.clientHeight - (self._actionRailHeight || 0))) self.resize();
+      });
+      this._layoutObserver.observe(canvas.parentElement);
+    }
 
+    $("btn-details").onclick = function () { self.setDetailsOpen(!self.detailsOpen); };
+    $("btn-details-close").onclick = function () {
+      self.setDetailsOpen(false);
+      $("btn-details").focus();
+    };
     $("btn-undo").onclick = function () { self.undoLast(); };
     $("btn-endturn").onclick = function () { self.endTurn(); };
     $("btn-menu").onclick = this.options.onMenu || function () { location.reload(); };
@@ -186,6 +203,30 @@ var UI = (function () {
     if (this.renderer) { this.renderer.fitToMap(); this.draw(); }
   };
 
+  GameUI.prototype.refreshDetailsPanel = function () {
+    $("sidebar").classList[this.detailsOpen ? "remove" : "add"]("hidden");
+    $("btn-details").setAttribute("aria-expanded", String(!!this.detailsOpen));
+  };
+
+  GameUI.prototype.setDetailsOpen = function (open) {
+    this.detailsOpen = !!open;
+    this.refreshDetailsPanel();
+    try { localStorage.setItem("nectaris-details-open", open ? "on" : "off"); } catch (e) { /* optional preference */ }
+    this.resize();
+  };
+
+  GameUI.prototype.setActionRail = function (height) {
+    if ((this._actionRailHeight || 0) === height) return;
+    this._actionRailHeight = height;
+    var rail = $("map-action-rail");
+    rail.classList[height ? "remove" : "add"]("hidden");
+    rail.style.height = height + "px";
+    this.canvas.height = Math.max(1, this.canvas.parentElement.clientHeight - height);
+    // Preserve the camera: opening controls must not move a destination
+    // under the pointer or change the unit's apparent position.
+    this.draw();
+  };
+
   GameUI.prototype.draw = function () {
     var self = this;
     this.updateMapCursor();
@@ -195,8 +236,8 @@ var UI = (function () {
       self._drawPending = false;
       if (self.destroyed) return;
       self.renderer.selected = self.selected;
-      self.renderer.draw();
       self.positionActionMenu();
+      self.renderer.draw();
       self.updateHoverInfo();
     });
   };
@@ -205,6 +246,7 @@ var UI = (function () {
     if (this.destroyed) return;
     this.destroyed = true;
     if (this._unsubscribeIconSet) this._unsubscribeIconSet();
+    if (this._layoutObserver) this._layoutObserver.disconnect();
     var h = this.handlers;
     window.removeEventListener("resize", h.resize);
     window.removeEventListener("mouseup", h.windowMouseup);
@@ -397,20 +439,30 @@ var UI = (function () {
     var terr = game.terrainAt(unit.col, unit.row);
     var strCap = COMBAT.strengthCaption(unit.strength);
     var faction = RENDER.PLAYER_COLORS[unit.player < 0 ? 2 : unit.player];
-    function stat(label, value, secondary) {
-      return "<div class='unit-stat" + (secondary ? " secondary" : "") + "'><span>" + label +
-        "</span><strong>" + value + "</strong></div>";
+    function stat(label, value, detail) {
+      return "<div class='unit-stat'><span class='unit-stat-label'>" + label +
+        "</span><strong>" + value + "</strong>" +
+        (detail ? "<span class='unit-stat-detail'>" + detail + "</span>" : "") + "</div>";
     }
-    var shift = t.moveAfterAttack && unit.player === game.currentPlayer ? unit.movePointsLeft + "/" + t.move : t.move;
-    return "<div class='unit-card-head'><canvas class='unit-card-icon' width='32' height='32' role='img' aria-label='" +
-      esc(t.name) + ", experience " + unit.exp + " of 8'></canvas>" +
+    var ground = COMBAT.rangeBand(t, false), air = COMBAT.rangeBand(t, true);
+    var groundRange = ground && ground.max > 1 ? "Range " + bandText(t, false) : "";
+    // Adjacency is the default. Spell out the air band when a mixed-range
+    // unit could otherwise imply that its ground range also applies to air.
+    var airRange = air && (air.max > 1 || groundRange) ? "Range " + bandText(t, true) : "";
+    var remainingShift = t.moveAfterAttack && unit.player === game.currentPlayer && unit.movePointsLeft < t.move;
+    var shift = remainingShift ? unit.movePointsLeft + "<small>/" + t.move + "</small>" : t.move;
+    var experience = COMBAT.experienceBonus(unit.exp), damage = experience.damage;
+    return "<div class='unit-card-head'><span class='unit-card-portrait'><canvas class='unit-card-icon' width='32' height='32' role='img' aria-label='" +
+      esc(t.name) + "'></canvas>" +
+      (strCap ? "<span class='unit-strength' role='img' aria-label='" + strCap + " machines remaining'>" + strCap + "</span>" : "") + "</span>" +
       "<strong class='ui-name' style='color:" + faction.light + "'>" + esc(t.name) + "</strong>" +
-      "<span class='unit-strength'>" + (strCap ? "<span>Strength</span><strong>" + strCap + "</strong>" : "") + "</span></div>" +
-      "<div class='unit-combat-grid'>" + stat("Ground ATK", t.atkG || "—") + stat("Air ATK", t.atkA || "—") +
-      stat("Defense", t.def) + stat("Range", bandText(t, false), true) + stat("Range", bandText(t, true), true) +
-      stat("Shift", shift, true) + "</div>" +
+      (unit.exp ? "<canvas class='unit-card-rank' width='32' height='32' role='img' aria-label='" +
+        (experience.general ? "General" : "Experience " + unit.exp + " of 8") + "'></canvas>" : "") + "</div>" +
+      "<div class='unit-combat-grid'>" + stat("Ground ATK", t.atkG || 0, groundRange) +
+      (air ? stat("Air ATK", t.atkA, airRange) : "") + stat("Defense", t.def) +
+      stat("Shift", shift, remainingShift ? "left" : "") + "</div>" +
       "<div class='unit-card-foot'><span>" + esc(terr.name) + " <strong>+" + (t.moveType === "air" ? 0 : terr.def) +
-      " DEF</strong></span><span>Damage <strong>+" + COMBAT.experienceBonus(unit.exp).damage + "%</strong></span></div>";
+      " DEF</strong></span>" + (damage ? "<span>Damage <strong>+" + damage + "%</strong></span>" : "") + "</div>";
   }
 
   GameUI.prototype.renderUnitInfo = function (container, unit) {
@@ -421,8 +473,11 @@ var UI = (function () {
     if (container._unitCardKey === key) return;
     container._unitCardKey = key;
     container.innerHTML = html;
-    if (unit) RENDER.drawUnitIcon(container.querySelector(".unit-card-icon"), unit,
-      { experience: true, attacking: attacking, spent: spent });
+    if (unit) {
+      RENDER.drawUnitIcon(container.querySelector(".unit-card-icon"), unit,
+        { attacking: attacking, spent: spent });
+      if (unit.exp) RENDER.drawExperienceIcon(container.querySelector(".unit-card-rank"), unit);
+    }
   };
 
   GameUI.prototype.showUnitInfo = function (unit) {
@@ -507,46 +562,22 @@ var UI = (function () {
 
   /* --- action menu ------------------------------------------------------ */
 
-  /* Keep the compact controls clear of every attackable hex. At tight zoom
-   * or map edges, the reserved rail is preferable to covering a target. */
-  function actionPosition(center, size, targetCenters, width, height, viewWidth, viewHeight) {
-    var below = center.y + size * 0.55 + 5;
-    var candidates = [
-      { x: center.x - width / 2, y: below },
-      { x: center.x - width / 2, y: center.y + size + 8 },
-      { x: center.x - size - width - 6, y: below },
-      { x: center.x + size + 6, y: below },
-    ];
-    function clear(pos) {
-      if (pos.x < 4 || pos.y < 4 || pos.x + width > viewWidth - 4 || pos.y + height > viewHeight - 4) return false;
-      return targetCenters.every(function (target) {
-        var rx = size + 3, ry = size * Math.sqrt(3) / 2 + 3;
-        return pos.x + width < target.x - rx || pos.x > target.x + rx ||
-          pos.y + height < target.y - ry || pos.y > target.y + ry;
-      });
-    }
-    for (var i = 0; i < candidates.length; i++) if (clear(candidates[i])) return candidates[i];
-    return { x: Math.max(4, Math.min(viewWidth - width - 4, center.x - width / 2)), y: viewHeight + 5 };
-  }
-
+  // Every unit's commands occupy the same bottom-left strip, outside the
+  // battlefield. Its space is returned to the map when the menu closes.
   GameUI.prototype.positionActionMenu = function () {
-    var menu = $("action-menu"), renderer = this.renderer;
+    var menu = $("action-menu");
     if (!this.selected || menu.classList.contains("hidden")) return;
-    var centers = (this.pickTargets || []).map(function (target) { return renderer.hexCenter(target.col, target.row); });
-    if (this.mode === "unitSelected") centers = Object.keys(this.range || {}).filter(function (key) {
-      return this.range[key].canStop && this.range[key].cost > 0;
-    }, this).map(function (key) { var rec = this.range[key]; return renderer.hexCenter(rec.col, rec.row); }, this);
-    var pos = actionPosition(renderer.hexCenter(this.selected.col, this.selected.row),
-      renderer.hexSize * renderer.zoom, centers, menu.offsetWidth, menu.offsetHeight,
-      this.canvas.width, this.canvas.height);
-    menu.style.left = Math.round(pos.x) + "px";
-    menu.style.top = Math.round(pos.y) + "px";
+    this.setActionRail(menu.offsetHeight + 10);
+    menu.style.left = "8px";
+    menu.style.top = (this.canvas.height + 5) + "px";
   };
 
   GameUI.prototype.hideCombatPreview = function () {
     $("combat-inspector").classList.add("hidden");
     $("unit-info").classList.remove("hidden");
     this._previewKey = null;
+    $("btn-details").classList.remove("has-forecast");
+    $("btn-details").textContent = "Details";
     this._forecastCache = {};
     this.renderer.attackingUnitId = null;
     this.renderer.flashUnits = {};
@@ -566,6 +597,8 @@ var UI = (function () {
     $("combat-inspector").classList.remove("hidden");
     $("unit-info").classList.add("hidden");
     $("sidebar").scrollTop = 0;
+    $("btn-details").classList.add("has-forecast");
+    $("btn-details").textContent = "Details · Forecast";
     this.renderer.attackingUnitId = attacker.id;
     this.renderer.flashUnits = {};
     this.renderer.flashUnits[defender.id] = "#ffffff";
@@ -630,6 +663,7 @@ var UI = (function () {
 
   GameUI.prototype.closeActionMenu = function () {
     $("action-menu").classList.add("hidden");
+    this.setActionRail(0);
     $("transport-actions").classList.add("hidden");
     $("attack-targets").classList.add("hidden");
     $("action-status").classList.add("hidden");
@@ -933,17 +967,14 @@ var UI = (function () {
   /* --- input -------------------------------------------------------------- */
 
   GameUI.prototype.updateMapCursor = function () {
-    var axes = this.renderer.panAxes();
-    this.canvas.style.cursor = this.dragging && this.dragging.moved ? "grabbing" :
-      axes.x || axes.y ? "grab" : "crosshair";
+    this.canvas.style.cursor = this.dragging && this.dragging.moved ? "grabbing" : "grab";
   };
 
   GameUI.prototype.onMouseDown = function (e) {
     if (e.button > 2) return;
     e.preventDefault();
-    var axes = this.renderer.panAxes();
     this.dragging = { x: e.offsetX, y: e.offsetY, moved: false,
-      pan: axes.x || axes.y, button: e.button };
+      pan: true, button: e.button };
   };
 
   GameUI.prototype.onMouseMove = function (e) {
@@ -1239,7 +1270,7 @@ var UI = (function () {
     this._toastT = setTimeout(function () { el.classList.add("hidden"); }, 2200);
   };
 
-  return { GameUI: GameUI, actionPosition: actionPosition, hoverPosition: hoverPosition };
+  return { GameUI: GameUI, hoverPosition: hoverPosition };
 })();
 
 if (typeof module !== "undefined") module.exports = UI;

@@ -4,6 +4,26 @@ Settled product and UI decisions for this remake. Mechanics reconstruction
 (with sources) lives in `MECHANICS.md`. Link this file from `agents.md` and
 the README so later sessions load it.
 
+## Optional inspector and full map height (2026-09-22)
+
+The left inspector starts closed. **Details** in the top bar toggles it, and
+its close button returns the space to the map. Remember the choice across
+matches and reloads. Selection and hovering never force it open. Hover cards
+remain available on the map; the Details button highlights when a combat
+forecast is ready to inspect. **Undo last** stays accessible in the top bar.
+
+The top bar stays one fixed-height row, including when button labels or counts
+change. Match information and settings scroll horizontally when necessary;
+Details, Undo and End Turn stay together at the right. Never wrap controls onto
+a second row or truncate information to fit.
+
+Attack, End, Cancel and transport commands always occupy the same bottom-left
+action strip, outside the battlefield. Keep the menu to one row; scroll long
+command lists horizontally. Allocate its space only while commands are visible,
+then reclaim it when they close. Keep the camera stable as the strip opens;
+refit for window and inspector size changes. This replaces nearby-unit and
+map-edge placement.
+
 ## Enemy movement inspection (2026-09-20)
 
 During your turn, click an enemy to inspect its details and orange movement
@@ -65,18 +85,31 @@ the same pixel density and light. Normal terrain has no permanent hex borders.
 All 46 directional unit frames are now integrated into pixel mode in the game,
 editor and factory. Review all states in `tools/unit-sheet.html` or substitute
 any unit on the native map fixture in `tools/art-pilot.html`. Map sprites scale
-proportionally with zoom; clipped maps can be grabbed with the left mouse button.
+proportionally with zoom. Grab with the left, middle or right mouse button to
+pan at any zoom level, including when the entire map fits (2026-09-22).
+Do not snap a dragged map back to center; keep a patch visible at the pan limits.
 Click without dragging retains normal selection and command behavior. Production
 terrain, buildings and flattened map geometry for Remake remain to be migrated.
 
-## Nearby unit inspection (updated 2026-09-21)
+## Nearby unit inspection (updated 2026-09-22)
 
 Hovering a unit immediately shows a compact card beside its hex, including
 when another unit is selected; leaving it immediately hides the card. The card
-and sidebar share a fixed layout: icon with experience stars and bold faction-colored
-name; ground attack, air attack and defense across the main row; corresponding
-ranges and Shift directly below; terrain defense and experience damage bonus
-in the footer. Damaged strength has a reserved header slot. No faction heading,
+and sidebar share a compact layout: unit icon and bold faction-colored
+name; one stat row for ground attack, supported air attack, defense and Shift.
+Omit the air attack cell entirely when that domain cannot be attacked. Ground
+attack remains explicit, including zero for air-only and noncombat units.
+Range 1 is the default: omit it and all unavailable-range placeholders. Show
+longer exact bands directly beneath their attack value; when ground range is
+longer, retain an aircraft range of 1 to make mixed ranges unambiguous (Lynx).
+Keep terrain and its defense bonus in the footer, adding damage bonus only
+when experience grants one. Show remaining/total Shift only when a friendly
+buggy has spent movement. Experience has its own readable header badge: 1–7
+small stars in the traditional 3/2/3 arrangement, replaced by one large star
+for General (8); no badge at zero experience. Reuse the map's star renderer.
+Damaged units show only the remaining-unit number on their icon, without a
+“Strength” label. Names and terrain text wrap without
+truncation. No faction heading,
 stats table, movement chassis, capture explanation or action-rule reminders.
 The card stays anchored to the hex. Placement
 flips at viewport edges and favors space with fewer units underneath.
@@ -93,7 +126,7 @@ printing it on every healthy unit is redundant. The remaining count is shown
 only when damaged (1–7):
 
 - Map unit chrome (bottom-left badge)
-- Sidebar and nearby hover unit inspectors (Strength header badge omitted when full)
+- Sidebar and nearby hover unit inspectors (unlabelled icon numeral omitted when full)
 - Factory stored-unit list
 - Battle-preview name line
 
@@ -180,8 +213,8 @@ tabular figures so force size can be compared before choosing a mission.
 
 ## AI-made fjord levels (2026-09-22)
 
-The AI-made category preserves four separate original maps, with stable
-`aiMadeIndex` values 0–3 in the menu, map selector and profile records.
+The AI-made category preserves seven separate original maps, with stable
+`aiMadeIndex` values 0–6 in the menu, map selector and profile records.
 Twisted Fjords (65×49) is a winding tree; Shattered Fjords (65×49) and
 Fractured Fjords (40×40) introduce angular, variable-width passages and
 connections between branches. Each has fifteen neutral factories with twelve
@@ -189,8 +222,27 @@ ground units, five small clearings, and corner armies of five tanks and three
 infantry. Honeycomb Fjords (28×28) scales down to eight factories with ten units,
 three staging spaces, and four tanks plus three infantry per side. Its passage
 mesh covers the board, separating sixteen mountain pockets of at most nineteen
-hexes. Every factory has exactly one road exit and five mountain neighbors;
-normal transport loading rules still apply. All four maps exclude aircraft.
+hexes. The first four maps' factories have exactly one road exit and five
+mountain neighbors; these maps exclude aircraft. Arsenal Fjords (Part 5, 28×28)
+has nine neutral factories split equally between one, two and three road exits.
+Its inventories range from one to twelve units (51 total), with deliberate
+infantry, armor, patrol, artillery, engineer and mixed teams. Each inventory
+uses at most five unit types and two artillery units. Every immobile Atlas or
+Trigger immediately follows a compatible Mule or Pelican, with a separate
+carrier for each passenger. Pelicans are the only aircraft. The starting armies
+remain four tanks and three infantry each; normal transport rules apply.
+
+Needle Fjords (Part 6, 34×34) and Labyrinth Fjords (Part 7, 58×58) restore
+long branching fjords after the user found Part 5 too open. Approximately 38%
+of each map is floor; the two- and three-hex channels have only two/three small
+junction clearings. Factory mouths form a contiguous fan facing down the fjord,
+with mountain walls behind them. Part 6 has nine neutral factories; Part 7 has
+twenty-one. Each inventory has 4–8 units, no infantry or other capturing types,
+and at most two artillery units. One-, two- and three-exit factories occur in
+equal proportions. Each side starts with exactly one Charlie, one Panther
+motorcycle infantry and one Rabbit missile buggy. Pelicans remain permitted,
+and every Atlas or mine follows its own compatible carrier in the roster.
+
 Importable JSON lives under `levels/`; `tools/build-ai-fjords.js` rebuilds it and
 the runtime data deterministically. Earlier layouts remain intact when a new
 part is added.
@@ -308,14 +360,14 @@ PRNG correlation remains unverified. They must never read, reveal, advance or de
 seeds from the match RNG. Hovering and cancelling must leave combat state and
 the future real result unchanged. Cache projections for the current activation.
 
-Keep unit controls clear of attack/destination hexes, using the reserved strip
-below the map if needed. Reposition on pan, zoom and resize. After a committed
-move there is no Cancel confirmation; **End** finishes without attacking.
+Keep unit controls clear of attack/destination hexes, using a temporary strip
+below the map only if no on-map position fits. Reposition on pan, zoom and resize.
+After a committed move there is no Cancel confirmation; **End** finishes without attacking.
 Escape clears selection. Unload remains available for eligible passengers.
 Results close automatically after the casualty animation and lock input while
 resolving.
 
-### Sidebar undo history (2026-09-21)
+### Undo history (2026-09-21; moved to top bar 2026-09-22)
 
 **Undo last** reverses noncombat actions across units, with no fixed step limit.
 Movement (including subsequent End), boarding, unloading, deployment, storage,

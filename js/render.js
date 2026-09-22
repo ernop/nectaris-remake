@@ -175,6 +175,7 @@ var RENDER = (function () {
   };
 
   Renderer.prototype.panAxes = function () {
+    // Which axes currently clip terrain; dragging itself is available at any zoom.
     var dims = this.mapDimensions();
     var left = this.originX - (legacyMap() ? 24 : this.hexSize) * this.zoom;
     var top = this.originY - (legacyMap() ? 16 : this.hexSize) * this.zoom;
@@ -191,32 +192,21 @@ var RENDER = (function () {
     var z = this.zoom, s = this.hexSize;
     var offsetX = legacyMap() ? 24 : s, offsetY = legacyMap() ? 16 : s;
     var mapW = dims.width * z, mapH = dims.height * z;
-    var margin = 16;
-
-    if (mapW <= this.canvas.width) {
-      this.originX = (this.canvas.width - mapW) / 2 + offsetX * z;
-    } else {
-      this.originX = Math.max(
-        this.canvas.width - margin - mapW + offsetX * z,
-        Math.min(offsetX * z + margin, this.originX)
-      );
-    }
-    if (mapH <= this.canvas.height) {
-      this.originY = (this.canvas.height - mapH) / 2 + offsetY * z;
-    } else {
-      this.originY = Math.max(
-        this.canvas.height - margin - mapH + offsetY * z,
-        Math.min(offsetY * z + margin, this.originY)
-      );
-    }
+    // Allow positioning a fitted map as freely as a zoomed one. Keep a
+    // visible patch to grab back, even at minimum zoom or on tiny viewports.
+    var visibleX = Math.min(96, mapW / 2, this.canvas.width / 2);
+    var visibleY = Math.min(96, mapH / 2, this.canvas.height / 2);
+    this.originX = Math.max(visibleX - mapW + offsetX * z,
+      Math.min(this.canvas.width - visibleX + offsetX * z, this.originX));
+    this.originY = Math.max(visibleY - mapH + offsetY * z,
+      Math.min(this.canvas.height - visibleY + offsetY * z, this.originY));
     return axes;
   };
 
   Renderer.prototype.panBy = function (dx, dy) {
     var beforeX = this.originX, beforeY = this.originY;
-    var axes = this.panAxes();
-    if (axes.x) this.originX += dx;
-    if (axes.y) this.originY += dy;
+    this.originX += dx;
+    this.originY += dy;
     this.constrainView();
     return this.originX !== beforeX || this.originY !== beforeY;
   };
@@ -1141,6 +1131,18 @@ var RENDER = (function () {
 
   }
 
+  // The popup gives rank its own readable badge, using the map's exact
+  // 3/2/3 star arrangement and single large General emblem.
+  function drawExperienceIcon(canvas, unit) {
+    var ctx = canvas.getContext("2d");
+    var u = Math.min(canvas.width, canvas.height) / 16;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.save();
+    ctx.translate(canvas.width / 2 - 10 * u, canvas.height / 2 + 10 * u);
+    drawExperience(ctx, unit, u);
+    ctx.restore();
+  }
+
   /* Standalone unit icon (factory panel, tools/unit-sheet.html). `opts` is
    * optional: { attacking: true } uses the attack palette, { spent: true }
    * applies the completed-activation greyscale. { experience: true } includes
@@ -1332,6 +1334,7 @@ var RENDER = (function () {
     Renderer: Renderer,
     PLAYER_COLORS: PLAYER_COLORS,
     drawUnitIcon: drawUnitIcon,
+    drawExperienceIcon: drawExperienceIcon,
     setStyle: setStyle,
     getStyle: getStyle,
     styleIds: Object.keys(THEMES),

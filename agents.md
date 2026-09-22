@@ -15,12 +15,15 @@ Facts wei need across sessions:
   logic module ends with `if (typeof module !== "undefined") module.exports`
   so the node test suite loads them.
 - **Tests:** `node test/run-tests.js` — map validation, rule unit-tests, and
-  AI-vs-AI self-play on all 32 normal/advanced campaign + 24 extra-pack + 4 AI-made maps. Run it
+  AI-vs-AI self-play on all 32 normal/advanced campaign + 24 extra-pack + 7 AI-made maps. Run it
   after any engine, data, or map change.
 - **Local development:** `./serve.sh` serves the repo on fixed backend port
   `127.0.0.1:8001`; do not substitute a random port. The machine's shared
   Caddy registry exposes it at `http://nectaris.localhost` and the local
   dashboard can start/stop it under project name `nectaris-remake`.
+- **Map navigation (2026-09-22):** grabbing pans at every zoom level, even when
+  the entire map fits. Preserve the drag threshold so clicks still select units;
+  never recenter merely because the map is smaller than the viewport.
 - **Deploy target:** none written yet. It is a static folder; any web host
   works. When youi picks a live target, record it here (per the pdeploy
   rule).
@@ -107,11 +110,15 @@ Facts wei need across sessions:
 - **Combat UI (2026-09-21, latest correction):** click a unit to move immediately;
   **Attack** aims in place. Atlas aims immediately. After moving, attack or End
   if a shot exists; otherwise finish automatically. This supersedes the separate
-  Shift-selection/confirmation flow. Sidebar **Undo last** reverses noncombat
+  Shift-selection/confirmation flow. Top-bar **Undo last** reverses noncombat
   actions across units, including factory/cargo changes, and survives saves.
   Battle, turn and match-end boundaries clear history; never undo/redo combat.
   Buggies retain their remaining movement only after attacking. Keep action
-  controls clear of target hexes with the reserved rail fallback. Never restore
+  controls clear of target hexes. The left inspector is optional (Details,
+  initially closed); commands always use the fixed bottom-left rail, which only
+  takes space while commands are visible. The top bar never wraps: keep its
+  height fixed and let settings scroll beside the persistent Details/Undo/End
+  Turn controls (2026-09-22). Never restore permanent empty chrome or
   automatic move-and-attack shortcuts. `PRODUCT.md` records the current flow;
   `MANUAL_AUDIT.md` is the historical booklet review.
   `COMBAT.forecast` uses 100,000 independent simulation seeds and must never

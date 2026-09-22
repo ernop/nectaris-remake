@@ -180,10 +180,11 @@ var rendererCanvas = { width: 800, height: 600, getContext: function () { return
 var renderer = new RENDER.Renderer(rendererCanvas, rendererGame);
 renderer.fitToMap();
 var fittedAxes = renderer.panAxes();
-ok(!fittedAxes.x && !fittedAxes.y, "fitted map cannot pan on either axis");
+ok(!fittedAxes.x && !fittedAxes.y, "fitted map is fully visible on both axes");
 var fittedX = renderer.originX, fittedY = renderer.originY;
-ok(!renderer.panBy(100, 100), "dragging a fully visible map changes nothing");
-ok(renderer.originX === fittedX && renderer.originY === fittedY, "fully visible map stays centered");
+ok(renderer.panBy(100, 100), "dragging a fully visible map changes its position");
+ok(renderer.originX === fittedX + 100 && renderer.originY === fittedY + 100,
+  "fully visible map follows the pointer without snapping to center");
 renderer.zoom = 10;
 renderer.constrainView();
 var zoomedAxes = renderer.panAxes();
@@ -401,7 +402,7 @@ var friendHex = range[HEX.key(1, 1)];
 ok(!friendHex || !friendHex.canStop, "cannot stop on friendly hex");
 // cannot enter the enemy hex itself
 ok(!range[HEX.key(5, 2)], "cannot enter enemy hex");
-// starting inside enemy ZOC limits movement to 1 hex
+// Starting inside enemy ZOC permits escape; entering another ZOC still stops.
 var g2 = new ENGINE.Game({
   name: "T2", turnLimit: 50,
   grid: ["......", "......", "B....B"],
@@ -410,12 +411,11 @@ var g2 = new ENGINE.Game({
 }, { seed: 1 });
 var b2 = g2.unitAt(2, 0);
 var range2 = g2.movementRange(b2);
-var maxDist = 0;
-for (var k in range2) {
-  var rec = range2[k];
-  if (rec.canStop) maxDist = Math.max(maxDist, HEX.distance(2, 0, rec.col, rec.row));
-}
-ok(maxDist === 1, "unit starting in enemy ZOC moves at most 1 hex (got " + maxDist + ")");
+ok(range2[HEX.key(0, 0)].cost === 2, "unit starting in enemy ZOC can escape more than one hex");
+ok(range2[HEX.key(2, 1)].stop, "moving directly from one enemy ZOC hex to another stops");
+
+section("ZOC execution, same-turn changes and original Windows comparisons");
+require("./zoc-tests.js")(ok);
 
 section("per-chassis terrain costs");
 /* The published per-chassis table (see MECHANICS.md). Each row is checked

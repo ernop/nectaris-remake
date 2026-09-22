@@ -1,14 +1,13 @@
-/* Pre-optimization movement search. Kept as an independent differential
- * oracle for costs, stop flags, insertion order and predecessor ties. */
+/* Linear movement search, with the verified ZOC exit rule. Kept as an
+ * independent algorithmic oracle for costs, stop flags and path ties.
+ * Original-executable fixtures separately verify the shared rule. */
 "use strict";
 module.exports = function (unit) {
     var self = this;
     var result = {};
     var startKey = HEX.key(unit.col, unit.row);
-    var startInZOC = this.inEnemyZOC(unit.col, unit.row, unit.player);
-    var budget = startInZOC ? Math.min(1, unit.movePointsLeft) : unit.movePointsLeft;
+    var budget = unit.movePointsLeft;
 
-    // For a 1-hex-in-ZOC move we still honor terrain passability but charge 1.
     var frontier = [{ col: unit.col, row: unit.row, cost: 0 }];
     result[startKey] = { col: unit.col, row: unit.row, cost: 0, canStop: true, prev: null };
     if (unit.shifted) return result;
@@ -27,11 +26,11 @@ module.exports = function (unit) {
         var terr = this.terrainAt(n.col, n.row);
         var baseCost = terrainCost(terr, unit.type.moveType, unit.type);
         if (baseCost === null) continue; // impassable for this chassis
-        var stepCost = startInZOC ? 1 : baseCost;
+        var stepCost = baseCost;
         /* Valley: a unit that can enter at all does so by spending everything
          * it has left, so it always ends its move there. Air is unaffected —
          * terrainCost already flattens every hex to 1 for aircraft. */
-        var drains = !!terr.costsAllMovement && unit.type.moveType !== "air" && !startInZOC;
+        var drains = !!terr.costsAllMovement && unit.type.moveType !== "air";
         if (drains) {
           stepCost = budget - cur.cost;
           if (stepCost < 1) continue;
@@ -67,4 +66,3 @@ module.exports = function (unit) {
     }
     return result;
   };
-

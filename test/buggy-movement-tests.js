@@ -49,8 +49,8 @@ module.exports = function (ok) {
     ok(!result.defenderDead && !unit.moved && range[HEX.key(firingCol - 1, 0)],
       type + " may retreat even when its target survives");
     if (type === "RABBIT") {
-      ok(Object.values(range).every(function (rec) { return HEX.distance(firingCol, 0, rec.col, rec.row) <= 1; }),
-        "surviving adjacent enemy still limits Rabbit's retreat to one hex");
+      ok(range[HEX.key(0, 0)] && range[HEX.key(0, 0)].cost === firingCol,
+        "Rabbit can leave a surviving enemy's ZOC with its remaining movement");
     }
 
     // Spending the entire allowance on the approach grants no free retreat.

@@ -1,0 +1,266 @@
+{
+  "name": "ARSENAL FJORDS",
+  "pack": "AI-made",
+  "author": "Codex · original level",
+  "source": "levels/arsenal-fjords.json",
+  "description": "Part 5 rebuilds the dense 28×28 fjord network around nine deliberate supply teams: infantry caches, armor depots, patrols, escorted guns, engineers and mixed arsenals. Each corner army starts with four tanks and three infantry.",
+  "special": "Factory stocks range from 1 to 12 units (51 total), with three factories each offering one, two or three road exits. Every Atlas and mine follows its own Mule or Pelican in the roster. Deploy the carrier first and load the immobile unit aboard. Pelicans are the only aircraft; no battery has more than two guns.",
+  "tags": [
+    "part 5",
+    "themed reserves",
+    "1 / 2 / 3 exits",
+    "Pelican airlift"
+  ],
+  "turnLimit": 120,
+  "grid": [
+    ".h.hh.h.h..h.h.....w....h.h.",
+    ".B..--.h.---hhh.hM.hh..ww..w",
+    "-...MM---MMM----MMMMw-.MMMh-",
+    "...MMM.-MMM--.-M-FMMh---M--h",
+    "-MMMMMw-MMFMM.-MMM---.MMFMM.",
+    "--MMM..-MMMMMh--MMMw-hMM-MMw",
+    "-h--..h---Mh...h--..h.h.-w..",
+    "-ww.--h-w.--w.....-w..w.-...",
+    "-MMMh.-..hh.--.MMM--......h.",
+    "--MM..-..M..h-hMM--....M....",
+    "MMF-M.-MMMMM.-MMFMM.wMMMMM..",
+    "MMMM---MMMMM.-MMMMMw.MMMMM.h",
+    ".hMh.h-MMMMM..--M...hMMMMMw.",
+    ".whhh.--MMMh.h..--.-..MMM...",
+    "..w...-.--.h.....h--..hw..w.",
+    "w..Mw.-h-.--wh...M.h--.---..",
+    ".MMMMM---MMM--.MMMMM.--MMM--",
+    "hMMMMM-w--M----MMMMM.-MMM--w",
+    ".MMMMM-.MMFMM--MMMMM.-MMFMM.",
+    "h.MMM--.MM-MM--.MMM.h-MMMMM.",
+    "h...-...hh-w.--..wh...--...h",
+    "..w.-.....-..--hh.hhw.h.--w.",
+    ".MMM--..wh..h--MMM.h.hhhhw-.",
+    "--M--w...M.wh.--MMM..h.Mh.-.",
+    "MMFMM.hMMMMM.wMMF-M.hMMMM...",
+    "MM-MM.hMMMMMhwMMMM--.MMM....",
+    "..-hw..MMMMM.w.hww.w.MMM..Bh",
+    "..-....wMMMh...h....hhMM..hh"
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 1,
+      "owner": 0
+    },
+    {
+      "col": 26,
+      "row": 26,
+      "owner": 1
+    },
+    {
+      "col": 10,
+      "row": 4,
+      "owner": -1,
+      "inventoryTheme": "Infantry relay",
+      "stored": [
+        "CHARLIE"
+      ]
+    },
+    {
+      "col": 2,
+      "row": 10,
+      "owner": -1,
+      "inventoryTheme": "Armor outpost",
+      "stored": [
+        "BISON",
+        "BISON"
+      ]
+    },
+    {
+      "col": 2,
+      "row": 24,
+      "owner": -1,
+      "inventoryTheme": "Mobile siege team",
+      "stored": [
+        "MULE",
+        "ATLAS",
+        "BISON"
+      ]
+    },
+    {
+      "col": 24,
+      "row": 18,
+      "owner": -1,
+      "inventoryTheme": "Fast patrol",
+      "stored": [
+        "RABBIT",
+        "RABBIT",
+        "CHARLIE",
+        "CHARLIE"
+      ]
+    },
+    {
+      "col": 16,
+      "row": 24,
+      "owner": -1,
+      "inventoryTheme": "Escorted battery",
+      "stored": [
+        "BISON",
+        "HADRIAN",
+        "CHARLIE",
+        "BISON",
+        "CHARLIE"
+      ]
+    },
+    {
+      "col": 24,
+      "row": 4,
+      "owner": -1,
+      "inventoryTheme": "Combat engineers",
+      "stored": [
+        "MULE",
+        "TRIGGER",
+        "MULE",
+        "TRIGGER",
+        "CHARLIE",
+        "CHARLIE"
+      ]
+    },
+    {
+      "col": 16,
+      "row": 10,
+      "owner": -1,
+      "inventoryTheme": "Heavy armor reserve",
+      "stored": [
+        "POLAR",
+        "POLAR",
+        "BISON",
+        "BISON",
+        "POLAR",
+        "BISON",
+        "CHARLIE",
+        "CHARLIE"
+      ]
+    },
+    {
+      "col": 17,
+      "row": 3,
+      "owner": -1,
+      "inventoryTheme": "Combined-arms arsenal",
+      "stored": [
+        "BISON",
+        "BISON",
+        "CHARLIE",
+        "CHARLIE",
+        "HADRIAN",
+        "HADRIAN",
+        "RABBIT",
+        "RABBIT",
+        "MULE",
+        "CHARLIE"
+      ]
+    },
+    {
+      "col": 10,
+      "row": 18,
+      "owner": -1,
+      "inventoryTheme": "Airlift arsenal",
+      "stored": [
+        "PELICAN",
+        "ATLAS",
+        "BISON",
+        "BISON",
+        "CHARLIE",
+        "CHARLIE",
+        "PELICAN",
+        "ATLAS",
+        "BISON",
+        "BISON",
+        "CHARLIE",
+        "CHARLIE"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 3,
+      "y": 2
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 1,
+      "y": 3
+    },
+    {
+      "t": "POLAR",
+      "o": 0,
+      "x": 2,
+      "y": 3
+    },
+    {
+      "t": "POLAR",
+      "o": 0,
+      "x": 3,
+      "y": 1
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 1,
+      "y": 2
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 2,
+      "y": 2
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 0,
+      "y": 3
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 25,
+      "y": 24
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 26,
+      "y": 24
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 24,
+      "y": 25
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 27,
+      "y": 24
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 25,
+      "y": 25
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 26,
+      "y": 25
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 24,
+      "y": 26
+    }
+  ]
+}

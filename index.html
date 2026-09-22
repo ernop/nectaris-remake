@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nectaris — hex tactics remake</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='24,16 20,23 12,23 8,16 12,9 20,9' fill='%23ffd94a'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/nectaris.css?v=20260921-fast-move">
+<link rel="stylesheet" href="css/nectaris.css?v=20260922-fixed-controls">
 </head>
 <body>
 <div id="save-error" class="hidden" role="alert"></div>
@@ -111,7 +111,7 @@
   </section>
 
   <footer class="menu-footer">
-    Controls: click a unit to move · Attack aims from its current hex · after moving, attack or End; no shot ends automatically · Undo last in the sidebar reverses moves since the last battle or turn boundary · right-click or Esc clears selection · wheel zooms · left-drag pans when terrain is offscreen · E ends the side's turn.
+    Controls: click a unit to move · Attack aims from its current hex · after moving, attack or End; no shot ends automatically · Undo last in the top bar reverses moves since the last battle or turn boundary · Details toggles the inspector · right-click or Esc clears selection · wheel zooms · left-drag pans at any zoom · E ends the side's turn.
     See <a href="MECHANICS.md">MECHANICS.md</a> for the full rules reconstruction.
   </footer>
 </div>
@@ -119,6 +119,7 @@
 <!-- ============ Game ============ -->
 <div id="game-screen" class="hidden">
   <div id="topbar">
+    <div class="topbar-scroll" tabindex="0" role="region" aria-label="Match information and settings">
     <button id="btn-menu">◄ Save &amp; Menu</button>
     <span id="map-title"></span>
     <select id="map-jump" aria-label="Jump to campaign map"></select>
@@ -133,22 +134,27 @@
     <select id="icon-set-select" aria-label="Art set"></select>
     <button id="btn-watch" aria-pressed="true">Watch AI: On</button>
     <button id="btn-music" aria-pressed="false">Music: Off</button>
+    </div>
+    <div class="topbar-actions">
+    <button id="btn-details" aria-expanded="false" aria-controls="sidebar" title="Show unit details and combat forecasts">Details</button>
+    <button id="btn-undo" disabled>Undo last</button>
     <button id="btn-endturn">End Turn (E)</button>
+    </div>
   </div>
   <div id="game-main">
-    <div id="sidebar">
+    <aside id="sidebar" class="hidden" aria-label="Unit details and combat forecasts">
+      <div class="sidebar-heading"><strong>Details</strong><button id="btn-details-close" aria-label="Close details">×</button></div>
       <div id="playing-profile" title="Current profile"></div>
-      <button id="btn-undo" disabled>Undo last</button>
       <div id="action-status" class="hidden" role="status"></div>
       <div id="transport-actions" class="hidden"></div>
       <div id="attack-targets" class="hidden" role="group" aria-label="Preview attack targets"></div>
       <div id="combat-inspector" class="hidden" aria-live="polite"></div>
       <div id="unit-info"></div>
       <div id="hex-info"></div>
-    </div>
+    </aside>
     <div id="canvas-wrap">
       <canvas id="game-canvas"></canvas>
-      <div id="map-action-rail"></div>
+      <div id="map-action-rail" class="hidden" aria-hidden="true"></div>
       <div id="action-menu" class="hidden" role="group" aria-label="Unit actions"></div>
       <div id="unit-hover" class="hidden" role="tooltip" aria-label="Hovered unit details"></div>
     </div>
@@ -189,21 +195,21 @@
 <script src="js/data-terrain.js?v=20260920-fidelity"></script>
 <script src="js/data-units.js?v=20260920-cpu-tactics"></script>
 <script src="js/combat.js?v=20260922-performance"></script>
-<script src="js/engine.js?v=20260922-performance"></script>
+<script src="js/engine.js?v=20260922-zoc"></script>
 <script src="js/ai.js?v=20260922-performance"></script>
 <script src="js/data-maps.js?v=20260920-battle-forecast"></script>
 <script src="js/data-advanced-maps.js?v=20260920-advanced"></script>
 <script src="js/data-expansion-maps.js?v=20260920-fidelity"></script>
 <script src="js/data-basenectaris-maps.js?v=20260920-fidelity"></script>
-<script src="js/data-ai-maps.js?v=20260922-fjords"></script>
+<script src="js/data-ai-maps.js?v=20260922-needle-labyrinth"></script>
 <script src="js/data-unit-art.js?v=20260920-battle-forecast"></script>
 <script src="js/data-unit-art-legacy.js?v=20260920-battle-forecast"></script>
 <script src="js/unit-icon-sets.js?v=20260920-battle-forecast"></script>
 <script src="js/legacy-terrain.js?v=20260922-terrain-buffer"></script>
-<script src="js/render.js?v=20260922-terrain-buffer"></script>
+<script src="js/render.js?v=20260922-unit-rank"></script>
 <script src="js/music.js?v=20260920-battle-forecast"></script>
 <script src="js/combat-view.js?v=20260921-shift-attack"></script>
-<script src="js/ui.js?v=20260921-fast-move"></script>
+<script src="js/ui.js?v=20260922-fixed-controls"></script>
 <script src="js/profiles.js?v=20260922-fjords"></script>
 <script src="js/main.js?v=20260922-fjords"></script>
 </body>

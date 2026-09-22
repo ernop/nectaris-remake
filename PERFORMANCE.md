@@ -42,6 +42,8 @@ workload measurements, not whole-application frame-rate claims.
   The index is rebuilt each search so hypothetical AI moves, loads, deployments
   and undo cannot leave stale occupancy data.
 - **AI:** each activation reuses its movement range for attack planning.
+  Movement execution now performs a fresh destination-limited search to validate
+  that plan against the current board (see the ZOC correction below).
   Boarding skips searches when no eligible carrier exists, and shares the
   passenger's range across candidate carriers. Walking-distance planning uses
   the same heap instead of sorting its entire frontier at each step. Choosing
@@ -93,6 +95,36 @@ Remaining costs: camera changes rebuild visible terrain (Legacy is still the
 most expensive), while hover benefits from the cache. Large custom games can
 still spend time in combat's linear unit lookups. Watch-AI mode retains its
 intentional animation delays; this work changes computation, not pacing.
+
+## ZOC correction and execution validation — 2026-09-22
+
+The original Windows movement routines disproved the previous blanket one-hex
+limit when starting in ZOC. Leaving ZOC now uses normal terrain costs and the
+remaining allowance. This changes AI decisions and therefore match checksums.
+`ORIGINAL_EXECUTABLE_NOTES.md` records the independent executable evidence.
+
+Execution also recalculates legality even when given a cached preview. Its
+Dijkstra search stops when the requested destination's cheapest path is settled;
+preview searches still produce the entire range. Recorded original endpoints
+check that both searches return identical costs and paths. No persistent cache
+or mutation-version bookkeeping is needed for editor and hypothetical moves.
+
+Node v22.22.1, median of five warmed runs, using the same saved set of 60 maps
+for every variant (a separate map addition occurred during this work):
+
+| Four AI half-turns on each map | Median |
+|---|---:|
+| Before the rule correction and validation | 387.071 ms |
+| Corrected ZOC rules, still trusting cached ranges | 413.292 ms |
+| Corrected rules with complete execution searches | 560.914 ms |
+| Final: corrected rules with destination-limited execution searches | 519.172 ms |
+
+The two execution-validation variants and corrected-rules-only version produce
+the same normalized game/log/RNG checksum. Validation adds about 106 ms over
+240 AI half-turns in this workload; this is a correctness cost, not a speedup.
+Final initial-range searches take 107.333 ms and forecasts 0.862 ms, with their
+checksums unchanged from the pre-correction benchmark. Those initial maps have
+no affected starting-ZOC movement; the 59 executable fixtures exercise it.
 
 ## Interaction investigation — 2026-09-22
 

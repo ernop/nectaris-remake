@@ -5,9 +5,9 @@
  *
  * Movement rules implemented:
  *   - Per-terrain, per-movement-class costs (see data-terrain.js).
- *   - Zone of Control: the six hexes around every unit. A unit that starts
- *     its move inside an enemy ZOC may move only 1 hex. Entering an enemy
- *     ZOC hex ends the move immediately (no passing through).
+ *   - Zone of Control: the six hexes around every field unit. Entering an
+ *     enemy ZOC hex ends the move immediately (no passing through). Leaving
+ *     ZOC permits normal movement until another controlled hex is entered.
  *   - Friendly units may be passed through but not stopped on.
  *   - One unit per hex, air and ground alike.
  *
@@ -245,6 +245,7 @@ var ENGINE = (function () {
    * least one unit not belonging to `player`). Cross-domain per the original:
    * air units project ZOC over ground units and vice versa. */
   Game.prototype.inEnemyZOC = function (col, row, player) {
+    if (!this.inBounds(col, row)) return false;
     var ns = HEX.neighbors(col, row);
     for (var i = 0; i < ns.length; i++) {
       var u = this.unitAt(ns[i].col, ns[i].row);
@@ -311,8 +312,10 @@ var ENGINE = (function () {
   /* Dijkstra over terrain costs with ZOC stops.
    * Returns { key -> {col,row,cost,stop,canStop,load,enterBuilding} } for all reachable
    * hexes, including the start. `load` marks a friendly transport hex the
-   * unit could board; `enterBuilding` ends the activation in storage/capture. */
-  Game.prototype.movementRange = function (unit) {
+   * unit could board; `enterBuilding` ends the activation in storage/capture.
+   * Execution may supply a destination key to stop once its cheapest route is
+   * settled. Previews omit it and get the complete range. */
+  Game.prototype.movementRange = function (unit, destinationKey) {
     var result = {};
     var startKey = HEX.key(unit.col, unit.row);
     result[startKey] = { col: unit.col, row: unit.row, cost: 0, canStop: true, prev: null };
@@ -335,16 +338,18 @@ var ENGINE = (function () {
       }
       return (zones[key] = false);
     }
-    var startInZOC = enemyZOC(unit.col, unit.row, startKey);
-    var budget = startInZOC ? Math.min(1, unit.movePointsLeft) : unit.movePointsLeft;
+    var budget = unit.movePointsLeft;
 
-    // For a 1-hex-in-ZOC move we still honor terrain passability but charge 1.
+    // The origin is exempt from a ZOC stop, not from terrain costs on entry
+    // to the next hex. Confirmed by the original Windows movement routine;
+    // see ORIGINAL_EXECUTABLE_NOTES.md and the recorded ZOC fixtures.
     var frontier = new CostQueue();
     frontier.push({ col: unit.col, row: unit.row, cost: 0 });
     var cur;
     while ((cur = frontier.pop()) !== null) {
       var curKey = HEX.key(cur.col, cur.row);
       if (cur.cost !== result[curKey].cost) continue;
+      if (curKey === destinationKey) break;
       if (result[curKey].stop && curKey !== startKey) continue; // ZOC: no expansion past
       var ns = HEX.neighbors(cur.col, cur.row);
       for (i = 0; i < ns.length; i++) {
@@ -353,11 +358,11 @@ var ENGINE = (function () {
         var terr = this.terrainAt(n.col, n.row);
         var baseCost = terrainCost(terr, unit.type.moveType, unit.type);
         if (baseCost === null) continue; // impassable for this chassis
-        var stepCost = startInZOC ? 1 : baseCost;
+        var stepCost = baseCost;
         /* Valley: a unit that can enter at all does so by spending everything
          * it has left, so it always ends its move there. Air is unaffected —
          * terrainCost already flattens every hex to 1 for aircraft. */
-        var drains = !!terr.costsAllMovement && unit.type.moveType !== "air" && !startInZOC;
+        var drains = !!terr.costsAllMovement && unit.type.moveType !== "air";
         if (drains) {
           stepCost = budget - cur.cost;
           if (stepCost < 1) continue;
@@ -414,7 +419,10 @@ var ENGINE = (function () {
   Game.prototype.moveUnit = function (unit, col, row, range) {
     if (unit.moved || unit.shifted || unit.carriedBy || unit.inFactory ||
         this.unitAt(unit.col, unit.row) !== unit) throw new Error("Unit cannot move now");
-    range = range || this.movementRange(unit);
+    // A supplied preview may predate a move, casualty, load, deployment or
+    // editor change. Recompute legality and cost from the current board;
+    // retain the optional argument only for compatibility with existing callers.
+    range = this.movementRange(unit, HEX.key(col, row));
     var rec = range[HEX.key(col, row)];
     if (!rec || !rec.canStop) throw new Error("Illegal move");
     if (!rec.load && !this.canStopAtBuilding(unit, col, row)) throw new Error("Cannot stop on an unowned factory");

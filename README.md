@@ -29,7 +29,7 @@ an original procedural chiptune score, and a level editor with URL sharing.
 | `js/data-maps.js` / `js/data-advanced-maps.js` | Official normal and advanced campaigns, 16 missions each, from Hudson's 1997 PC Engine remake |
 | `js/data-expansion-maps.js` | 12-map Lunar Frontiers online expansion |
 | `js/data-basenectaris-maps.js` | 12-map Base Nectaris terrain pack (bilingual briefings) |
-| `js/data-ai-maps.js` | Four original AI-made fjord maps, from large branching valleys to a compact tunnel mesh |
+| `js/data-ai-maps.js` | Seven original AI-made fjord maps, including narrow branching valleys and compact tunnel arsenals |
 | `tools/build-ai-fjords.js` | Deterministic builder for the AI-made maps and importable JSON in `levels/` |
 | `tools/nmd-to-level.js` | Converts a Windows-edition `.nmd` map file to a level |
 | `js/render.js` | Canvas renderer with selectable Remake/Legacy art |
@@ -76,7 +76,7 @@ Use **Show older matches** to browse beyond the latest ten results.
 Progress saves automatically after actions. **Save & Menu** leaves the match;
 **Continue match** restores it, including after closing and reopening the page.
 Starting a different match asks before replacing your current save. An interrupted
-AI turn resumes from its start. Completed moves and their sidebar undo history
+AI turn resumes from its start. Completed moves and their undo history
 survive a save or reload.
 Hotseat results record the winning faction separately from solo wins/losses.
 
@@ -86,10 +86,20 @@ profile. Storage problems display an error instead of claiming progress is saved
 
 ## Controls
 
+- **Details** toggles the left inspector, initially closed; your choice is
+  remembered. Unit details, factory information and combat forecasts remain
+  available there. The top bar always stays on one line; settings scroll sideways
+  if needed, while Details, Undo and End Turn stay at the right. Unit commands
+  always use the same bottom-left action strip, which disappears when they close.
 - Hover a unit for a compact stats card beside its hex. The card stays clear
   of the unit, flips at map edges, and lets clicks pass through. It appears and
-  disappears immediately, with fixed slots for attack, defense, range and Shift,
-  a faction-colored bold name, and the unit icon with experience stars. Move away or
+  disappears immediately, with one compact row for attack, defense and Shift,
+  a faction-colored bold name, and a separate experience badge: traditional small
+  stars, or one large star for General. Damaged units show only their remaining
+  count on the icon, without a Strength label. Unsupported
+  air attack, default adjacent ranges and zero experience bonuses are omitted;
+  longer ranges sit under their attack value, with mixed ground/air bands explicit.
+  Terrain defense, earned damage bonuses and damaged strength remain visible. Move away or
   press Esc to dismiss it; the sidebar keeps the persistent selection details.
 - Click a unit to immediately show legal moves and boardable transports.
   Choose **Attack** to fire from its current hex without moving.
@@ -106,13 +116,13 @@ profile. Storage problems display an error instead of claiming progress is saved
 - After a move, attack a red target or choose **End**. If no attack is available,
   the unit ends immediately and you can choose the next unit. Controls stay clear
   of target hexes; transport passengers retain their Unload controls.
-- **Undo last** in the sidebar reverses any number of your noncombat actions in
+- **Undo last** in the top bar reverses any number of your noncombat actions in
   order: movement, factory deployment/capture/storage, boarding and unloading.
   A move plus **End** is one undo step. The history survives saving and reopening.
   Battles, turn changes and match completion clear it; combat can never be undone
   or replayed. Escape only clears selection; use Undo to change a completed move.
 - Right-click or Esc: cancel. Mouse wheel: zoom. Left-, middle- or right-drag
-  pans when terrain extends beyond the viewport; a plain left click still selects.
+  pans at any zoom level, even when the whole map fits; a plain left click still selects.
   `E`: end turn.
 - Unit chrome shows remaining strength only when damaged (1–7), with a 1.6×
   larger corner number. Full strength (8) is omitted — see `PRODUCT.md`.
@@ -154,7 +164,7 @@ profile. Storage problems display an error instead of claiming progress is saved
 
 ## Custom levels
 
-The **AI-made** category contains four original ground-only scenarios:
+The **AI-made** category contains seven original fjord scenarios:
 
 | Level | Size | Factories | Starting forces per side |
 |---|---|---|---|
@@ -162,13 +172,31 @@ The **AI-made** category contains four original ground-only scenarios:
 | 2 · Shattered Fjords | 65×49 | 15 × 12 reserves | 5 tanks, 3 infantry |
 | 3 · Fractured Fjords | 40×40 | 15 × 12 reserves | 5 tanks, 3 infantry |
 | 4 · Honeycomb Fjords | 28×28 | 8 × 10 reserves | 4 tanks, 3 infantry |
+| 5 · Arsenal Fjords | 28×28 | 9 × 1–12 reserves (51 total) | 4 tanks, 3 infantry |
+| 6 · Needle Fjords | 34×34 | 9 × 4–8 reserves (50 total) | 1 Charlie, 1 Panther, 1 Rabbit |
+| 7 · Labyrinth Fjords | 58×58 | 21 × 4–8 reserves (123 total) | 1 Charlie, 1 Panther, 1 Rabbit |
 
-All factories start neutral, with one road exit surrounded by five mountain
-hexes. Part 1 is a winding tree; Parts 2–3 add angular passages, two-hex
+All factories start neutral. Parts 1–4 use one road exit surrounded by five
+mountain hexes. Part 1 is a winding tree; Parts 2–3 add angular passages, two-hex
 narrows, varied terminal approaches and connections between branches. Part 4
 fills the board with an interconnected passage network around small mountain
 pockets (at most 19 mountain hexes each). Plains, roads and hills fill the
-fjords; Parts 2–4 also include wasteland. Infantry can cross mountains under
+fjords; Parts 2–5 also include wasteland. Part 5 has exactly three factories
+with each of one, two and three road exits. Its smaller inventories are authored
+teams (infantry caches, armor, patrols, escorted artillery, engineers and mixed
+arsenals), with no more than five types or two artillery units in a factory.
+Every Atlas or mine immediately follows its own Mule or Pelican in the roster:
+deploy the carrier first, then load the immobile unit directly aboard.
+Parts 6–7 return to long, narrow branching fjords: factory exits all face down
+one approach, and mountain ridges separate the two- and three-hex channels.
+Open terrain occupies about 38% of each map, with only two small clearings in
+Part 6 and three in Part 7. Each side starts with exactly a Charlie, a Panther
+motorcycle infantry and a Rabbit missile buggy. Their neutral factories hold
+4–8 units with **no infantry or capturing units** among the reserves. Exit
+counts remain evenly split: three factories per exit count in Part 6, seven
+per exit count in Part 7. Immobile units retain their preceding carriers.
+Parts 1–4 exclude aircraft; Parts 5–7 permit Pelicans only.
+Infantry can cross mountains under
 the normal rules. All maps are available in the menu and map selector, with
 separate profile records and downloadable JSON from their source links.
 

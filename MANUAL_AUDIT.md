@@ -94,8 +94,9 @@ remain necessary. In particular:
   Mulberry32 and independent opposing rolls do not reproduce the original stream.
 - The CPU remains heuristic. Exact activation order, scoring, transport choices
   and the additional Atlas infantry deployment trigger are not established.
-- Original traces are still needed for ZOC escape/terrain charging, buggy retreat
-  boundaries, adjacent-factory transfers, aircraft on hostile factories,
+- Windows ZOC escape/terrain charging and buggy retreat ranges now have 59
+  executable fixtures; the incorrect blanket one-hex-start rule was corrected.
+  Direct PCE traces are still needed for those boundaries, adjacent-factory transfers, aircraft on hostile factories,
   carrier attack/unload timing, and victory-check timing.
 - Anka describes factory inventory order by original unit ID. Our arrays preserve
   insertion order and imported maps do not retain those original identities.

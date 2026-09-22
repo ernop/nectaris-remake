@@ -114,8 +114,8 @@ PCE/Windows in-game manuals are identified in [Anka's supplement](https://anka.s
 
 ### Suspected differences that are not yet proven violations
 
-Exact PCE intermediate arithmetic (Windows damage-floor order now checked); original opposing-roll correlation; ZOC
-escape/terrain charging and buggy retreat boundaries; adjacent-factory transfer;
+Exact PCE intermediate arithmetic (Windows damage-floor order now checked); original opposing-roll correlation; direct PCE confirmation of ZOC
+escape/terrain charging and buggy retreat boundaries (Windows range routines now traced); adjacent-factory transfer;
 aircraft on hostile factories; carrier attack timing around unloading;
 factory inventory order; and victory-check timing. Our current implementation
 is concrete, but original execution traces are missing. For example, elimination
@@ -162,7 +162,7 @@ not that every boundary case has been observed on hardware.
 | Terrain costs | Chassis costs, forbidden terrain, valley exhaustion | Matches published movement table. Rabbit/Lynx use fighting-vehicle costs. Giant cannot enter wasteland. |
 | Air movement | Cost 1 on every terrain; no terrain defense | Matches manuals. Air still occupies a hex and projects ZOC. |
 | Occupancy | Enemy blocks; friendly pass-through; no stacking | Retained. Transports are the boarding exception. |
-| ZOC | Stop on entry; at most one hex when starting inside enemy ZOC | Basic documented model retained. Exact boundary behavior remains a trace requirement below. |
+| ZOC | Stop on entry; at most one hex when starting inside enemy ZOC | **Fixed 2026-09-22:** leaving ZOC permits normal movement and terrain costs until another ZOC is entered. All 59 isolated Windows fixtures match; direct PCE confirmation remains open. Execution revalidates stale previews. |
 | Rabbit / Lynx | Shared movement budget and one attack, with recent ZOC fix | Retained: Rabbit 8, Lynx 6; no refill after attacking. Lynx ground range exactly 2, air range 1. |
 | Ordinary attacks | Move then attack; attack ends activation | Retained. Added engine rejection of friendly, hidden/carried and out-of-range targets. |
 | Indirect attacks | Minimum range 2; no counter, support or surround | Matches documentation. Hadrian/Octopus/Atlas/Hawkeye move **or** fire; Lynx is the exception. |
@@ -205,7 +205,7 @@ See `MECHANICS.md` for the adopted rules and source links.
    also changes that state. PCE equivalence and full call/timing behavior remain
    unverified; the runtime generator is unchanged. Ordinary damage flooring is
    confirmed for Windows. See `ORIGINAL_EXECUTABLE_NOTES.md`.
-3. **PCE edge cases.** Starting-in-ZOC terrain charging, buggy retreat boundaries,
+3. **PCE edge cases.** Direct confirmation of ZOC escape/terrain charging and buggy retreat ranges (59 Windows fixtures now pass),
    adjacent-factory transfers, aircraft on hostile factories, inventory ordering,
    capture-ZOC bug lifetime and exact victory-check timing still need traces.
 4. **Excluded by request.** Battle presentation, soundtrack, Manual and Surrender

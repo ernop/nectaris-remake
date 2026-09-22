@@ -15,7 +15,7 @@ imported campaign to compensate for rule corrections.
 
 Clicking a mobile unit immediately opens movement destinations; **Attack** aims
 from its current position. A move commits its movement phase: attack or End if
-there is a shot, otherwise finish automatically. Sidebar undo reverses noncombat
+there is a shot, otherwise finish automatically. Top-bar undo reverses noncombat
 actions up to the last battle or turn boundary. This is an intentional modern
 control-flow change; the underlying movement/attack restrictions are preserved.
 Atlas aims immediately and stationary units never offer movement.
@@ -59,11 +59,28 @@ Sources: PCE manual and [movement table](https://anka.sakura.ne.jp/nectaris/d2.h
 
 One unit occupies a hex. Friendly units permit pass-through; enemies block.
 Every field unit projects cross-domain ZOC onto its six neighbors. Entering
-hostile ZOC stops a move. Our adopted starting-in-ZOC rule permits one adjacent
-passable hex, charged as one point. For buggies, stopping before the attack
-preserves the unused allowance and the second range is recalculated after
-casualties. The exact ZOC/terrain and buggy boundary cases still need original
-PCE traces; this is not a claim of an independently verified original exception.
+hostile ZOC stops a move. **Starting inside ZOC does not cap the move at one
+hex:** a unit can leave into uncontrolled hexes and continue with its normal
+terrain costs and remaining allowance. Moving directly into another controlled
+hex stops there. Friendly presence does not cancel enemy ZOC. Rabbit/Lynx keep
+their unused allowance before attacking; their retreat follows the same rule
+against the post-battle board. The former blanket one-hex limit and discounted
+terrain cost were incorrect against the original Windows executable.
+
+ZOC and surround reflect the current board throughout the turn. Moving,
+destroying, loading, unloading, storing or deploying a unit changes its field
+presence immediately. Units that have already acted still project ZOC; cargo
+and stored units do not. Removing an enemy can free an unacted unit, but never
+reopens a committed ordinary move. The engine revalidates movement at execution,
+including when a caller supplies an older preview. Undo/save restoration derives
+ZOC from the restored positions rather than retaining a cached turn-start map.
+
+The stop-on-entry interpretation matches the manual's “at least one hex” wording
+and 59 recorded Windows movement/ZOC fixtures, including every stock unit,
+both sides/parities, terrain charging, encirclement and limited buggy retreats.
+See [original executable evidence](ORIGINAL_EXECUTABLE_NOTES.md#zoc-and-movement--2026-09-22)
+and `test/zoc-tests.js`. These are Windows execution observations, not PCE hardware
+traces; direct PCE confirmation and the transient factory-capture bug remain open.
 
 ## Combat calculations
 
