@@ -58,7 +58,8 @@ var LEGACY_TERRAIN = (function () {
     for(var y=0;y<32;y++)for(var x=0;x<48;x++) {
       var dx=x+.5-24,dy=y+.5-16;
       if(Math.abs(dx)+Math.abs(dy)>24)continue;
-      var n=hash(x,y,variant),v=n%47===0?4:n%19===0?3:n%9===0?2:1;
+      // Border tiles contribute only mountain skirts, with no off-board ground.
+      var n=hash(x,y,variant),v=id==="void"?0:n%47===0?4:n%19===0?3:n%9===0?2:1;
       if(id==="waste") {
         var chunk=hash(Math.floor(x/3),Math.floor(y/2),variant+13)%13;
         v=chunk<4?1:chunk<7?11:chunk<10?13:14;

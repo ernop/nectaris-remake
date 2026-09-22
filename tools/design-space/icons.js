@@ -58,7 +58,7 @@ function sprite(id,facing='right') {
       missile(19,16,5);missile(23,17,4);gun(20,19,6);break;
     case 'MARTEN':
       wheel(6,22);wheel(15,22);wheel(23,21);slab(7,18,19,5);
-      person(10,10,'kneel');rect(19,14,7,2,14);line(19,14,27,14,5);rect(18,16,9,2,7);break;
+      person(10,12,'kneel');rect(19,14,7,2,14);line(19,14,27,14,5);rect(18,16,9,2,7);break;
     case 'MIDGE':
       person(10,11,'kneel');missile(17,18,6);rect(8,17,3,4,7);top(8,17,3);break;
     case 'GORGON':
@@ -66,7 +66,7 @@ function sprite(id,facing='right') {
       rect(7,8,3,6,3);top(6,7,5);gun(20,12,8);
       for(let x=10;x<23;x+=4)rect(x,19,3,2,9);missile(5,15,5);break;
     case 'BADGER':
-      wheel(5,23);wheel(23,23);person(9,10,'kneel');
+      wheel(5,23);wheel(23,23);person(9,12,'kneel');
       slab(16,15,9,8);gun(20,16,8);rect(13,20,5,2,7);missile(5,18,5);break;
     case 'RAMPART':
       tracks(3,21,25);slab(3,12,25,10);
@@ -74,7 +74,7 @@ function sprite(id,facing='right') {
       for(let x=10;x<25;x+=5){rect(x,17,4,4,7);line(x,17,x+3,17,9);}
       rect(19,10,2,3,3);rect(19,9,4,1,5);rect(6,17,2,2,12);break;
     case 'HORNET':
-      person(10,11);slab(5,15,7,7);slab(16,10,9,6);
+      person(10,11);slab(5,15,7,7);slab(16,11,9,6);
       rect(19,12,4,2,14);rect(19,12,3,1,5);line(25,12,25,19,4);break;
     case 'ANVIL':
       feet(true);slab(9,15,15,8);slab(11,11,10,7);

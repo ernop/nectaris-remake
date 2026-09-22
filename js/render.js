@@ -1197,6 +1197,29 @@ var RENDER = (function () {
 
   /* --- frame ------------------------------------------------------------ */
 
+  Renderer.prototype.drawTerrainBorder = function (bounds) {
+    if (!legacyMap()) return;
+    var g = this.game, renderer = this;
+    function border(c, r) {
+      var neighbors = HEX.neighbors(c, r).map(function(n) {
+        return g.inBounds(n.col, n.row) ? g.terrainAt(n.col, n.row).id : null;
+      });
+      if (neighbors.indexOf("mountain") < 0) return;
+      var at = renderer.hexCenter(c, r);
+      LEGACY_TILES.draw(renderer.ctx, at.x, at.y, renderer.zoom, "void", neighbors, 0, -1);
+    }
+    // Finish mountain contours in the missing outer hex corners. These are
+    // decorative pixels only; board dimensions and selectable hexes stay exact.
+    for (var c = bounds.minCol - 1; c <= bounds.maxCol + 1; c++) {
+      if (bounds.minRow === 0) border(c, -1);
+      if (bounds.maxRow === g.height - 1) border(c, g.height);
+    }
+    for (var r = bounds.minRow; r <= bounds.maxRow; r++) {
+      if (bounds.minCol === 0) border(-1, r);
+      if (bounds.maxCol === g.width - 1) border(g.width, r);
+    }
+  };
+
   Renderer.prototype.drawTerrainLayer = function (bounds) {
     var g = this.game, canvas = this.canvas, ctx = this.ctx;
     // A viewport-sized surface keeps memory bounded even on custom maps.
@@ -1232,6 +1255,7 @@ var RENDER = (function () {
     try {
       this.ctx.fillStyle = "#181510";
       this.ctx.fillRect(0, 0, canvas.width, canvas.height);
+      this.drawTerrainBorder(bounds);
       for (var row = bounds.minRow; row <= bounds.maxRow; row++) {
         for (var col = bounds.minCol; col <= bounds.maxCol; col++) this.drawTerrainHex(col, row);
       }
