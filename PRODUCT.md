@@ -17,18 +17,24 @@ change. Match information and settings scroll horizontally when necessary;
 Details, Undo and End Turn stay together at the right. Never wrap controls onto
 a second row or truncate information to fit.
 
-Attack, End, Cancel and transport commands always occupy the same bottom-left
-action strip, outside the battlefield. Keep the menu to one row; scroll long
-command lists horizontally. Allocate its space only while commands are visible,
-then reclaim it when they close. Keep the camera stable as the strip opens;
-refit for window and inspector size changes. This replaces nearby-unit and
-map-edge placement.
+Attack, End, Cancel and transport commands sit beside the selected unit
+(2026-09-22 correction). Flip to an open side at viewport edges and avoid units
+and selectable destinations. Keep one row; scroll long command lists horizontally.
+Only use a temporary strip below the map when nearby controls cannot fit, aligned
+with the unit horizontally. Keep the camera stable and reclaim the strip when
+it closes; refit for window and inspector size changes.
 
-## Enemy movement inspection (2026-09-20)
+## Enemy movement and firing range inspection (updated 2026-09-22)
 
 During your turn, click an enemy to inspect its details and orange movement
 range. This previews a full next-turn movement budget on the current board,
 respecting terrain, occupancy and ZOC, without changing the unit or match.
+Also show firing range from its current hex: solid red outlines for ground fire,
+dashed violet for air fire. Keep movement fill visible inside firing outlines.
+Use the real per-domain bands, including indirect fire's adjacent blind spot;
+show immobile Atlas range and omit unsupported domains. A compact on-map legend
+identifies each range even with Details closed. These are separate movement and
+current-position firing areas, never a combined move-and-fire threat projection.
 Clicking a destination clears inspection; it never moves the enemy. Escape
 also clears it, and clicking another unit selects or inspects that unit.
 While choosing an attack, red targets retain their attack-click behavior;
@@ -48,6 +54,11 @@ to the map and viewport, allowing a full overview in every style and art set
 (2026-09-22); unit icons scale with map zoom. Remake keeps its existing production terrain
 until its separate terrain migration is complete. Classic/neon keep their
 existing vector appearance and disable the art-set picker.
+
+At the board boundary, Legacy mountain plateaus continue to the outer hex
+edge. Missing neighbors must not produce a low-ground strip or an outer
+cliff that suggests a route around the mountain. Cliffs remain where actual
+on-board low ground meets the range; the art adds no playable hexes.
 
 Selection persists independently of saves/profiles and synchronizes across
 same-origin game, editor and review pages. Adding a set uses the validated
@@ -87,6 +98,8 @@ editor and factory. Review all states in `tools/unit-sheet.html` or substitute
 any unit on the native map fixture in `tools/art-pilot.html`. Map sprites scale
 proportionally with zoom. Grab with the left, middle or right mouse button to
 pan at any zoom level, including when the entire map fits (2026-09-22).
+Grabbing is disabled while choosing a unit's movement destination, with a
+crosshair cursor; it returns after moving or cancelling.
 Do not snap a dragged map back to center; keep a patch visible at the pan limits.
 Click without dragging retains normal selection and command behavior. Production
 terrain, buildings and flattened map geometry for Remake remain to be migrated.
@@ -131,6 +144,12 @@ only when damaged (1–7):
 - Battle-preview name line
 
 `COMBAT.strengthCaption` is the single check. Combat still uses 1–8 internally.
+
+Factory reserve counts use separate, high-contrast map badges: bold white
+numbers on an opaque dark backing, outlined in the owner's color (neutral
+included). They remain readable at overview zoom, support multiple digits,
+and draw above movement highlights in every art style. Empty factories omit
+the badge. These numbers count stored units, not squad strength.
 
 ## No two-letter unit badges (2026-09-03)
 
@@ -213,8 +232,8 @@ tabular figures so force size can be compared before choosing a mission.
 
 ## AI-made fjord levels (2026-09-22)
 
-The AI-made category preserves seven separate original maps, with stable
-`aiMadeIndex` values 0–6 in the menu, map selector and profile records.
+The AI-made category preserves ten separate original maps, with stable
+`aiMadeIndex` values 0–9 in the menu, map selector and profile records.
 Twisted Fjords (65×49) is a winding tree; Shattered Fjords (65×49) and
 Fractured Fjords (40×40) introduce angular, variable-width passages and
 connections between branches. Each has fifteen neutral factories with twelve
@@ -240,9 +259,39 @@ with mountain walls behind them. Part 6 has nine neutral factories; Part 7 has
 twenty-one, packed into terminal branches and short wall alcoves in its smaller
 channel network. Each inventory has 4–8 units, no infantry or other capturing types,
 and at most two artillery units. One-, two- and three-exit factories occur in
-equal proportions. Each side starts with exactly one Charlie, one Panther
-motorcycle infantry and one Rabbit missile buggy. Pelicans remain permitted,
+equal proportions. Part 6 starts each side with exactly one Charlie, one Panther
+motorcycle infantry and one Rabbit missile buggy. Part 7 adds one Bison, one
+Polar and one Hadrian to each side in corresponding positions around the camps;
+this is a fixed roster, chosen once. Pelicans remain permitted,
 and every Atlas or mine follows its own compatible carrier in the roster.
+
+Mirror Fjords (Part 8, 31×30) keeps 21 neutral factories with 4–8 reserves and
+the same six-unit starting roster as Part 7. Every terrain hex, building,
+inventory and unit placement is reflected left-to-right, including the map
+boundary. An odd column count preserves hex adjacency under that reflection.
+Nine matched factory pairs and three shared center-line factories give seven
+factories with each exit count. The central two-exit factory uses north/south
+mouths so both approaches remain symmetrical; other mouths are contiguous.
+Both players have identical opening movement costs and routes. Factory stocks
+still exclude infantry, and every immobile unit has a preceding carrier.
+
+Laced Fjords (Part 9, 31×30) adds narrow connections, a perimeter passage,
+eight isolated plain hexes, and a sparse connected road network. Mountain
+depth is at most two hexes. Eleven of its 21 factories contain one Charlie or
+Kilroy; inventories remain 4–8 units, seven factories per exit count. It keeps
+Part 8's mirrored six-unit formation and remains separately selectable.
+
+Turning Fjords (Part 10, 42×20) is a new map, not a resize of Part 9. A true
+180-degree rotation preserves hex adjacency, terrain, inventories and opening
+movement. The even-sized board has no fixed center hex: 24 factories form
+twelve pairs, allowing eight factories per exit count. Half have one Charlie
+or Kilroy, with 4–8 total units each. Focused teams span every tank, artillery,
+anti-air and missile vehicle; only Pelicans are permitted aircraft, and each
+Atlas/mine follows its own carrier. Both armies start with Charlie, Panther,
+Rabbit, Slagger, Titan and Octopus in rotated positions. Interior mountain
+islands are at least five hexes, isolated plain clearings are four groups of
+five, and edge mountains are at most three thick. Roads connect every factory
+approach and camp while covering less than 30% of the main valley floor.
 
 Importable JSON lives under `levels/`; `tools/build-ai-fjords.js` rebuilds it and
 the runtime data deterministically. Earlier layouts remain intact when a new
@@ -272,8 +321,15 @@ cross-source roster discrepancies are documented in `LEVEL_SOURCES.md`.
 
 ## Building capture, storage and deployment (updated 2026-09-21)
 
-Each ready inventory row is a full-width native Deploy button, including its
-icon and name. Unavailable and unowned rows remain non-actionable. Experience
+The inventory popup uses the same two-column icon/name roster as factory
+mouseovers. Each ready tile is a native Deploy button, including its icon and
+name. Unavailable tiles say Next turn or No open exit; unowned tiles remain
+non-actionable. The panel anchors beside its factory, flips at map edges, and
+scrolls its roster while keeping the heading and close button visible.
+Selecting a tile hides the panel and highlights legal exits; Back to factory
+and Cancel sit near the factory, falling back to the bottom strip when exits
+leave no clear space nearby. After deployment the remaining
+roster reopens for the next unit. Experience
 uses the map's traditional 3/2/3 star overlay (General at 8) on the icon, with
 an accessible label; there is no separate numeric experience row.
 
@@ -295,14 +351,41 @@ Clicking any unoccupied base or factory presents every stored unit, including
 neutral and enemy buildings before capture. Ownership and inventory count appear above
 the unit icons, names, damage and experience. Unowned inventories explain that
 infantry must capture the factory to deploy; they offer no deployment controls.
-Empty buildings explicitly say there are no stored units. Hovering a building
+Empty buildings do not open an inventory dialog when clicked. Hovering a building
 also lists its contents in the sidebar, even when a unit occupies its hex or
 another unit is selected. A valid movement click still moves the selected unit;
-an unreachable building opens for inspection on the same click.
+an unreachable building with stored units opens for inspection on the same click.
 
-At an owned base or factory, a ready unit's entire row is its
-**Deploy** button; a unit that cannot deploy states either **AVAILABLE NEXT
-TURN** or **NO DESTINATION**. Choosing a ready unit highlights all valid
+Unit names use the short name (Pelican, Grizzly, Atlas), without the model
+designation. Every visible unit name is paired with its icon, including cargo,
+inventory, action controls and combat previews. Factory hovers use the same
+anchored card as unit hovers for neutral and owned factories. List each reserve
+separately, even when types match; each icon shows that unit's experience stars
+and General emblem. Never combine reserves into a quantity label.
+
+Loaded transports show their passengers and icons in the shared hover/detail card. The
+action strip keeps unavailable Unload controls visible, explaining whether the
+passenger must wait until next turn or has no legal landing space. A finished
+transport remains selectable to inspect its cargo even when unloading is blocked.
+
+Each transport has one passenger transfer per turn: loading or unloading.
+Movement does not consume it. Cargo aboard at the start of the turn may be
+unloaded before or after moving; loading then moving is allowed, but unloading
+must wait until next turn. Unloading then loading a different unit is also
+forbidden. Apply this equally to Pelican, Mule and custom transports.
+
+End Turn warns only about legal actions returned by the engine's live-state
+availability queries. A nearby popup lists the specific units and reserves;
+its Keep playing and End turn anyway buttons perform cancellation/confirmation
+inside that popup. The top-bar button never changes into a confirmation.
+Reserve deployment is described separately because deployment spends the unit's
+turn. Escape or a map click cancels the warning; a changed board requires fresh
+confirmation. Blocked, stale and spent units are excluded by the same predicates
+that validate actual commands. Button hover colors apply without transitions.
+
+At an owned base or factory, a ready unit's entire tile is its
+**Deploy** button; a unit that cannot deploy states either **Next turn**
+or **No open exit**. Choosing a ready unit highlights all valid
 destinations among the six neighboring hexes:
 
 - Green: an unoccupied hex whose terrain is marked `deployable`

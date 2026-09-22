@@ -1,6 +1,7 @@
 /* Read-only combat inspector and joint casualty heatmap. */
 "use strict";
 var COMBAT_VIEW = (function () {
+  var unitView = typeof module !== "undefined" ? require("./unit-view.js") : UNIT_VIEW;
   function esc(value) {
     return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;")
       .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -44,7 +45,7 @@ var COMBAT_VIEW = (function () {
     var rows = calc.steps.map(function (step) {
       return "<tr><th>" + step.label + "</th><td>" + step.ap + "</td><td>" + step.da + "</td></tr>";
     }).join("");
-    return "<section class='forecast-side'><h4>" + label + "</h4><strong>" + esc(unit.type.name) + "</strong>" +
+    return "<section class='forecast-side'><h4>" + label + "</h4>" + unitView.html(unit) +
       "<p>EXP " + unit.exp + " · damage +" + bonus.damage + "%" +
       (COMBAT.strengthCaption(unit.strength) ? " · strength " + unit.strength : "") + "</p>" +
       "<table><thead><tr><th>Per unit</th><th>ATK</th><th>DEF</th></tr></thead><tbody>" + rows + "</tbody></table>" +
@@ -81,7 +82,7 @@ var COMBAT_VIEW = (function () {
     var tactical = pv.tactical;
     if (!tactical) return "";
     function support(units, label, total) {
-      var terms = units.map(function (u) { return esc(u.name) + " (" + u.value + " × " + u.strength + ")"; });
+      var terms = units.map(function (u) { return unitView.html(u) + " (" + u.value + " × " + u.strength + ")"; });
       return "<p><strong>" + label + "</strong>: " + (terms.length ? terms.join(" + ") +
         "<br>floor(total / (2 × " + attacker.strength + ")) = +" + total : "none (+0)") + ".</p>";
     }
@@ -96,7 +97,7 @@ var COMBAT_VIEW = (function () {
   }
   function html(attacker, defender, pv, projection) {
     return "<div class='forecast-eyebrow'>ATTACK PREVIEW · " + pv.dist + " HEX" + (pv.dist === 1 ? "" : "ES") + "</div>" +
-      "<h3>" + esc(defender.type.name) + "</h3>" + targetInfo(defender) + "<div class='forecast-matchup'>" + esc(attacker.type.name) + " → " + esc(defender.type.name) + "</div>" +
+      "<h3>" + unitView.html(defender) + "</h3>" + targetInfo(defender) + "<div class='forecast-matchup'>" + unitView.html(attacker) + " → " + unitView.html(defender) + "</div>" +
       "<p class='forecast-note'>" + (pv.ranged ? "Indirect fire · no counterattack, support or surround." :
         (pv.counter ? "Direct fire · both squads fire at pre-battle strength." : "Direct fire · target cannot counterattack.")) + "</p>" +
       "<div class='forecast-final'><span>Your ATK / DEF <strong>" + pv.attacker.ap + " / " + pv.attacker.da +

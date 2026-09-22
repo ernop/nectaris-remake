@@ -72,6 +72,7 @@ function run(ok) {
   });
   ok(true, "forecast sample-cache replacement preserves exact direct/indirect outcomes and match state");
   require("./terrain-performance-tests.js")(ok);
+  require("./fast-ai-tests.js")(ok);
 }
 
 module.exports = run;

@@ -136,6 +136,7 @@ var RENDER = (function () {
     this.originY = 40;
     this.zoom = 1;
     this.highlights = null;   // {key -> css color}
+    this.fireRange = null;    // inspected enemy's current-position ground/air bands
     this.selected = null;     // unit
     this.hoverHex = null;
     this.attackables = null;  // array of units
@@ -250,12 +251,6 @@ var RENDER = (function () {
       var at = this.hexCenter(c, r), building = g.buildingAt(c, r);
       var neighbors = HEX.neighbors(c, r).map(function(n) { var t = g.inBounds(n.col,n.row) && g.terrainAt(n.col,n.row); return t ? t.id : null; });
       LEGACY_TILES.draw(ctx,at.x,at.y,this.zoom,terr.id,neighbors,(c*3+r*7)%8,building ? building.owner : -1,this._activeTerrainRaster);
-      if (building && terr.id === "factory" && building.stored.length) {
-        ctx.fillStyle="#fff9e5";ctx.font="bold 9px monospace";ctx.textAlign="center";
-        var label=String(building.stored.length),x=Math.round(at.x+7),y=Math.round(at.y+10);
-        if(this._activeTerrainRaster)this._activeTerrainRaster.text(ctx,label,x,y);
-        else ctx.fillText(label,x,y);
-      }
       return;
     }
     var pal = TERRAIN_COLORS[terr.id];
@@ -369,11 +364,6 @@ var RENDER = (function () {
           ctx.closePath(); ctx.fill();
           ctx.fillStyle = "#2b2024";
           ctx.fillRect(-9 * u, 2 * u, 6 * u, 8 * u);
-          if (b && b.stored.length) {
-            ctx.fillStyle = "#ffe9a0";
-            ctx.font = "bold " + (9 * u) + "px monospace"; ctx.textAlign = "center";
-            ctx.fillText("" + b.stored.length, 7 * u, 9 * u);
-          }
         } else {
           ctx.fillStyle = col2.body;
           ctx.beginPath(); ctx.arc(0, 2 * u, 12 * u, Math.PI, 0); ctx.closePath(); ctx.fill();
@@ -558,6 +548,43 @@ var RENDER = (function () {
     UNIT_SPRITES[id] = NATIVE_ART.frames[id].right;
   });
   var nativeRunCache = Object.create(null);
+  var nativeBitmapCache = new Map(), nativeBitmapBytes = 0;
+  function nativeBitmap(ctx,key,runs,scale,spent) {
+    if(!ctx.canvas || !ctx.canvas.ownerDocument || !ctx.drawImage || ctx._unitCacheDisabled)return null;
+    if(ctx.filter && ctx.filter!=="none" && ctx.filter!=="grayscale(1)")return null;
+    if(ctx.getTransform) {
+      var transform=ctx.getTransform();
+      if(transform.a!==1 || transform.d!==1 || transform.b || transform.c ||
+          !Number.isInteger(transform.e) || !Number.isInteger(transform.f))return null;
+    }
+    var edges=[];
+    for(var i=0;i<=32;i++)edges.push(Math.round((i-16)*scale));
+    key+="/"+edges.join(",")+"/"+spent;
+    var hit=nativeBitmapCache.get(key);
+    if(hit){nativeBitmapCache.delete(key);nativeBitmapCache.set(key,hit);return hit;}
+    var size=edges[32]-edges[0],bytes=size*size*4;
+    if(!size || bytes>8*1024*1024)return null;
+    while(nativeBitmapBytes+bytes>8*1024*1024 || nativeBitmapCache.size>=512) {
+      var first=nativeBitmapCache.keys().next().value,old=nativeBitmapCache.get(first);
+      nativeBitmapCache.delete(first);nativeBitmapBytes-=old.bytes;old.canvas.width=old.canvas.height=0;
+    }
+    var canvas=ctx.canvas.ownerDocument.createElement("canvas");canvas.width=canvas.height=size;
+    var target=canvas.getContext("2d",{willReadFrequently:true}),origin=edges[0];
+    for(i=0;i<runs.length;i++) {
+      var run=runs[i],x=edges[run.x+16],y=edges[run.y+16];
+      target.fillStyle=run.color;target.fillRect(x-origin,y-origin,edges[run.x+run.w+16]-x,edges[run.y+17]-y);
+    }
+    if(spent) {
+      // Filtering every tiny source rectangle creates hundreds of temporary
+      // filter surfaces per unit. Filter the completed sprite once instead.
+      var gray=ctx.canvas.ownerDocument.createElement("canvas");gray.width=gray.height=size;
+      var grayContext=gray.getContext("2d",{willReadFrequently:true});
+      grayContext.filter="grayscale(1)";grayContext.drawImage(canvas,0,0);
+      canvas.width=canvas.height=0;canvas=gray;
+    }
+    hit={canvas:canvas,origin:origin,bytes:bytes};nativeBitmapCache.set(key,hit);nativeBitmapBytes+=bytes;
+    return hit;
+  }
 
   /* Custom unit types (editor / level JSON) have no artwork of their own.
    * A custom definition may name a stock sprite via `sprite: "GRIZZLY"`;
@@ -603,6 +630,8 @@ var RENDER = (function () {
       }
       nativeRunCache[key] = runs;
     }
+    var bitmap=nativeBitmap(ctx,key,runs,scale,ctx.filter==="grayscale(1)");
+    if(bitmap){ctx.filter="none";ctx.imageSmoothingEnabled=false;ctx.drawImage(bitmap.canvas,bitmap.origin,bitmap.origin);return;}
     // Scale the native frame with its hex. Round shared pixel boundaries so
     // fractional zooms stay crisp without gaps between cached horizontal runs.
     ctx.imageSmoothingEnabled = false;
@@ -1053,6 +1082,8 @@ var RENDER = (function () {
     var ctx = this.ctx;
     var ctr = this.hexCenter(unit.col, unit.row);
     var s = this.hexSize * this.zoom;
+    var reach=2*s+16;
+    if(ctr.x+reach<0 || ctr.y+reach<0 || ctr.x-reach>this.canvas.width || ctr.y-reach>this.canvas.height)return;
     var u = theme.id === "pixel" ? 0.8 * this.zoom : s / 34;
     var attacking = this.attackingUnitId !== null && this.attackingUnitId === unit.id;
     var colors = attacking ? theme.attackColors : PLAYER_COLORS[unit.player];
@@ -1201,81 +1232,104 @@ var RENDER = (function () {
 
   /* --- frame ------------------------------------------------------------ */
 
-  Renderer.prototype.drawTerrainBorder = function (bounds) {
-    if (!legacyMap()) return;
-    var g = this.game, renderer = this;
-    function border(c, r) {
-      var neighbors = HEX.neighbors(c, r).map(function(n) {
-        return g.inBounds(n.col, n.row) ? g.terrainAt(n.col, n.row).id : null;
-      });
-      if (neighbors.indexOf("mountain") < 0) return;
-      var at = renderer.hexCenter(c, r);
-      LEGACY_TILES.draw(renderer.ctx, at.x, at.y, renderer.zoom, "void", neighbors, 0, -1,renderer._activeTerrainRaster);
-    }
-    // Finish mountain contours in the missing outer hex corners. These are
-    // decorative pixels only; board dimensions and selectable hexes stay exact.
-    for (var c = bounds.minCol - 1; c <= bounds.maxCol + 1; c++) {
-      if (bounds.minRow === 0) border(c, -1);
-      if (bounds.maxRow === g.height - 1) border(c, g.height);
-    }
-    for (var r = bounds.minRow; r <= bounds.maxRow; r++) {
-      if (bounds.minCol === 0) border(-1, r);
-      if (bounds.maxCol === g.width - 1) border(g.width, r);
-    }
-  };
-
   Renderer.prototype.drawTerrainLayer = function (bounds) {
-    var g = this.game, canvas = this.canvas, ctx = this.ctx;
-    // A viewport-sized surface keeps memory bounded even on custom maps.
-    // Non-browser renderers (including recording contexts in tests) fall back
-    // to direct drawing. The editor also uses this path without extra hooks.
-    if (!this._terrainCanvas && canvas.ownerDocument && ctx.drawImage) {
-      this._terrainCanvas = canvas.ownerDocument.createElement("canvas");
-    }
-    var layer = this._terrainCanvas;
-    if (layer) {
-      var signature = [canvas.width, canvas.height, g.width, g.height,
-        this.originX, this.originY, this.zoom, this.hexSize, theme.id, ICON_SETS.current().id,
-        bounds.minCol, bounds.maxCol, bounds.minRow, bounds.maxRow];
-      // Include one neighbor ring: connected roads and terrain use it even
-      // if a changed neighbor is just outside the drawn rectangle.
-      for (var r = Math.max(0, bounds.minRow - 1); r <= Math.min(g.height - 1, bounds.maxRow + 1); r++) {
-        for (var c = Math.max(0, bounds.minCol - 1); c <= Math.min(g.width - 1, bounds.maxCol + 1); c++) {
-          var building = g.buildingAt(c, r);
-          signature.push(g.terrainAt(c, r).id, building ? building.owner : "",
-            building ? building.stored.length : "");
+    var g=this.game,canvas=this.canvas,ctx=this.ctx,renderer=this;
+    if(!this._terrainCanvas && canvas.ownerDocument && ctx.drawImage)
+      this._terrainCanvas=canvas.ownerDocument.createElement("canvas");
+    var layer=this._terrainCacheDisabled?null:this._terrainCanvas,view=this._terrainView;
+    function signature(area) {
+      var values=[g.width,g.height,renderer.zoom,renderer.hexSize,theme.id,ICON_SETS.current().id,
+        area.minCol,area.maxCol,area.minRow,area.maxRow];
+      // Editor and hypothetical map edits can bypass engine mutation methods.
+      // Validate the cached area plus its connection ring on every reuse.
+      for(var row=Math.max(0,area.minRow-1);row<=Math.min(g.height-1,area.maxRow+1);row++)
+        for(var col=Math.max(0,area.minCol-1);col<=Math.min(g.width-1,area.maxCol+1);col++) {
+          var building=g.buildingAt(col,row);
+          values.push(g.terrainAt(col,row).id,building?building.owner:"",building?building.stored.length:"");
         }
-      }
-      var key = signature.join("|");
-      if (key === this._terrainKey) { ctx.drawImage(layer, 0, 0); return; }
-      // Reset drawing state as well as pixels so prior frames cannot affect
-      // stroke joins or text alignment in the new terrain image.
-      layer.width = canvas.width; layer.height = canvas.height;
-      // A software-backed layer gives consistent rasterization across cold
-      // rebuilds; subsequent frames composite just this completed image.
-      this.ctx = layer.getContext("2d", {willReadFrequently: true});
+      return values.join("|");
+    }
+    var dx=view?this.originX-view.originX:0,dy=view?this.originY-view.originY:0;
+    if(layer && view && this._terrainKey && Number.isInteger(dx) && Number.isInteger(dy) &&
+        (view.fullX || dx-view.margin<=0 && dx-view.margin+layer.width>=canvas.width) &&
+        (view.fullY || dy-view.margin<=0 && dy-view.margin+layer.height>=canvas.height) &&
+        signature(view.bounds)===this._terrainKey) {
+      ctx.fillStyle="#181510";ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.drawImage(layer,dx-view.margin,dy-view.margin);return;
+    }
+    var originX=this.originX,originY=this.originY,key;
+    if(layer) {
+      // Retain a border around the view, so dragging copies existing pixels
+      // and opening the action rail only changes clipping. Fractional camera
+      // phases still rebuild to preserve the original pixel rounding.
+      var margin=view && view.zoom===this.zoom?128:0;
+      if(this._terrainMargin!==undefined)margin=this._terrainMargin;
+      layer.width=canvas.width+margin*2;layer.height=canvas.height+margin*2;
+      this.ctx=layer.getContext("2d",{willReadFrequently:true});
+      this.canvas=layer;this.originX+=margin;this.originY+=margin;
+      bounds=this.visibleTileBounds();key=signature(bounds);
+      var dims=this.mapDimensions(),z=this.zoom;
+      var left=this.originX-(legacyMap()?24:this.hexSize)*z;
+      var top=this.originY-(legacyMap()?16:this.hexSize)*z;
+      view={originX:originX,originY:originY,margin:margin,zoom:this.zoom,bounds:bounds,
+        fullX:left>=this.hexSize*z && left+dims.width*z<=layer.width-this.hexSize*z,
+        fullY:top>=this.hexSize*z && top+dims.height*z<=layer.height-this.hexSize*z};
+      if(!legacyMap()){this.originX=originX;this.originY=originY;}
     }
     this.ctx.save();
     try {
+      if(layer && !legacyMap())this.ctx.translate(view.margin,view.margin);
       if(layer && canvas.width && canvas.height && legacyMap() && LEGACY_TILES.Frame) {
-        if(!this._legacyRaster || this._legacyRaster.width!==canvas.width || this._legacyRaster.height!==canvas.height)
-          this._legacyRaster=new LEGACY_TILES.Frame(this.ctx,canvas.width,canvas.height);
+        if(!this._legacyRaster || this._legacyRaster.width!==layer.width || this._legacyRaster.height!==layer.height)
+          this._legacyRaster=new LEGACY_TILES.Frame(this.ctx,layer.width,layer.height);
         this._activeTerrainRaster=this._legacyRaster;
         this._activeTerrainRaster.clear();
       }
-      this.ctx.fillStyle = "#181510";
-      this.ctx.fillRect(0, 0, canvas.width, canvas.height);
-      this.drawTerrainBorder(bounds);
-      for (var row = bounds.minRow; row <= bounds.maxRow; row++) {
-        for (var col = bounds.minCol; col <= bounds.maxCol; col++) this.drawTerrainHex(col, row);
-      }
+      this.ctx.fillStyle="#181510";
+      var offset=layer && !legacyMap()?view.margin:0;
+      this.ctx.fillRect(-offset,-offset,this.canvas.width,this.canvas.height);
+      for(var row=bounds.minRow;row<=bounds.maxRow;row++)
+        for(var col=bounds.minCol;col<=bounds.maxCol;col++)this.drawTerrainHex(col,row);
       this.drawRoadNetwork(bounds);
       if(this._activeTerrainRaster)this._activeTerrainRaster.paint(this.ctx);
     } finally {
       this._activeTerrainRaster=null;
-      this.ctx.restore(); this.ctx = ctx;
+      this.ctx.restore();this.ctx=ctx;this.canvas=canvas;
+      this.originX=originX;this.originY=originY;
     }
-    if (layer) { this._terrainKey = key; ctx.drawImage(layer, 0, 0); }
+    if(layer){this._terrainKey=key;this._terrainView=view;ctx.drawImage(layer,-view.margin,-view.margin);}
+  };
+
+  Renderer.prototype.drawFactoryCounts = function () {
+    var ctx = this.ctx, g = this.game;
+    // Screen-space minimum keeps reserves legible in the map overview.
+    // Draw above terrain and movement overlays, with the same contrast for
+    // neutral, friendly and enemy buildings in every art style.
+    var fontSize = Math.round(Math.max(13, Math.min(24, 16 * this.zoom)));
+    var height = fontSize + 8;
+    ctx.save();
+    ctx.font = "bold " + fontSize + "px monospace";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    for (var key in g.buildings) {
+      var building = g.buildings[key];
+      if (!building.stored.length || g.terrainAt(building.col, building.row).id !== "factory") continue;
+      var at = this.hexCenter(building.col, building.row);
+      var label = String(building.stored.length);
+      var width = Math.max(height, Math.ceil(label.length * fontSize * 0.65) + 12);
+      var x = Math.round(at.x + (legacyMap() ? 15 : 21) * this.zoom - width / 2);
+      var y = Math.round(at.y + (legacyMap() ? 11 : 15) * this.zoom - height / 2);
+      if (x + width < 0 || y + height < 0 || x > this.canvas.width || y > this.canvas.height) continue;
+      var color = PLAYER_COLORS[building.owner >= 0 ? building.owner : 2].light;
+      ctx.fillStyle = "#080b12";
+      ctx.fillRect(x - 2, y - 2, width + 4, height + 4);
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, width, height);
+      ctx.fillStyle = "#080b12";
+      ctx.fillRect(x + 2, y + 2, width - 4, height - 4);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText(label, x + width / 2, y + height / 2 + 0.5);
+    }
+    ctx.restore();
   };
 
   Renderer.prototype.draw = function () {
@@ -1296,6 +1350,26 @@ var RENDER = (function () {
       }
     }
 
+    // Firing outlines stay distinct from the movement fill, including overlaps.
+    if (this.fireRange) {
+      ctx.save();
+      for (var fireKey in this.fireRange) {
+        var fireHex = fireKey.split(","), fire = this.fireRange[fireKey];
+        var fireCenter = this.hexCenter(+fireHex[0], +fireHex[1]);
+        if (fire.ground) {
+          pathHex(ctx, fireCenter.x, fireCenter.y, this.hexSize * this.zoom * 0.78);
+          ctx.setLineDash([]); ctx.strokeStyle = "#ff7770"; ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+        if (fire.air) {
+          pathHex(ctx, fireCenter.x, fireCenter.y, this.hexSize * this.zoom * (fire.ground ? 0.6 : 0.78));
+          ctx.setLineDash([4, 3]); ctx.strokeStyle = "#dab0ff"; ctx.lineWidth = 2;
+          ctx.stroke();
+        }
+      }
+      ctx.restore();
+    }
+
     // units (ground first, then air on top)
     var i, u;
     var list = [];
@@ -1312,6 +1386,7 @@ var RENDER = (function () {
       }
     }
     for (i = 0; i < this.explosions.length; i++) this.drawExplosion(this.explosions[i]);
+    this.drawFactoryCounts();
 
     // selected ring
     if (this.selected) {

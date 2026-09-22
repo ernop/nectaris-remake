@@ -78,7 +78,7 @@ ALL_MAPS.forEach(function (m, mi) {
     ok(!!UNIT_TYPES[u.t], label + ": unknown unit type " + u.t);
     ok(u.x >= 0 && u.x < w && u.y >= 0 && u.y < m.grid.length, label + ": " + u.t + " off-map at " + u.x + "," + u.y);
     var t = TERRAIN_BY_CHAR[m.grid[u.y][u.x]];
-    var cost = terrainCost(t, UNIT_TYPES[u.t].moveType);
+    var cost = terrainCost(t, UNIT_TYPES[u.t].moveType, UNIT_TYPES[u.t]);
     ok(cost !== null, label + ": " + u.t + " on impassable " + t.id + " at " + u.x + "," + u.y);
     var k = u.x + "," + u.y;
     ok(!seen[k], label + ": two units stacked at " + k);
@@ -416,8 +416,10 @@ ok(range2[HEX.key(2, 1)].stop, "moving directly from one enemy ZOC hex to anothe
 
 section("ZOC execution, same-turn changes and original Windows comparisons");
 require("./zoc-tests.js")(ok);
+require("./transport-turn-tests.js")(ok);
 
 section("per-chassis terrain costs");
+require("./terrain-movement-tests.js")(ok);
 /* The published per-chassis table (see MECHANICS.md). Each row is checked
  * against a one-row map so a cost regression names the exact terrain. */
 function costMap(grid, units) {
@@ -1092,6 +1094,7 @@ require("./building-rules-tests.js")(ok);
 
 section("factory inventory inspection");
 require("./factory-ui-tests.js")(ok);
+require("./action-availability-tests.js")(ok);
 
 section("independent combat forecasts");
 require("./forecast-tests.js")(ok);

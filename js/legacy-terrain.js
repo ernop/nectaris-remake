@@ -7,15 +7,16 @@ var LEGACY_TERRAIN = (function () {
     "#624348","#876164","#a88081","#c39c9b","#100c12",
     "#28212a","#49404a","#7a6268","#fff9e5","#215783","#48a8c1",
     "#24562c","#77a753","#65716c"];
-  var cache = new Map(), mountainShapes = new Map();
+  var cache = new Map(), mountainShapes = new Map(), terrainShapes = new Map();
   // Interpret RGBA bytes through a Uint32 view so this also works on a
   // big-endian host. Each run writes one opaque palette color at a time.
-  var colorWords = {};
+  var colorWords = {}, paletteWords = new Uint32Array(palette.length);
   palette.concat(["#181510"]).forEach(function (color) {
     if (!color) return;
     var rgb = parseInt(color.slice(1), 16);
     colorWords[color] = new Uint32Array(new Uint8Array([rgb >> 16, rgb >> 8 & 255, rgb & 255, 255]).buffer)[0];
   });
+  palette.forEach(function(color,index){paletteWords[index]=colorWords[color]||0;});
   // Same order as HEX.neighbors, expressed on the flattened source grid.
   var offsets = [[32,16],[32,-16],[0,-32],[-32,-16],[-32,16],[0,32]];
   function hash(x,y,seed) {
@@ -27,26 +28,78 @@ var LEGACY_TERRAIN = (function () {
     return Math.hypot(x-t*dx,y-t*dy);
   }
   function connects(id) {return ["road","bridge","base","factory"].indexOf(id)>=0;}
+  function terrainShape(id,mask) {
+    var key=id+"/"+mask,found=terrainShapes.get(key);
+    if(found)return found;
+    var shape=new Uint8Array(48*32);
+    function relief(x,y) {
+      var d=Math.hypot(x*.8,y*1.15);
+      for(var i=0;i<6;i++)if(mask&(1<<i)) {
+        var p=offsets[i];d=Math.min(d,segmentDistance(x*.8,y*1.15,p[0]*.8,p[1]*1.15));
+      }
+      return d;
+    }
+    // Connection geometry does not depend on a tile's texture variant.
+    // Encode its palette value and a high-bit flag for variant-dependent
+    // highlights, then reuse it across all eight textures and mountain masks.
+    for(var y=0;y<32;y++)for(var x=0;x<48;x++) {
+      var dx=x+.5-24,dy=y+.5-16,value=0,i,p;
+      if(Math.abs(dx)+Math.abs(dy)>24)continue;
+      if(id==="hill") {
+        var d=relief(dx,dy)+(hash(Math.floor(x/2),Math.floor(y/2),9)%3-1)*.6;
+        if(d<14) {
+          var slope=d<=10?relief(dx+1,dy+1)-relief(dx-1,dy-1):0;
+          value=d>12?5:d>10?6:slope>1.1?9:slope>.1?8:slope>-.8?7:6;
+          if(d<9) {
+            if(Math.abs(dx+dy*.7)%11<1||Math.abs(dx-dy)%17<1)value=Math.min(10,value+1);
+            value|=128;
+          }
+        }
+      } else if(id==="road") {
+        var distance=mask?Infinity:Math.abs(dy);
+        for(i=0;i<6;i++)if(mask&(1<<i)){p=offsets[i];distance=Math.min(distance,segmentDistance(dx,dy,p[0],p[1]));}
+        value=distance<2.5?8:distance<4?9:distance<6?5:0;
+        if(distance<4)value|=128;
+      } else {
+        var edge=Infinity;
+        for(i=0;i<6;i++)if(!(mask&(1<<i))){p=offsets[i];var len=Math.hypot(p[0],p[1]);edge=Math.min(edge,len/2-(dx*p[0]+dy*p[1])/len);}
+        value=edge<2?4:edge<4?18:edge<6?17:edge<8?16:0;
+      }
+      shape[y*48+x]=value;
+    }
+    terrainShapes.set(key,shape);return shape;
+  }
+  var mountainFields=new Map(),peakPoints=offsets.concat([[0,0]]);
+  function mountainField(i,j) {
+    // Keep the original center-first pair orientation for identical rounding.
+    if(j!==undefined && (j===6 || i!==6 && j<i)){var swap=i;i=j;j=swap;}
+    var key=i+"/"+j,field=mountainFields.get(key);
+    if(field)return field;
+    field=new Uint8Array(48*32);
+    var a=peakPoints[i],b=j===undefined?null:peakPoints[j];
+    for(var y=0;y<32;y++)for(var x=0;x<48;x++) {
+      var dx=x+.5-24,dy=y+.5-16;
+      if(Math.abs(dx)+Math.abs(dy)>24)continue;
+      var d=b?segmentDistance((dx-a[0])*.8,(dy-a[1])*1.15,(b[0]-a[0])*.8,(b[1]-a[1])*1.15):Math.hypot((dx-a[0])*.8,(dy-a[1])*1.15);
+      if(d<17)field[y*48+x]=d>14?11:d>11?12:d>8?13:14;
+    }
+    mountainFields.set(key,field);return field;
+  }
   function mountainShape(mask) {
     if(mountainShapes.has(mask))return mountainShapes.get(mask);
-    // Sample the same mountain range on both sides of a tile boundary. Its
-    // rounded skirt can reach into a neighboring tile's corner; clipping it
-    // to mountain hexes cuts a triangular notch into every vertical join.
-    var peaks=mask&64?[[0,0]]:[],ridges=[],pixels=new Uint8Array(48*32);
-    offsets.forEach(function(p,i){if(mask&(1<<i))peaks.push(p);});
-    peaks.forEach(function(a,i){peaks.slice(i+1).forEach(function(b){
-      if(offsets.some(function(p){return b[0]-a[0]===p[0]&&b[1]-a[1]===p[1];}))ridges.push([a,b]);
-    });});
-    if(mask)for(var y=0;y<32;y++)for(var x=0;x<48;x++) {
-      var dx=x+.5-24,dy=y+.5-16,d=Infinity;
-      if(Math.abs(dx)+Math.abs(dy)>24)continue;
-      peaks.forEach(function(p){d=Math.min(d,Math.hypot((dx-p[0])*.8,(dy-p[1])*1.15));});
-      ridges.forEach(function(pair){var a=pair[0],b=pair[1];
-        d=Math.min(d,segmentDistance((dx-a[0])*.8,(dy-a[1])*1.15,(b[0]-a[0])*.8,(b[1]-a[1])*1.15));
-      });
-      if(d<17)pixels[y*48+x]=d>14?11:d>11?12:d>8?13:14;
+    var bit=mask&64?64:mask&-mask,index=bit?Math.log2(bit):0;
+    var pixels=mask?new Uint8Array(mountainShape(mask^bit)):new Uint8Array(48*32);
+    function overlay(field){for(var p=0;p<pixels.length;p++)if(field[p]>pixels[p])pixels[p]=field[p];}
+    if(mask) {
+      overlay(mountainField(index));
+      var a=peakPoints[index];
+      for(var j=0;j<7;j++)if((mask^bit)&(1<<j)) {
+        var b=peakPoints[j];
+        if(offsets.some(function(p){return b[0]-a[0]===p[0]&&b[1]-a[1]===p[1];}))overlay(mountainField(index,j));
+      }
     }
-    // Only 128 center/neighbor masks, reused across terrain types and textures.
+    // Minimum distance is maximum shade. Reuse seven peak fields and twelve
+    // ridge fields instead of recomputing their distances for every mask.
     mountainShapes.set(mask,pixels);return pixels;
   }
   function tile(id, neighbors, variant, owner) {
@@ -67,18 +120,20 @@ var LEGACY_TERRAIN = (function () {
       var cached=cache.get(key);
       cache.delete(key);cache.set(key,cached);return cached;
     }
-    var pixels=new Uint8Array(48*32), runs=[];
+    var pixels=new Uint8Array(48*32);
     function put(x,y,v) {if(x>=0&&x<48&&y>=0&&y<32&&pixels[y*48+x])pixels[y*48+x]=v;}
     function rect(x,y,w,h,v){for(var yy=y;yy<y+h;yy++)for(var xx=x;xx<x+w;xx++)put(xx,yy,v);}
-    function relief(x,y) {
-      var d=Math.hypot(x*.8,y*1.15);
-      offsets.forEach(function (p,i) {if(neighbors[i]===id)d=Math.min(d,segmentDistance(x*.8,y*1.15,p[0]*.8,p[1]*1.15));});
-      return d;
-    }
-    var mountains=mountainShape(mountainMask);
+    var hills=id==="hill"?terrainShape("hill",hillMask):null;
+    var valley=id==="valley"||id==="bridge"?terrainShape("valley",valleyMask):null;
+    var roads=id==="road"||id==="bridge"?terrainShape("road",roadMask):null;
+    // Missing neighbors are the end of the board, not low ground. Continue
+    // a perimeter plateau through those edges instead of drawing an outer
+    // slope (or trimming its ground-colored tips to transparency).
+    var mountains=mountainShape(mountainMask|edgeMask);
     for(var y=0;y<32;y++)for(var x=0;x<48;x++) {
       var dx=x+.5-24,dy=y+.5-16;
       if(Math.abs(dx)+Math.abs(dy)>24)continue;
+      if(mountains[y*48+x] && !roads){pixels[y*48+x]=mountains[y*48+x];continue;}
       // Border tiles contribute only mountain skirts, with no off-board ground.
       var n=hash(x,y,variant),v=id==="void"?0:n%47===0?4:n%19===0?3:n%9===0?2:1;
       if(id==="waste") {
@@ -86,40 +141,16 @@ var LEGACY_TERRAIN = (function () {
         v=chunk<4?1:chunk<7?11:chunk<10?13:14;
         if(n%7===0)v=chunk<7?2:12;
       }else if(id==="hill") {
-        var d=relief(dx,dy)+(hash(Math.floor(x/2),Math.floor(y/2),9)%3-1)*.6;
-        if(d<14) {
-          var slope=relief(dx+1,dy+1)-relief(dx-1,dy-1);
-          v=d>12?5:d>10?6:slope>1.1?9:slope>.1?8:slope>-.8?7:6;
-          if(d<9&&n%13===0)v=Math.min(10,v+1);
-          if(d<9&&(Math.abs(dx+dy*.7)%11<1||Math.abs(dx-dy)%17<1))v=Math.min(10,v+1);
-        }
+        var hill=hills[y*48+x];
+        if(hill)v=Math.min(10,(hill&127)+((hill&128)&&n%13===0?1:0));
       }else if(id==="valley"||id==="bridge") {
-        v=n%17===0?16:15;
-        var edge=Infinity;
-        offsets.forEach(function(p,i){if(neighbors[i]!=="valley"&&neighbors[i]!=="bridge") {
-          var len=Math.hypot(p[0],p[1]);edge=Math.min(edge,len/2-(dx*p[0]+dy*p[1])/len);
-        }});
-        if(edge<2)v=4;else if(edge<4)v=18;else if(edge<6)v=17;else if(edge<8)v=16;
+        v=valley[y*48+x]||(n%17===0?16:15);
       }
       if(mountains[y*48+x])v=mountains[y*48+x];
-      else if(id==="mountain") {
-        // Trim the tiny ground-colored hex tips outside a perimeter cliff.
-        // Null means an actual board edge; ordinary neighboring ground stays.
-        var nearest=Infinity,side=-1;
-        offsets.forEach(function(p,i){
-          var distance=p[0]?(24-Math.sign(p[0])*dx-Math.sign(p[1])*dy)/Math.SQRT2:16-Math.sign(p[1])*dy;
-          if(distance<nearest){nearest=distance;side=i;}
-        });
-        if(neighbors[side]===null)v=0;
-      }
       if(id==="road"||id==="bridge") {
-        var roadDistance=Infinity,found=false;
-        offsets.forEach(function(p,i){if(connects(neighbors[i])){found=true;roadDistance=Math.min(roadDistance,segmentDistance(dx,dy,p[0],p[1]));}});
-        if(!found)roadDistance=Math.abs(dy);
-        if(roadDistance<6)v=5;
-        if(roadDistance<4)v=9;
-        if(roadDistance<2.5)v=8;
-        if(id==="bridge"&&roadDistance<4&&n%3===0)v=7;
+        var road=roads[y*48+x];
+        if(road)v=road&127;
+        if(id==="bridge"&&(road&128)&&n%3===0)v=7;
       }
       pixels[y*48+x]=v;
     }
@@ -137,11 +168,17 @@ var LEGACY_TERRAIN = (function () {
       if(id==="base") {dome(19,16,9,8);dome(32,18,5,5);rect(26,13,2,8,8);}
       else {dome(16,16,6,6);dome(29,14,8,7);rect(24,20,10,2,color);}
     }
-    for(var ry=0;ry<32;ry++)for(var rx=0;rx<48;) {
-      var value=pixels[ry*48+rx],start=rx;while(rx<48&&pixels[ry*48+rx]===value)rx++;
-      if(value)runs.push([start,ry,rx-start,palette[value]]);
-    }
-    var result={width:48,height:32,pixels:pixels,runs:runs};
+    var result={width:48,height:32,pixels:pixels};
+    // The software frame needs indexed pixels, not thousands of small run
+    // arrays. Build those only for non-browser/fallback rectangle rendering.
+    Object.defineProperty(result,"runs",{configurable:true,enumerable:true,get:function(){
+      var runs=[];
+      for(var ry=0;ry<32;ry++)for(var rx=0;rx<48;) {
+        var value=pixels[ry*48+rx],start=rx;while(rx<48&&pixels[ry*48+rx]===value)rx++;
+        if(value)runs.push([start,ry,rx-start,palette[value]]);
+      }
+      Object.defineProperty(result,"runs",{value:runs,enumerable:true});return runs;
+    }});
     // Evict the least recently used tile, never the whole working set.
     if(cache.size>=1024)cache.delete(cache.keys().next().value);
     cache.set(key,result);return result;
@@ -163,7 +200,7 @@ var LEGACY_TERRAIN = (function () {
     for(i=0;i<=32;i++)ys[i]=Math.max(0,Math.min(height,Math.round(top+i*scale)));
     if(!data.colors) {
       data.colors=new Uint32Array(data.pixels.length);
-      for(i=0;i<data.pixels.length;i++)data.colors[i]=colorWords[palette[data.pixels[i]]]||0;
+      for(i=0;i<data.pixels.length;i++)data.colors[i]=paletteWords[data.pixels[i]];
     }
     var sourceX=this.sourceX,colors=data.colors,leftEdge=xs[0],rightEdge=xs[48];
     for(i=0;i<48;i++)sourceX.fill(i,xs[i],xs[i+1]);

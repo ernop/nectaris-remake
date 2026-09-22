@@ -13,12 +13,12 @@
  * historical — they describe the original's chassis groupings, not literal
  * running gear, and a unit's `cls` is independent of them:
  *
- *   foot    the two capturing infantry (Charlie, Kilroy)
+ *   foot    Charlie and Kilroy infantry
  *   treads  the fighting vehicles: tanks, missile buggies, self-propelled
  *           guns and anti-air vehicles. The buggies ride on wheels but pay
  *           the vehicle rates.
- *   wheels  the two carriers, Panther and Mule, which pay much more off-road
- *           and cannot enter wasteland at all.
+ *   wheels  Panther motorcycle infantry and the Mule transport, which pay
+ *           much more off-road and cannot enter wasteland, mountains or valleys.
  *
  * `null` = impassable for that class. Air always pays 1 and gets no terrain
  * defense. `costsAllMovement` terrain can be entered only by spending every

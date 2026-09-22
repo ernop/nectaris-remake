@@ -42,7 +42,8 @@ module.exports = function (ok) {
     // Occupying one mouth removes exactly that one output area, for air too.
     var first = factory.stored[0];
     game.deployFromFactory(factory,first,mouths[0].col,mouths[0].row);
-    ok(game.deployTargets(factory,first).length === mouths.length-1,
+    ok(!game.deployTargets(factory,first).length && (!factory.stored.length ||
+      game.deployTargets(factory,factory.stored[0]).length === mouths.length-1),
       label + " loses one output area when a deployed unit occupies it");
   });
   ok(JSON.stringify(buckets) === "[3,3,3]", "exactly three factories each have one, two or three exits");

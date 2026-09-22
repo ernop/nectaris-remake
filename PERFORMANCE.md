@@ -183,3 +183,127 @@ and use **Run interactions** to compare **Original rectangle runs** with
 770 fractional-position/scale checks. The harness creates an isolated match
 without writing profile saves. Run browser benchmarks sequentially so another
 benchmark's synchronous work cannot inflate the interaction timings.
+
+## Spent-unit stalls and complete latency audit — 2026-09-22
+
+The third pass reproduced a much larger stall than the earlier terrain tests:
+160 visible units, half spent, took **412 ms per Legacy redraw** (455.5 ms p95).
+Each sprite issued hundreds of rectangle draws under Canvas's grayscale filter.
+The same fixture now takes **1.1 ms** (1.3 ms p95), without changing its pixels.
+The previous selection benchmark also missed the terrain rebuild caused by
+opening and closing the action rail.
+
+Changes in this pass:
+
+- Rasterize each native unit sprite once per art set, faction, facing, rounded
+  scale and spent state. Apply grayscale once to the completed bitmap. An LRU
+  cache holds at most 512 surfaces / 8 MiB, and offscreen units are culled.
+  Unsupported drawing transforms and contexts retain the original path.
+- Reuse terrain across integer camera translations and action-rail resizes.
+  After scrolling, a 128-pixel margin absorbs subsequent small pans; complete
+  map coverage on an axis also permits scrolling into the empty background.
+  Zoom changes avoid that extra margin. Terrain/building signatures continue
+  detecting edits, captures, inventory changes and restored games.
+- Share Legacy hill, road, valley and mountain geometry across texture variants
+  and connection masks. Mountain overlays skip obscured ground calculations;
+  rectangle runs are generated lazily because the RGBA renderer needs pixels.
+  Geometry work is amortized across tiles without changing the generated art.
+- Fast AI starts without the old fixed 300 ms wait and yields between actions
+  after an 8 ms computation budget. An individual action can exceed that
+  budget. Decisions, logs and RNG outcomes are unchanged; watched playback
+  retains its deliberate animation pacing.
+
+The interaction audit uses a fresh script context per map/art pair and a fixed
+1,280×800 iframe. Both versions receive the same maps and 24 events per phase.
+Measurements include production UI handlers and synchronous redraws, avoiding
+background iframe scheduling. They measure CPU latency, **not FPS or cold
+network loading**. Browser runs were sequential. The saved pre-change source
+includes the current rule and UI work, so these comparisons isolate this pass.
+
+All values below are milliseconds. Arrows show before → after medians, except
+the first-draw column, which is one cold draw per fresh context. Zoom remains a
+terrain rebuild and is shown explicitly rather than hidden by cached results.
+
+| Map / art | First draw | Fit-view pan | Select/cancel | Final wheel zoom |
+|---|---:|---:|---:|---:|
+| Twisted / Legacy | 170.1 → 76.4 | 11.6 → 1.1 | 9.2 → 1.3 | 11.4 |
+| Shattered / Legacy | 183.5 → 79.3 | 11.6 → 0.8 | 9.0 → 1.1 | 9.9 |
+| Fractured / Legacy | 153.4 → 65.6 | 7.9 → 0.6 | 9.4 → 0.8 | 6.6 |
+| Honeycomb / Legacy | 102.5 → 61.4 | 7.4 → 0.3 | 8.6 → 1.1 | 3.5 |
+| Arsenal / Legacy | 106.9 → 49.7 | 5.2 → 0.3 | 9.4 → 1.1 | 3.9 |
+| Needle / Legacy | 105.6 → 53.9 | 6.2 → 0.4 | 8.7 → 1.0 | 4.9 |
+| Labyrinth / Legacy | 106.9 → 52.5 | 5.5 → 0.4 | 9.2 → 1.1 | 4.7 |
+| Mirror / Legacy | 126.2 → 57.3 | 5.2 → 0.4 | 9.1 → 1.0 | 4.3 |
+| Laced / Legacy | 139.2 → 65.9 | 6.0 → 0.4 | 10.8 → 1.2 | 4.2 |
+| Turning / Legacy | 140.7 → 62.2 | 5.6 → 0.4 | 9.1 → 1.0 | 3.9 |
+| Twisted / Remake | 99.2 → 112.4 | 87.7 → 0.9 | 14.9 → 1.2 | 25.9 |
+| Shattered / Remake | 106.8 → 108.3 | 89.7 → 0.8 | 14.8 → 1.2 | 27.8 |
+| Fractured / Remake | 63.9 → 69.8 | 47.3 → 0.7 | 15.9 → 0.8 | 28.3 |
+| Honeycomb / Remake | 35.2 → 35.9 | 24.6 → 0.3 | 12.3 → 1.2 | 20.2 |
+| Arsenal / Remake | 35.8 → 35.6 | 25.2 → 0.4 | 13.0 → 1.0 | 19.4 |
+| Needle / Remake | 46.0 → 47.2 | 36.3 → 0.4 | 13.8 → 1.2 | 23.4 |
+| Labyrinth / Remake | 38.2 → 44.7 | 30.1 → 0.4 | 14.1 → 0.8 | 23.1 |
+| Mirror / Remake | 41.3 → 40.3 | 30.0 → 0.5 | 14.8 → 1.3 | 23.1 |
+| Laced / Remake | 36.4 → 40.2 | 27.4 → 0.5 | 14.0 → 1.0 | 20.2 |
+| Turning / Remake | 41.1 → 40.7 | 28.8 → 0.4 | 14.1 → 1.0 | 26.5 |
+
+Native-scale panning has a 0.2–0.7 ms final median, but exhausting the margin
+still rebuilds terrain: Twisted Legacy reached 18.7 ms maximum and Twisted
+Remake 35.4 ms. Remake zoom remains 19.4–28.3 ms median, reaching 43.2 ms on
+Shattered; its first draw remains 35.6–112.4 ms. Those vector terrain rebuilds
+are the largest remaining interaction cost. This pass does not claim a zoom
+speedup: Twisted Remake was 26.8 ms before and is 25.9 ms after, while Shattered
+was 25.0 ms and is 27.8 ms. Rebuilds can now cover more pixels to enable reuse.
+
+Stationary unit/factory hover is 0–0.1 ms median; the initial recenter can still
+cost 5–38 ms. Remaining-action queries take 0.2–0.5 ms median and snapshot JSON
+serialization 0.3–0.7 ms. Game construction takes 0.2–0.5 ms and UI construction
+1.0–2.1 ms. Fresh script-context loading is usually 12–19 ms, with two outliers
+of 41.9 and 47.5 ms. None includes a cold network connection or storage write.
+
+The separate 160-unit stress fixture prewarms terrain and keeps every unit
+visible:
+
+| Art / unit state | Before median / p95 | After median / p95 |
+|---|---:|---:|
+| Legacy / all active | 6.0 / 7.6 ms | 1.2 / 2.0 ms |
+| Legacy / half spent | 412.0 / 455.5 ms | 1.1 / 1.3 ms |
+| Remake / all active | 2.7 / 3.8 ms | 1.0 / 1.8 ms |
+| Remake / half spent | 20.0 / 225.2 ms | 1.0 / 1.2 ms |
+
+Validation: 1,932 browser sprite comparisons are pixel-identical, covering all
+23 units, both packs and factions, seven scales and three action states.
+The terrain benchmark passes 88 scene checks, including fractional and long
+pans, action-rail resizing, mutations and restores. Legacy comparisons remain
+pixel-exact. Canvas vector edge antialiasing can differ with the larger raster
+surface and translation: the maximum observed mean absolute channel error is
+0.0123 out of 255. The test permits at most 32 for any channel and 0.025 mean;
+94 individual comparisons were completely exact. A captured pre-optimization
+SHA-256 over 5,120 terrain/mask/variant/owner samples guards the geometry changes.
+Fast-AI tests compare complete match, log and RNG states and cover destruction
+and switching back to watched playback.
+
+The repeated Node workload covers all 66 maps (one warm-up, median of five
+runs, Node v22.22.1). Final measurements were taken with the browser audit
+finished. AI planning and movement were not changed in this pass; these numbers
+show that their computation is separate from the rendering stalls. All three
+before/after workload checksums match exactly.
+
+| Node workload | Before | Final |
+|---|---:|---:|
+| Four AI half-turns on every map | 556.568 ms | 554.625 ms |
+| Initial movement ranges on every map | 107.397 ms | 101.997 ms |
+| 64 forecasts, 100,000 seeds each | 1.763 ms | 0.869 ms |
+| First forecast initialization | 9.283 ms | 8.445 ms |
+
+Reproduce with `node tools/benchmark-performance.js` and
+`node test/performance-tests.js`, then run these browser tools sequentially:
+
+- [Full latency audit](http://nectaris.localhost/tools/benchmark-latency.html)
+  runs all ten fjord maps with both art packs. Add `?map=Twisted%20Fjords&stress=1` for
+  the focused stress fixture. A `root` query parameter can point to a saved
+  source tree served from the same origin for matched historical comparisons.
+- [Sprite equivalence](http://nectaris.localhost/tools/benchmark-unit-raster.html)
+  compares original rectangle draws with cached bitmaps.
+- [Terrain validation](http://nectaris.localhost/tools/benchmark-render.html)
+  checks viewport reuse against full drawing and reports rebuild timings.

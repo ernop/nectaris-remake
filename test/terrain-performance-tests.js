@@ -5,6 +5,17 @@ var freshTerrain = new Function("module", source + "\nreturn LEGACY_TERRAIN;");
 
 module.exports = function (ok) {
   var terrain = freshTerrain({exports: {}}), neighbors = ["plain", "road", "factory", "hill", "valley", null];
+  // Captured from the pre-optimization generator, before shared geometry
+  // fields and lazy rectangle runs. Protects every mountain mask and texture.
+  var digest=require("node:crypto").createHash("sha256");
+  ["plain","hill","mountain","road","valley","bridge","waste","base","factory","void"].forEach(function(id){
+    for(var mask=0;mask<64;mask++)for(var variant=0;variant<8;variant++) {
+      var ns=Array.from({length:6},function(_,i){return mask&(1<<i)?"mountain":["road","hill","bridge","valley",null,"factory"][(i+variant)%6];});
+      digest.update(terrain.tile(id,ns,variant,variant%3-1).pixels);
+    }
+  });
+  assert.equal(digest.digest("hex"),"746e2046454a6ba53c697b3457a7fdb4ac071c8662f9eb01d901343b49b2add3");
+  ok(true,"5,120 terrain samples exactly match the pre-optimization pixel checksum");
   // Compare shared-cache output with independently generated tiles. Neighbor
   // names that share a cache entry must have identical visual connections.
   var rng = require("../js/combat.js").makeRng(90137);

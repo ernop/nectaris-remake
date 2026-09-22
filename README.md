@@ -29,7 +29,7 @@ an original procedural chiptune score, and a level editor with URL sharing.
 | `js/data-maps.js` / `js/data-advanced-maps.js` | Official normal and advanced campaigns, 16 missions each, from Hudson's 1997 PC Engine remake |
 | `js/data-expansion-maps.js` | 12-map Lunar Frontiers online expansion |
 | `js/data-basenectaris-maps.js` | 12-map Base Nectaris terrain pack (bilingual briefings) |
-| `js/data-ai-maps.js` | Seven original AI-made fjord maps, including narrow branching valleys and compact tunnel arsenals |
+| `js/data-ai-maps.js` | Ten original AI-made fjord maps, including narrow branching valleys, compact tunnel arsenals and mirrored or rotated battlefields |
 | `tools/build-ai-fjords.js` | Deterministic builder for the AI-made maps and importable JSON in `levels/` |
 | `tools/nmd-to-level.js` | Converts a Windows-edition `.nmd` map file to a level |
 | `js/render.js` | Canvas renderer with selectable Remake/Legacy art |
@@ -90,8 +90,11 @@ profile. Storage problems display an error instead of claiming progress is saved
   remembered. Unit details, factory information and combat forecasts remain
   available there. The top bar always stays on one line; settings scroll sideways
   if needed, while Details, Undo and End Turn stay at the right. Unit commands
-  always use the same bottom-left action strip, which disappears when they close.
-- Hover a unit for a compact stats card beside its hex. The card stays clear
+  sit beside the selected unit, using a temporary bottom strip only when no clear space fits.
+- Hover a unit for a compact stats card beside its hex. Factory hovers show
+  each reserve separately with its icon and experience stars. Unit names use
+  short names such as Pelican, without model numbers, and always have an icon.
+  The card stays clear
   of the unit, flips at map edges, and lets clicks pass through. It appears and
   disappears immediately, with one compact row for attack, defense and Shift,
   a faction-colored bold name, and a separate experience badge: traditional small
@@ -108,6 +111,9 @@ profile. Storage problems display an error instead of claiming progress is saved
   immediately and cannot shift once placed. Trigger has neither action;
   Pelican cannot attack. Rabbit and Lynx may use remaining Shift points after
   their one attack.
+- Click an enemy to see its next-turn movement in orange plus firing range from
+  its current hex: solid red for ground fire, dashed violet for air fire.
+  Both stay visible where they overlap, with a compact legend on the map.
 - After choosing Attack or a Shift destination, attackable enemies turn red. Hover a target for
   its identity, both sides' calculations and a casualty probability heatmap
   based on 100,000 independent simulations. The forecast never uses the match's
@@ -123,22 +129,31 @@ profile. Storage problems display an error instead of claiming progress is saved
   or replayed. Escape only clears selection; use Undo to change a completed move.
 - Right-click or Esc: cancel. Mouse wheel: zoom. Left-, middle- or right-drag
   pans at any zoom level, even when the whole map fits; a plain left click still selects.
+  Grabbing pauses while choosing a movement destination and returns after moving or cancelling.
   `E`: end turn.
+  If a unit can still move, attack, unload or deploy, the first End Turn warns;
+  choose End turn anyway or Keep playing inside the confirmation popup. It lists
+  only units with legal actions on the current board, with deployment counted separately.
 - Unit chrome shows remaining strength only when damaged (1–7), with a 1.6×
   larger corner number. Full strength (8) is omitted — see `PRODUCT.md`.
 - Click any unoccupied base or factory to inspect its stored units: yours,
-  neutral, or enemy, including empty buildings. Hovering also lists the contents
+  neutral, or enemy. Empty buildings do not open a dialog. Hovering also lists the contents
   in the sidebar. Capture with infantry to gain control of the reserves.
-  At an owned building, click anywhere on a ready unit's row to deploy,
+  The nearby popup uses the mouseover's two-column roster. At an owned building,
+  click anywhere on a ready unit's tile to deploy,
   then choose a highlighted destination among the six surrounding
   hexes: an unoccupied deployable terrain hex, or an adjacent friendly Mule or
-  Pelican with an empty cargo slot. Capturing infantry goes inside the factory
+  Pelican with an empty cargo slot. The remaining roster reopens after deployment;
+  Back to factory and Cancel stay in the bottom action strip. Capturing infantry goes inside the factory
   and leaves the map; it can deploy again from the next turn. Stop a damaged
   unit on your own factory to store and repair it under the same delay.
   Factories accept aircraft and loaded transports too. Bases permit parking
   and provide defense, without repair. Transport unloading is limited to
-  plains, roads, bridges and direct storage in an owned factory; a passenger
-  cannot load and unload in one turn.
+  plains, roads, bridges and direct storage in an owned factory. Each transport
+  permits one load or unload per turn. Moving does not consume
+  that allowance: cargo already aboard can unload after moving. Loaded passengers
+  appear with their icons in the transport's hover card. Unavailable Unload buttons stay visible with the reason, even
+  when Details is closed.
 - **Watch AI: On** shows every Xenon move, combat matchup, and before/after
   squad strength. Turn it off for immediate AI turns.
 - The factory panel shows each stored unit's map icon with experience stars,
@@ -164,7 +179,7 @@ profile. Storage problems display an error instead of claiming progress is saved
 
 ## Custom levels
 
-The **AI-made** category contains seven original fjord scenarios:
+The **AI-made** category contains ten original fjord scenarios:
 
 | Level | Size | Factories | Starting forces per side |
 |---|---|---|---|
@@ -174,7 +189,10 @@ The **AI-made** category contains seven original fjord scenarios:
 | 4 · Honeycomb Fjords | 28×28 | 8 × 10 reserves | 4 tanks, 3 infantry |
 | 5 · Arsenal Fjords | 28×28 | 9 × 1–12 reserves (51 total) | 4 tanks, 3 infantry |
 | 6 · Needle Fjords | 34×34 | 9 × 4–8 reserves (50 total) | 1 Charlie, 1 Panther, 1 Rabbit |
-| 7 · Labyrinth Fjords | 30×30 | 21 × 4–8 reserves (123 total) | 1 Charlie, 1 Panther, 1 Rabbit |
+| 7 · Labyrinth Fjords | 30×30 | 21 × 4–8 reserves (123 total) | Charlie, Panther, Rabbit, Bison, Polar, Hadrian |
+| 8 · Mirror Fjords | 31×30 | 21 × 4–8 reserves (118 total) | Charlie, Panther, Rabbit, Bison, Polar, Hadrian |
+| 9 · Laced Fjords | 31×30 | 21 × 4–8 reserves (127 total) | Charlie, Panther, Rabbit, Bison, Polar, Hadrian |
+| 10 · Turning Fjords | 42×20 | 24 × 4–8 reserves (138 total) | Charlie, Panther, Rabbit, Slagger, Titan, Octopus |
 
 All factories start neutral. Parts 1–4 use one road exit surrounded by five
 mountain hexes. Part 1 is a winding tree; Parts 2–3 add angular passages, two-hex
@@ -192,14 +210,32 @@ one approach, and mountain ridges separate the two- and three-hex channels.
 Open terrain occupies about 38% of each map, with only two small clearings in
 Part 6 and three in Part 7. Part 7 fits its 21 factories into a compact 30×30
 network using terminal branches and short alcoves in the channel walls.
-Each side starts with exactly a Charlie, a Panther
-motorcycle infantry and a Rabbit missile buggy. Their neutral factories hold
+Part 6 starts each side with a Charlie, Panther motorcycle infantry and Rabbit
+missile buggy. Part 7 adds one Bison, one Polar and one Hadrian to both sides in
+matching formations. Their neutral factories hold
 4–8 units with **no infantry or capturing units** among the reserves. Exit
 counts remain evenly split: three factories per exit count in Part 6, seven
 per exit count in Part 7. Immobile units retain their preceding carriers.
-Parts 1–4 exclude aircraft; Parts 5–7 permit Pelicans only.
-Infantry can cross mountains under
-the normal rules. All maps are available in the menu and map selector, with
+Part 8 mirrors every terrain hex, factory inventory and starting unit across
+the vertical center line. Its extra column makes reflection preserve actual
+hex adjacency, including at the map edges. Nine factory pairs flank three
+shared center-line factories, retaining 21 factories and seven of each exit
+count. The shared two-exit factory faces north/south; other factory mouths form
+a single approach. Opening movement costs and positions match on both sides.
+Part 9 preserves the reflected layout but thins the ridges, adds narrow back
+routes and eight isolated plain hexes, and reduces roads to a connected spine.
+Eleven factories hold one Charlie or Kilroy alongside their vehicle reserves.
+Part 10 is a separate, wider battlefield with exact 180-degree rotation.
+Its 24 factories form twelve pairs, eight with each exit count; twelve factories
+contain one Charlie or Kilroy. Focused inventories collectively cover every tank,
+artillery, anti-air and missile vehicle, with carriers before Atlas and mines.
+Interior mountain islands contain at least five hexes, four isolated plain
+clearings contain five hexes each, and edge mountains are at most three thick.
+Roads occupy less than 30% of the connected valley floor in Parts 9–10.
+Parts 1–4 exclude aircraft; Parts 5–10 permit Pelicans only.
+Charlie and Kilroy can cross mountains; Panther cannot. See the
+[movement table and audit](MECHANICS.md#movement-and-terrain).
+All maps are available in the menu and map selector, with
 separate profile records and downloadable JSON from their source links.
 
 Map zoom fits the entire battlefield in every style and art set, with

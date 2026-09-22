@@ -295,7 +295,7 @@ var ENGINE = (function () {
 
   Game.prototype.canLoad = function (transport, passenger, fromFactory) {
     if (!transport || transport === passenger || transport.player !== passenger.player ||
-        !transport.type.cargo || transport.cargo.length >= transport.type.cargo ||
+        !transport.type.cargo || transport.transferUsed || transport.cargo.length >= transport.type.cargo ||
         passenger.type.moveType === "air" || passenger.cargo.length) return false;
     var allowed = transport.type.cargoTypes;
     return !allowed || allowed.indexOf(passenger.typeId) >= 0 ||
@@ -416,9 +416,60 @@ var ENGINE = (function () {
 
   /* --- Actions ---------------------------------------------------------- */
 
+  // Availability and execution share these live-state predicates. Geometry
+  // previews alone are not permission to act: spent/stored units can still
+  // have movement budgets or enemies within their weapon range.
+  Game.prototype.canMoveNow = function (unit) {
+    return this.winner === null && unit.player === this.currentPlayer &&
+      !unit.moved && !unit.shifted && !unit.carriedBy && !unit.inFactory &&
+      this.unitAt(unit.col, unit.row) === unit;
+  };
+
+  Game.prototype.canAttackNow = function (unit) {
+    return this.winner === null && unit.player === this.currentPlayer &&
+      !unit.moved && !unit.attacked && !unit.carriedBy && !unit.inFactory &&
+      !(unit.type.moveOrFire && unit.attackSpent) && this.unitAt(unit.col, unit.row) === unit;
+  };
+
+  Game.prototype.legalAttackTargets = function (unit) {
+    return this.canAttackNow(unit) ? this.attackTargets(unit) : [];
+  };
+
+  Game.prototype.availableActions = function (unit) {
+    var actions = { moves: [], attacks: [], unloads: [], store: false };
+    if (this.winner !== null || unit.player !== this.currentPlayer ||
+        this.unitAt(unit.col, unit.row) !== unit) return actions;
+    if (this.canMoveNow(unit)) actions.moves = Object.values(this.movementRange(unit)).filter(function (rec) {
+      return rec.cost > 0 && rec.canStop;
+    });
+    actions.attacks = this.legalAttackTargets(unit);
+    actions.store = !unit.moved && this.entersBuilding(unit, unit.col, unit.row);
+    unit.cargo.forEach(function (cargo) {
+      var targets = this.unloadTargets(unit, cargo);
+      if (targets.length) actions.unloads.push({ cargo: cargo, targets: targets });
+    }, this);
+    return actions;
+  };
+
+  Game.prototype.remainingTurnActions = function () {
+    var result = { field: [], reserves: [] };
+    this.playerUnits(this.currentPlayer).forEach(function (unit) {
+      var actions = this.availableActions(unit);
+      if (actions.moves.length || actions.attacks.length || actions.unloads.length || actions.store)
+        result.field.push({ unit: unit, actions: actions });
+    }, this);
+    this.playerFactories(this.currentPlayer).forEach(function (building) {
+      building.stored.forEach(function (unit) {
+        var exits = this.deployTargets(building, unit), transports = this.transportDeployTargets(building, unit);
+        if (exits.length || transports.length) result.reserves.push({unit: unit, building: building,
+          exits: exits, transports: transports});
+      }, this);
+    }, this);
+    return result;
+  };
+
   Game.prototype.moveUnit = function (unit, col, row, range) {
-    if (unit.moved || unit.shifted || unit.carriedBy || unit.inFactory ||
-        this.unitAt(unit.col, unit.row) !== unit) throw new Error("Unit cannot move now");
+    if (!this.canMoveNow(unit)) throw new Error("Unit cannot move now");
     // A supplied preview may predate a move, casualty, load, deployment or
     // editor change. Recompute legality and cost from the current board;
     // retain the optional argument only for compatibility with existing callers.
@@ -432,6 +483,7 @@ var ENGINE = (function () {
     unit.movePointsLeft -= rec.cost;
     if (rec.load) {
       transport.cargo.push(unit);
+      transport.transferUsed = true;
       unit.carriedBy = transport.id;
       unit.col = col; unit.row = row;
       unit.moved = true;
@@ -520,12 +572,8 @@ var ENGINE = (function () {
   };
 
   Game.prototype.attack = function (attacker, defender) {
-    if (attacker.attacked) throw new Error("Unit already attacked this turn");
-    if (attacker.moved) throw new Error("Unit already finished its turn");
-    if (this.winner !== null || attacker.player !== this.currentPlayer) throw new Error("Not this unit's turn");
-    if (attacker.type.moveOrFire && attacker.attackSpent) throw new Error("Move-or-fire unit already moved");
-    if (this.unitAt(attacker.col, attacker.row) !== attacker ||
-        this.attackTargets(attacker).indexOf(defender) < 0) throw new Error("Illegal attack target");
+    if (this.legalAttackTargets(attacker).indexOf(defender) < 0)
+      throw new Error(attacker.attacked ? "Unit already attacked this turn" : "Illegal attack target or unit cannot attack now");
     var result = COMBAT.resolve(this, attacker, defender, this.rng);
     this.log.push({
       t: "battle", a: attacker.id, d: defender.id,
@@ -589,7 +637,8 @@ var ENGINE = (function () {
   /* Unload one cargo unit from a transport to an adjacent hex. */
   Game.prototype.unloadTargets = function (transport, cargoUnit) {
     var self = this;
-    if (cargoUnit.moved || cargoUnit.carriedBy !== transport.id ||
+    if (this.winner !== null || transport.player !== this.currentPlayer ||
+        transport.transferUsed || cargoUnit.moved || cargoUnit.carriedBy !== transport.id ||
         transport.cargo.indexOf(cargoUnit) < 0 ||
         this.unitAt(transport.col, transport.row) !== transport) return [];
     return HEX.neighbors(transport.col, transport.row).filter(function (n) {
@@ -609,24 +658,41 @@ var ENGINE = (function () {
     cargoUnit.col = col; cargoUnit.row = row;
     cargoUnit.moved = true; cargoUnit.movePointsLeft = 0;
     transport.cargo.splice(transport.cargo.indexOf(cargoUnit), 1);
+    transport.transferUsed = true;
     this.log.push({ t: "unload", unit: cargoUnit.id, col: col, row: row });
     this.finishUnit(cargoUnit);
+  };
+
+  Game.prototype.canDeployNow = function (building, unit) {
+    return this.winner === null && building && this.buildingAt(building.col, building.row) === building &&
+      building.owner === this.currentPlayer && unit.player === building.owner &&
+      unit.inFactory && !unit.carriedBy && !unit.moved && building.stored.indexOf(unit) >= 0;
+  };
+
+  Game.prototype.canDeployAt = function (building, unit, col, row) {
+    if (!this.canDeployNow(building, unit) || !this.inBounds(col, row) ||
+        HEX.distance(building.col, building.row, col, row) !== 1 || this.unitAt(col, row)) return false;
+    var terr = this.terrainAt(col, row);
+    return !!terr.deployable && terrainCost(terr, unit.type.moveType, unit.type) !== null &&
+      this.canStopAtBuilding(unit, col, row);
+  };
+
+  Game.prototype.canDeployInto = function (building, unit, transport) {
+    return this.canDeployNow(building, unit) && this.canLoad(transport, unit, true) &&
+      this.unitAt(transport.col, transport.row) === transport &&
+      HEX.distance(building.col, building.row, transport.col, transport.row) === 1;
   };
 
   /* Empty hexes a stored unit could deploy to: one of the six around the
    * factory, on terrain explicitly marked as deployable. Shared by the UI's
    * exit picker and the AI. */
   Game.prototype.deployTargets = function (building, storedUnit) {
+    if (!this.canDeployNow(building, storedUnit)) return [];
     var out = [];
     var ns = HEX.neighbors(building.col, building.row);
     for (var i = 0; i < ns.length; i++) {
       var n = ns[i];
-      if (!this.inBounds(n.col, n.row)) continue;
-      if (this.unitAt(n.col, n.row)) continue;
-      var terr = this.terrainAt(n.col, n.row);
-      if (!terr.deployable) continue;
-      if (terrainCost(terr, storedUnit.type.moveType, storedUnit.type) === null) continue;
-      if (!this.canStopAtBuilding(storedUnit, n.col, n.row)) continue;
+      if (!this.canDeployAt(building, storedUnit, n.col, n.row)) continue;
       out.push(n);
     }
     return out;
@@ -634,13 +700,14 @@ var ENGINE = (function () {
 
   /* Adjacent transports a stored unit can deploy directly into. */
   Game.prototype.transportDeployTargets = function (building, storedUnit) {
+    if (!this.canDeployNow(building, storedUnit)) return [];
     var out = [];
     var ns = HEX.neighbors(building.col, building.row);
     for (var i = 0; i < ns.length; i++) {
       var n = ns[i];
       if (!this.inBounds(n.col, n.row)) continue;
       var transport = this.unitAt(n.col, n.row);
-      if (!this.canLoad(transport, storedUnit, true)) continue;
+      if (!this.canDeployInto(building, storedUnit, transport)) continue;
       out.push(transport);
     }
     return out;
@@ -651,18 +718,8 @@ var ENGINE = (function () {
    * unit its whole turn, and a unit stored this turn cannot leave until the
    * next. Mines and Atlas may also deploy directly, becoming immobile. */
   Game.prototype.deployFromFactory = function (building, storedUnit, col, row) {
-    if (building.owner !== this.currentPlayer) throw new Error("Not your factory");
+    if (!this.canDeployAt(building, storedUnit, col, row)) throw new Error("Unit cannot deploy to this hex now");
     var idx = building.stored.indexOf(storedUnit);
-    if (idx < 0) throw new Error("Unit not stored here");
-    if (storedUnit.moved) throw new Error(storedUnit.type.name + " was stored this turn");
-    if (HEX.distance(building.col, building.row, col, row) !== 1) {
-      throw new Error("Units deploy to a hex adjacent to the factory");
-    }
-    if (this.unitAt(col, row)) throw new Error("Hex occupied");
-    var terr = this.terrainAt(col, row);
-    if (!terr || !terr.deployable) throw new Error("Terrain does not allow deployment");
-    if (terrainCost(terr, storedUnit.type.moveType, storedUnit.type) === null) throw new Error("Impassable");
-    if (!this.canStopAtBuilding(storedUnit, col, row)) throw new Error("Cannot deploy onto an unowned building");
     building.stored.splice(idx, 1);
     storedUnit.inFactory = false;
     storedUnit.player = building.owner;
@@ -676,20 +733,8 @@ var ENGINE = (function () {
 
   /* Load a stored ground unit directly onto an eligible adjacent transport. */
   Game.prototype.loadFromFactory = function (building, storedUnit, transport) {
-    if (building.owner !== this.currentPlayer) throw new Error("Not your factory");
+    if (!this.canDeployInto(building, storedUnit, transport)) throw new Error("Unit cannot deploy into this transport now");
     var idx = building.stored.indexOf(storedUnit);
-    if (idx < 0) throw new Error("Unit not stored here");
-    if (storedUnit.moved) throw new Error(storedUnit.type.name + " was stored this turn");
-    if (!this.canLoad(transport, storedUnit, true)) {
-      throw new Error(storedUnit.type.name + " cannot board a transport");
-    }
-    var d = HEX.distance(building.col, building.row, transport.col, transport.row);
-    if (d !== 1) throw new Error("Transport must be adjacent to factory");
-    if (this.unitAt(transport.col, transport.row) !== transport) {
-      throw new Error("Transport is not on the map");
-    }
-    if (transport.player !== building.owner) throw new Error("Not your transport");
-    if (!transport.type.cargo || transport.cargo.length >= transport.type.cargo) throw new Error("Transport full");
     building.stored.splice(idx, 1);
     storedUnit.inFactory = false;
     storedUnit.player = building.owner;
@@ -698,6 +743,7 @@ var ENGINE = (function () {
     storedUnit.moved = true;
     storedUnit.movePointsLeft = 0;
     transport.cargo.push(storedUnit);
+    transport.transferUsed = true;
     this.units.push(storedUnit);
     this.log.push({ t: "loadFromFactory", unit: storedUnit.id, into: transport.id });
     return storedUnit;
@@ -709,6 +755,7 @@ var ENGINE = (function () {
       u.moved = false;
       u.attacked = false;
       u.attackSpent = false;
+      delete u.transferUsed;
       delete u.shifted;
       u.movePointsLeft = u.type.move;
     }
@@ -719,6 +766,7 @@ var ENGINE = (function () {
         stored[j].moved = false;
         stored[j].attacked = false;
         stored[j].attackSpent = false;
+        delete stored[j].transferUsed;
         delete stored[j].shifted;
         stored[j].movePointsLeft = stored[j].type.move;
       }

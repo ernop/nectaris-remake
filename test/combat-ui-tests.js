@@ -2,11 +2,12 @@
 "use strict";
 module.exports = function (ok) {
   var ENGINE = require("../js/engine.js"), COMBAT = require("../js/combat.js"), UI = require("../js/ui.js");
+  var unitView = require("../js/unit-view.js");
   var savedDocument = global.document, savedView = global.COMBAT_VIEW, savedRender = global.RENDER;
   var nodes = {};
   function element() {
     var classes = new Set(["hidden"]), html = "";
-    return { style: {}, children: [], textContent: "", offsetWidth: 108, offsetHeight: 26,
+    return { getContext: function () { return new Proxy({}, {get:function(target,key) { return target[key] || function () {}; }}); }, style: {}, children: [], textContent: "", offsetWidth: 108, offsetHeight: 26,
       set innerHTML(value) { html = value; this.children = []; }, get innerHTML() { return html; },
       appendChild: function (child) { this.children.push(child); }, setAttribute: function () {},
       querySelector: function () { return { width: 32, height: 32, getContext: function () {
@@ -123,7 +124,7 @@ module.exports = function (ok) {
     ok(rejected, "reselecting cannot grant a second ordinary movement phase");
     var committed = JSON.stringify(ui.game.snapshot()), seed = ui.game.rng.getState();
     ui.onMouseMove({offsetX:3,offsetY:1});
-    ok(nodes["combat-inspector"].innerHTML.includes("Polar PT-6") &&
+    ok(nodes["combat-inspector"].innerHTML.includes("Polar") &&
       nodes["combat-inspector"].innerHTML.includes("100,000") &&
       nodes["combat-inspector"].innerHTML.includes("Joint casualty probabilities") &&
       JSON.stringify(ui.game.snapshot()) === committed && ui.game.rng.getState() === seed,
@@ -131,7 +132,7 @@ module.exports = function (ok) {
     var secondTarget = ENGINE.makeUnit("CHARLIE",1,2,0,5,4);
     ui.game.units.push(secondTarget); ui.pickTargets = ui.previewTargets(unit);
     ui.onMouseMove({offsetX:2,offsetY:0});
-    ok(nodes["combat-inspector"].innerHTML.includes("Charlie GX-77") &&
+    ok(nodes["combat-inspector"].innerHTML.includes("Charlie") &&
       nodes["combat-inspector"].innerHTML.includes("+30% damage"), "hovering another target replaces its full forecast");
     ui.game.units.pop(); ui.pickTargets = ui.previewTargets(unit);
     ui.onMouseMove({offsetX:3,offsetY:1});
@@ -181,6 +182,40 @@ module.exports = function (ok) {
     ok(!ui.canUndo() && !ui.undoHistory.length && ui.game.currentPlayer === 1,
       "ending the turn prevents undoing the other player's turn");
 
+    ui = fixture("BISON",7); ui.options={hotseat:true}; before=JSON.stringify(ui.game.snapshot());
+    ui.endTurn();
+    ok(ui.game.currentPlayer===0 && JSON.stringify(ui.game.snapshot())===before &&
+      !nodes["end-turn-warning"].classList.contains("hidden") && !nodes["btn-endturn"].textContent.includes("anyway"),
+      "first End Turn warns about a movable unit without changing the board or spending actions");
+    ui.onKey({key:"e",repeat:true});
+    ok(ui.game.currentPlayer===0,"holding E cannot accidentally confirm the end-turn warning");
+    ui.endTurn(true);
+    ok(ui.game.currentPlayer===1 && nodes["end-turn-warning"].classList.contains("hidden"),
+      "the popup confirmation explicitly ends a turn with available actions");
+    ui=fixture("BISON",7);ui.options={hotseat:true};ui.endTurn();ui.onHexClick(1,1);
+    ok(!ui._endTurnConfirmation && nodes["end-turn-warning"].classList.contains("hidden"),
+      "returning to unit controls cancels the pending end-turn confirmation");
+    ui.endTurn();ui.game.units[0].moved=true;ui.game.units[0].moved=false;ui.game.units[0].col=2;ui.endTurn(true);
+    ok(ui.game.currentPlayer===0,"a changed board requires a fresh end-turn confirmation");
+    ui=fixture("ATLAS",7);
+    ok(ui.remainingActions().field===1,"an immobile unit with an available shot still triggers the warning");
+    ui=fixture("TRIGGER",7);ui.options={hotseat:true};ui.toast=function(){};ui.endTurn();
+    ok(ui.game.currentPlayer===1 && !ui._endTurnConfirmation,"a unit with no legal action needs no confirmation");
+    ui=fixture("MULE",7);ui.deselect();
+    ui.game=new ENGINE.Game({name:"Blocked reserve",grid:["FMMMM","MMMMM","....."],
+      buildings:[{col:0,row:0,owner:0,stored:["ATLAS"]}],
+      units:[{t:"PELICAN",o:0,x:1,y:0},{t:"POLAR",o:1,x:4,y:2}]},{seed:2});
+    ui.game.units[0].moved=true;
+    ok(ui.remainingActions().reserves===1 && ui.remainingActions().field===0,
+      "factory cargo that can board a spent carrier counts as a deployable action");
+    ui.game.units[0].transferUsed=true;
+    ok(ui.remainingActions().reserves===0,"blocked reserves with no available transport do not trigger the warning");
+    delete ui.game.units[0].transferUsed;
+    var reserveBuilding=ui.game.buildingAt(0,0);
+    ui.game.loadFromFactory(reserveBuilding,reserveBuilding.stored[0],ui.game.units[0]);
+    ui.game.endTurn();ui.game.endTurn();ui.game.units[0].moved=true;
+    ok(ui.remainingActions().field===1,"a spent transport with unloadable cargo still counts as an available action");
+
     function transportUI() {
       var ui = fixture("MULE",7);
       var passenger = ENGINE.makeUnit("CHARLIE",0,0,1); ui.game.units.push(passenger);
@@ -197,9 +232,9 @@ module.exports = function (ok) {
     ui = transportUI(); unit = ui.game.units[0];
     before = JSON.stringify(ui.game.snapshot());
     ui.onHexClick(1,1); ui.onHexClick(1,0);
-    ok(unit.moved && action("Unload " + unit.cargo[0].type.name), "moving a carrier ends immediately and keeps passenger unloading available");
+    ok(unit.moved && action("Unload " + unitView.name(unit.cargo[0])), "moving a carrier ends immediately and keeps passenger unloading available");
     var movedCarrier = JSON.stringify(ui.game.snapshot());
-    action("Unload " + unit.cargo[0].type.name).onclick(); ui.onHexClick(2,0);
+    action("Unload " + unitView.name(unit.cargo[0])).onclick(); ui.onHexClick(2,0);
     ok(!unit.cargo.length && ui.game.unitAt(2,0).moved && ui.undoHistory.length === 2,
       "unloading records a separate reversible action");
     ui.undoLast(); unit = ui.game.units[0];
@@ -208,6 +243,46 @@ module.exports = function (ok) {
     ui.undoLast();
     ok(JSON.stringify(ui.game.snapshot()) === before, "undo carrier movement restores both carrier and cargo state");
 
+    // A loaded Atlas over mountains must remain visible even with Details closed.
+    ui = fixture("PELICAN",7); ui.deselect();
+    ui.game = new ENGINE.Game({name:"Atlas airlift", grid:["F.......","........","MMMMMMMM","MMMMMMMM","MMMMMMMM"],
+      buildings:[{col:0,row:0,owner:0,stored:["ATLAS"]}],
+      units:[{t:"PELICAN",o:0,x:1,y:0},{t:"POLAR",o:1,x:7,y:0}]}, {seed:19});
+    var pelican = ui.game.units[0], atlasFactory = ui.game.buildingAt(0,0);
+    var carriedAtlas = atlasFactory.stored[0];
+    ui.game.loadFromFactory(atlasFactory,carriedAtlas,pelican);
+    ui.selectUnit(pelican);
+    ok(nodes["action-menu"].children.some(function (button) {
+      return button.disabled && button.textContent.includes("Atlas") && button.textContent.includes("next turn");
+    }), "newly loaded Atlas is visible in the action strip while unloading waits until next turn");
+    ui.onHexClick(4,3);
+    ui.game.endTurn(); require("../js/ai.js").playTurn(ui.game,1); ui.game.endTurn();
+    ui.game = ENGINE.Game.restore(ui.game.snapshot());
+    pelican = ui.game.units.find(function (u) { return u.typeId === "PELICAN"; });
+    carriedAtlas = ui.game.units.find(function (u) { return u.typeId === "ATLAS"; });
+    ok(pelican.cargo[0] === carriedAtlas && carriedAtlas.carriedBy === pelican.id && !carriedAtlas.moved,
+      "factory-loaded Atlas remains aboard after carrier movement, an AI turn and save/reload");
+    ui.deselect(); ui.selectUnit(pelican);
+    ok(nodes["action-menu"].children.some(function (button) {
+      return button.disabled && button.textContent.includes("Atlas") && button.textContent.includes("no landing space");
+    }), "blocked Atlas unloading stays visible in the action strip with a reason");
+    ui.renderUnitInfo(nodes["unit-info"],pelican);
+    ok(nodes["unit-info"].innerHTML.includes("Cargo") && nodes["unit-info"].innerHTML.includes("Atlas"),
+      "the shared hover and detail card names the passenger even when unloading is blocked");
+    action("End").onclick(); ui.selectUnit(pelican);
+    ok(ui.selected === pelican && nodes["action-menu"].children.some(function (button) {
+      return button.disabled && button.textContent.includes("Atlas");
+    }), "an already-finished loaded carrier still exposes its blocked passenger when selected");
+    ui.game.endTurn(); ui.game.endTurn(); ui.deselect(); ui.selectUnit(pelican);
+    ui.onHexClick(3,1);
+    var unloadAtlas = action("Unload " + unitView.name(carriedAtlas));
+    ok(unloadAtlas && !unloadAtlas.disabled, "moving beside legal terrain makes Atlas unloading available");
+    unloadAtlas.onclick();
+    var atlasLanding = ui.game.unloadTargets(pelican,carriedAtlas)[0];
+    ui.onHexClick(atlasLanding.col,atlasLanding.row);
+    ok(!pelican.cargo.length && ui.game.unitAt(atlasLanding.col,atlasLanding.row) === carriedAtlas,
+      "the same Atlas unloads successfully after moving away from the mountains");
+
     ui = fixture("BISON",4); before = JSON.stringify(ui.game.snapshot());
     ui.onHexClick(4,1);
     ok(ui.mode === "enemyInspect" && JSON.stringify(ui.game.snapshot()) === before, "clicking an enemy while moving inspects it without a move-and-attack shortcut");
@@ -215,24 +290,60 @@ module.exports = function (ok) {
     ui.inspectEnemy(ui.game.units[1]);
     ok(Object.keys(ui.renderer.highlights).length > 1, "enemy inspection previews its next turn despite completed movement");
     ui.onCancel();
-    ok(ui.mode === "idle" && !ui.selected, "Escape clears enemy inspection");
+    ok(ui.mode === "idle" && !ui.selected && !ui.renderer.fireRange &&
+      nodes["range-legend"].classList.contains("hidden"), "Escape clears enemy inspection and both range overlays");
 
-    // Commands keep a fixed location across units, zoom and aiming modes.
-    ui = fixture("BISON", 3);
+    ["HADRIAN", "OCTOPUS", "ATLAS", "HAWKEYE", "LYNX", "PELICAN"].forEach(function (type) {
+      ui = fixture("BISON", 4);
+      var enemy = ui.game.units[1];
+      enemy.typeId = type; enemy.type = UNIT_TYPES[type];
+      enemy.moved = enemy.shifted = enemy.attacked = true; enemy.movePointsLeft = 0;
+      before = JSON.stringify(ui.game.snapshot());
+      ui.inspectEnemy(enemy);
+      var move = ui.renderer.highlights, fire = ui.renderer.fireRange;
+      var bands = { HADRIAN: [2, 5, 0, 0], OCTOPUS: [2, 4, 0, 0], ATLAS: [2, 6, 0, 0],
+        HAWKEYE: [0, 0, 2, 5], LYNX: [2, 2, 1, 1], PELICAN: [0, 0, 0, 0] }[type];
+      for (var row = 0; row < ui.game.height; row++) {
+        for (var col = 0; col < ui.game.width; col++) {
+          var d = HEX.distance(enemy.col, enemy.row, col, row), band = fire[HEX.key(col, row)] || {};
+          ok(!!band.ground === (d > 0 && d >= bands[0] && d <= bands[1]) &&
+            !!band.air === (d > 0 && d >= bands[2] && d <= bands[3]),
+            type + " inspection displays the correct ground/air firing band at " + col + "," + row);
+        }
+      }
+      ok(JSON.stringify(ui.game.snapshot()) === before, type + " range inspection leaves the entire match unchanged");
+      if (type === "HADRIAN") ok(Object.keys(move).some(function (key) { return fire[key] && fire[key].ground; }),
+        "artillery shows movement and firing range simultaneously in overlapping hexes");
+      if (type === "ATLAS") ok(Object.keys(move).length <= 1 && Object.keys(fire).length > 1 &&
+        !nodes["range-legend"].innerHTML.includes('class="range-move"'), "emplaced Atlas shows firing range without a movement legend");
+      ui.onCancel();
+    });
+
+    // Commands follow the selected unit, while crowded views get a safe rail.
+    ui = fixture("ATLAS", 7);
     ui.renderer.originX = 40; ui.renderer.originY = 50;
     [0.2, 0.5, 1, 2, 4].forEach(function (zoom) {
       ui.renderer.zoom = zoom;
-      ui.renderer.hexCenter = function () { return {x: 790 * zoom, y: 590 * zoom}; };
+      ui.renderer.hexCenter = function (col) { return {x: col === 1 ? 400 : 750, y: 300}; };
       ui.positionActionMenu();
-      ok(ui.canvas.height === 564 && !nodes["map-action-rail"].classList.contains("hidden") &&
-        nodes["action-menu"].style.left === "8px" && nodes["action-menu"].style.top === "569px",
-        "commands stay below all map hexes at the same position at zoom " + zoom);
+      var menuX = parseFloat(nodes["action-menu"].style.left), menuY = parseFloat(nodes["action-menu"].style.top);
+      ok(ui.canvas.height === 600 && nodes["map-action-rail"].classList.contains("hidden") &&
+        Math.abs(menuX + 54 - 400) < 220 && menuY >= 260 && menuY < 300 &&
+        (menuX > 400 + 34 * zoom || menuX + 108 < 400 - 34 * zoom),
+        "Atlas commands stay beside its hex at zoom " + zoom);
     });
+    ui.renderer.zoom = 1;
+    ui.renderer.hexCenter = function () { return {x: 790, y: 590}; };
     ui.selected = ui.game.units[1]; ui.mode = "moved"; ui.pickTargets = [ui.game.units[0]];
     ui.positionActionMenu();
-    ok(ui.canvas.height === 564 && ui.renderer.originX === 40 && ui.renderer.originY === 50 &&
-      nodes["action-menu"].style.left === "8px" && nodes["action-menu"].style.top === "569px",
-      "changing the selected unit and aiming mode keeps commands and the camera stable");
+    ok(parseFloat(nodes["action-menu"].style.left) + 108 <= 792 &&
+      parseFloat(nodes["action-menu"].style.top) + 26 <= 592 &&
+      ui.renderer.originX === 40 && ui.renderer.originY === 50,
+      "commands flip at viewport edges without shifting the camera");
+    ui.renderer.hexSize = 1000;
+    ui.positionActionMenu();
+    ok(ui.canvas.height === 564 && !nodes["map-action-rail"].classList.contains("hidden") &&
+      nodes["action-menu"].style.top === "569px", "crowded views use a temporary rail without covering selectable hexes");
     ui.closeActionMenu();
     ok(ui.canvas.height === 600 && nodes["map-action-rail"].classList.contains("hidden"),
       "closing controls returns the entire bottom strip to the battlefield");
@@ -277,7 +388,7 @@ module.exports = function (ok) {
     before = JSON.stringify(ui.game.snapshot());
     ui.onMouseMove({offsetX: 3, offsetY: 1});
     var hover = nodes["unit-hover"];
-    ok(!hover.classList.contains("hidden") && hover.innerHTML.includes("Polar PT-6") &&
+    ok(!hover.classList.contains("hidden") && hover.innerHTML.includes("Polar") &&
       hover.innerHTML.includes(RENDER.PLAYER_COLORS[1].light) && !hover.innerHTML.includes("<span>Strength</span>") &&
       !hover.innerHTML.includes("hover-faction") && !hover.innerHTML.includes("<table"),
       "hover inspects an enemy while retaining the selected unit and hides full strength");
@@ -287,7 +398,7 @@ module.exports = function (ok) {
       "hover refreshes the remaining-unit number on the icon without a Strength label");
     ui.game.units[1].strength = 8;
     ui.onMouseMove({offsetX: 1, offsetY: 1});
-    ok(hover.innerHTML.includes("Bison S-61") && !hover.innerHTML.includes("Polar PT-6"),
+    ok(hover.innerHTML.includes("Bison") && !hover.innerHTML.includes("Polar"),
       "moving between units replaces the local card's contents");
     ui.onMouseMove({offsetX: 6, offsetY: 1});
     ok(hover.classList.contains("hidden"), "hover card clears on empty terrain");
@@ -298,6 +409,29 @@ module.exports = function (ok) {
     ui.busy = true; ui.updateHoverInfo();
     ok(hover.classList.contains("hidden") && JSON.stringify(ui.game.snapshot()) === before,
       "committed combat hides hover details without changing game state");
+
+    [-1,0,1].forEach(function(owner) {
+      ui=fixture("BISON",7);ui.updateHoverInfo=UI.GameUI.prototype.updateHoverInfo;
+      ui.game=new ENGINE.Game({name:"Factory hover",grid:["....F...","........","........"],
+        buildings:[{col:4,row:0,owner:owner,stored:["BISON",{t:"BISON",exp:7},{t:"LYNX",str:5,exp:3}]}],
+        units:[{t:"CHARLIE",o:0,x:1,y:1},{t:"POLAR",o:1,x:7,y:1}]},{seed:8});
+      ui.deselect();before=JSON.stringify(ui.game.snapshot());ui.onMouseMove({offsetX:4,offsetY:0});
+      hover=nodes["unit-hover"];
+      ok(!hover.classList.contains("hidden") && hover.innerHTML.includes("Factory") &&
+        hover.innerHTML.includes(owner<0 ? "Neutral" : RENDER.PLAYER_COLORS[owner].name) &&
+        hover.innerHTML.includes("3 stored units") && !hover.innerHTML.includes("×2") &&
+        hover.innerHTML.split("data-unit-type='BISON'").length===3 && hover.innerHTML.includes("data-unit-type='LYNX'") &&
+        hover.innerHTML.includes("data-exp='7'") && hover.innerHTML.includes("data-exp='3'") &&
+        !hover.innerHTML.includes("S-61") && !hover.innerHTML.includes("MB-4"),
+        "factory hover shows every reserve separately with its own short name, icon and experience for owner "+owner);
+      ok(JSON.stringify(ui.game.snapshot())===before && ui.mode==="idle",
+        "factory hover is read-only and never opens the inventory dialog");
+      ui.game.buildingAt(4,0).stored=[];ui.updateHoverInfo();
+      ok(hover.innerHTML.includes("Empty") && !hover.innerHTML.includes("Bison"),
+        "factory hover refreshes when its last reserve leaves");
+    });
+    ok(unitView.name({name:"Pelican C-61"})==="Pelican" && unitView.name({name:"Custom Heavy Tank"})==="Custom Heavy Tank",
+      "short names remove stock designations while preserving multiword custom names");
     // Real camera bounds plus real input dispatch: dragging must never act on a unit.
     ui = fixture("BISON", 3);
     ui.canvas = { width: 260, height: 150, style: {}, getContext: function () { return {}; } };
@@ -368,6 +502,36 @@ module.exports = function (ok) {
       });
     });
     RENDER.setIconSet(oldSet); RENDER.setStyle(oldStyle);
+    ui = fixture("BISON", 3);
+    ui.canvas = { width: 800, height: 600, style: {}, parentElement: { clientWidth: 800, clientHeight: 600 },
+      getContext: function () { return {}; } };
+    ui.renderer = new RENDER.Renderer(ui.canvas, ui.game);
+    ui.showHexInfo = function () {};
+    cameraX = ui.renderer.originX; cameraY = ui.renderer.originY;
+    var destination = ui.renderer.hexCenter(2, 1);
+    ui.updateMapCursor();
+    ok(ui.canvas.style.cursor === "crosshair", "choosing a movement destination displays a crosshair");
+    [1, 2, 0].forEach(function (button) {
+      ui.onMouseDown(pointer(button, destination.x - 30, destination.y));
+      ui.onMouseMove(pointer(button, destination.x, destination.y));
+      ok(!ui.dragging.pan && !ui.dragging.moved &&
+        ui.renderer.originX === cameraX && ui.renderer.originY === cameraY,
+        "movement selection prevents map dragging with mouse button " + button);
+      ui.onMouseUp(pointer(button, destination.x, destination.y));
+      if (button === 2) {
+        ui.updateMapCursor();
+        ok(ui.mode === "idle" && ui.canvas.style.cursor === "grab",
+          "right click cancels movement selection and restores map grabbing");
+        ui.selectUnit(ui.game.units[0]);
+      }
+    });
+    ui.updateMapCursor();
+    ok(ui.game.units[0].col === 2 && ui.game.units[0].row === 1 && ui.mode === "moved" &&
+      ui.canvas.style.cursor === "grab", "releasing over a destination moves the unit and restores map grabbing");
+    ui.onMouseDown(pointer(0, destination.x, destination.y));
+    ui.onMouseMove(pointer(0, destination.x + 30, destination.y));
+    ui.onMouseUp(pointer(0, destination.x + 30, destination.y));
+    ok(ui.renderer.originX === cameraX + 30, "map dragging works again after choosing a movement destination");
   } finally {
     if (savedDocument === undefined) delete global.document; else global.document = savedDocument;
     if (savedView === undefined) delete global.COMBAT_VIEW; else global.COMBAT_VIEW = savedView;

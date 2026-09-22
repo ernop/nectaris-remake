@@ -163,10 +163,10 @@ var COMBAT = (function () {
         attackerInZOC: game.inEnemyZOC(attacker.col, attacker.row, attacker.player),
         defenderInZOC: game.inEnemyZOC(defender.col, defender.row, defender.player),
         attackSupporters: ranged ? [] : game.adjacentAllies(defender.col, defender.row, attacker.player, attacker).map(function (u) {
-          return {name: u.type.name, strength: u.strength, value: atkStat(u.type, isAir(defender))};
+          return {name: u.type.name, typeId:u.typeId, player:u.player, exp:u.exp, strength: u.strength, value: atkStat(u.type, isAir(defender))};
         }),
         defenseSupporters: ranged ? [] : game.adjacentAllies(attacker.col, attacker.row, defender.player, defender).map(function (u) {
-          return {name: u.type.name, strength: u.strength, value: u.type.def};
+          return {name: u.type.name, typeId:u.typeId, player:u.player, exp:u.exp, strength: u.strength, value: u.type.def};
         }),
       } };
   }

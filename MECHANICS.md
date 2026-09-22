@@ -21,6 +21,14 @@ control-flow change; the underlying movement/attack restrictions are preserved.
 Atlas aims immediately and stationary units never offer movement.
 See `PRODUCT.md` and the historical booklet review in `MANUAL_AUDIT.md`.
 
+Action availability is evaluated against the live match, including current
+ownership, unit identity, spent actions, occupancy, terrain and carrier transfer
+allowance. Deployment target queries and deployment execution share
+`canDeployNow`, `canDeployAt` and `canDeployInto`; field action summaries use
+the same movement/attack gates as execution. Geometric reach or remaining
+movement points alone do not establish a legal action. The factory roster and
+End Turn warning consume these engine queries rather than reproducing rules.
+
 There are **23 unit types**, each a squad of 1–8 machines. Full strength is
 omitted from the map label. `js/data-units.js` follows the
 [original PCE manual](https://dds.konami.com/games/manual/pcemini/jp_Nectaris.pdf)
@@ -56,6 +64,22 @@ Giant additionally cannot enter wasteland. Immobile units have zero movement.
 Ground terrain defense is additive: road/bridge/valley/factory 0, plain 5,
 hill 20, waste 30, base 35, mountain 40. Air receives no terrain defense.
 Sources: PCE manual and [movement table](https://anka.sakura.ne.jp/nectaris/d2.html).
+
+The 2026-09-22 terrain audit independently transcribes the movement table in
+`test/terrain-movement-tests.js`: all 23 stock units, nine terrain types, both
+column parities and both tested directions. Movement previews and execution
+agree with the published terrain access/costs and each unit's allowance.
+Panther captures buildings but uses light-vehicle movement: it cannot cross
+mountains, wasteland or valley tiles. Charlie and Kilroy pay two for mountains;
+entering a valley consumes their remaining movement. Giant's two movement points
+cannot cover the fighting-vehicle wasteland cost of three; the data also retains
+its explicit restriction. The editor now consults unit-specific restrictions
+when placing units or painting terrain, fixing its omission of that metadata.
+Unloading is checked separately: even Pelican cargo must land on plains,
+roads/bridges or an owned factory, not hills, waste, mountains, valleys or bases.
+That restriction follows [Anka's PCE supplement](https://anka.sakura.ne.jp/nectaris/d1.html).
+These checks validate documented terrain behavior, not every original hardware
+movement detail; the ZOC evidence and remaining limits are described below.
 
 One unit occupies a hex. Friendly units permit pass-through; enemies block.
 Every field unit projects cross-domain ZOC onto its six neighbors. Entering
@@ -144,9 +168,13 @@ only from a factory. Pelican carries ground units, including an empty Mule;
 loaded nested transports are forbidden. See the
 [release comparison](https://anka.sakura.ne.jp/nectaris/d6.html).
 
-Loading and unloading spend the passenger's activation. It cannot do both in
-one turn. A ready passenger may leave a used carrier; unloading in place leaves
-a ready carrier available to move. Unloading allows plains, roads and bridges,
+Loading and unloading spend the passenger's activation. A transport may load
+or unload once per turn, including with different passengers (user clarification,
+2026-09-22). Moving does not consume that transfer allowance: cargo already
+aboard at turn start may unload after moving, and unloading first leaves a ready
+carrier free to move. Loading then moving is legal, but unloading must wait
+until next turn. This applies to Pelican, Mule and custom transports. The limit
+survives save/reload and is restored by undo. Unloading allows plains, roads and bridges,
 plus direct storage in an owned factory in PCE. It never captures a prison base
 by dropping onto it. Carrier casualties reduce cargo to at most the carrier's
 remaining strength; cargo never increases. See the PCE supplement above.

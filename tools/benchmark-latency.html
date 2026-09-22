@@ -1,0 +1,6 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Nectaris latency audit</title>
+<style>body{margin:16px;background:#181510;color:#eee;font:14px monospace}button{font:inherit;padding:8px}iframe{display:block;width:1280px;height:800px;border:1px solid #777}pre{white-space:pre-wrap;max-height:400px;overflow:auto}</style>
+<h1>Cold startup and interaction latency</h1>
+<p>Isolated matches, fresh script context per map/art pair. CPU timings include UI handlers and synchronous redraws, not background iframe scheduling or FPS. No profile saves are written.</p>
+<button id="run">Run full audit</button><pre id="results">Ready.</pre><iframe title="Latency test match"></iframe>
+<script src="benchmark-latency.js"></script></html>

@@ -15,7 +15,7 @@ Facts wei need across sessions:
   logic module ends with `if (typeof module !== "undefined") module.exports`
   so the node test suite loads them.
 - **Tests:** `node test/run-tests.js` — map validation, rule unit-tests, and
-  AI-vs-AI self-play on all 32 normal/advanced campaign + 24 extra-pack + 7 AI-made maps. Run it
+  AI-vs-AI self-play on all 32 normal/advanced campaign + 24 extra-pack + 10 AI-made maps. Run it
   after any engine, data, or map change.
 - **Local development:** `./serve.sh` serves the repo on fixed backend port
   `127.0.0.1:8001`; do not substitute a random port. The machine's shared
@@ -24,6 +24,8 @@ Facts wei need across sessions:
 - **Map navigation (2026-09-22):** grabbing pans at every zoom level, even when
   the entire map fits. Preserve the drag threshold so clicks still select units;
   never recenter merely because the map is smaller than the viewport.
+  Disable grabbing while actively choosing a unit's movement destination;
+  show a crosshair and restore grabbing after moving or cancelling.
 - **Deploy target:** none written yet. It is a static folder; any web host
   works. When youi picks a live target, record it here (per the pdeploy
   rule).
@@ -107,6 +109,20 @@ Facts wei need across sessions:
   actions and complete AI turns; unfinished AI turns resume from their start.
   Tests in `test/profiles-tests.js` run through the main suite. See `PRODUCT.md`.
 
+- **Unit labels and factory hovers (2026-09-22):** use `UNIT_VIEW` for short
+  unit names and accompanying icons. Omit serial/model designations in the UI.
+  Factory hovers list every reserve individually with that unit's experience
+  stars; never aggregate identical types. Empty factory clicks stay silent.
+  Factory popups reuse that two-column roster, anchor next to the factory,
+  and reopen after deployment. Ready tiles are whole Deploy buttons; blocked
+  tiles explain why. End Turn confirmation has both buttons inside its popup.
+  Readiness must come from engine legal-action queries shared with execution,
+  never a separate UI interpretation of movement points or nominal ranges.
+- **Transport and End Turn clarification (2026-09-22):** each transport may
+  load OR unload once per turn; movement does not consume that allowance.
+  Cargo already aboard can unload after moving. End Turn warns about available
+  movement, attacks, unloading and reserves; the popup's End turn anyway button confirms.
+
 - **Combat UI (2026-09-21, latest correction):** click a unit to move immediately;
   **Attack** aims in place. Atlas aims immediately. After moving, attack or End
   if a shot exists; otherwise finish automatically. This supersedes the separate
@@ -115,8 +131,11 @@ Facts wei need across sessions:
   Battle, turn and match-end boundaries clear history; never undo/redo combat.
   Buggies retain their remaining movement only after attacking. Keep action
   controls clear of target hexes. The left inspector is optional (Details,
-  initially closed); commands always use the fixed bottom-left rail, which only
-  takes space while commands are visible. The top bar never wraps: keep its
+  initially closed); commands sit beside the selected unit, clear of other units
+  and selectable destinations. A temporary bottom rail is only a fallback when
+  no nearby space fits (2026-09-22 correction). Enemy inspection shows both orange
+  movement fill and separate ground/air firing outlines from the current hex,
+  including indirect blind spots. The top bar never wraps: keep its
   height fixed and let settings scroll beside the persistent Details/Undo/End
   Turn controls (2026-09-22). Never restore permanent empty chrome or
   automatic move-and-attack shortcuts. `PRODUCT.md` records the current flow;

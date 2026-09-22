@@ -1,0 +1,29 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><title>Unit sprite pixel validation</title>
+<style>body{background:#181510;color:#eee;font:14px monospace;margin:24px}button{font:inherit;padding:8px}pre{white-space:pre-wrap}</style>
+<h1>Unit sprite pixel validation</h1><p>Compare cached sprites with the original per-rectangle drawing, including spent grayscale, attacks, strength, experience and cargo.</p>
+<button id="run">Check all unit sprites</button><pre id="results">Ready.</pre><canvas id="a" width="180" height="140"></canvas><canvas id="b" width="180" height="140"></canvas>
+<script src="../js/hex.js"></script><script src="../js/data-terrain.js"></script><script src="../js/data-units.js"></script><script src="../js/combat.js"></script><script src="../js/engine.js"></script><script src="../js/data-unit-art.js"></script><script src="../js/data-unit-art-legacy.js"></script><script src="../js/unit-icon-sets.js"></script><script src="../js/legacy-terrain.js"></script><script src="../js/render.js"></script>
+<script>
+"use strict";
+document.getElementById("run").onclick=async function(){
+ this.disabled=true;var output=document.getElementById("results"),savedSet=RENDER.getIconSet(),savedStyle=RENDER.getStyle();
+ var a=document.getElementById("a"),b=document.getElementById("b"),ca=a.getContext("2d",{willReadFrequently:true}),cb=b.getContext("2d",{willReadFrequently:true});
+ ca._unitCacheDisabled=true;
+ var g=new ENGINE.Game({grid:["...","...","..."],units:[]}),ra=new RENDER.Renderer(a,g),rb=new RENDER.Renderer(b,g),checks=0;
+ try{
+  RENDER.setStyle("pixel");
+  for(var set of ["legacy","remake"]){RENDER.setIconSet(set);
+   for(var id of Object.keys(UNIT_TYPES))for(var player of [0,1])for(var mode of ["active","spent","attack"])for(var zoom of [.18,.35,.65,1,1.15,2.5,3.2]){
+    var unit={id:1,typeId:id,type:UNIT_TYPES[id],col:0,row:0,player:player,strength:checks%8+1,exp:checks%9,moved:mode==="spent",cargo:checks%3?[]:[{}]};g.currentPlayer=player;
+    for(var r of [ra,rb]){r.zoom=zoom;r.originX=80.37;r.originY=70.63;r.attackingUnitId=mode==="attack"?1:null;}
+    ca.fillStyle=cb.fillStyle="#181510";ca.fillRect(0,0,180,140);cb.fillRect(0,0,180,140);ra.drawUnit(unit);rb.drawUnit(unit);
+    var ap=ca.getImageData(0,0,180,140).data,bp=cb.getImageData(0,0,180,140).data;
+    for(var i=0;i<ap.length;i++)if(ap[i]!==bp[i])throw new Error([set,id,player,mode,zoom,"pixel",i,"expected",ap[i],"actual",bp[i]].join(" "));
+    checks++;if(checks%23===0){output.textContent=checks+" identical cases";await new Promise(function(resolve){setTimeout(resolve,0);});}
+   }
+  }
+  output.textContent="PASS: "+checks+" sprite comparisons identical.";
+ }catch(error){output.textContent="FAIL: "+error.stack+" after "+checks+" cases";}
+ finally{RENDER.setStyle(savedStyle);RENDER.setIconSet(savedSet);this.disabled=false;}
+};
+</script></html>

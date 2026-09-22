@@ -2,10 +2,13 @@
 module.exports = function (ok) {
   var maps = require("../js/data-ai-maps.js"), HEX = require("../js/hex.js");
   var ENGINE = require("../js/engine.js"), types = require("../js/data-units.js").UNIT_TYPES;
-  ok(maps.length === 7 && new Set(maps.map(function (m) {return JSON.stringify(m.grid);})).size === 7,
-    "all seven fjord maps have distinct layouts");
+  ok(maps.length === 10 && new Set(maps.map(function (m) {return JSON.stringify(m.grid);})).size === 10,
+    "all ten fjord maps have distinct layouts");
   require("./arsenal-map-tests.js")(ok);
   require("./scarce-fjords-tests.js")(ok);
+  require("./symmetric-fjords-tests.js")(ok);
+  require("./laced-fjords-tests.js")(ok);
+  require("./turning-fjords-tests.js")(ok);
   ok(maps[2].grid.length === 40 && maps[2].grid.every(function (row) {return row.length === 40;}),
     "Part 3 is exactly 40 by 40 hexes");
   maps.slice(0,3).forEach(function (map, mapIndex) {
@@ -140,6 +143,7 @@ module.exports = function (ok) {
     "Part 4 scales down to eight neutral factories with ten units each");
   denseFactories.forEach(function(b){
     b.owner = 0;
+    b.stored.forEach(function(u){u.player = 0;});
     var neighbors = HEX.neighbors(b.col,b.row);
     ok(neighbors.filter(function(p){return dense.grid[p.row][p.col] === "M";}).length === 5 &&
       b.stored.every(function(u){return u.type.moveType !== "air" && denseGame.deployTargets(b,u).length === 1;}),
