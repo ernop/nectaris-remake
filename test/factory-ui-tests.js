@@ -44,7 +44,8 @@ module.exports = function (ok) {
     var ui = Object.create(UI.GameUI.prototype);
     ui.game = game; ui.mode = "idle";
     ui.renderer = { pixelToHex: function (col, row) { return { col: col, row: row }; } };
-    ui.draw = ui.refreshStatus = ui.checkGameOver = ui.toast = ui.updateHoverInfo = function () {};
+    // Factory behavior uses no canvas; action layout is covered by combat-ui-tests.
+    ui.positionActionMenu = ui.draw = ui.refreshStatus = ui.checkGameOver = ui.toast = ui.updateHoverInfo = function () {};
     return ui;
   }
   function click(ui, col, row) { ui.onMouseUp({ offsetX: col, offsetY: row }); }

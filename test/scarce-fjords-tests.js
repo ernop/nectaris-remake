@@ -6,7 +6,7 @@ module.exports = function(ok) {
   [5,6].forEach(function(index) {
     var map=maps[index], game=new ENGINE.Game(map,{seed:6}), expected=index===5 ? 9 : 21;
     var name=map.name, factories=Object.values(game.buildings).filter(function(b){return b.kind==="factory";});
-    ok(game.width === (index===5 ? 34 : 58) && game.height===game.width, name+": expected map dimensions");
+    ok(game.width === (index===5 ? 34 : 30) && game.height===game.width, name+": expected map dimensions");
     ok(JSON.stringify(map)===JSON.stringify(require("../"+map.source)), name+": downloadable JSON matches the built-in map");
     ok(factories.length===expected && factories.every(function(b){return b.owner===-1;}),
       name+": exactly "+expected+" neutral factories");
@@ -73,6 +73,8 @@ module.exports = function(ok) {
     }
     ok(reachable(function(p){return map.grid[p.row][p.col]!=="M";}).size===open.length,
       name+": every fjord and factory belongs to the connected valley network");
+    ok(reachable(function(p){return !["M","F"].includes(map.grid[p.row][p.col]);}).size===open.length-factories.length,
+      name+": every corridor connects without passing through an unowned factory");
     ["PANTHER","MULE","BISON"].forEach(function(id){
       var seen=reachable(function(p){return terrain.terrainCost(game.terrainAt(p.col,p.row),types[id].moveType,types[id])!==null;});
       ok(map.buildings.every(function(b){return seen.has(HEX.key(b.col,b.row));}),

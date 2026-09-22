@@ -3,7 +3,7 @@
   "pack": "AI-made",
   "author": "Codex · original level",
   "source": "levels/labyrinth-fjords.json",
-  "description": "Part 7 cuts narrow, angular fjords through mountain ridges. Long two- and three-hex channels branch toward 21 terminal factories, with only 3 small junction clearings and a few connecting passes. Each corner camp starts with exactly one Charlie, one Panther motorcycle infantry and one Rabbit missile buggy.",
+  "description": "Part 7 packs 21 neutral factories into a 30×30 mountain labyrinth. Narrow, angular two- and three-hex channels interconnect around ridges, with factories tucked into terminal branches and short wall alcoves. Three small junction clearings provide room to fight. Each corner camp starts with exactly one Charlie, one Panther motorcycle infantry and one Rabbit missile buggy.",
   "special": "Each of the 21 neutral factories holds 4–8 units in a focused or mixed team; none contains infantry. Exactly 7 factories each have one, two or three road exits, all facing down their fjord. Atlas guns and mines follow their own Mule or Pelican. Pelicans are the only aircraft. Protect your two capturing units: there are no infantry reinforcements.",
   "tags": [
     "part 7",
@@ -13,64 +13,36 @@
   ],
   "turnLimit": 180,
   "grid": [
-    "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
-    "MMMMMww.MhMMMMMMMMMMMMMMMMMMMMMMMMM.MMMMMMMMMMMMMMMMMMMMMM",
-    "MMM.w---h-.wMMMMMMMMMMMMMMMMMMMMMw.-..w.MMMMMMMMMMMMMMMMMM",
-    "MMwB.hww-.-.MMMMMMMFMMMMMMMhM.Mw.--.----.whw.MMMMMMMMh.hMM",
-    "MMw..MMMh.-.MMMMMMM-MhMMM.h-h-.--wwMh.h.-----hMMMMMM.--wMM",
-    "MMMMMMMMM.--.MMMMMhh--w..--.-.-h.MMMMMM.--.h--h..wMMh--.MM",
-    "MMMMMMMMMMw-.MMMMMMM.-----hM.M.MMMMMMMMMh-.Mh-----hh---.MM",
-    "MMMMMMMMMMh-.MMMMMMM.h..w-hMMMMMMMMMMMMh.-hM-.hMMM----.MMM",
-    "MMMMMMMMMM.-.MMMMMMMMMMMM-.MMMMMMMMMMMMw-hh.-hMMMMMhw-.MMM",
-    "MMMMMMMMMMh-hMMMMMMMMMM..-hMMMM.MMMMMMM.--w---MMMMMh-.hMMM",
-    "MMMMMMMMMh.-wwh.h.MMMMMh-..hMhh-.MMMMMM.-.-.--hwMMM.-wMMMM",
-    "MMMMM-..w-h--------MMMMh--.-.---.MMMMMMw--.M.h-.MMM.--hMMM",
-    "MMMMMF---w--..wMh-FMMMM.-h-M-M.-..MMMMMM.-hMMM.MMMMMh-.wMM",
-    "MMMMMMMMMMh.-..MMMMMMMMw--.MMMww-wMMMMMMh-h.MMMMMMMMhh-hMM",
-    "MMMMMMMMMMM.-.MMMMMMMMMM.-.MMMMh-wMMMMMM.w-wMMMMMMMMMh--.M",
-    "MMMMMMMh..w--hMMMMMMMMMM.-.MMMMh-hMMMMMMh--hMMMMMMMMMMw-.M",
-    "MMMMMMh---.-hMMhM.hhMMMMw-w.MMMw-wMMMMM.w-hMMMMMMMMMM.h-.M",
-    "MMMMMF-hh--.whh-.--hMMMM.--MMMM.--hMMMM---hMMMMMMMMMM.-whM",
-    "MMMMMMMMh.-----M-.-hMMMMMMFMMMMMh-wMMMMMFMMMMMMMMMMMM.-.MM",
-    "MMMMMMMMM.--hMMMMM-.MMMMMMMMMMMMh-.MMMMMMMMMM.MFMMMMM.-.MM",
-    "MMMMMMMMMMh-wMMMMM-.MMMMMMMMMMMMw-hMMMMMMMMMM.-MMMMMMw-.MM",
-    "MMMMMMMMMMMM-hMMMM-.MMMMMMMMMMMMh-.MMMMMMMMMM--hMMMMh--.MM",
-    "MMMMMMMMMMMM--MMMM-hMMMMMMMMMhM.-..MMMMMMMMMM-.MMMMM.-wMMM",
-    "MMMMMMMMMMMw.-.wMw-.MMMMMMMh.-.--.MMMMMMMhh.-.wMMMMMh-wMMM",
-    "MMMMMMMMMMM.----.--hww..h.h--.--..MMMMMhh-----MMMMMMh-h.MM",
-    "MMMMMFMMMMMh-.hM-h---------hMMh.--h.MM.--hh-.-wMMMMM.---MM",
-    "MMMMM--MMMh--.MMMMww..h.h..MMMMM.M--.w.-hMh.--.MMMMMMMFMMM",
-    "MMMMw-wMMw.-.MMMMMMMMMMMMMMMMMMMMMMM---MMMMM.-hhMMMMMMMMMM",
-    "MMMM.-.MM.-whMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMhh-.MMMMMMMMMM",
-    "MMMM.-hMM.-.MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM.--.M.MMMMMMMM",
-    "MMMwh-hMM.-.w.MMMMMMMMMMM-MMMMMMMMMhh.MMMhw.w-...-whMMMMMM",
-    "MMMh-w.Mwh-..hM.M.MMMMMMF-.wMMMMMw.---h..--------.--h.MMMM",
-    "MMM.--.w.---h-.-.-MFMMMMM.--.wM..--.h.--w-h..hh.hMwh--hMMM",
-    "MMMMh-h----h-h-.-w-MMMMMMMhh--.--h.MMM.h-h.MMMMMMMMMh-hMMM",
-    "MMMMMM-M.-.MhMhM.M.MMMMMMMMM..--.MMMMMM.-hMMMMMMMMMM..-hMM",
-    "MMMMMMM.h-hMMMMMMMMMMMMMMMMMMMw-.MMMMMMw-hMMMMMMMMMMMM-.MM",
-    "MMMMMMMh-..MMMMMMMMMMMMMMMMMMMM-.MMMMMM.-.MMMMMMMMMMM.-hMM",
-    "MMMMMMM.--.MMMMMMMMMMMMMMMMMMMM-hMMMMMM.-hMMMMMMMMMMMM-MMM",
-    "MMMMMMMMh-.hMMMMMMMMMMMMMMMMMMM-.MMMMMM.--w.MhMMMMMMMMFMMM",
-    "MMMMMF-...-w.wMhMMMMMMMMMMMMMMw-hMMMMMMh-.--h--MMMMMMMMMMM",
-    "MMMMM--hMh----.-MFMMMM.-FMMMMM.-hMMMMMMw-.hw--FMMMMMMMMMMM",
-    "MMMMMw--h.--hh-h-MMMMMh--MMMMM.-.MMMMMM.-wMMhMMMMMMMMMMMMM",
-    "MMMMM.w-hM.-.M.MhMMMMM-.hMMMMM.-.MMMMMM.-.MMMMMMMMMMMMMMMM",
-    "MMMMh--..Mh-hMMMMMMMMM-.MMMMMMM-.MMMMMh.-..MMMMMMMMMMMMMMM",
-    "MMM..-.MMMh-hhwhw.h.M.--MMMMMMM-wMMMMhh.-..hMMMMMMMh..MMMM",
-    "MMMh--..MM.-.-------h-.-.hMMMMMw-wMhh-h-----.w.whhh--hMMMM",
-    "MMMh-w-.Mwh--hh.whh--h---.MMMMM.--h--h-h--..-------h-hMMMM",
-    "MMM.-.--h--.hMMMMMhw-hwh-hMMMMMh-.-wwMhMw-.M.-wh.hw--.MMMM",
-    "MMM.-.ww-.wMMMMMMMM.-hMMhMMMMMM.-.hMMMMMh-wM..-.MMh-.MMMMM",
-    "MMMh-.MM.MMMMMMMMMMw-.MMMMMMMMMh-.MMMMMhh-wMMw-hMM.-.MMMMM",
-    "MMMh-.MMMMMMMMMMMM.--.MMMMMMMMM.-hMMMMMh-hwMM.-.MM.-..MMMM",
-    "MMh--hMMMMMMM-w..h.-hMMMMMMMMMMw-.MMMMw--.MMM.--hMw.-wMMMM",
-    "MMh-wMMMMMMMF-------.MMMMMMMMMM.-.MMMM-FMMMMMM.-hMM.--hMMM",
-    "MM.-.MMMMMMM-.w.h....MMMMMMMM..--hMMMMMMMMMMMM-F-MMM....MM",
-    "MM-FMMMMMMMMMMMMMMMMMMMMMMF-w--hhMMMMMMMMMMMMMMMMMMM.hB.MM",
-    "MMMMMMMMMMMMMMMMMMMMMMMMMMMh-h.MMMMMMMMMMMMMMMMMMMMMMMwMMM",
-    "MMMMMMMMMMMMMMMMMMMMMMMMMMMM.MMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
-    "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM"
+    "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
+    "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
+    "MMMhMMMMM-F-.MMMMMMh.-FMMMMMMM",
+    "MMhB.MMhw-----FMMMMw-.MMMMMMMM",
+    "MMh..MM.-.-MMMMMMMMM--MMMMMMMM",
+    "MMMM-hMM--MMMMMMMMMM--MFMMMMMM",
+    "MMMM-hMMF-hMMMMMMMMMM---MMMMMM",
+    "MMMM-.MMM-h.MMMMMMMMMM-MMMMMMM",
+    "MMMM--MM.-.-.hMFMMMMM---F-MMMM",
+    "MMMMh-.M.--M----M.M.M-w.-hMMMM",
+    "MMMF-.-hMM-...--.-w--h.---MMMM",
+    "MMMMM---MM-hMM---M--hM.--FMMMM",
+    "MMM.-.hMFM--..M-hMM-w.h--MMMMM",
+    "MMw--hMMM.h----hhw.---w-w.MMMM",
+    "MMh-.MMMMw-..---.---..--w-MMMM",
+    "MMM-.MMM.--hh-wM-.-hwMh-.MFMMM",
+    "MMM-..hh.wwM.-hMMMhMMMM-.MMMMM",
+    "MMF-h---h-.hh-hMMMMMMMF-hMMMMM",
+    "MM---.w.-.-hh-.MMMFMMMM-.MMMMM",
+    "MM.hhMMM----h-w..--MMMM-wMMMMM",
+    "MMMMMMMMF---.----MMMMM-FMMMMMM",
+    "MMMMMMMMM.---h.MMMMMMMMMMMMMMM",
+    "MMMMMMMMM.----MMFMMhMMMMMMMMMM",
+    "MMMMMF-hh--.--Mh-hh-.hMMMMMMMM",
+    "MMMMM------MM-h----w--.hM.MMMM",
+    "MMMMMMMMMMFMw---h..MMF--h...MM",
+    "MMMMMMMMMMMM.h-FMMMMMMMM-hB.MM",
+    "MMMMMMMMMMMMMMMMMMMMMMMMMM.MMM",
+    "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
+    "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMM"
   ],
   "buildings": [
     {
@@ -79,12 +51,12 @@
       "owner": 0
     },
     {
-      "col": 54,
-      "row": 54,
+      "col": 26,
+      "row": 26,
       "owner": 1
     },
     {
-      "col": 19,
+      "col": 14,
       "row": 3,
       "owner": -1,
       "stored": [
@@ -96,8 +68,8 @@
       "inventoryTheme": "Armor section"
     },
     {
-      "col": 5,
-      "row": 12,
+      "col": 23,
+      "row": 5,
       "owner": -1,
       "stored": [
         "RABBIT",
@@ -109,8 +81,8 @@
       "inventoryTheme": "Missile patrol"
     },
     {
-      "col": 18,
-      "row": 12,
+      "col": 24,
+      "row": 8,
       "owner": -1,
       "stored": [
         "BISON",
@@ -123,8 +95,8 @@
       "inventoryTheme": "Escorted battery"
     },
     {
-      "col": 5,
-      "row": 17,
+      "col": 18,
+      "row": 18,
       "owner": -1,
       "stored": [
         "MULE",
@@ -136,8 +108,8 @@
       "inventoryTheme": "Mobile siege team"
     },
     {
-      "col": 26,
-      "row": 18,
+      "col": 23,
+      "row": 20,
       "owner": -1,
       "stored": [
         "MULE",
@@ -150,8 +122,8 @@
       "inventoryTheme": "Mine-laying team"
     },
     {
-      "col": 40,
-      "row": 18,
+      "col": 5,
+      "row": 23,
       "owner": -1,
       "stored": [
         "PELICAN",
@@ -165,8 +137,8 @@
       "inventoryTheme": "Airlift reserve"
     },
     {
-      "col": 47,
-      "row": 19,
+      "col": 8,
+      "row": 12,
       "owner": -1,
       "stored": [
         "BISON",
@@ -181,94 +153,94 @@
       "inventoryTheme": "Combined-arms reserve"
     },
     {
-      "col": 5,
+      "col": 15,
+      "row": 26,
+      "owner": -1,
+      "stored": [
+        "BISON",
+        "BISON",
+        "POLAR",
+        "POLAR"
+      ],
+      "inventoryTheme": "Armor section"
+    },
+    {
+      "col": 2,
+      "row": 17,
+      "owner": -1,
+      "stored": [
+        "RABBIT",
+        "RABBIT",
+        "BISON",
+        "BISON",
+        "LYNX"
+      ],
+      "inventoryTheme": "Missile patrol"
+    },
+    {
+      "col": 26,
+      "row": 15,
+      "owner": -1,
+      "stored": [
+        "BISON",
+        "HADRIAN",
+        "BISON",
+        "HADRIAN",
+        "POLAR",
+        "POLAR"
+      ],
+      "inventoryTheme": "Escorted battery"
+    },
+    {
+      "col": 15,
+      "row": 8,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "ATLAS",
+        "BISON",
+        "BISON",
+        "POLAR"
+      ],
+      "inventoryTheme": "Mobile siege team"
+    },
+    {
+      "col": 8,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "TRIGGER",
+        "MULE",
+        "TRIGGER",
+        "BISON",
+        "BISON"
+      ],
+      "inventoryTheme": "Mine-laying team"
+    },
+    {
+      "col": 3,
+      "row": 10,
+      "owner": -1,
+      "stored": [
+        "PELICAN",
+        "ATLAS",
+        "BISON",
+        "BISON",
+        "POLAR",
+        "POLAR",
+        "RABBIT"
+      ],
+      "inventoryTheme": "Airlift reserve"
+    },
+    {
+      "col": 21,
       "row": 25,
       "owner": -1,
       "stored": [
         "BISON",
         "BISON",
         "POLAR",
-        "POLAR"
-      ],
-      "inventoryTheme": "Armor section"
-    },
-    {
-      "col": 54,
-      "row": 26,
-      "owner": -1,
-      "stored": [
-        "RABBIT",
-        "RABBIT",
-        "BISON",
-        "BISON",
-        "LYNX"
-      ],
-      "inventoryTheme": "Missile patrol"
-    },
-    {
-      "col": 19,
-      "row": 32,
-      "owner": -1,
-      "stored": [
-        "BISON",
-        "HADRIAN",
-        "BISON",
-        "HADRIAN",
-        "POLAR",
-        "POLAR"
-      ],
-      "inventoryTheme": "Escorted battery"
-    },
-    {
-      "col": 24,
-      "row": 31,
-      "owner": -1,
-      "stored": [
-        "MULE",
-        "ATLAS",
-        "BISON",
-        "BISON",
-        "POLAR"
-      ],
-      "inventoryTheme": "Mobile siege team"
-    },
-    {
-      "col": 5,
-      "row": 39,
-      "owner": -1,
-      "stored": [
-        "MULE",
-        "TRIGGER",
-        "MULE",
-        "TRIGGER",
-        "BISON",
-        "BISON"
-      ],
-      "inventoryTheme": "Mine-laying team"
-    },
-    {
-      "col": 17,
-      "row": 40,
-      "owner": -1,
-      "stored": [
-        "PELICAN",
-        "ATLAS",
-        "BISON",
-        "BISON",
-        "POLAR",
-        "POLAR",
-        "RABBIT"
-      ],
-      "inventoryTheme": "Airlift reserve"
-    },
-    {
-      "col": 24,
-      "row": 40,
-      "owner": -1,
-      "stored": [
-        "BISON",
-        "BISON",
-        "POLAR",
         "POLAR",
         "HADRIAN",
         "RABBIT",
@@ -278,8 +250,8 @@
       "inventoryTheme": "Combined-arms reserve"
     },
     {
-      "col": 46,
-      "row": 40,
+      "col": 8,
+      "row": 20,
       "owner": -1,
       "stored": [
         "BISON",
@@ -290,8 +262,8 @@
       "inventoryTheme": "Armor section"
     },
     {
-      "col": 54,
-      "row": 38,
+      "col": 16,
+      "row": 22,
       "owner": -1,
       "stored": [
         "RABBIT",
@@ -303,8 +275,8 @@
       "inventoryTheme": "Missile patrol"
     },
     {
-      "col": 3,
-      "row": 54,
+      "col": 10,
+      "row": 25,
       "owner": -1,
       "stored": [
         "BISON",
@@ -317,8 +289,8 @@
       "inventoryTheme": "Escorted battery"
     },
     {
-      "col": 12,
-      "row": 52,
+      "col": 25,
+      "row": 11,
       "owner": -1,
       "stored": [
         "MULE",
@@ -330,8 +302,8 @@
       "inventoryTheme": "Mobile siege team"
     },
     {
-      "col": 26,
-      "row": 54,
+      "col": 22,
+      "row": 2,
       "owner": -1,
       "stored": [
         "MULE",
@@ -344,8 +316,8 @@
       "inventoryTheme": "Mine-laying team"
     },
     {
-      "col": 39,
-      "row": 52,
+      "col": 22,
+      "row": 17,
       "owner": -1,
       "stored": [
         "PELICAN",
@@ -359,8 +331,8 @@
       "inventoryTheme": "Airlift reserve"
     },
     {
-      "col": 47,
-      "row": 53,
+      "col": 10,
+      "row": 2,
       "owner": -1,
       "stored": [
         "BISON",
@@ -397,20 +369,20 @@
     {
       "t": "CHARLIE",
       "o": 1,
-      "x": 53,
-      "y": 53
+      "x": 25,
+      "y": 25
     },
     {
       "t": "PANTHER",
       "o": 1,
-      "x": 54,
-      "y": 53
+      "x": 26,
+      "y": 25
     },
     {
       "t": "RABBIT",
       "o": 1,
-      "x": 55,
-      "y": 53
+      "x": 27,
+      "y": 25
     }
   ]
 }

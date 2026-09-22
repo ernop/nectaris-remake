@@ -174,7 +174,7 @@ The **AI-made** category contains seven original fjord scenarios:
 | 4 · Honeycomb Fjords | 28×28 | 8 × 10 reserves | 4 tanks, 3 infantry |
 | 5 · Arsenal Fjords | 28×28 | 9 × 1–12 reserves (51 total) | 4 tanks, 3 infantry |
 | 6 · Needle Fjords | 34×34 | 9 × 4–8 reserves (50 total) | 1 Charlie, 1 Panther, 1 Rabbit |
-| 7 · Labyrinth Fjords | 58×58 | 21 × 4–8 reserves (123 total) | 1 Charlie, 1 Panther, 1 Rabbit |
+| 7 · Labyrinth Fjords | 30×30 | 21 × 4–8 reserves (123 total) | 1 Charlie, 1 Panther, 1 Rabbit |
 
 All factories start neutral. Parts 1–4 use one road exit surrounded by five
 mountain hexes. Part 1 is a winding tree; Parts 2–3 add angular passages, two-hex
@@ -187,10 +187,12 @@ teams (infantry caches, armor, patrols, escorted artillery, engineers and mixed
 arsenals), with no more than five types or two artillery units in a factory.
 Every Atlas or mine immediately follows its own Mule or Pelican in the roster:
 deploy the carrier first, then load the immobile unit directly aboard.
-Parts 6–7 return to long, narrow branching fjords: factory exits all face down
+Parts 6–7 return to narrow branching fjords: factory exits all face down
 one approach, and mountain ridges separate the two- and three-hex channels.
 Open terrain occupies about 38% of each map, with only two small clearings in
-Part 6 and three in Part 7. Each side starts with exactly a Charlie, a Panther
+Part 6 and three in Part 7. Part 7 fits its 21 factories into a compact 30×30
+network using terminal branches and short alcoves in the channel walls.
+Each side starts with exactly a Charlie, a Panther
 motorcycle infantry and a Rabbit missile buggy. Their neutral factories hold
 4–8 units with **no infantry or capturing units** among the reserves. Exit
 counts remain evenly split: three factories per exit count in Part 6, seven

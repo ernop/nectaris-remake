@@ -232,12 +232,13 @@ Trigger immediately follows a compatible Mule or Pelican, with a separate
 carrier for each passenger. Pelicans are the only aircraft. The starting armies
 remain four tanks and three infantry each; normal transport rules apply.
 
-Needle Fjords (Part 6, 34×34) and Labyrinth Fjords (Part 7, 58×58) restore
-long branching fjords after the user found Part 5 too open. Approximately 38%
+Needle Fjords (Part 6, 34×34) and Labyrinth Fjords (Part 7, 30×30) restore
+narrow branching fjords after the user found Part 5 too open. Approximately 38%
 of each map is floor; the two- and three-hex channels have only two/three small
 junction clearings. Factory mouths form a contiguous fan facing down the fjord,
 with mountain walls behind them. Part 6 has nine neutral factories; Part 7 has
-twenty-one. Each inventory has 4–8 units, no infantry or other capturing types,
+twenty-one, packed into terminal branches and short wall alcoves in its smaller
+channel network. Each inventory has 4–8 units, no infantry or other capturing types,
 and at most two artillery units. One-, two- and three-exit factories occur in
 equal proportions. Each side starts with exactly one Charlie, one Panther
 motorcycle infantry and one Rabbit missile buggy. Pelicans remain permitted,

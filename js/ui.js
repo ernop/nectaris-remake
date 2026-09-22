@@ -848,6 +848,7 @@ var UI = (function () {
     actionButton(menu, "Close", function () { self.deselect(); });
     actionButton(menu, "End", function () { self.commitUnit(unit); });
     menu.classList.remove("hidden");
+    this.positionActionMenu();
     this.showUnitInfo(unit);
     this.draw();
   };
@@ -876,6 +877,7 @@ var UI = (function () {
     actionButton(menu, "End", function () { self.commitUnit(unit); });
     this.showTransportActions(unit, menu);
     menu.classList.remove("hidden");
+    this.positionActionMenu();
     var canMove = Object.keys(this.range).some(function (key) { return self.range[key].cost > 0 && self.range[key].canStop; });
     $("action-status").textContent = (canMove ? "Choose a blue destination." : "No legal move.") +
       (unit.attacked ? " Attack complete. " + unit.movePointsLeft + " Shift points left." :

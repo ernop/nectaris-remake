@@ -61,7 +61,8 @@ function design(seed, linked, compact, fjord) {
     roots[a] = b; degree[e.a]++; degree[e.b]++; edges.push(e);
   });
   const leaves = nodes.map((_, i) => i).filter(i => degree[i] === 1 && i !== 0 && i !== last);
-  if (edges.length !== last || leaves.length !== (fjord ? fjord.factories : 15)) return null;
+  if (edges.length !== last || (!(fjord && fjord.wallFactories) &&
+    leaves.length !== (fjord ? fjord.factories : 15))) return null;
   if (linked) {
     // Retain all fifteen factory tips while joining internal branches in
     // four places. This is a fresh graph, generated from a different seed.
@@ -92,7 +93,10 @@ function design(seed, linked, compact, fjord) {
     }
     e.path = line(a, bend).concat(line(bend, b).slice(1));
     e.path.forEach((p, step) => {
-      if (linked && edgeIndex % 3 === 0 && step > 1 && step < e.path.length-2) {
+      const narrow = fjord && fjord.wallFactories ?
+        edgeIndex % 4 !== 0 && step > 0 && step < e.path.length-1 :
+        linked && edgeIndex % 3 === 0 && step > 1 && step < e.path.length-2;
+      if (narrow) {
         paint(p, ".");
         paint(neighbors(p)[Math.abs(a.col-b.col) > Math.abs(a.row-b.row) ? 2 : 0], ".");
       } else disk(p, 1, ".");
@@ -104,16 +108,17 @@ function design(seed, linked, compact, fjord) {
     const route = e.a === i ? e.path.slice().reverse() : e.path;
     if (tipIndex % 2 === 0) disk(route[Math.max(0, route.length-4)], 2, ".");
   });
-  // Five separated, asymmetrical rooms, each five to six hexes across.
+  // Separated, asymmetrical rooms; Part 7 scales them down with its channels.
   const rooms = nodes.map((p, i) => ({p, i})).filter(n => degree[n.i] >= 3 &&
     distance(n.p, nodes[0]) > 8 && distance(n.p, nodes[last]) > 8);
   const clearings = [];
   rooms.sort((a, b) => degree[b.i] - degree[a.i]);
   rooms.forEach(n => {
     if (clearings.length === (fjord ? fjord.clearings : 5) || clearings.some(p => distance(p, n.p) < (compact || fjord ? 8 : 10))) return;
-    disk(n.p, 2, ".");
+    const roomRadius = fjord && fjord.wallFactories ? 1 : 2;
+    disk(n.p, roomRadius, ".");
     const lobe = neighbors(n.p)[clearings.length % 6];
-    disk(lobe, 2, ".");
+    disk(lobe, roomRadius, ".");
     clearings.push(n.p);
   });
   if (clearings.length !== (fjord ? fjord.clearings : 5)) return null;
@@ -122,11 +127,8 @@ function design(seed, linked, compact, fjord) {
   const buildings = [0, last].map((i, owner) => {
     paint(nodes[i], "B"); return {...nodes[i], owner};
   });
-  leaves.forEach((i, index) => {
-    const e = edges.find(e => e.a === i || e.b === i);
-    const route = e.a === i ? e.path.slice().reverse() : e.path;
-    const door = route[route.length-2], factory = nodes[i];
-    const ns = neighbors(factory), inward = ns.findIndex(p => key(p) === key(door));
+  function addFactory(factory, inward, index) {
+    const ns = neighbors(factory);
     const exitCount = fjord ? index%3+1 : 1;
     // All output hexes face into this fjord. There are no rear exits that
     // turn a factory into an island in a large open basin.
@@ -136,7 +138,39 @@ function design(seed, linked, compact, fjord) {
     ns.forEach((p, direction) => paint(p, mouths.has(direction) ? "-" : "M"));
     paint(factory, "F");
     buildings.push({...factory, owner: -1, stored: []});
+  }
+  leaves.forEach((i, index) => {
+    const e = edges.find(e => e.a === i || e.b === i);
+    const route = e.a === i ? e.path.slice().reverse() : e.path;
+    const door = route[route.length-2], factory = nodes[i];
+    const ns = neighbors(factory), inward = ns.findIndex(p => key(p) === key(door));
+    addFactory(factory, inward, index);
   });
+  if (fjord && fjord.wallFactories) {
+    // Compact maps fit additional dead-end alcoves into the channel walls.
+    // Never close an existing passage to make one: the mountain cap must
+    // already exist, and every mouth opens onto the connected valley floor.
+    while (buildings.length-2 < fjord.factories) {
+      const exitCount = (buildings.length-2)%3+1, options = [];
+      for (let row=2; row<HEIGHT-2; row++) for (let col=2; col<WIDTH-2; col++) {
+        const p = {col,row}, ns = neighbors(p);
+        if (grid[row][col] !== "M" || buildings.some(b => distance(p,b)<4)) continue;
+        for (let inward=0; inward<6; inward++) {
+          const mouth = [inward];
+          if (exitCount>=2) mouth.push((inward+1)%6);
+          if (exitCount===3) mouth.push((inward+5)%6);
+          if (ns.some((n,d) => !mouth.includes(d) && grid[n.row][n.col] !== "M")) continue;
+          if (!mouth.some(d => grid[ns[d].row][ns[d].col] !== "M")) continue;
+          const carved = mouth.filter(d => grid[ns[d].row][ns[d].col] === "M").length;
+          const separation = Math.min(...buildings.map(b => distance(p,b)));
+          options.push({p,inward,score:separation*5-carved+rng()});
+        }
+      }
+      options.sort((a,b) => b.score-a.score);
+      if (!options.length) return null;
+      addFactory(options[0].p, options[0].inward, buildings.length-2);
+    }
+  }
   // Remove any tiny pocket outside a capped factory nose.
   const open = new Set([key(nodes[0])]), queue = [nodes[0]];
   for (let i = 0; i < queue.length; i++) neighbors(queue[i]).forEach(p => {
@@ -195,7 +229,7 @@ function design(seed, linked, compact, fjord) {
   });
   if (fjord) return {seed,clearings,map:{
     name:fjord.name,pack:"AI-made",author:"Codex · original level",source:"levels/"+fjord.file+".json",
-    description:"Part "+fjord.part+" cuts narrow, angular fjords through mountain ridges. Long two- and three-hex channels branch toward "+fjord.factories+" terminal factories, with only "+fjord.clearings+" small junction clearings and a few connecting passes. Each corner camp starts with exactly one Charlie, one Panther motorcycle infantry and one Rabbit missile buggy.",
+    description:fjord.wallFactories ? "Part 7 packs 21 neutral factories into a 30×30 mountain labyrinth. Narrow, angular two- and three-hex channels interconnect around ridges, with factories tucked into terminal branches and short wall alcoves. Three small junction clearings provide room to fight. Each corner camp starts with exactly one Charlie, one Panther motorcycle infantry and one Rabbit missile buggy." : "Part "+fjord.part+" cuts narrow, angular fjords through mountain ridges. Long two- and three-hex channels branch toward "+fjord.factories+" terminal factories, with only "+fjord.clearings+" small junction clearings and a few connecting passes. Each corner camp starts with exactly one Charlie, one Panther motorcycle infantry and one Rabbit missile buggy.",
     special:"Each of the "+fjord.factories+" neutral factories holds 4–8 units in a focused or mixed team; none contains infantry. Exactly "+fjord.factories/3+" factories each have one, two or three road exits, all facing down their fjord. Atlas guns and mines follow their own Mule or Pelican. Pelicans are the only aircraft. Protect your two capturing units: there are no infantry reinforcements.",
     tags:["part "+fjord.part,"narrow fjords",fjord.factories+" factories","3-unit start"],turnLimit:180,
     grid:grid.map(row=>row.join("")),buildings,units
@@ -333,7 +367,7 @@ function findFjords(startSeed, config) {
   throw new Error("No valid layout found for "+config.name);
 }
 const sixth = findFjords(22000,{part:6,name:"NEEDLE FJORDS",file:"needle-fjords",size:34,columns:5,spacing:6,factories:9,clearings:2,links:1});
-const seventh = findFjords(33000,{part:7,name:"LABYRINTH FJORDS",file:"labyrinth-fjords",size:58,columns:8,spacing:7,factories:21,clearings:3,links:3});
+const seventh = findFjords(43000,{part:7,name:"LABYRINTH FJORDS",file:"labyrinth-fjords",size:30,columns:5,spacing:5,factories:21,clearings:3,links:3,wallFactories:true});
 const results = [first, second, third, denseDesign(), denseDesign(true), sixth, seventh];
 results.forEach((result, index) => {
   const map = result.map;
