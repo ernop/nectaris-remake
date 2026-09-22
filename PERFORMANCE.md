@@ -300,7 +300,7 @@ Reproduce with `node tools/benchmark-performance.js` and
 `node test/performance-tests.js`, then run these browser tools sequentially:
 
 - [Full latency audit](http://nectaris.localhost/tools/benchmark-latency.html)
-  runs all ten fjord maps with both art packs. Add `?map=Twisted%20Fjords&stress=1` for
+  runs all ten fjord maps with both art packs. Add `?map=TWISTED%20FJORDS&stress=1` for
   the focused stress fixture. A `root` query parameter can point to a saved
   source tree served from the same origin for matched historical comparisons.
 - [Sprite equivalence](http://nectaris.localhost/tools/benchmark-unit-raster.html)
