@@ -1224,7 +1224,9 @@ var RENDER = (function () {
       // Reset drawing state as well as pixels so prior frames cannot affect
       // stroke joins or text alignment in the new terrain image.
       layer.width = canvas.width; layer.height = canvas.height;
-      this.ctx = layer.getContext("2d");
+      // A software-backed layer gives consistent rasterization across cold
+      // rebuilds; subsequent frames composite just this completed image.
+      this.ctx = layer.getContext("2d", {willReadFrequently: true});
     }
     this.ctx.save();
     try {

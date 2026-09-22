@@ -55,9 +55,12 @@ document.getElementById("run").onclick = async function () {
           renderer.originX = canvas.width / 2 - point.x + 0.37;
           renderer.originY = canvas.height / 2 - point.y + 0.63;
           var full = frame(fullBounds, true), clipped = frame(visibleBounds, true);
-          var different = 0;
-          for (var i = 0; i < full.pixels.length; i++) if (full.pixels[i] !== clipped.pixels[i]) different++;
-          if (different) throw new Error(config.style + "/" + config.set + " zoom " + zoom + " center " + center + ": " + different + " differing channels");
+          var different = 0, examples = [], maxDelta = 0;
+          for (var i = 0; i < full.pixels.length; i++) if (full.pixels[i] !== clipped.pixels[i]) {
+            different++; maxDelta = Math.max(maxDelta, Math.abs(full.pixels[i] - clipped.pixels[i]));
+            if (examples.length < 8) examples.push([Math.floor(i / 4) % canvas.width, Math.floor(i / 4 / canvas.width), full.pixels[i], clipped.pixels[i]]);
+          }
+          if (different) throw new Error(config.style + "/" + config.set + " zoom " + zoom + " center " + center + ": " + different + " differing channels; max delta " + maxDelta + "; " + JSON.stringify(examples));
           var reused = frame(visibleBounds);
           for (var j = 0; j < clipped.pixels.length; j++) {
             if (clipped.pixels[j] !== reused.pixels[j]) throw new Error("Cached frame changed pixels");
@@ -71,6 +74,31 @@ document.getElementById("run").onclick = async function () {
         before.push(frame(fullBounds, true).ms); after.push(frame(visibleBounds, true).ms);
         cached.push(frame(visibleBounds).ms);
       }
+      function checkRefresh(label, mutate) {
+        mutate();
+        var hot = frame(visibleBounds), fresh = frame(visibleBounds, true);
+        for (var p = 0; p < hot.pixels.length; p++) {
+          if (hot.pixels[p] !== fresh.pixels[p]) throw new Error("Stale terrain cache after " + label);
+        }
+        checks++;
+      }
+      var visible = renderer.visibleTileBounds();
+      var building = Object.values(game.buildings).find(function (b) {
+        return b.col > visible.minCol + 2 && b.col < visible.maxCol - 2 &&
+          b.row > visible.minRow + 2 && b.row < visible.maxRow - 2;
+      });
+      checkRefresh("capture", function () { building.owner = (building.owner + 2) % 3 - 1; });
+      checkRefresh("factory inventory", function () { building.stored = []; });
+      var midCol = Math.floor((visible.minCol + visible.maxCol) / 2);
+      var midRow = Math.floor((visible.minRow + visible.maxRow) / 2);
+      checkRefresh("terrain edit", function () { game.terrain[midRow][midCol] = TERRAIN.plain; });
+      checkRefresh("unit movement", function () { game.units[0].col = midCol; game.units[0].row = midRow; });
+      checkRefresh("resize", function () { canvas.width = 947; });
+      checkRefresh("resize back", function () { canvas.width = 960; });
+      checkRefresh("restored map", function () {
+        renderer.game = new ENGINE.Game({grid: grid, buildings: buildings, units: []}, {seed: 7});
+      });
+      checkRefresh("original map", function () { renderer.game = game; });
       before.sort(function(a,b){return a-b;}); after.sort(function(a,b){return a-b;});
       cached.sort(function(a,b){return a-b;});
       var b = renderer.visibleTileBounds(), tiles = (b.maxCol-b.minCol+1)*(b.maxRow-b.minRow+1);
