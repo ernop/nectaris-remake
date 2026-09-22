@@ -23,6 +23,8 @@ function sprite(id,facing='right') {
   const gun=(x,y,len)=>{rect(x,y,len,2,3);line(x,y,x+len-1,y,5);rect(x+len-1,y+1,1,1,2);};
   const missile=(x,y,len)=>{line(x,y,x+len,y-len,2);line(x+1,y,x+len+1,y-len,14);line(x,y-1,x+len,y-len-1,5);};
   const wheel=(x,y)=>{rect(x,y,4,4,2);rect(x+1,y,2,1,4);rect(x+1,y+2,2,1,3);};
+  const smallWheel=(x,y)=>{rect(x,y,3,3,2);rect(x+1,y,1,1,4);};
+  const rider=(x,y)=>{top(x,y,5);rect(x-1,y+2,7,1,9);rect(x+1,y+3,3,2,4);rect(x,y+5,5,4,8);rect(x,y+5,3,1,5);rect(x+4,y+5,4,2,9);rect(x+2,y+9,7,2,7);};
   const feet=(wide=false)=>{
     line(wide?5:8,22,12,17,4);line(wide?27:24,22,20,17,3);
     line(wide?5:8,12,12,16,4);line(wide?27:24,12,20,16,3);
@@ -57,8 +59,8 @@ function sprite(id,facing='right') {
       poly([[7,8],[15,6],[18,9],[10,11]],10);line(7,8,14,6,5);line(10,11,18,9,6);
       missile(19,16,5);missile(23,17,4);gun(20,19,6);break;
     case 'MARTEN':
-      wheel(6,22);wheel(15,22);wheel(23,21);slab(7,18,19,5);
-      person(10,12,'kneel');rect(19,14,7,2,14);line(19,14,27,14,5);rect(18,16,9,2,7);break;
+      smallWheel(8,22);smallWheel(16,22);smallWheel(23,21);rect(9,20,15,1,8);top(9,19,14);
+      rider(11,12);rect(19,14,6,2,14);line(19,14,26,14,5);rect(18,16,8,1,7);break;
     case 'MIDGE':
       person(10,11,'kneel');missile(17,18,6);rect(8,17,3,4,7);top(8,17,3);break;
     case 'GORGON':
@@ -66,15 +68,15 @@ function sprite(id,facing='right') {
       rect(7,8,3,6,3);top(6,7,5);gun(20,12,8);
       for(let x=10;x<23;x+=4)rect(x,19,3,2,9);missile(5,15,5);break;
     case 'BADGER':
-      wheel(5,23);wheel(23,23);person(9,12,'kneel');
-      slab(16,15,9,8);gun(20,16,8);rect(13,20,5,2,7);missile(5,18,5);break;
+      smallWheel(6,23);smallWheel(23,23);rider(10,12);
+      slab(18,15,7,6);gun(20,16,8);rect(13,20,5,2,7);missile(5,18,5);break;
     case 'RAMPART':
       tracks(3,21,25);slab(3,12,25,10);
       poly([[6,11],[19,11],[26,16],[9,16]],10);line(6,11,19,11,5);
       for(let x=10;x<25;x+=5){rect(x,17,4,4,7);line(x,17,x+3,17,9);}
       rect(19,10,2,3,3);rect(19,9,4,1,5);rect(6,17,2,2,12);break;
     case 'HORNET':
-      person(10,11);slab(5,15,7,7);slab(16,11,9,6);
+      person(10,11);slab(7,15,5,6);slab(16,11,8,5);
       rect(19,12,4,2,14);rect(19,12,3,1,5);line(25,12,25,19,4);break;
     case 'ANVIL':
       feet(true);slab(9,15,15,8);slab(11,11,10,7);
@@ -90,7 +92,7 @@ function sprite(id,facing='right') {
       person(10,11,'run');rect(14,15,12,2,14);line(14,14,26,14,5);
       rect(25,15,2,1,4);rect(8,16,3,5,7);rect(8,16,3,1,10);break;
     case 'KESTREL':
-      tracks(4,23,23);slab(5,17,21,6);slab(20,14,6,5);
+      tracks(4,22,23);slab(5,17,21,6);slab(20,14,6,5);
       missile(7,17,7);missile(12,17,7);rect(5,9,2,7,3);
       poly([[4,7],[9,8],[9,11],[4,10]],9);line(4,7,8,8,5);rect(22,16,3,1,12);break;
     default:throw Error('Unknown prototype '+id);
@@ -108,8 +110,8 @@ function sprite(id,facing='right') {
   let min=32,max=-1;
   out.p.forEach((p,i)=>{if(p){min=Math.min(min,i%32);max=Math.max(max,i%32);}});
   // Extend a lit horizontal contour by one pixel when its width is odd.
-  if((max-min+1)%2){const y=Array.from({length:32},(_,y)=>y).find(y=>out.get(min,y)&&y>=10&&y<=21);out.set(min-1,y,3);min--;}
-  const centered=new Surface(32,32);centered.blit(out,(31-min-max)/2,0);
+  if((max-min+1)%2){const y=Array.from({length:32},(_,y)=>y).filter(y=>out.get(min,y)).sort((a,b)=>Math.abs(a-16)-Math.abs(b-16))[0];out.set(min-1,y,3);min--;}
+  const centered=new Surface(32,32);centered.blit(out,(31-min-max)/2,['TORTOISE','BASILISK','BADGER'].includes(id)?-1:0);
   return centered;
 }
 module.exports={sprite,palette,colorize};

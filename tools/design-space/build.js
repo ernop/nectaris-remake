@@ -10,7 +10,8 @@ for(const faction of ['union','xenon','attack','neutral'])art.palettes[faction]=
 const custom={}, silhouettes=new Set();
 const units=analysis.selected.map((u,i)=>{
   const c=concepts[i];if(!c||u.rank!==i+1)throw Error('Concept rank mismatch');
-  const result={...u,...c,images:{},terrain:analysis.method.terrains.map(t=>({id:t,reach:require('./analyze.js').reach(u,t)}))};
+  const {gap:gapStory,...identity}=c;
+  const result={...u,...identity,gapStory,images:{},terrain:analysis.method.terrains.map(t=>({id:t,reach:require('./analyze.js').reach(u,t)}))};
   const def={};for(const key of ['name','cls','move','moveType','atkG','atkA','def','rngG','rngA','capture','moveOrFire','moveAfterAttack','cargo','cargoTypes','cargoFactoryTypes','cannotEnter','placeByTransport'])if(result[key]!==undefined)def[key]=result[key];
   custom[c.id]=def;art.frames[c.id]={};art.descriptions[c.id]=c.art;
   for(const facing of ['right','left']){
@@ -21,6 +22,7 @@ const units=analysis.selected.map((u,i)=>{
     }
     if(minX!==31-maxX)throw Error(c.id+' is not centered');
     if(c.cls==='infantry'&&maxY-minY+1>17)throw Error(c.id+' infantry too tall: '+(maxY-minY+1));
+    if(c.cls==='infantry'&&count>240)throw Error(c.id+' infantry too dense: '+count);
     const fingerprint=Array.from(s.p,p=>p?'1':'0').join('');
     if(facing==='right'){if(silhouettes.has(fingerprint))throw Error('Duplicate silhouette '+c.id);silhouettes.add(fingerprint);}
     art.frames[c.id][facing]=Array.from({length:32},(_,y)=>Array.from(s.p.slice(y*32,y*32+32),v=>v?v.toString(16):'.').join(''));
