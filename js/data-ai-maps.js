@@ -2149,21 +2149,21 @@ var AI_MADE_LEVELS = [
     "pack": "AI-made",
     "author": "Codex · original level",
     "source": "levels/labyrinth-fjords.json",
-    "description": "Part 7 packs 21 neutral factories into a 30×30 mountain labyrinth. Narrow, angular two- and three-hex channels interconnect around ridges, with factories tucked into terminal branches and short wall alcoves. Three small junction clearings provide room to fight. Each corner camp starts with exactly one Charlie, one Panther motorcycle infantry and one Rabbit missile buggy.",
+    "description": "Part 7 packs 21 neutral factories into a 30×30 mountain labyrinth. Narrow, angular two- and three-hex channels interconnect around ridges, with factories tucked into terminal branches and short wall alcoves. Three small junction clearings provide room to fight. Each corner camp starts with a Charlie, Panther motorcycle infantry and Rabbit missile buggy, plus one Bison, one Polar and one Hadrian in matching formations.",
     "special": "Each of the 21 neutral factories holds 4–8 units in a focused or mixed team; none contains infantry. Exactly 7 factories each have one, two or three road exits, all facing down their fjord. Atlas guns and mines follow their own Mule or Pelican. Pelicans are the only aircraft. Protect your two capturing units: there are no infantry reinforcements.",
     "tags": [
       "part 7",
       "narrow fjords",
       "21 factories",
-      "3-unit start"
+      "6-unit start"
     ],
     "turnLimit": 180,
     "grid": [
       "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
       "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
-      "MMMhMMMMM-F-.MMMMMMh.-FMMMMMMM",
-      "MMhB.MMhw-----FMMMMw-.MMMMMMMM",
-      "MMh..MM.-.-MMMMMMMMM--MMMMMMMM",
+      "MMM.MMMMM-F-.MMMMMMh.-FMMMMMMM",
+      "MM.B.MMhw-----FMMMMw-.MMMMMMMM",
+      "MM...MM.-.-MMMMMMMMM--MMMMMMMM",
       "MMMM-hMM--MMMMMMMMMM--MFMMMMMM",
       "MMMM-hMMF-hMMMMMMMMMM---MMMMMM",
       "MMMM-.MMM-h.MMMMMMMMMM-MMMMMMM",
@@ -2185,7 +2185,7 @@ var AI_MADE_LEVELS = [
       "MMMMMF-hh--.--Mh-hh-.hMMMMMMMM",
       "MMMMM------MM-h----w--.hM.MMMM",
       "MMMMMMMMMMFMw---h..MMF--h...MM",
-      "MMMMMMMMMMMM.h-FMMMMMMMM-hB.MM",
+      "MMMMMMMMMMMM.h-FMMMMMMMM-.B.MM",
       "MMMMMMMMMMMMMMMMMMMMMMMMMM.MMM",
       "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
       "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMM"
@@ -2497,20 +2497,8 @@ var AI_MADE_LEVELS = [
       {
         "t": "CHARLIE",
         "o": 0,
-        "x": 3,
-        "y": 4
-      },
-      {
-        "t": "PANTHER",
-        "o": 0,
         "x": 4,
         "y": 4
-      },
-      {
-        "t": "RABBIT",
-        "o": 0,
-        "x": 4,
-        "y": 3
       },
       {
         "t": "CHARLIE",
@@ -2520,15 +2508,1363 @@ var AI_MADE_LEVELS = [
       },
       {
         "t": "PANTHER",
+        "o": 0,
+        "x": 4,
+        "y": 3
+      },
+      {
+        "t": "PANTHER",
+        "o": 1,
+        "x": 25,
+        "y": 26
+      },
+      {
+        "t": "RABBIT",
+        "o": 0,
+        "x": 3,
+        "y": 2
+      },
+      {
+        "t": "RABBIT",
+        "o": 1,
+        "x": 26,
+        "y": 27
+      },
+      {
+        "t": "BISON",
+        "o": 0,
+        "x": 2,
+        "y": 3
+      },
+      {
+        "t": "BISON",
+        "o": 1,
+        "x": 27,
+        "y": 26
+      },
+      {
+        "t": "POLAR",
+        "o": 0,
+        "x": 2,
+        "y": 4
+      },
+      {
+        "t": "POLAR",
+        "o": 1,
+        "x": 27,
+        "y": 25
+      },
+      {
+        "t": "HADRIAN",
+        "o": 0,
+        "x": 3,
+        "y": 4
+      },
+      {
+        "t": "HADRIAN",
         "o": 1,
         "x": 26,
         "y": 25
+      }
+    ]
+  },
+  {
+    "name": "MIRROR FJORDS",
+    "pack": "AI-made",
+    "author": "Codex · original level",
+    "source": "levels/mirror-fjords.json",
+    "description": "Part 8 is a 31×30 fjord network with exact left-to-right symmetry. Mountain walls enclose narrow, angular channels and small junctions. Nine matched factory pairs surround three shared center-line factories. Every terrain hex, reserve team and starting position has an identical counterpart for the other side.",
+    "special": "Each side starts with one Charlie, Panther, Rabbit, Bison, Polar and Hadrian in mirrored positions. All 21 neutral factories hold 4–8 units without infantry; seven factories each have one, two or three exits. The center two-exit factory has matching north/south approaches. Every Atlas or mine follows its own Mule or Pelican. Pelicans are the only aircraft.",
+    "tags": [
+      "part 8",
+      "exact symmetry",
+      "21 factories",
+      "6-unit start"
+    ],
+    "turnLimit": 180,
+    "grid": [
+      "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
+      "MMMMMMMMMMMMM-----MMMMMMMMMMMMM",
+      "MMM...hh..h--MMFMM--h..hh...MMM",
+      "MM.B.------hMMMMMMMh------.B.MM",
+      "MM...MMMMM--MMMMMMM--MMMMM...MM",
+      "MMMMMMMMMMM-MFMMMFM-MMMMMMMMMMM",
+      "MMMMMMMMMMM-M-MMM-M-MMMMMMMMMMM",
+      "MMMMMMMMMM-.h-.M.-h.-MMMMMMMMMM",
+      "MMMMMMMMF----h-M-h----FMMMMMMMM",
+      "MMMMM.MMMw-...-M-...-wMMM.MMMMM",
+      "MMMM.-hhM--.hM.M.Mh.--Mhh-.MMMM",
+      "MMMF----.-.hMFMMMFMh.-.----FMMM",
+      "MMMMM-hM-M----MMM----M-Mh-MMMMM",
+      "MMMMM-.MMh-M---M---M-hMM.-MMMMM",
+      "MMMhh-.MM--M..-M-..M--MM.-hhMMM",
+      "MMh--.hM-FMMMM---MMMMF-Mh.--hMM",
+      "MMh-.h..MMMMMMMFMMMMMMM..h.-hMM",
+      "MM------.MMMMMM-MMMMMM.------MM",
+      "MMFMh---hh.hM--M--Mh.hh---hMFMM",
+      "MMMM.-h.----w-hMh-w----.h-.MMMM",
+      "MMMM-h.MhMMM-h-M-h-MMMhM.h-MMMM",
+      "MMMM-hMMMMMMMw-M-wMMMMMMMh-MMMM",
+      "MMMF-.MMMMMM.--M--.MMMMMM.-FMMM",
+      "MMM--.MMMMMhh-----hhMMMMM.--MMM",
+      "MMM-hMMw-FMh-h-F-h-hMF-wMMh-MMM",
+      "MM.-.MM---M...MMM...M---MM.-.MM",
+      "MM---.h-MMMw-.MMM.-wMMM-h.---MM",
+      "MMF----MMMMM.MMMMM.MMMMM----FMM",
+      "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
+      "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM"
+    ],
+    "buildings": [
+      {
+        "col": 3,
+        "row": 3,
+        "owner": 0
+      },
+      {
+        "col": 27,
+        "row": 3,
+        "owner": 1
+      },
+      {
+        "col": 13,
+        "row": 5,
+        "owner": -1,
+        "stored": [
+          "BISON",
+          "BISON",
+          "POLAR",
+          "POLAR"
+        ],
+        "inventoryTheme": "Armor section"
+      },
+      {
+        "col": 17,
+        "row": 5,
+        "owner": -1,
+        "stored": [
+          "BISON",
+          "BISON",
+          "POLAR",
+          "POLAR"
+        ],
+        "inventoryTheme": "Armor section"
+      },
+      {
+        "col": 9,
+        "row": 15,
+        "owner": -1,
+        "stored": [
+          "RABBIT",
+          "RABBIT",
+          "BISON",
+          "BISON",
+          "LYNX"
+        ],
+        "inventoryTheme": "Missile patrol"
+      },
+      {
+        "col": 21,
+        "row": 15,
+        "owner": -1,
+        "stored": [
+          "RABBIT",
+          "RABBIT",
+          "BISON",
+          "BISON",
+          "LYNX"
+        ],
+        "inventoryTheme": "Missile patrol"
+      },
+      {
+        "col": 9,
+        "row": 24,
+        "owner": -1,
+        "stored": [
+          "BISON",
+          "HADRIAN",
+          "BISON",
+          "HADRIAN",
+          "POLAR",
+          "POLAR"
+        ],
+        "inventoryTheme": "Escorted battery"
+      },
+      {
+        "col": 21,
+        "row": 24,
+        "owner": -1,
+        "stored": [
+          "BISON",
+          "HADRIAN",
+          "BISON",
+          "HADRIAN",
+          "POLAR",
+          "POLAR"
+        ],
+        "inventoryTheme": "Escorted battery"
+      },
+      {
+        "col": 3,
+        "row": 11,
+        "owner": -1,
+        "stored": [
+          "MULE",
+          "ATLAS",
+          "BISON",
+          "BISON",
+          "POLAR"
+        ],
+        "inventoryTheme": "Mobile siege team"
+      },
+      {
+        "col": 27,
+        "row": 11,
+        "owner": -1,
+        "stored": [
+          "MULE",
+          "ATLAS",
+          "BISON",
+          "BISON",
+          "POLAR"
+        ],
+        "inventoryTheme": "Mobile siege team"
+      },
+      {
+        "col": 2,
+        "row": 18,
+        "owner": -1,
+        "stored": [
+          "MULE",
+          "TRIGGER",
+          "MULE",
+          "TRIGGER",
+          "BISON",
+          "BISON"
+        ],
+        "inventoryTheme": "Mine-laying team"
+      },
+      {
+        "col": 28,
+        "row": 18,
+        "owner": -1,
+        "stored": [
+          "MULE",
+          "TRIGGER",
+          "MULE",
+          "TRIGGER",
+          "BISON",
+          "BISON"
+        ],
+        "inventoryTheme": "Mine-laying team"
+      },
+      {
+        "col": 2,
+        "row": 27,
+        "owner": -1,
+        "stored": [
+          "PELICAN",
+          "ATLAS",
+          "BISON",
+          "BISON",
+          "POLAR",
+          "POLAR",
+          "RABBIT"
+        ],
+        "inventoryTheme": "Airlift reserve"
+      },
+      {
+        "col": 28,
+        "row": 27,
+        "owner": -1,
+        "stored": [
+          "PELICAN",
+          "ATLAS",
+          "BISON",
+          "BISON",
+          "POLAR",
+          "POLAR",
+          "RABBIT"
+        ],
+        "inventoryTheme": "Airlift reserve"
+      },
+      {
+        "col": 8,
+        "row": 8,
+        "owner": -1,
+        "stored": [
+          "BISON",
+          "BISON",
+          "POLAR",
+          "POLAR",
+          "HADRIAN",
+          "RABBIT",
+          "RABBIT",
+          "LYNX"
+        ],
+        "inventoryTheme": "Combined-arms reserve"
+      },
+      {
+        "col": 22,
+        "row": 8,
+        "owner": -1,
+        "stored": [
+          "BISON",
+          "BISON",
+          "POLAR",
+          "POLAR",
+          "HADRIAN",
+          "RABBIT",
+          "RABBIT",
+          "LYNX"
+        ],
+        "inventoryTheme": "Combined-arms reserve"
+      },
+      {
+        "col": 13,
+        "row": 11,
+        "owner": -1,
+        "stored": [
+          "BISON",
+          "BISON",
+          "POLAR",
+          "POLAR"
+        ],
+        "inventoryTheme": "Armor section"
+      },
+      {
+        "col": 17,
+        "row": 11,
+        "owner": -1,
+        "stored": [
+          "BISON",
+          "BISON",
+          "POLAR",
+          "POLAR"
+        ],
+        "inventoryTheme": "Armor section"
+      },
+      {
+        "col": 3,
+        "row": 22,
+        "owner": -1,
+        "stored": [
+          "RABBIT",
+          "RABBIT",
+          "BISON",
+          "BISON",
+          "LYNX"
+        ],
+        "inventoryTheme": "Missile patrol"
+      },
+      {
+        "col": 27,
+        "row": 22,
+        "owner": -1,
+        "stored": [
+          "RABBIT",
+          "RABBIT",
+          "BISON",
+          "BISON",
+          "LYNX"
+        ],
+        "inventoryTheme": "Missile patrol"
+      },
+      {
+        "col": 15,
+        "row": 2,
+        "owner": -1,
+        "inventoryTheme": "Armor section",
+        "stored": [
+          "BISON",
+          "BISON",
+          "POLAR",
+          "POLAR"
+        ]
+      },
+      {
+        "col": 15,
+        "row": 16,
+        "owner": -1,
+        "inventoryTheme": "Escorted battery",
+        "stored": [
+          "BISON",
+          "HADRIAN",
+          "BISON",
+          "HADRIAN",
+          "POLAR",
+          "POLAR"
+        ]
+      },
+      {
+        "col": 15,
+        "row": 24,
+        "owner": -1,
+        "inventoryTheme": "Combined-arms reserve",
+        "stored": [
+          "BISON",
+          "BISON",
+          "POLAR",
+          "POLAR",
+          "HADRIAN",
+          "RABBIT",
+          "RABBIT",
+          "LYNX"
+        ]
+      }
+    ],
+    "units": [
+      {
+        "t": "CHARLIE",
+        "o": 0,
+        "x": 4,
+        "y": 4
+      },
+      {
+        "t": "CHARLIE",
+        "o": 1,
+        "x": 26,
+        "y": 4
+      },
+      {
+        "t": "PANTHER",
+        "o": 0,
+        "x": 4,
+        "y": 3
+      },
+      {
+        "t": "PANTHER",
+        "o": 1,
+        "x": 26,
+        "y": 3
+      },
+      {
+        "t": "RABBIT",
+        "o": 0,
+        "x": 3,
+        "y": 2
       },
       {
         "t": "RABBIT",
         "o": 1,
         "x": 27,
-        "y": 25
+        "y": 2
+      },
+      {
+        "t": "BISON",
+        "o": 0,
+        "x": 2,
+        "y": 3
+      },
+      {
+        "t": "BISON",
+        "o": 1,
+        "x": 28,
+        "y": 3
+      },
+      {
+        "t": "POLAR",
+        "o": 0,
+        "x": 2,
+        "y": 4
+      },
+      {
+        "t": "POLAR",
+        "o": 1,
+        "x": 28,
+        "y": 4
+      },
+      {
+        "t": "HADRIAN",
+        "o": 0,
+        "x": 3,
+        "y": 4
+      },
+      {
+        "t": "HADRIAN",
+        "o": 1,
+        "x": 27,
+        "y": 4
+      }
+    ]
+  },
+  {
+    "name": "LACED FJORDS",
+    "pack": "AI-made",
+    "author": "Codex · original level",
+    "source": "levels/laced-fjords.json",
+    "description": "Part 9 keeps a mirrored 31×30 battlefield and 21 neutral factories, but cuts many more narrow connections through thinner mountain walls. A perimeter passage replaces the thick mountain border. Small isolated plain clearings sit among the ridges, while a connected road spine leaves most valley floors unpaved.",
+    "special": "Eleven factories include one infantry reserve: usually Charlie, occasionally Kilroy. All inventories remain 4–8 units, with seven factories each offering one, two or three exits. Each side starts with Charlie, Panther, Rabbit, Bison, Polar and Hadrian in mirrored positions. Every Atlas or mine follows its own Mule or Pelican; Pelicans are the only aircraft.",
+    "tags": [
+      "part 9",
+      "thin mountain walls",
+      "infantry reserves",
+      "sparse roads"
+    ],
+    "turnLimit": 180,
+    "grid": [
+      "...........---------...........",
+      ".h..MMM..MM-MMM.MMM-MM..MMM..h.",
+      ".MM.MhhMMMMh-MMhMM-hMMMMhhM.MM.",
+      ".M.B.MMMF-h--FM.MF--h-FMMM.B.M.",
+      "....-MM.-h--MMM.MMM--h-.MM-....",
+      ".MMM--Mh.--M-------M--.hM--MMM.",
+      ".MMMh-Mh-MM.MMMFMMM.MM-hM-hMMM.",
+      ".M.MMh----MMMMMMMMMMM----hMM.M.",
+      ".MMMM.w-hh--MMMMMMM--hh-w.MMMM.",
+      ".MMMh--whM..-MMMMM-..Mhw--hMMM.",
+      ".MMF-..w.MMM-FMMMF-MMM.w..-FMM.",
+      "..MMMM.h.wMh-MMMMM-hMw.h.MMMM..",
+      ".M.hMh......---M---......hMh.M.",
+      ".MMM..hwMh...-FMF-...hMwh..MMM.",
+      ".MMM..w....-.-MMM-.-....w..MMM.",
+      ".MM-h...h--M-M---M-M--h...h-MM.",
+      ".MF-.M.wh-FM-MMFMM-MF-hw.M.-FM.",
+      "..MM--.whwMM--M-M--MMwhw.--MM..",
+      ".M.hh.--h..--M---M--..h--.hh.M.",
+      ".MMMw...----MFM-MFM----...wMMM.",
+      "..MMh..--MM.-MM-MM-.MM--..hMM..",
+      ".M..M.-MM.M.MMM-MMM.M.MM-.M..M.",
+      ".MM...-MMMMhMMM-MMMhMMMM-...MM.",
+      ".MM-.--..hhhMMM-MMMhhh..--.-MM.",
+      ".M-F-.hhh..hM.-F-.Mh..hhh.-F-M.",
+      ".MMMMh.hhh..h.MMM.h..hhh.hMMMM.",
+      ".MMh.MMhMMMh..MMM..hMMMhMM.hMM.",
+      ".hhMM.MhMMMM.M.h.M.MMMMhM.MMhh.",
+      ".MMMMMMhMMMMM.hMh.MMMMMhMMMMMM.",
+      "..............................."
+    ],
+    "buildings": [
+      {
+        "col": 3,
+        "row": 3,
+        "owner": 0
+      },
+      {
+        "col": 27,
+        "row": 3,
+        "owner": 1
+      },
+      {
+        "col": 13,
+        "row": 3,
+        "owner": -1,
+        "stored": [
+          "CHARLIE",
+          "BISON",
+          "BISON",
+          "POLAR",
+          "POLAR"
+        ],
+        "inventoryTheme": "Armor section"
+      },
+      {
+        "col": 17,
+        "row": 3,
+        "owner": -1,
+        "stored": [
+          "CHARLIE",
+          "BISON",
+          "BISON",
+          "POLAR",
+          "POLAR"
+        ],
+        "inventoryTheme": "Armor section"
+      },
+      {
+        "col": 13,
+        "row": 10,
+        "owner": -1,
+        "stored": [
+          "RABBIT",
+          "RABBIT",
+          "BISON",
+          "BISON",
+          "LYNX"
+        ],
+        "inventoryTheme": "Missile patrol"
+      },
+      {
+        "col": 17,
+        "row": 10,
+        "owner": -1,
+        "stored": [
+          "RABBIT",
+          "RABBIT",
+          "BISON",
+          "BISON",
+          "LYNX"
+        ],
+        "inventoryTheme": "Missile patrol"
+      },
+      {
+        "col": 14,
+        "row": 13,
+        "owner": -1,
+        "stored": [
+          "CHARLIE",
+          "BISON",
+          "HADRIAN",
+          "BISON",
+          "HADRIAN",
+          "POLAR",
+          "POLAR"
+        ],
+        "inventoryTheme": "Escorted battery"
+      },
+      {
+        "col": 16,
+        "row": 13,
+        "owner": -1,
+        "stored": [
+          "CHARLIE",
+          "BISON",
+          "HADRIAN",
+          "BISON",
+          "HADRIAN",
+          "POLAR",
+          "POLAR"
+        ],
+        "inventoryTheme": "Escorted battery"
+      },
+      {
+        "col": 13,
+        "row": 19,
+        "owner": -1,
+        "stored": [
+          "MULE",
+          "ATLAS",
+          "BISON",
+          "BISON",
+          "POLAR"
+        ],
+        "inventoryTheme": "Mobile siege team"
+      },
+      {
+        "col": 17,
+        "row": 19,
+        "owner": -1,
+        "stored": [
+          "MULE",
+          "ATLAS",
+          "BISON",
+          "BISON",
+          "POLAR"
+        ],
+        "inventoryTheme": "Mobile siege team"
+      },
+      {
+        "col": 2,
+        "row": 16,
+        "owner": -1,
+        "stored": [
+          "KILROY",
+          "MULE",
+          "TRIGGER",
+          "MULE",
+          "TRIGGER",
+          "BISON",
+          "BISON"
+        ],
+        "inventoryTheme": "Mine-laying team"
+      },
+      {
+        "col": 28,
+        "row": 16,
+        "owner": -1,
+        "stored": [
+          "KILROY",
+          "MULE",
+          "TRIGGER",
+          "MULE",
+          "TRIGGER",
+          "BISON",
+          "BISON"
+        ],
+        "inventoryTheme": "Mine-laying team"
+      },
+      {
+        "col": 3,
+        "row": 24,
+        "owner": -1,
+        "stored": [
+          "PELICAN",
+          "ATLAS",
+          "BISON",
+          "BISON",
+          "POLAR",
+          "POLAR",
+          "RABBIT"
+        ],
+        "inventoryTheme": "Airlift reserve"
+      },
+      {
+        "col": 27,
+        "row": 24,
+        "owner": -1,
+        "stored": [
+          "PELICAN",
+          "ATLAS",
+          "BISON",
+          "BISON",
+          "POLAR",
+          "POLAR",
+          "RABBIT"
+        ],
+        "inventoryTheme": "Airlift reserve"
+      },
+      {
+        "col": 3,
+        "row": 10,
+        "owner": -1,
+        "stored": [
+          "CHARLIE",
+          "BISON",
+          "BISON",
+          "POLAR",
+          "POLAR",
+          "HADRIAN",
+          "RABBIT",
+          "RABBIT"
+        ],
+        "inventoryTheme": "Combined-arms reserve"
+      },
+      {
+        "col": 27,
+        "row": 10,
+        "owner": -1,
+        "stored": [
+          "CHARLIE",
+          "BISON",
+          "BISON",
+          "POLAR",
+          "POLAR",
+          "HADRIAN",
+          "RABBIT",
+          "RABBIT"
+        ],
+        "inventoryTheme": "Combined-arms reserve"
+      },
+      {
+        "col": 8,
+        "row": 3,
+        "owner": -1,
+        "stored": [
+          "BISON",
+          "BISON",
+          "POLAR",
+          "POLAR"
+        ],
+        "inventoryTheme": "Armor section"
+      },
+      {
+        "col": 22,
+        "row": 3,
+        "owner": -1,
+        "stored": [
+          "BISON",
+          "BISON",
+          "POLAR",
+          "POLAR"
+        ],
+        "inventoryTheme": "Armor section"
+      },
+      {
+        "col": 10,
+        "row": 16,
+        "owner": -1,
+        "stored": [
+          "CHARLIE",
+          "RABBIT",
+          "RABBIT",
+          "BISON",
+          "BISON",
+          "LYNX"
+        ],
+        "inventoryTheme": "Missile patrol"
+      },
+      {
+        "col": 20,
+        "row": 16,
+        "owner": -1,
+        "stored": [
+          "CHARLIE",
+          "RABBIT",
+          "RABBIT",
+          "BISON",
+          "BISON",
+          "LYNX"
+        ],
+        "inventoryTheme": "Missile patrol"
+      },
+      {
+        "col": 15,
+        "row": 6,
+        "owner": -1,
+        "inventoryTheme": "Armor section",
+        "stored": [
+          "BISON",
+          "BISON",
+          "POLAR",
+          "POLAR"
+        ]
+      },
+      {
+        "col": 15,
+        "row": 16,
+        "owner": -1,
+        "inventoryTheme": "Escorted battery",
+        "stored": [
+          "CHARLIE",
+          "BISON",
+          "HADRIAN",
+          "BISON",
+          "HADRIAN",
+          "POLAR",
+          "POLAR"
+        ]
+      },
+      {
+        "col": 15,
+        "row": 24,
+        "owner": -1,
+        "inventoryTheme": "Combined-arms reserve",
+        "stored": [
+          "BISON",
+          "BISON",
+          "POLAR",
+          "POLAR",
+          "HADRIAN",
+          "RABBIT",
+          "RABBIT",
+          "LYNX"
+        ]
+      }
+    ],
+    "units": [
+      {
+        "t": "CHARLIE",
+        "o": 0,
+        "x": 4,
+        "y": 4
+      },
+      {
+        "t": "CHARLIE",
+        "o": 1,
+        "x": 26,
+        "y": 4
+      },
+      {
+        "t": "PANTHER",
+        "o": 0,
+        "x": 4,
+        "y": 3
+      },
+      {
+        "t": "PANTHER",
+        "o": 1,
+        "x": 26,
+        "y": 3
+      },
+      {
+        "t": "RABBIT",
+        "o": 0,
+        "x": 3,
+        "y": 2
+      },
+      {
+        "t": "RABBIT",
+        "o": 1,
+        "x": 27,
+        "y": 2
+      },
+      {
+        "t": "BISON",
+        "o": 0,
+        "x": 2,
+        "y": 3
+      },
+      {
+        "t": "BISON",
+        "o": 1,
+        "x": 28,
+        "y": 3
+      },
+      {
+        "t": "POLAR",
+        "o": 0,
+        "x": 2,
+        "y": 4
+      },
+      {
+        "t": "POLAR",
+        "o": 1,
+        "x": 28,
+        "y": 4
+      },
+      {
+        "t": "HADRIAN",
+        "o": 0,
+        "x": 3,
+        "y": 4
+      },
+      {
+        "t": "HADRIAN",
+        "o": 1,
+        "x": 27,
+        "y": 4
+      }
+    ]
+  },
+  {
+    "name": "TURNING FJORDS",
+    "pack": "AI-made",
+    "author": "Codex · original level",
+    "source": "levels/turning-fjords.json",
+    "description": "Part 10 is a 42×20 battlefield with 180-degree rotational symmetry and opposite-corner armies. Narrow connecting passages weave around interior mountain islands of at least five hexes; edge mountains are at most three hexes thick. Four isolated five-hex plain clearings lie inside the ridges. Connected roads form a sparse backbone across the varied valley floor.",
+    "special": "Twelve of 24 neutral factories include one Charlie or Kilroy. All inventories hold 4–8 units; eight factories each have one, two or three exits. Focused teams cover every tank and artillery type, both anti-air vehicles and missile buggies. Each side starts with Charlie, Panther, Rabbit, Slagger, Titan and Octopus in rotated positions. Atlas guns and mines follow their Mule or Pelican; Pelicans are the only aircraft.",
+    "tags": [
+      "part 10",
+      "180° symmetry",
+      "24 factories",
+      "sparse roads"
+    ],
+    "turnLimit": 180,
+    "grid": [
+      "..M....MMMMMMMM..MMM.MMM..MMM......MMM..MM",
+      "MMh.MMMMMMM.M..MMMMM.MMMMMhh.MMM.hM.MMh.hM",
+      "Mhh.MMMMMMhMMMhhM-FM.MM.Mh.M.M..MMM...MhhM",
+      ".h.B.h.-F-.MFMh--w-h.h.h.hMFMM...MMM.MM...",
+      "Mh..---.-w-----hhhwh.Mhhh.--MMMMMMMMMhhh.M",
+      "M...MFM....h.w--h.hh.M.MMM-.hMMMMMM..MMM.M",
+      "MMM.MMMMMM.....-MM.hwMMMMM-w.MMF-..MMMF-.M",
+      "MhM.MMM.MFM...w-MM.M.M.MMF-.MMM--------MhM",
+      "M.M.MFMM----.h.-.MMF--.MMM--MFM-...-w..MMM",
+      "M.MhM-M.M.wh-.-M--MMM---MMM----h.hh-.wh..M",
+      "M..hw.-hh.h----MMM---MMM--M-.-hw.M.M-MhM.M",
+      "MMM..w-...-MFM--MMM.--FMM.-.h.----MMFM.M.M",
+      "MhM--------MMM.-FMM.M.M.MM-w...MFM.MMM.MhM",
+      "M.-FMMM..-FMM.w-MMMMMwh.MM-.....MMMMMM.MMM",
+      "M.MMM..MMMMMMh.-MMM.M.hh.h--w.h....MFM...M",
+      "M.hhhMMMMMMMMM--.hhhM.hwhhh-----w-.---..hM",
+      "...MM.MMM...MMFMh.h.h.h-w--hMFM.-F-.h.B.h.",
+      "MhhM...MMM..M.M.hM.MM.MF-MhhMMMhMMMMMM.hhM",
+      "Mh.hMM.Mh.MMM.hhMMMMM.MMMMM..M.MMMMMMM.hMM",
+      "MM..MMM......MMM..MMM.MMM..MMMMMMMM....M.."
+    ],
+    "buildings": [
+      {
+        "col": 3,
+        "row": 3,
+        "owner": 0
+      },
+      {
+        "col": 38,
+        "row": 16,
+        "owner": 1
+      },
+      {
+        "col": 19,
+        "row": 8,
+        "owner": -1,
+        "stored": [
+          "CHARLIE",
+          "BISON",
+          "BISON",
+          "LENET",
+          "SLAGGER"
+        ],
+        "inventoryTheme": "Fast armor"
+      },
+      {
+        "col": 22,
+        "row": 11,
+        "owner": -1,
+        "stored": [
+          "CHARLIE",
+          "BISON",
+          "BISON",
+          "LENET",
+          "SLAGGER"
+        ],
+        "inventoryTheme": "Fast armor"
+      },
+      {
+        "col": 3,
+        "row": 13,
+        "owner": -1,
+        "stored": [
+          "POLAR",
+          "GRIZZLY",
+          "TITAN",
+          "GIANT"
+        ],
+        "inventoryTheme": "Heavy armor"
+      },
+      {
+        "col": 38,
+        "row": 6,
+        "owner": -1,
+        "stored": [
+          "POLAR",
+          "GRIZZLY",
+          "TITAN",
+          "GIANT"
+        ],
+        "inventoryTheme": "Heavy armor"
+      },
+      {
+        "col": 10,
+        "row": 13,
+        "owner": -1,
+        "stored": [
+          "CHARLIE",
+          "HADRIAN",
+          "HADRIAN",
+          "BISON",
+          "LENET",
+          "SEEKER"
+        ],
+        "inventoryTheme": "Long-range battery"
+      },
+      {
+        "col": 31,
+        "row": 6,
+        "owner": -1,
+        "stored": [
+          "CHARLIE",
+          "HADRIAN",
+          "HADRIAN",
+          "BISON",
+          "LENET",
+          "SEEKER"
+        ],
+        "inventoryTheme": "Long-range battery"
+      },
+      {
+        "col": 12,
+        "row": 3,
+        "owner": -1,
+        "stored": [
+          "OCTOPUS",
+          "OCTOPUS",
+          "GRIZZLY",
+          "GRIZZLY",
+          "SLAGGER",
+          "SLAGGER"
+        ],
+        "inventoryTheme": "Rocket battery"
+      },
+      {
+        "col": 29,
+        "row": 16,
+        "owner": -1,
+        "stored": [
+          "OCTOPUS",
+          "OCTOPUS",
+          "GRIZZLY",
+          "GRIZZLY",
+          "SLAGGER",
+          "SLAGGER"
+        ],
+        "inventoryTheme": "Rocket battery"
+      },
+      {
+        "col": 18,
+        "row": 2,
+        "owner": -1,
+        "stored": [
+          "KILROY",
+          "MULE",
+          "ATLAS",
+          "POLAR",
+          "POLAR"
+        ],
+        "inventoryTheme": "Mobile siege"
+      },
+      {
+        "col": 23,
+        "row": 17,
+        "owner": -1,
+        "stored": [
+          "KILROY",
+          "MULE",
+          "ATLAS",
+          "POLAR",
+          "POLAR"
+        ],
+        "inventoryTheme": "Mobile siege"
+      },
+      {
+        "col": 9,
+        "row": 7,
+        "owner": -1,
+        "stored": [
+          "PELICAN",
+          "ATLAS",
+          "TITAN",
+          "TITAN",
+          "RABBIT",
+          "RABBIT"
+        ],
+        "inventoryTheme": "Airlift siege"
+      },
+      {
+        "col": 32,
+        "row": 12,
+        "owner": -1,
+        "stored": [
+          "PELICAN",
+          "ATLAS",
+          "TITAN",
+          "TITAN",
+          "RABBIT",
+          "RABBIT"
+        ],
+        "inventoryTheme": "Airlift siege"
+      },
+      {
+        "col": 5,
+        "row": 8,
+        "owner": -1,
+        "stored": [
+          "CHARLIE",
+          "MULE",
+          "TRIGGER",
+          "MULE",
+          "TRIGGER",
+          "LENET",
+          "LENET"
+        ],
+        "inventoryTheme": "Mine engineers"
+      },
+      {
+        "col": 36,
+        "row": 11,
+        "owner": -1,
+        "stored": [
+          "CHARLIE",
+          "MULE",
+          "TRIGGER",
+          "MULE",
+          "TRIGGER",
+          "LENET",
+          "LENET"
+        ],
+        "inventoryTheme": "Mine engineers"
+      },
+      {
+        "col": 16,
+        "row": 12,
+        "owner": -1,
+        "stored": [
+          "RABBIT",
+          "RABBIT",
+          "LYNX",
+          "LYNX",
+          "BISON",
+          "BISON"
+        ],
+        "inventoryTheme": "Missile patrol"
+      },
+      {
+        "col": 25,
+        "row": 7,
+        "owner": -1,
+        "stored": [
+          "RABBIT",
+          "RABBIT",
+          "LYNX",
+          "LYNX",
+          "BISON",
+          "BISON"
+        ],
+        "inventoryTheme": "Missile patrol"
+      },
+      {
+        "col": 8,
+        "row": 3,
+        "owner": -1,
+        "stored": [
+          "CHARLIE",
+          "HAWKEYE",
+          "SEEKER",
+          "SEEKER",
+          "POLAR",
+          "POLAR"
+        ],
+        "inventoryTheme": "Air-defense screen"
+      },
+      {
+        "col": 33,
+        "row": 16,
+        "owner": -1,
+        "stored": [
+          "CHARLIE",
+          "HAWKEYE",
+          "SEEKER",
+          "SEEKER",
+          "POLAR",
+          "POLAR"
+        ],
+        "inventoryTheme": "Air-defense screen"
+      },
+      {
+        "col": 5,
+        "row": 5,
+        "owner": -1,
+        "stored": [
+          "GIANT",
+          "GIANT",
+          "GRIZZLY",
+          "TITAN"
+        ],
+        "inventoryTheme": "Breakthrough reserve"
+      },
+      {
+        "col": 36,
+        "row": 14,
+        "owner": -1,
+        "stored": [
+          "GIANT",
+          "GIANT",
+          "GRIZZLY",
+          "TITAN"
+        ],
+        "inventoryTheme": "Breakthrough reserve"
+      },
+      {
+        "col": 14,
+        "row": 16,
+        "owner": -1,
+        "stored": [
+          "KILROY",
+          "LENET",
+          "SLAGGER",
+          "HADRIAN",
+          "RABBIT",
+          "RABBIT"
+        ],
+        "inventoryTheme": "Combined arms"
+      },
+      {
+        "col": 27,
+        "row": 3,
+        "owner": -1,
+        "stored": [
+          "KILROY",
+          "LENET",
+          "SLAGGER",
+          "HADRIAN",
+          "RABBIT",
+          "RABBIT"
+        ],
+        "inventoryTheme": "Combined arms"
+      },
+      {
+        "col": 12,
+        "row": 11,
+        "owner": -1,
+        "stored": [
+          "BISON",
+          "POLAR",
+          "TITAN",
+          "GRIZZLY",
+          "BISON",
+          "POLAR",
+          "TITAN",
+          "GRIZZLY"
+        ],
+        "inventoryTheme": "Armored reserve"
+      },
+      {
+        "col": 29,
+        "row": 8,
+        "owner": -1,
+        "stored": [
+          "BISON",
+          "POLAR",
+          "TITAN",
+          "GRIZZLY",
+          "BISON",
+          "POLAR",
+          "TITAN",
+          "GRIZZLY"
+        ],
+        "inventoryTheme": "Armored reserve"
+      }
+    ],
+    "units": [
+      {
+        "t": "CHARLIE",
+        "o": 0,
+        "x": 4,
+        "y": 4
+      },
+      {
+        "t": "CHARLIE",
+        "o": 1,
+        "x": 37,
+        "y": 15
+      },
+      {
+        "t": "PANTHER",
+        "o": 0,
+        "x": 4,
+        "y": 3
+      },
+      {
+        "t": "PANTHER",
+        "o": 1,
+        "x": 37,
+        "y": 16
+      },
+      {
+        "t": "RABBIT",
+        "o": 0,
+        "x": 3,
+        "y": 2
+      },
+      {
+        "t": "RABBIT",
+        "o": 1,
+        "x": 38,
+        "y": 17
+      },
+      {
+        "t": "SLAGGER",
+        "o": 0,
+        "x": 2,
+        "y": 3
+      },
+      {
+        "t": "SLAGGER",
+        "o": 1,
+        "x": 39,
+        "y": 16
+      },
+      {
+        "t": "TITAN",
+        "o": 0,
+        "x": 2,
+        "y": 4
+      },
+      {
+        "t": "TITAN",
+        "o": 1,
+        "x": 39,
+        "y": 15
+      },
+      {
+        "t": "OCTOPUS",
+        "o": 0,
+        "x": 3,
+        "y": 4
+      },
+      {
+        "t": "OCTOPUS",
+        "o": 1,
+        "x": 38,
+        "y": 15
       }
     ]
   }

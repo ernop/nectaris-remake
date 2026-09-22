@@ -130,7 +130,7 @@
     if (g) return g;
     return {
       width: state.width, height: state.height,
-      units: [],
+      units: [], buildings: state.buildings,
       terrainAt: function (c, r) {
         if (r < 0 || r >= state.height || c < 0 || c >= state.width) return null;
         return TERRAIN_BY_CHAR[state.grid[r][c]];
@@ -167,8 +167,9 @@
     for (k in UNIT_TYPES) {
       (function (t) {
         var b = document.createElement("button");
-        b.textContent = t.id;
-        b.title = t.name;
+        b.textContent = UNIT_VIEW.name(t);
+        b.title = UNIT_VIEW.name(t);
+        UNIT_VIEW.addIcon(b,t);
         b.onclick = function () { setTool({ kind: "unit", value: t.id }, b); };
         ug.appendChild(b);
       })(UNIT_TYPES[k]);
@@ -201,10 +202,10 @@
       }
       // repainting under a unit: drop the unit if terrain became impassable
       var u = state.units[k];
-      if (u && terrainCost(terr, UNIT_TYPES[u.t].moveType) === null) delete state.units[k];
+      if (u && terrainCost(terr, UNIT_TYPES[u.t].moveType, UNIT_TYPES[u.t]) === null) delete state.units[k];
     } else if (t.kind === "unit") {
       var terr2 = TERRAIN_BY_CHAR[state.grid[row][col]];
-      if (terrainCost(terr2, UNIT_TYPES[t.value].moveType) === null) {
+      if (terrainCost(terr2, UNIT_TYPES[t.value].moveType, UNIT_TYPES[t.value]) === null) {
         msg(UNIT_TYPES[t.value].name + " cannot stand on " + terr2.name);
         return;
       }

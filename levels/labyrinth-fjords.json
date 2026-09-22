@@ -3,21 +3,21 @@
   "pack": "AI-made",
   "author": "Codex · original level",
   "source": "levels/labyrinth-fjords.json",
-  "description": "Part 7 packs 21 neutral factories into a 30×30 mountain labyrinth. Narrow, angular two- and three-hex channels interconnect around ridges, with factories tucked into terminal branches and short wall alcoves. Three small junction clearings provide room to fight. Each corner camp starts with exactly one Charlie, one Panther motorcycle infantry and one Rabbit missile buggy.",
+  "description": "Part 7 packs 21 neutral factories into a 30×30 mountain labyrinth. Narrow, angular two- and three-hex channels interconnect around ridges, with factories tucked into terminal branches and short wall alcoves. Three small junction clearings provide room to fight. Each corner camp starts with a Charlie, Panther motorcycle infantry and Rabbit missile buggy, plus one Bison, one Polar and one Hadrian in matching formations.",
   "special": "Each of the 21 neutral factories holds 4–8 units in a focused or mixed team; none contains infantry. Exactly 7 factories each have one, two or three road exits, all facing down their fjord. Atlas guns and mines follow their own Mule or Pelican. Pelicans are the only aircraft. Protect your two capturing units: there are no infantry reinforcements.",
   "tags": [
     "part 7",
     "narrow fjords",
     "21 factories",
-    "3-unit start"
+    "6-unit start"
   ],
   "turnLimit": 180,
   "grid": [
     "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
     "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
-    "MMMhMMMMM-F-.MMMMMMh.-FMMMMMMM",
-    "MMhB.MMhw-----FMMMMw-.MMMMMMMM",
-    "MMh..MM.-.-MMMMMMMMM--MMMMMMMM",
+    "MMM.MMMMM-F-.MMMMMMh.-FMMMMMMM",
+    "MM.B.MMhw-----FMMMMw-.MMMMMMMM",
+    "MM...MM.-.-MMMMMMMMM--MMMMMMMM",
     "MMMM-hMM--MMMMMMMMMM--MFMMMMMM",
     "MMMM-hMMF-hMMMMMMMMMM---MMMMMM",
     "MMMM-.MMM-h.MMMMMMMMMM-MMMMMMM",
@@ -39,7 +39,7 @@
     "MMMMMF-hh--.--Mh-hh-.hMMMMMMMM",
     "MMMMM------MM-h----w--.hM.MMMM",
     "MMMMMMMMMMFMw---h..MMF--h...MM",
-    "MMMMMMMMMMMM.h-FMMMMMMMM-hB.MM",
+    "MMMMMMMMMMMM.h-FMMMMMMMM-.B.MM",
     "MMMMMMMMMMMMMMMMMMMMMMMMMM.MMM",
     "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
     "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMM"
@@ -351,20 +351,8 @@
     {
       "t": "CHARLIE",
       "o": 0,
-      "x": 3,
-      "y": 4
-    },
-    {
-      "t": "PANTHER",
-      "o": 0,
       "x": 4,
       "y": 4
-    },
-    {
-      "t": "RABBIT",
-      "o": 0,
-      "x": 4,
-      "y": 3
     },
     {
       "t": "CHARLIE",
@@ -374,14 +362,62 @@
     },
     {
       "t": "PANTHER",
+      "o": 0,
+      "x": 4,
+      "y": 3
+    },
+    {
+      "t": "PANTHER",
       "o": 1,
-      "x": 26,
-      "y": 25
+      "x": 25,
+      "y": 26
+    },
+    {
+      "t": "RABBIT",
+      "o": 0,
+      "x": 3,
+      "y": 2
     },
     {
       "t": "RABBIT",
       "o": 1,
+      "x": 26,
+      "y": 27
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 2,
+      "y": 3
+    },
+    {
+      "t": "BISON",
+      "o": 1,
       "x": 27,
+      "y": 26
+    },
+    {
+      "t": "POLAR",
+      "o": 0,
+      "x": 2,
+      "y": 4
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 27,
+      "y": 25
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 3,
+      "y": 4
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 26,
       "y": 25
     }
   ]

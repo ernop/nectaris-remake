@@ -12,6 +12,17 @@ const { UNIT_TYPES } = require("../js/data-units.js");
 const key = p => HEX.key(p.col, p.row);
 const distance = (a, b) => HEX.distance(a.col, a.row, b.col, b.row);
 const neighbors = p => HEX.neighbors(p.col, p.row);
+const FACTORY_TEAMS = [
+  {theme:"Armor section", stored:["BISON","BISON","POLAR","POLAR"]},
+  {theme:"Missile patrol", stored:["RABBIT","RABBIT","BISON","BISON","LYNX"]},
+  {theme:"Escorted battery", stored:["BISON","HADRIAN","BISON","HADRIAN","POLAR","POLAR"]},
+  {theme:"Mobile siege team", stored:["MULE","ATLAS","BISON","BISON","POLAR"]},
+  {theme:"Mine-laying team", stored:["MULE","TRIGGER","MULE","TRIGGER","BISON","BISON"]},
+  {theme:"Airlift reserve", stored:["PELICAN","ATLAS","BISON","BISON","POLAR","POLAR","RABBIT"]},
+  {theme:"Combined-arms reserve", stored:["BISON","BISON","POLAR","POLAR","HADRIAN","RABBIT","RABBIT","LYNX"]}
+];
+// One authored choice, shared by both sides and both reinforced levels.
+const REINFORCED_START = ["CHARLIE","PANTHER","RABBIT","BISON","POLAR","HADRIAN"];
 function random(seed) {
   return function () {
     seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
@@ -37,9 +48,9 @@ function line(a, b) {
   return out;
 }
 function design(seed, linked, compact, fjord) {
-  const WIDTH = fjord ? fjord.size : compact ? 40 : 65, HEIGHT = fjord ? fjord.size : compact ? 40 : 49;
+  const WIDTH = fjord ? (fjord.width || fjord.size) : compact ? 40 : 65, HEIGHT = fjord ? fjord.size : compact ? 40 : 49;
   const columns = fjord ? fjord.columns : compact ? 6 : 8;
-  const count = columns * (fjord ? fjord.columns : 6), last = count-1, spacing = fjord ? fjord.spacing : compact ? 6 : 8;
+  const count = columns * (fjord ? (fjord.rows || fjord.columns) : 6), last = count-1, spacing = fjord ? fjord.spacing : compact ? 6 : 8;
   const inside = p => p.col > 0 && p.row > 0 && p.col < WIDTH-1 && p.row < HEIGHT-1;
   const rng = random(seed), jitter = () => Math.floor(rng() * 3) - 1;
   const nodes = Array.from({length: count}, (_, i) => ({
@@ -154,7 +165,7 @@ function design(seed, linked, compact, fjord) {
       const exitCount = (buildings.length-2)%3+1, options = [];
       for (let row=2; row<HEIGHT-2; row++) for (let col=2; col<WIDTH-2; col++) {
         const p = {col,row}, ns = neighbors(p);
-        if (grid[row][col] !== "M" || buildings.some(b => distance(p,b)<4)) continue;
+        if (grid[row][col] !== "M" || buildings.some(b => distance(p,b)<(fjord.factorySpacing || 4))) continue;
         for (let inward=0; inward<6; inward++) {
           const mouth = [inward];
           if (exitCount>=2) mouth.push((inward+1)%6);
@@ -199,18 +210,9 @@ function design(seed, linked, compact, fjord) {
     else if (linked && roll < 0.52 && !roads.has(HEX.key(c, r))) row[c] = "w";
   }));
   const tanks = ["BISON", "LENET", "POLAR", "GRIZZLY", "SLAGGER", "TITAN", "GIANT"];
-  const teams = [
-    {theme:"Armor section", stored:["BISON","BISON","POLAR","POLAR"]},
-    {theme:"Missile patrol", stored:["RABBIT","RABBIT","BISON","BISON","LYNX"]},
-    {theme:"Escorted battery", stored:["BISON","HADRIAN","BISON","HADRIAN","POLAR","POLAR"]},
-    {theme:"Mobile siege team", stored:["MULE","ATLAS","BISON","BISON","POLAR"]},
-    {theme:"Mine-laying team", stored:["MULE","TRIGGER","MULE","TRIGGER","BISON","BISON"]},
-    {theme:"Airlift reserve", stored:["PELICAN","ATLAS","BISON","BISON","POLAR","POLAR","RABBIT"]},
-    {theme:"Combined-arms reserve", stored:["BISON","BISON","POLAR","POLAR","HADRIAN","RABBIT","RABBIT","LYNX"]}
-  ];
   buildings.slice(2).forEach((b, i) => {
     if (fjord) {
-      const team = teams[i%teams.length];
+      const team = FACTORY_TEAMS[i%FACTORY_TEAMS.length];
       b.inventoryTheme = team.theme; b.stored = team.stored.slice(); return;
     }
     b.stored = ["CHARLIE", tanks[i%7], "HADRIAN", "MULE", "KILROY",
@@ -366,9 +368,149 @@ function findFjords(startSeed, config) {
   }
   throw new Error("No valid layout found for "+config.name);
 }
+function reinforceCamps(map, opposite) {
+  const grid = map.grid.map(row => row.split("")), base = map.buildings.find(b => b.owner === 0);
+  map.units = [];
+  neighbors(base).forEach((p,i) => {
+    [p,opposite(p)].forEach((spot,owner) => {
+      grid[spot.row][spot.col] = ".";
+      map.units.push({t:REINFORCED_START[i],o:owner,x:spot.col,y:spot.row});
+    });
+  });
+  map.grid = grid.map(row => row.join(""));
+}
+function mirrorFjords(seed) {
+  // An odd column count makes left/right reflection a real hex-grid
+  // isometry: column parity, every neighbor and both map edges are preserved.
+  const half = design(seed,true,false,{part:8,name:"MIRROR FJORDS",file:"mirror-fjords",
+    width:16,size:30,columns:3,rows:5,spacing:5,factories:9,clearings:1,links:1,wallFactories:true});
+  if (!half) return null;
+  if (half.map.buildings.slice(2).some((b,i) => neighbors(b).filter(p => half.map.grid[p.row][p.col]==="-").length!==i%3+1)) return null;
+  const mirror = p => ({col:30-p.col,row:p.row});
+  let grid = half.map.grid.map(row => Array.from({length:31},(_,c) => c===15 ? "M" : row[Math.min(c,30-c)]));
+  const buildings = half.map.buildings.filter(b => b.owner!==1).flatMap(b =>
+    [b,{...b,...mirror(b),owner:b.owner===0 ? 1 : -1}].map(n => ({...n,...(n.stored ? {stored:n.stored.slice()} : {})})));
+  const formerBase = half.map.buildings.find(b => b.owner===1);
+  grid[formerBase.row][formerBase.col] = grid[formerBase.row][30-formerBase.col] = "-";
+  function centerFactory(row, exits) {
+    const p = {col:15,row}, ns = neighbors(p);
+    // The middle two-exit factory faces north/south; both approaches are
+    // shared equally. The one- and three-exit factories face north.
+    const mouths = exits===1 ? [2] : exits===2 ? [2,5] : [1,2,3];
+    if (buildings.some(b => distance(b,p)<4)) return null;
+    const copy = grid.map(r => r.slice());
+    if (ns.some((n,d) => !mouths.includes(d) && copy[n.row][n.col]!=="M")) return null;
+    const walls = new Set();
+    buildings.filter(b => b.owner===-1).concat([p]).forEach(b => neighbors(b).forEach((n,d) => {
+      if ((b===p && !mouths.includes(d)) || (b!==p && grid[n.row][n.col]==="M")) walls.add(key(n));
+    }));
+    copy[row][15] = "F";
+    for (const direction of mouths) {
+      const start = ns[direction], queue = [start], previous = new Map([[key(start),null]]);
+      let end;
+      for (let i=0; i<queue.length; i++) {
+        const here = queue[i];
+        if (here.col<15 && !["M","F"].includes(copy[here.row][here.col])) {end=here; break;}
+        if (distance(start,here)>=4) continue;
+        neighbors(here).forEach(n => {
+          if (n.col<=0 || n.col>15 || n.row<=0 || n.row>=29 || walls.has(key(n)) ||
+            copy[n.row][n.col]==="F" || previous.has(key(n))) return;
+          previous.set(key(n),here); queue.push(n);
+        });
+      }
+      if (!end) return null;
+      // A short road joins the existing left-hand fjord; its reflection
+      // joins the right at the same distance without opening factory walls.
+      while (end) {
+        copy[end.row][end.col] = copy[end.row][30-end.col] = "-";
+        end = previous.get(key(end));
+      }
+    }
+    return copy;
+  }
+  for (const [index,targetRow] of [6,15,24].entries()) {
+    const rows = Array.from({length:26},(_,i) => i+2).sort((a,b) => Math.abs(a-targetRow)-Math.abs(b-targetRow));
+    let placed = false;
+    for (const row of rows) {
+      const candidate = centerFactory(row,index+1);
+      if (!candidate) continue;
+      grid = candidate;
+      const team = FACTORY_TEAMS[[0,2,6][index]];
+      buildings.push({col:15,row,owner:-1,inventoryTheme:team.theme,stored:team.stored.slice()});
+      placed = true; break;
+    }
+    if (!placed) return null;
+  }
+  const map = {
+    name:"MIRROR FJORDS",pack:"AI-made",author:"Codex · original level",source:"levels/mirror-fjords.json",
+    description:"Part 8 is a 31×30 fjord network with exact left-to-right symmetry. Mountain walls enclose narrow, angular channels and small junctions. Nine matched factory pairs surround three shared center-line factories. Every terrain hex, reserve team and starting position has an identical counterpart for the other side.",
+    special:"Each side starts with one Charlie, Panther, Rabbit, Bison, Polar and Hadrian in mirrored positions. All 21 neutral factories hold 4–8 units without infantry; seven factories each have one, two or three exits. The center two-exit factory has matching north/south approaches. Every Atlas or mine follows its own Mule or Pelican. Pelicans are the only aircraft.",
+    tags:["part 8","exact symmetry","21 factories","6-unit start"],turnLimit:180,
+    grid:grid.map(row => row.join("")),buildings,units:[]
+  };
+  reinforceCamps(map,mirror);
+  return {seed,clearings:half.clearings.filter(p => p.col<15).flatMap(p => [p,mirror(p)]),map};
+}
+function rotatedFjords(seed) {
+  const half=design(seed,true,false,{part:10,name:"TURNING FJORDS",file:"turning-fjords",
+    width:22,size:20,columns:4,rows:3,spacing:5,factories:12,clearings:1,links:1,wallFactories:true,factorySpacing:3});
+  if(!half||half.map.buildings.slice(2).some((b,i)=>neighbors(b).filter(p=>half.map.grid[p.row][p.col]==="-").length!==i%3+1))return null;
+  const rotate=p=>({col:41-p.col,row:19-p.row});
+  const grid=Array.from({length:20},(_,r)=>Array.from({length:42},(_,c)=>c<21?half.map.grid[r][c]:half.map.grid[19-r][41-c]));
+  const former=half.map.buildings.find(b=>b.owner===1),mate=rotate(former);
+  grid[former.row][former.col]=grid[mate.row][mate.col]=".";
+  // Twelve focused teams cover every tank, gun, missile vehicle, anti-air
+  // vehicle and permitted transport. No per-factory random roster sampling.
+  const teams=[
+    {theme:"Fast armor",stored:["BISON","BISON","LENET","SLAGGER"]},
+    {theme:"Heavy armor",stored:["POLAR","GRIZZLY","TITAN","GIANT"]},
+    {theme:"Long-range battery",stored:["HADRIAN","HADRIAN","BISON","LENET","SEEKER"]},
+    {theme:"Rocket battery",stored:["OCTOPUS","OCTOPUS","GRIZZLY","GRIZZLY","SLAGGER","SLAGGER"]},
+    {theme:"Mobile siege",stored:["MULE","ATLAS","POLAR","POLAR"]},
+    {theme:"Airlift siege",stored:["PELICAN","ATLAS","TITAN","TITAN","RABBIT","RABBIT"]},
+    {theme:"Mine engineers",stored:["MULE","TRIGGER","MULE","TRIGGER","LENET","LENET"]},
+    {theme:"Missile patrol",stored:["RABBIT","RABBIT","LYNX","LYNX","BISON","BISON"]},
+    {theme:"Air-defense screen",stored:["HAWKEYE","SEEKER","SEEKER","POLAR","POLAR"]},
+    {theme:"Breakthrough reserve",stored:["GIANT","GIANT","GRIZZLY","TITAN"]},
+    {theme:"Combined arms",stored:["LENET","SLAGGER","HADRIAN","RABBIT","RABBIT"]},
+    {theme:"Armored reserve",stored:["BISON","POLAR","TITAN","GRIZZLY","BISON","POLAR","TITAN","GRIZZLY"]}
+  ];
+  const buildings=[];
+  half.map.buildings.filter(b=>b.owner!==1).forEach((b,i)=>{
+    const original=i===0?{...b}:{...b,inventoryTheme:teams[i-1].theme,stored:teams[i-1].stored.slice()};
+    buildings.push(original,{...original,...rotate(original),owner:original.owner===0?1:-1,
+      ...(original.stored?{stored:original.stored.slice()}:{})});
+  });
+  const map={...half.map,grid:grid.map(r=>r.join("")),buildings};
+  reinforceCamps(map,rotate);
+  map.units.forEach(u=>{u.t=({BISON:"SLAGGER",POLAR:"TITAN",HADRIAN:"OCTOPUS"})[u.t]||u.t;});
+  return map;
+}
 const sixth = findFjords(22000,{part:6,name:"NEEDLE FJORDS",file:"needle-fjords",size:34,columns:5,spacing:6,factories:9,clearings:2,links:1});
 const seventh = findFjords(43000,{part:7,name:"LABYRINTH FJORDS",file:"labyrinth-fjords",size:30,columns:5,spacing:5,factories:21,clearings:3,links:3,wallFactories:true});
-const results = [first, second, third, denseDesign(), denseDesign(true), sixth, seventh];
+reinforceCamps(seventh.map, p => ({col:29-p.col,row:29-p.row}));
+seventh.map.description = seventh.map.description.replace("Each corner camp starts with exactly one Charlie, one Panther motorcycle infantry and one Rabbit missile buggy.",
+  "Each corner camp starts with a Charlie, Panther motorcycle infantry and Rabbit missile buggy, plus one Bison, one Polar and one Hadrian in matching formations.");
+seventh.map.tags[3] = "6-unit start";
+let eighth;
+for (let seed=54000; seed<154000 && !eighth; seed++) eighth = mirrorFjords(seed);
+if (!eighth) throw new Error("No symmetric fjord layout found");
+let ninth;
+for (let seed=64000; seed<164000 && !ninth; seed++) {
+  const base=mirrorFjords(seed);
+  if (base) {
+    ninth=require("./carve-fjord-channels.js")(base.map);
+    if(ninth)ninth.seed=seed;
+  }
+}
+if (!ninth) throw new Error("No laced fjord layout found");
+let tenth;
+for(let seed=74000;seed<174000&&!tenth;seed++){
+  const base=rotatedFjords(seed);
+  if(base){tenth=require("./carve-fjord-channels.js")(base,{rotate:true});if(tenth)tenth.seed=seed;}
+}
+if(!tenth)throw new Error("No turning fjord layout found");
+const results = [first, second, third, denseDesign(), denseDesign(true), sixth, seventh, eighth, ninth, tenth];
 results.forEach((result, index) => {
   const map = result.map;
   if (map.buildings.some(b => (b.stored || []).some(t => UNIT_TYPES[t].moveType === "air" &&

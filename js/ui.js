@@ -13,6 +13,7 @@
 "use strict";
 
 var UI = (function () {
+  var unitView = typeof module !== "undefined" ? require("./unit-view.js") : UNIT_VIEW;
 
   function $(id) { return document.getElementById(id); }
   function esc(value) {
@@ -102,6 +103,9 @@ var UI = (function () {
     };
     $("btn-undo").onclick = function () { self.undoLast(); };
     $("btn-endturn").onclick = function () { self.endTurn(); };
+    $("btn-keep-playing").onclick = function () { self.cancelEndTurn(); };
+    $("btn-confirm-endturn").onclick = function () { self.endTurn(true); };
+    this.cancelEndTurn();
     $("btn-menu").onclick = this.options.onMenu || function () { location.reload(); };
     $("btn-watch").onclick = function () {
       self.watchAI = !self.watchAI;
@@ -180,6 +184,7 @@ var UI = (function () {
   };
 
   GameUI.prototype.undoLast = function () {
+    this.cancelEndTurn();
     if (!this.canUndo()) return;
     var entry = this.undoHistory[this.undoHistory.length - 1];
     var current = this.game.snapshot();
@@ -237,6 +242,7 @@ var UI = (function () {
       if (self.destroyed) return;
       self.renderer.selected = self.selected;
       self.positionActionMenu();
+      self.positionFactoryPanel();
       self.renderer.draw();
       self.updateHoverInfo();
     });
@@ -296,6 +302,7 @@ var UI = (function () {
   GameUI.prototype.showWatchPanel = function (title, detail) {
     $("watch-title").textContent = title;
     $("watch-detail").innerHTML = detail;
+    unitView.paint($("watch-detail"));
     $("watch-panel").classList.remove("hidden");
   };
 
@@ -319,7 +326,7 @@ var UI = (function () {
     }
     this.showWatchPanel(
       event.t === "deploy" ? "XENON DEPLOYMENT" : "XENON SHIFT",
-      "<div class='watch-move'><strong>" + esc(event.unit.type.name) + "</strong> " +
+      "<div class='watch-move'>" + unitView.html(event.unit) + " " +
         esc(action) +
       "</div>"
     );
@@ -334,10 +341,10 @@ var UI = (function () {
     this.showWatchPanel(
       "XENON ATTACK",
       "<div class='watch-matchup'>" +
-        "<div class='watch-side'>" + esc(event.attacker.type.name) +
+        "<div class='watch-side'>" + unitView.html(event.attacker) +
           "<div class='watch-strength'>strength " + event.attackerBefore + "</div></div>" +
         "<div class='watch-versus'>VERSUS</div>" +
-        "<div class='watch-side'>" + esc(event.defender.type.name) +
+        "<div class='watch-side'>" + unitView.html(event.defender) +
           "<div class='watch-strength'>strength " + event.defenderBefore + "</div></div>" +
       "</div>"
     );
@@ -375,7 +382,7 @@ var UI = (function () {
           "<div class='watch-destroyed'>squad destroyed</div>" :
           "<div class='watch-survived'>" + current + " survived</div>";
       }
-      return "<div class='watch-side'>" + esc(unit.type.name) +
+      return "<div class='watch-side'>" + unitView.html(unit) +
         "<div class='watch-strength'>" + before + " =&gt; " + current + "</div>" +
         status + "</div>";
     }
@@ -415,6 +422,7 @@ var UI = (function () {
         "<div class='watch-versus'>RESULT</div>" +
         sideHtml(event.defender, event.defenderBefore, defenderCurrent, progress === 1) +
         "</div>";
+      unitView.paint(detail);
       self.draw();
 
       if (progress < 1) {
@@ -453,17 +461,41 @@ var UI = (function () {
     var shift = remainingShift ? unit.movePointsLeft + "<small>/" + t.move + "</small>" : t.move;
     var experience = COMBAT.experienceBonus(unit.exp), damage = experience.damage;
     return "<div class='unit-card-head'><span class='unit-card-portrait'><canvas class='unit-card-icon' width='32' height='32' role='img' aria-label='" +
-      esc(t.name) + "'></canvas>" +
+      esc(unitView.name(t)) + "'></canvas>" +
       (strCap ? "<span class='unit-strength' role='img' aria-label='" + strCap + " machines remaining'>" + strCap + "</span>" : "") + "</span>" +
-      "<strong class='ui-name' style='color:" + faction.light + "'>" + esc(t.name) + "</strong>" +
+      "<strong class='ui-name' style='color:" + faction.light + "'>" + esc(unitView.name(t)) + "</strong>" +
       (unit.exp ? "<canvas class='unit-card-rank' width='32' height='32' role='img' aria-label='" +
         (experience.general ? "General" : "Experience " + unit.exp + " of 8") + "'></canvas>" : "") + "</div>" +
       "<div class='unit-combat-grid'>" + stat("Ground ATK", t.atkG || 0, groundRange) +
       (air ? stat("Air ATK", t.atkA, airRange) : "") + stat("Defense", t.def) +
       stat("Shift", shift, remainingShift ? "left" : "") + "</div>" +
       "<div class='unit-card-foot'><span>" + esc(terr.name) + " <strong>+" + (t.moveType === "air" ? 0 : terr.def) +
-      " DEF</strong></span>" + (damage ? "<span>Damage <strong>+" + damage + "%</strong></span>" : "") + "</div>";
+      " DEF</strong></span>" + (damage ? "<span>Damage <strong>+" + damage + "%</strong></span>" : "") +
+      "</div>" + (unit.cargo && unit.cargo.length ? "<div class='unit-inventory'><div class='inventory-caption'>Cargo</div>" +
+        inventoryHtml(unit.cargo) + "</div>" : "");
   }
+
+  function inventoryEntryHtml(unit) {
+    return unitView.html(unit) + (unit.strength < 8 ? "<small>" + unit.strength + "/8</small>" : "");
+  }
+
+  function inventoryHtml(units) {
+    return "<div class='inventory-grid'>" + units.map(function (unit) {
+      return "<div class='inventory-entry'>" + inventoryEntryHtml(unit) + "</div>";
+    }).join("") + "</div>";
+  }
+
+  GameUI.prototype.renderFactoryInfo = function (container, building) {
+    var faction = RENDER.PLAYER_COLORS[building.owner < 0 ? 2 : building.owner];
+    var html = "<div class='unit-card-head'><strong class='ui-name' style='color:" + faction.light + "'>" +
+      (building.kind === "base" ? "Base" : "Factory") + "</strong><span>" +
+      (building.owner < 0 ? "Neutral" : faction.name) + "</span></div>" +
+      "<div class='inventory-caption'>" + (building.stored.length ? building.stored.length +
+        " stored unit" + (building.stored.length === 1 ? "" : "s") : "Empty") + "</div>" + inventoryHtml(building.stored);
+    var key = html + RENDER.getStyle() + RENDER.getIconSet();
+    if (container._unitCardKey === key) return;
+    container._unitCardKey = key; container.innerHTML = html; unitView.paint(container);
+  };
 
   GameUI.prototype.renderUnitInfo = function (container, unit) {
     var html = unitInfoHtml(this.game, unit);
@@ -473,6 +505,7 @@ var UI = (function () {
     if (container._unitCardKey === key) return;
     container._unitCardKey = key;
     container.innerHTML = html;
+    unitView.paint(container);
     if (unit) {
       RENDER.drawUnitIcon(container.querySelector(".unit-card-icon"), unit,
         { attacking: attacking, spent: spent });
@@ -515,13 +548,17 @@ var UI = (function () {
   GameUI.prototype.updateHoverInfo = function () {
     var card = $("unit-hover"), r = this.renderer, hex = r.hoverHex;
     var unit = hex && this.game.unitAt(hex.col, hex.row);
-    if (!unit || this.busy || this.destroyed || (this.dragging && this.dragging.pan) ||
+    var building = hex && this.game.buildingAt(hex.col, hex.row);
+    if ((!unit && !building) || this.busy || this.destroyed || (this.dragging && this.dragging.pan) ||
         ["aiTurn", "battle", "factory", "over"].indexOf(this.mode) >= 0) {
       card.classList.add("hidden");
       return;
     }
-    var faction = RENDER.PLAYER_COLORS[unit.player];
-    this.renderUnitInfo(card, unit);
+    var owner = unit ? unit.player : building.owner;
+    var faction = RENDER.PLAYER_COLORS[owner < 0 ? 2 : owner];
+    if (unit) this.renderUnitInfo(card, unit);
+    else this.renderFactoryInfo(card, building);
+    card.setAttribute("aria-label", unit ? "Unit details" : "Factory inventory");
     card.style.borderColor = faction.light;
     card.classList.remove("hidden");
     var radius = Math.max(18, r.hexSize * r.zoom);
@@ -536,7 +573,7 @@ var UI = (function () {
       x: parseFloat(menu.style.left), y: parseFloat(menu.style.top),
       width: menu.offsetWidth, height: menu.offsetHeight,
     });
-    var pos = hoverPosition(r.hexCenter(unit.col, unit.row), radius,
+    var pos = hoverPosition(r.hexCenter(hex.col, hex.row), radius,
       card.offsetWidth, card.offsetHeight, this.canvas.width, this.canvas.height, obstacles);
     if (!pos) { card.classList.add("hidden"); return; }
     card.style.left = Math.round(pos.x) + "px";
@@ -552,12 +589,11 @@ var UI = (function () {
       var owner = b.owner < 0 ? "Neutral" : RENDER.PLAYER_COLORS[b.owner].name;
       txt += "<br>" + (b.kind === "base" ? "Base" : "Factory") + " — " + owner;
       if (b.stored.length) txt += " · " + b.stored.length + " stored";
-      txt += "<br>" + (b.stored.length ? "Stored: " + b.stored.map(function (su) {
-        return esc(su.type.name);
-      }).join(", ") : "No stored units.");
-      if (!this.game.unitAt(col, row) && this.mode === "idle") txt += "<br>Click to inspect.";
+      txt += b.stored.length ? inventoryHtml(b.stored) : "<br>Empty";
+      if (b.stored.length && !this.game.unitAt(col, row) && this.mode === "idle") txt += "<br>Click to inspect.";
     }
     el.innerHTML = txt;
+    unitView.paint(el);
   };
 
   /* --- action menu ------------------------------------------------------ */
@@ -566,7 +602,7 @@ var UI = (function () {
   // battlefield. Its space is returned to the map when the menu closes.
   GameUI.prototype.positionActionMenu = function () {
     var menu = $("action-menu");
-    if (!this.selected || menu.classList.contains("hidden")) return;
+    if ((!this.selected && !this.deployPending) || menu.classList.contains("hidden")) return;
     this.setActionRail(menu.offsetHeight + 10);
     menu.style.left = "8px";
     menu.style.top = (this.canvas.height + 5) + "px";
@@ -594,6 +630,7 @@ var UI = (function () {
     var forecast = this._forecastCache[key];
     if (!forecast) forecast = this._forecastCache[key] = COMBAT.forecast(attacker, defender, pv);
     $("combat-inspector").innerHTML = COMBAT_VIEW.html(attacker, defender, pv, forecast);
+    unitView.paint($("combat-inspector"));
     $("combat-inspector").classList.remove("hidden");
     $("unit-info").classList.add("hidden");
     $("sidebar").scrollTop = 0;
@@ -627,8 +664,9 @@ var UI = (function () {
     targetList.innerHTML = "";
     this.pickTargets.forEach(function (target) {
       var button = document.createElement("button");
-      button.textContent = target.type.name;
-      button.setAttribute("aria-label", "Preview " + target.type.name + " at " + target.col + ", " + target.row);
+      button.textContent = unitView.name(target);
+      unitView.addIcon(button,target);
+      button.setAttribute("aria-label", "Preview " + unitView.name(target) + " at " + target.col + ", " + target.row);
       button.onfocus = button.onmouseenter = button.onclick = function () { self.showCombatPreview(target); };
       targetList.appendChild(button);
     });
@@ -648,14 +686,20 @@ var UI = (function () {
     transport.innerHTML = "";
     (unit.cargo || []).forEach(function (cargo) {
       if (self.hasUnloadDestination(unit, cargo)) {
-        actionButton(transport, "Unload " + cargo.type.name, function () { self.enterUnload(unit, cargo); });
-        actionButton(menu, "Unload " + cargo.type.name, function () { self.enterUnload(unit, cargo); });
+        unitView.addIcon(actionButton(transport, "Unload " + unitView.name(cargo), function () { self.enterUnload(unit, cargo); }),cargo);
+        unitView.addIcon(actionButton(menu, "Unload " + unitView.name(cargo), function () { self.enterUnload(unit, cargo); }),cargo);
       } else {
         var reason = document.createElement("div");
-        reason.textContent = cargo.type.name + (cargo.moved ?
+        reason.textContent = unitView.name(cargo) + (unit.transferUsed ?
+          " cannot unload until next turn: this transport has already loaded or unloaded." : cargo.moved ?
           " cannot unload until next turn: it has already acted or boarded this turn." :
           " cannot unload here: no legal adjacent space is open.");
+        unitView.addIcon(reason,cargo);
         transport.appendChild(reason);
+        var unavailable = actionButton(menu, "Unload " + unitView.name(cargo) +
+          ((unit.transferUsed || cargo.moved) ? " (next turn)" : " (no landing space)"), function () {}, true);
+        unavailable.title = reason.textContent;
+        unitView.addIcon(unavailable,cargo);
       }
     });
     transport.classList.remove("hidden");
@@ -673,97 +717,94 @@ var UI = (function () {
   /* --- factory panel ----------------------------------------------------- */
 
   GameUI.prototype.openFactoryPanel = function (building) {
+    if (!building.stored.length) { this.closeFactoryPanel(); return; }
+    this.cancelEndTurn();
+    this.closeActionMenu();
+    this.deployPending = null;
     var self = this, g = this.game;
     this.inspectedFactory = building;
     var canDeploy = building.owner === g.currentPlayer;
     var owner = building.owner < 0 ? "Neutral" : RENDER.PLAYER_COLORS[building.owner].name;
-    var panel = $("factory-panel");
-    var list = $("factory-list");
+    var panel = $("factory-panel"), list = $("factory-list"), readyCount = 0;
     list.innerHTML = "";
     this.mode = "factory";
-    $("factory-title").textContent =
-      (building.kind === "base" ? "Base" : "Factory") + " — " + owner;
-    $("factory-summary").textContent = building.stored.length ?
-      building.stored.length + " stored unit" + (building.stored.length === 1 ? "" : "s") + ". " +
-      (canDeploy ? "Choose a ready unit to deploy." : "Capture with infantry to deploy.") :
-      "No stored units.";
+    $("factory-title").textContent = (building.kind === "base" ? "Base" : "Factory") + " — " + owner;
     building.stored.forEach(function (su) {
-      var groundTargets = canDeploy && !su.moved ? g.deployTargets(building, su) : [];
-      var transportTargets = canDeploy && !su.moved ? g.transportDeployTargets(building, su) : [];
-      var ready = canDeploy && !su.moved && (groundTargets.length || transportTargets.length);
+      var exits = g.deployTargets(building, su), transports = g.transportDeployTargets(building, su);
+      var ready = !!(exits.length || transports.length);
+      if (ready) readyCount++;
       var row = document.createElement(ready ? "button" : "div");
-      row.className = "factory-row";
-      if (ready) { row.type = "button"; row.setAttribute("aria-label", "Deploy " + su.type.name); }
-      var storedCap = COMBAT.strengthCaption(su.strength);
-      var unit = document.createElement("span");
-      unit.className = "factory-unit";
-      var icon = document.createElement("canvas");
-      icon.className = "factory-unit-icon";
-      icon.width = 32;
-      icon.height = 32;
-      icon.setAttribute("role", "img");
-      icon.setAttribute("aria-label", su.type.name + ", experience " + su.exp + " of 8");
-      var details = document.createElement("span");
-      details.className = "factory-unit-details";
-      var name = document.createElement("strong");
-      name.textContent = su.type.name;
-      details.appendChild(name);
-      name.style.color = RENDER.PLAYER_COLORS[su.player < 0 ? 2 : su.player].light;
-      if (storedCap) {
-        var stats = document.createElement("span");
-        stats.textContent = "Strength " + storedCap;
-        details.appendChild(stats);
-      }
-      unit.appendChild(icon);
-      unit.appendChild(details);
-      row.appendChild(unit);
-      RENDER.drawUnitIcon(icon, su, { experience: true, spent: canDeploy && su.moved });
-      if (!canDeploy) {
-        list.appendChild(row);
-        return;
-      }
-      var btn = document.createElement("span");
-      btn.className = "factory-unit-status";
-      if (su.moved) {
-        btn.textContent = "AVAILABLE NEXT TURN";
-      } else if (!groundTargets.length && !transportTargets.length) {
-        btn.textContent = "NO DESTINATION";
-      } else {
-        btn.textContent = "Deploy →";
-        row.onclick = function () {
-          try {
-            var exits = g.deployTargets(building, su);
-            var transports = g.transportDeployTargets(building, su);
-            if (!exits.length && !transports.length) {
-              throw new Error("No available deployment destination");
-            }
-            self.closeFactoryPanel();
-            self.mode = "deployPick";
-            self.deployPending = {
-              building: building,
-              unit: su,
-              transports: transports,
-            };
-            var highlights = {};
-            exits.forEach(function (exit) {
-              highlights[HEX.key(exit.col, exit.row)] = "rgba(130,220,130,0.45)";
-            });
-            transports.forEach(function (transport) {
-              highlights[HEX.key(transport.col, transport.row)] = "rgba(80,180,255,0.6)";
-            });
-            self.renderer.highlights = highlights;
-            self.toast("Choose an adjacent hex or transport for " + su.type.name);
-            self.draw();
-          } catch (err) {
-            self.toast(err.message);
-          }
-        };
-      }
-      row.appendChild(btn);
+      row.className = "factory-row" + (ready ? " is-ready" : "");
+      row.setAttribute("data-unit-id", su.id);
+      row.setAttribute("aria-label", (ready ? "Deploy " : "") + unitView.name(su) +
+        (su.exp === 8 ? ", General" : su.exp ? ", experience " + su.exp + " of 8" : ""));
+      row.innerHTML = "<span class='inventory-entry'>" + inventoryEntryHtml(su) + "</span>" +
+        (canDeploy ? "<span class='factory-unit-status'>" +
+          (ready ? "Deploy →" : su.moved ? "Next turn" : "No open exit") + "</span>" : "");
+      if (ready) {
+        row.type = "button";
+        row.onclick = function () { self.beginDeployment(building, su); };
+      } else if (canDeploy) row.setAttribute("aria-disabled", "true");
       list.appendChild(row);
     });
+    unitView.paint(list);
+    $("factory-summary").textContent = building.stored.length + " stored unit" + (building.stored.length === 1 ? "" : "s") +
+      (canDeploy ? " · " + readyCount + " ready. Select a unit, then an exit." : ". Capture with infantry to deploy.");
     $("factory-close").onclick = function () { self.closeFactoryPanel(); };
     panel.classList.remove("hidden");
+    $("unit-hover").classList.add("hidden");
+    this.positionFactoryPanel();
+    var first = list.querySelector("button");
+    if (first && first.focus) first.focus({ preventScroll: true });
+  };
+
+  GameUI.prototype.positionFactoryPanel = function () {
+    if (this.mode !== "factory" || !this.inspectedFactory) return;
+    var panel = $("factory-panel"), r = this.renderer;
+    var center = r.hexCenter(this.inspectedFactory.col, this.inspectedFactory.row);
+    var radius = Math.max(18, r.hexSize * r.zoom), w = this.canvas.width, h = this.canvas.height;
+    panel.style.maxHeight = Math.max(1, h - 16) + "px";
+    var pos = hoverPosition(center, radius, panel.offsetWidth, panel.offsetHeight, w, h, []);
+    if (!pos) {
+      // On narrow maps, shorten the scrollable roster to fit above/below its
+      // factory. The heading and close control remain visible.
+      panel.style.maxHeight = Math.max(100, Math.max(center.y - radius - 20, h - center.y - radius - 20)) + "px";
+      pos = hoverPosition(center, radius, panel.offsetWidth, panel.offsetHeight, w, h, []);
+    }
+    if (!pos) pos = {x: Math.max(8, Math.min(w - panel.offsetWidth - 8, center.x + radius + 12)),
+      y: Math.max(8, Math.min(h - panel.offsetHeight - 8, center.y - 32))};
+    panel.style.left = Math.round(pos.x) + "px";
+    panel.style.top = Math.round(pos.y) + "px";
+  };
+
+  GameUI.prototype.beginDeployment = function (building, unit) {
+    var exits = this.game.deployTargets(building, unit), transports = this.game.transportDeployTargets(building, unit);
+    if (!exits.length && !transports.length) { this.openFactoryPanel(building); return; }
+    this.closeFactoryPanel();
+    this.mode = "deployPick";
+    this.deployPending = {building: building, unit: unit, transports: transports};
+    var highlights = {};
+    exits.forEach(function (exit) { highlights[HEX.key(exit.col, exit.row)] = "rgba(130,220,130,0.45)"; });
+    transports.forEach(function (transport) { highlights[HEX.key(transport.col, transport.row)] = "rgba(80,180,255,0.6)"; });
+    this.renderer.highlights = highlights;
+    var self = this, menu = $("action-menu");
+    menu.innerHTML = "";
+    var prompt = document.createElement("span");
+    prompt.className = "deploy-prompt";
+    prompt.textContent = "Deploy " + unitView.name(unit) + ": choose a highlighted exit";
+    unitView.addIcon(prompt, unit); menu.appendChild(prompt);
+    actionButton(menu, "Back to factory", function () { self.cancelDeployment(true); });
+    actionButton(menu, "Cancel", function () { self.cancelDeployment(false); });
+    menu.classList.remove("hidden");
+    this.positionActionMenu();
+    this.draw();
+  };
+
+  GameUI.prototype.cancelDeployment = function (reopen) {
+    var pending = this.deployPending;
+    this.deployPending = null;
+    this.deselect();
+    if (reopen && pending) this.openFactoryPanel(pending.building);
   };
 
   GameUI.prototype.closeFactoryPanel = function () {
@@ -825,8 +866,7 @@ var UI = (function () {
   GameUI.prototype.selectUnit = function (unit) {
     if (unit.player !== this.game.currentPlayer || unit.carriedBy || unit.inFactory) return;
     if (unit.moved || (unit.attacked && !unit.type.moveAfterAttack)) {
-      var self = this;
-      if (unit.cargo.some(function (cargo) { return self.hasUnloadDestination(unit, cargo); })) {
+      if (unit.cargo.length) {
         this.selected = unit;
         this.openActionMenu(unit);
       }
@@ -888,8 +928,7 @@ var UI = (function () {
   };
 
   GameUI.prototype.previewTargets = function (unit) {
-    if (unit.moved || unit.attacked || (unit.type.moveOrFire && unit.attackSpent)) return [];
-    return this.game.attackTargets(unit);
+    return this.game.legalAttackTargets(unit);
   };
 
   GameUI.prototype.deselect = function () {
@@ -908,7 +947,7 @@ var UI = (function () {
     var before = this.game.snapshot();
     this.game.moveUnit(unit, col, row, this.range);
     var events = this.game.finishMovement(unit);
-    this.recordUndo(before, unit.type.name + " move");
+    this.recordUndo(before, unitView.name(unit) + " move");
     this.deselect();
     this.refreshStatus();
     this.showMoveEffects(events);
@@ -930,7 +969,7 @@ var UI = (function () {
   GameUI.prototype.commitUnit = function (unit) {
     var before = this.game.snapshot();
     var events = this.game.finishUnit(unit);
-    if (!unit.shifted) this.recordUndo(before, unit.type.name + " end");
+    if (!unit.shifted) this.recordUndo(before, unitView.name(unit) + " end");
     this.closeActionMenu();
     this.deselect();
     this.refreshStatus();
@@ -1034,17 +1073,18 @@ var UI = (function () {
   };
 
   GameUI.prototype.onCancel = function () {
+    this.cancelEndTurn();
     if (this.busy || this.mode === "aiTurn" || this.mode === "over") return;
     if (this.mode === "battle") return;
     if (this.mode === "unload" && this.selected) this.selectUnit(this.selected);
-    else if (this.mode === "deployPick") { this.deployPending = null; this.deselect(); }
+    else if (this.mode === "deployPick") this.cancelDeployment(true);
     else if (this.mode === "factory") this.closeFactoryPanel();
     else this.deselect();
   };
 
   GameUI.prototype.onKey = function (e) {
     if (e.key === "Escape") { this.onMouseLeave(); this.onCancel(); }
-    if (e.key === "e" && this.mode === "idle") this.endTurn();
+    if (e.key === "e" && !e.repeat && this.mode === "idle") this.endTurn();
   };
 
   GameUI.prototype.onWheel = function (e) {
@@ -1063,6 +1103,7 @@ var UI = (function () {
   };
 
   GameUI.prototype.onHexClick = function (col, row) {
+    this.cancelEndTurn();
     var g = this.game;
     var self = this;
     var unit = g.unitAt(col, row);
@@ -1077,7 +1118,7 @@ var UI = (function () {
       var t = this.selected;
       try {
         var before = g.snapshot();
-        var cargoName = this.unloadCargo.type.name;
+        var cargoName = unitView.name(this.unloadCargo);
         g.unload(t, this.unloadCargo, col, row);
         this.recordUndo(before, cargoName + " unload");
         this.deselect();
@@ -1089,6 +1130,7 @@ var UI = (function () {
 
     if (this.mode === "deployPick") {
       var pend = this.deployPending;
+      this.closeActionMenu();
       var chosen = this.renderer.highlights && this.renderer.highlights[HEX.key(col, row)];
       this.renderer.highlights = null;
       this.deployPending = null;
@@ -1105,11 +1147,12 @@ var UI = (function () {
           var before = g.snapshot();
           if (transport) g.loadFromFactory(pend.building, pend.unit, transport);
           else g.deployFromFactory(pend.building, pend.unit, col, row);
-          this.recordUndo(before, pend.unit.type.name + " deployment");
+          this.recordUndo(before, unitView.name(pend.unit) + " deployment");
         }
         catch (err) { this.toast(err.message); }
         this.refreshStatus();
       }
+      if (pend && pend.building.stored.length) this.openFactoryPanel(pend.building);
       this.draw();
       return;
     }
@@ -1198,8 +1241,8 @@ var UI = (function () {
       this.selected = event.unit;
       var effect = event.effects[0];
       var text = effect.t === "capture" ? "captured " + effect.kind : "repaired to full strength";
-      this.showWatchPanel("XENON ACTION", "<div class='watch-move'><strong>" +
-        esc(event.unit.type.name) + "</strong> " + esc(text) + "</div>");
+      this.showWatchPanel("XENON ACTION", "<div class='watch-move'>" +
+        unitView.html(event.unit) + " " + esc(text) + "</div>");
       delay = 900;
     }
 
@@ -1213,9 +1256,48 @@ var UI = (function () {
     this._aiTimer = setTimeout(function () { self.runNextAIEvent(); }, delay);
   };
 
-  GameUI.prototype.endTurn = function () {
+  GameUI.prototype.cancelEndTurn = function () {
+    this._endTurnConfirmation = null;
+    $("end-turn-warning").classList.add("hidden");
+    $("btn-endturn").textContent = "End Turn (E)";
+  };
+
+  GameUI.prototype.remainingActions = function () {
+    var available = this.game.remainingTurnActions();
+    return {field: available.field.length, reserves: available.reserves.length, available: available};
+  };
+
+  GameUI.prototype.endTurn = function (confirmed) {
     if (this.mode === "over" || this.mode === "battle" || this.busy) return;
     var g = this.game, self = this;
+    var remaining = this.remainingActions(), total = remaining.field + remaining.reserves;
+    if (total) {
+      var state = JSON.stringify(g.snapshot());
+      if (!confirmed || this._endTurnConfirmation !== state) {
+        this._endTurnConfirmation = state;
+        var messages = [];
+        if (remaining.field) messages.push(remaining.field + " field unit" + (remaining.field === 1 ? " has" : "s have") + " a legal action.");
+        if (remaining.reserves) messages.push(remaining.reserves + " reserve" + (remaining.reserves === 1 ? " has" : "s have") +
+          " an open deployment destination. Deployment uses the unit’s turn.");
+        $("end-turn-warning-text").textContent = messages.join(" ") + " Finish anyway?";
+        var list = $("end-turn-available");
+        list.innerHTML = "";
+        remaining.available.field.concat(remaining.available.reserves).forEach(function (entry) {
+          var label = (entry.building ? "Deploy " : "Inspect ") + unitView.name(entry.unit);
+          var button = actionButton(list, label, function () {
+            self.cancelEndTurn(); self.deselect();
+            if (entry.building) self.openFactoryPanel(entry.building);
+            else self.selectUnit(entry.unit);
+          });
+          unitView.addIcon(button, entry.unit);
+        });
+        $("end-turn-warning").classList.remove("hidden");
+        var keep = $("btn-keep-playing");
+        if (keep.focus) keep.focus({preventScroll: true});
+        return;
+      }
+    }
+    this.cancelEndTurn();
     this.clearUndo();
     this.closeFactoryPanel();
     this.deselect();

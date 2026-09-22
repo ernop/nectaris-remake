@@ -31,22 +31,29 @@ module.exports = function (ok) {
     "menu lists normal and all sixteen advanced missions in separate sections");
   ok(get("map-jump").children[1].children.length === 17,
     "map jump includes the advanced campaign without hiding other packs");
-  ok(get("ai-made-list").children.length === 7 &&
+  ok(get("ai-made-list").children.length === 10 &&
     get("ai-made-list").children[0].children[0].textContent.includes("TWISTED FJORDS") &&
     get("ai-made-list").children[1].children[0].textContent.includes("SHATTERED FJORDS") &&
     get("ai-made-list").children[2].children[0].textContent.includes("FRACTURED FJORDS") &&
     get("ai-made-list").children[3].children[0].textContent.includes("HONEYCOMB FJORDS") &&
     get("ai-made-list").children[4].children[0].textContent.includes("ARSENAL FJORDS") &&
     get("ai-made-list").children[5].children[0].textContent.includes("NEEDLE FJORDS") &&
-    get("ai-made-list").children[6].children[0].textContent.includes("LABYRINTH FJORDS"),
-    "AI-made category keeps all seven independently named fjord levels");
+    get("ai-made-list").children[6].children[0].textContent.includes("LABYRINTH FJORDS") &&
+    get("ai-made-list").children[7].children[0].textContent.includes("MIRROR FJORDS") &&
+    get("ai-made-list").children[8].children[0].textContent.includes("LACED FJORDS") &&
+    get("ai-made-list").children[9].children[0].textContent.includes("TURNING FJORDS"),
+    "AI-made category keeps all ten independently named fjord levels");
   var aiGroup = get("map-jump").children.find(function(g) { return g.label === "AI-made"; });
   ok(aiGroup && aiGroup.children[0].value === "a:0" && aiGroup.children[1].value === "a:1" &&
     aiGroup.children[2].value === "a:2" && aiGroup.children[3].value === "a:3" &&
     aiGroup.children[4].value === "a:4" && aiGroup.children[5].value === "a:5" &&
-    aiGroup.children[6].value === "a:6", "map jump offers all seven AI-made levels");
+    aiGroup.children[6].value === "a:6" && aiGroup.children[7].value === "a:7" &&
+    aiGroup.children[8].value === "a:8" && aiGroup.children[9].value === "a:9", "map jump offers all ten AI-made levels");
   ok(PROFILES.levelKey(context.AI_MADE_LEVELS[0], {aiMadeIndex: 0}) === "ai-made:0" &&
-    PROFILES.levelKey(context.AI_MADE_LEVELS[0], {}) !== "ai-made:0",
+    PROFILES.levelKey(context.AI_MADE_LEVELS[0], {}) !== "ai-made:0" &&
+    PROFILES.levelKey(context.AI_MADE_LEVELS[7], {aiMadeIndex: 7}) === "ai-made:7" &&
+    PROFILES.levelKey(context.AI_MADE_LEVELS[8], {aiMadeIndex: 8}) === "ai-made:8" &&
+    PROFILES.levelKey(context.AI_MADE_LEVELS[9], {aiMadeIndex: 9}) === "ai-made:9",
     "AI-made results have their own stable pack identity");
   ok(get("profile-history").children.length === 10, "menu initially shows the newest ten outcomes");
   ok(get("history-count").textContent === "Showing 10 of 15 matches" && !get("history-more").classList.contains("hidden"),

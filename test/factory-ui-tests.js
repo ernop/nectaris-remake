@@ -83,9 +83,9 @@ module.exports = function (ok) {
         ok(ui.mode === "idle" && nodes["factory-panel"].classList.contains("hidden"),
           "Escape closes the inventory and restores map input");
         click(ui, 4, 1);
-        ok(ui.mode === "factory" && nodes["factory-summary"].textContent === "No stored units." &&
-          nodes["factory-list"].children.length === 0, "empty factory opens an explicit empty inventory");
-        nodes["factory-close"].onclick();
+        ok(ui.mode === "idle" && nodes["factory-panel"].classList.contains("hidden") &&
+          !ui.inspectedFactory && JSON.stringify(ui.game.snapshot()) === before,
+          "clicking an empty factory stays silent and leaves the board unchanged");
       });
     });
 
@@ -97,10 +97,10 @@ module.exports = function (ok) {
       "clicking a factory the selected tank cannot enter opens inspection immediately");
     ui.onCancel();
     ui.showHexInfo(2, 1);
-    ok(nodes["hex-info"].innerHTML.includes("Stored: Bison S-61, Lynx MB-4"), "hover reveals neutral inventory names");
+    ok(nodes["hex-info"].innerHTML.includes("Bison") && nodes["hex-info"].innerHTML.includes("Lynx") && nodes["hex-info"].innerHTML.includes("data-unit-type"), "hover reveals neutral inventory names");
     tank.col = 2; tank.row = 1;
     ui.showHexInfo(2, 1);
-    ok(nodes["hex-info"].innerHTML.includes("Stored: Bison S-61, Lynx MB-4"), "hover reveals inventory even under a unit");
+    ok(nodes["hex-info"].innerHTML.includes("Bison") && nodes["hex-info"].innerHTML.includes("Lynx") && nodes["hex-info"].innerHTML.includes("data-unit-type"), "hover reveals inventory even under a unit");
     click(ui, 2, 1);
     ok(ui.mode === "unitSelected" && ui.selected === tank, "an occupying unit still receives the normal selection click");
 
@@ -134,7 +134,7 @@ module.exports = function (ok) {
     ui = fixture(0);
     ui.options = { hotseat: true };
     click(ui, 2, 1);
-    ui.endTurn();
+    ui.endTurn(); ui.endTurn();
     ok(ui.game.currentPlayer === 1 && ui.mode === "idle" && nodes["factory-panel"].classList.contains("hidden"),
       "ending the turn closes the old owner's deployment controls");
     click(ui, 2, 1);

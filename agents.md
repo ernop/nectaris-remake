@@ -15,7 +15,7 @@ Facts wei need across sessions:
   logic module ends with `if (typeof module !== "undefined") module.exports`
   so the node test suite loads them.
 - **Tests:** `node test/run-tests.js` — map validation, rule unit-tests, and
-  AI-vs-AI self-play on all 32 normal/advanced campaign + 24 extra-pack + 7 AI-made maps. Run it
+  AI-vs-AI self-play on all 32 normal/advanced campaign + 24 extra-pack + 10 AI-made maps. Run it
   after any engine, data, or map change.
 - **Local development:** `./serve.sh` serves the repo on fixed backend port
   `127.0.0.1:8001`; do not substitute a random port. The machine's shared
@@ -106,6 +106,15 @@ Facts wei need across sessions:
   snapshots preserve cargo identity and RNG state. UI checkpoints committed human
   actions and complete AI turns; unfinished AI turns resume from their start.
   Tests in `test/profiles-tests.js` run through the main suite. See `PRODUCT.md`.
+
+- **Unit labels and factory hovers (2026-09-22):** use `UNIT_VIEW` for short
+  unit names and accompanying icons. Omit serial/model designations in the UI.
+  Factory hovers list every reserve individually with that unit's experience
+  stars; never aggregate identical types. Empty factory clicks stay silent.
+- **Transport and End Turn clarification (2026-09-22):** each transport may
+  load OR unload once per turn; movement does not consume that allowance.
+  Cargo already aboard can unload after moving. End Turn warns about available
+  movement, attacks, unloading and reserves; a second click confirms.
 
 - **Combat UI (2026-09-21, latest correction):** click a unit to move immediately;
   **Attack** aims in place. Atlas aims immediately. After moving, attack or End

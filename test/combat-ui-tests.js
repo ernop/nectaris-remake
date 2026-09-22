@@ -2,11 +2,12 @@
 "use strict";
 module.exports = function (ok) {
   var ENGINE = require("../js/engine.js"), COMBAT = require("../js/combat.js"), UI = require("../js/ui.js");
+  var unitView = require("../js/unit-view.js");
   var savedDocument = global.document, savedView = global.COMBAT_VIEW, savedRender = global.RENDER;
   var nodes = {};
   function element() {
     var classes = new Set(["hidden"]), html = "";
-    return { style: {}, children: [], textContent: "", offsetWidth: 108, offsetHeight: 26,
+    return { getContext: function () { return new Proxy({}, {get:function(target,key) { return target[key] || function () {}; }}); }, style: {}, children: [], textContent: "", offsetWidth: 108, offsetHeight: 26,
       set innerHTML(value) { html = value; this.children = []; }, get innerHTML() { return html; },
       appendChild: function (child) { this.children.push(child); }, setAttribute: function () {},
       querySelector: function () { return { width: 32, height: 32, getContext: function () {
@@ -123,7 +124,7 @@ module.exports = function (ok) {
     ok(rejected, "reselecting cannot grant a second ordinary movement phase");
     var committed = JSON.stringify(ui.game.snapshot()), seed = ui.game.rng.getState();
     ui.onMouseMove({offsetX:3,offsetY:1});
-    ok(nodes["combat-inspector"].innerHTML.includes("Polar PT-6") &&
+    ok(nodes["combat-inspector"].innerHTML.includes("Polar") &&
       nodes["combat-inspector"].innerHTML.includes("100,000") &&
       nodes["combat-inspector"].innerHTML.includes("Joint casualty probabilities") &&
       JSON.stringify(ui.game.snapshot()) === committed && ui.game.rng.getState() === seed,
@@ -131,7 +132,7 @@ module.exports = function (ok) {
     var secondTarget = ENGINE.makeUnit("CHARLIE",1,2,0,5,4);
     ui.game.units.push(secondTarget); ui.pickTargets = ui.previewTargets(unit);
     ui.onMouseMove({offsetX:2,offsetY:0});
-    ok(nodes["combat-inspector"].innerHTML.includes("Charlie GX-77") &&
+    ok(nodes["combat-inspector"].innerHTML.includes("Charlie") &&
       nodes["combat-inspector"].innerHTML.includes("+30% damage"), "hovering another target replaces its full forecast");
     ui.game.units.pop(); ui.pickTargets = ui.previewTargets(unit);
     ui.onMouseMove({offsetX:3,offsetY:1});
@@ -181,6 +182,40 @@ module.exports = function (ok) {
     ok(!ui.canUndo() && !ui.undoHistory.length && ui.game.currentPlayer === 1,
       "ending the turn prevents undoing the other player's turn");
 
+    ui = fixture("BISON",7); ui.options={hotseat:true}; before=JSON.stringify(ui.game.snapshot());
+    ui.endTurn();
+    ok(ui.game.currentPlayer===0 && JSON.stringify(ui.game.snapshot())===before &&
+      !nodes["end-turn-warning"].classList.contains("hidden") && nodes["btn-endturn"].textContent.includes("anyway"),
+      "first End Turn warns about a movable unit without changing the board or spending actions");
+    ui.onKey({key:"e",repeat:true});
+    ok(ui.game.currentPlayer===0,"holding E cannot accidentally confirm the end-turn warning");
+    ui.endTurn();
+    ok(ui.game.currentPlayer===1 && nodes["end-turn-warning"].classList.contains("hidden"),
+      "a second End Turn explicitly confirms leaving available actions unused");
+    ui=fixture("BISON",7);ui.options={hotseat:true};ui.endTurn();ui.onHexClick(1,1);
+    ok(!ui._endTurnConfirmation && nodes["end-turn-warning"].classList.contains("hidden"),
+      "returning to unit controls cancels the pending end-turn confirmation");
+    ui.endTurn();ui.game.units[0].moved=true;ui.game.units[0].moved=false;ui.game.units[0].col=2;ui.endTurn();
+    ok(ui.game.currentPlayer===0,"a changed board requires a fresh end-turn confirmation");
+    ui=fixture("ATLAS",7);
+    ok(ui.remainingActions().field===1,"an immobile unit with an available shot still triggers the warning");
+    ui=fixture("TRIGGER",7);ui.options={hotseat:true};ui.toast=function(){};ui.endTurn();
+    ok(ui.game.currentPlayer===1 && !ui._endTurnConfirmation,"a unit with no legal action needs no confirmation");
+    ui=fixture("MULE",7);ui.deselect();
+    ui.game=new ENGINE.Game({name:"Blocked reserve",grid:["FMMMM","MMMMM","....."],
+      buildings:[{col:0,row:0,owner:0,stored:["ATLAS"]}],
+      units:[{t:"PELICAN",o:0,x:1,y:0},{t:"POLAR",o:1,x:4,y:2}]},{seed:2});
+    ui.game.units[0].moved=true;
+    ok(ui.remainingActions().reserves===1 && ui.remainingActions().field===0,
+      "factory cargo that can board a spent carrier counts as a deployable action");
+    ui.game.units[0].transferUsed=true;
+    ok(ui.remainingActions().reserves===0,"blocked reserves with no available transport do not trigger the warning");
+    delete ui.game.units[0].transferUsed;
+    var reserveBuilding=ui.game.buildingAt(0,0);
+    ui.game.loadFromFactory(reserveBuilding,reserveBuilding.stored[0],ui.game.units[0]);
+    ui.game.endTurn();ui.game.endTurn();ui.game.units[0].moved=true;
+    ok(ui.remainingActions().field===1,"a spent transport with unloadable cargo still counts as an available action");
+
     function transportUI() {
       var ui = fixture("MULE",7);
       var passenger = ENGINE.makeUnit("CHARLIE",0,0,1); ui.game.units.push(passenger);
@@ -197,9 +232,9 @@ module.exports = function (ok) {
     ui = transportUI(); unit = ui.game.units[0];
     before = JSON.stringify(ui.game.snapshot());
     ui.onHexClick(1,1); ui.onHexClick(1,0);
-    ok(unit.moved && action("Unload " + unit.cargo[0].type.name), "moving a carrier ends immediately and keeps passenger unloading available");
+    ok(unit.moved && action("Unload " + unitView.name(unit.cargo[0])), "moving a carrier ends immediately and keeps passenger unloading available");
     var movedCarrier = JSON.stringify(ui.game.snapshot());
-    action("Unload " + unit.cargo[0].type.name).onclick(); ui.onHexClick(2,0);
+    action("Unload " + unitView.name(unit.cargo[0])).onclick(); ui.onHexClick(2,0);
     ok(!unit.cargo.length && ui.game.unitAt(2,0).moved && ui.undoHistory.length === 2,
       "unloading records a separate reversible action");
     ui.undoLast(); unit = ui.game.units[0];
@@ -207,6 +242,46 @@ module.exports = function (ok) {
       "undo unloading reattaches the exact passenger object to the moved carrier");
     ui.undoLast();
     ok(JSON.stringify(ui.game.snapshot()) === before, "undo carrier movement restores both carrier and cargo state");
+
+    // A loaded Atlas over mountains must remain visible even with Details closed.
+    ui = fixture("PELICAN",7); ui.deselect();
+    ui.game = new ENGINE.Game({name:"Atlas airlift", grid:["F.......","........","MMMMMMMM","MMMMMMMM","MMMMMMMM"],
+      buildings:[{col:0,row:0,owner:0,stored:["ATLAS"]}],
+      units:[{t:"PELICAN",o:0,x:1,y:0},{t:"POLAR",o:1,x:7,y:0}]}, {seed:19});
+    var pelican = ui.game.units[0], atlasFactory = ui.game.buildingAt(0,0);
+    var carriedAtlas = atlasFactory.stored[0];
+    ui.game.loadFromFactory(atlasFactory,carriedAtlas,pelican);
+    ui.selectUnit(pelican);
+    ok(nodes["action-menu"].children.some(function (button) {
+      return button.disabled && button.textContent.includes("Atlas") && button.textContent.includes("next turn");
+    }), "newly loaded Atlas is visible in the action strip while unloading waits until next turn");
+    ui.onHexClick(4,3);
+    ui.game.endTurn(); require("../js/ai.js").playTurn(ui.game,1); ui.game.endTurn();
+    ui.game = ENGINE.Game.restore(ui.game.snapshot());
+    pelican = ui.game.units.find(function (u) { return u.typeId === "PELICAN"; });
+    carriedAtlas = ui.game.units.find(function (u) { return u.typeId === "ATLAS"; });
+    ok(pelican.cargo[0] === carriedAtlas && carriedAtlas.carriedBy === pelican.id && !carriedAtlas.moved,
+      "factory-loaded Atlas remains aboard after carrier movement, an AI turn and save/reload");
+    ui.deselect(); ui.selectUnit(pelican);
+    ok(nodes["action-menu"].children.some(function (button) {
+      return button.disabled && button.textContent.includes("Atlas") && button.textContent.includes("no landing space");
+    }), "blocked Atlas unloading stays visible in the action strip with a reason");
+    ui.renderUnitInfo(nodes["unit-info"],pelican);
+    ok(nodes["unit-info"].innerHTML.includes("Cargo") && nodes["unit-info"].innerHTML.includes("Atlas"),
+      "the shared hover and detail card names the passenger even when unloading is blocked");
+    action("End").onclick(); ui.selectUnit(pelican);
+    ok(ui.selected === pelican && nodes["action-menu"].children.some(function (button) {
+      return button.disabled && button.textContent.includes("Atlas");
+    }), "an already-finished loaded carrier still exposes its blocked passenger when selected");
+    ui.game.endTurn(); ui.game.endTurn(); ui.deselect(); ui.selectUnit(pelican);
+    ui.onHexClick(3,1);
+    var unloadAtlas = action("Unload " + unitView.name(carriedAtlas));
+    ok(unloadAtlas && !unloadAtlas.disabled, "moving beside legal terrain makes Atlas unloading available");
+    unloadAtlas.onclick();
+    var atlasLanding = ui.game.unloadTargets(pelican,carriedAtlas)[0];
+    ui.onHexClick(atlasLanding.col,atlasLanding.row);
+    ok(!pelican.cargo.length && ui.game.unitAt(atlasLanding.col,atlasLanding.row) === carriedAtlas,
+      "the same Atlas unloads successfully after moving away from the mountains");
 
     ui = fixture("BISON",4); before = JSON.stringify(ui.game.snapshot());
     ui.onHexClick(4,1);
@@ -277,7 +352,7 @@ module.exports = function (ok) {
     before = JSON.stringify(ui.game.snapshot());
     ui.onMouseMove({offsetX: 3, offsetY: 1});
     var hover = nodes["unit-hover"];
-    ok(!hover.classList.contains("hidden") && hover.innerHTML.includes("Polar PT-6") &&
+    ok(!hover.classList.contains("hidden") && hover.innerHTML.includes("Polar") &&
       hover.innerHTML.includes(RENDER.PLAYER_COLORS[1].light) && !hover.innerHTML.includes("<span>Strength</span>") &&
       !hover.innerHTML.includes("hover-faction") && !hover.innerHTML.includes("<table"),
       "hover inspects an enemy while retaining the selected unit and hides full strength");
@@ -287,7 +362,7 @@ module.exports = function (ok) {
       "hover refreshes the remaining-unit number on the icon without a Strength label");
     ui.game.units[1].strength = 8;
     ui.onMouseMove({offsetX: 1, offsetY: 1});
-    ok(hover.innerHTML.includes("Bison S-61") && !hover.innerHTML.includes("Polar PT-6"),
+    ok(hover.innerHTML.includes("Bison") && !hover.innerHTML.includes("Polar"),
       "moving between units replaces the local card's contents");
     ui.onMouseMove({offsetX: 6, offsetY: 1});
     ok(hover.classList.contains("hidden"), "hover card clears on empty terrain");
@@ -298,6 +373,29 @@ module.exports = function (ok) {
     ui.busy = true; ui.updateHoverInfo();
     ok(hover.classList.contains("hidden") && JSON.stringify(ui.game.snapshot()) === before,
       "committed combat hides hover details without changing game state");
+
+    [-1,0,1].forEach(function(owner) {
+      ui=fixture("BISON",7);ui.updateHoverInfo=UI.GameUI.prototype.updateHoverInfo;
+      ui.game=new ENGINE.Game({name:"Factory hover",grid:["....F...","........","........"],
+        buildings:[{col:4,row:0,owner:owner,stored:["BISON",{t:"BISON",exp:7},{t:"LYNX",str:5,exp:3}]}],
+        units:[{t:"CHARLIE",o:0,x:1,y:1},{t:"POLAR",o:1,x:7,y:1}]},{seed:8});
+      ui.deselect();before=JSON.stringify(ui.game.snapshot());ui.onMouseMove({offsetX:4,offsetY:0});
+      hover=nodes["unit-hover"];
+      ok(!hover.classList.contains("hidden") && hover.innerHTML.includes("Factory") &&
+        hover.innerHTML.includes(owner<0 ? "Neutral" : RENDER.PLAYER_COLORS[owner].name) &&
+        hover.innerHTML.includes("3 stored units") && !hover.innerHTML.includes("×2") &&
+        hover.innerHTML.split("data-unit-type='BISON'").length===3 && hover.innerHTML.includes("data-unit-type='LYNX'") &&
+        hover.innerHTML.includes("data-exp='7'") && hover.innerHTML.includes("data-exp='3'") &&
+        !hover.innerHTML.includes("S-61") && !hover.innerHTML.includes("MB-4"),
+        "factory hover shows every reserve separately with its own short name, icon and experience for owner "+owner);
+      ok(JSON.stringify(ui.game.snapshot())===before && ui.mode==="idle",
+        "factory hover is read-only and never opens the inventory dialog");
+      ui.game.buildingAt(4,0).stored=[];ui.updateHoverInfo();
+      ok(hover.innerHTML.includes("Empty") && !hover.innerHTML.includes("Bison"),
+        "factory hover refreshes when its last reserve leaves");
+    });
+    ok(unitView.name({name:"Pelican C-61"})==="Pelican" && unitView.name({name:"Custom Heavy Tank"})==="Custom Heavy Tank",
+      "short names remove stock designations while preserving multiword custom names");
     // Real camera bounds plus real input dispatch: dragging must never act on a unit.
     ui = fixture("BISON", 3);
     ui.canvas = { width: 260, height: 150, style: {}, getContext: function () { return {}; } };

@@ -33,8 +33,23 @@ module.exports = function(ok) {
   var withoutMountains=T.tile("road",roadNs.map(function(n){return n==="mountain"?"plain":n;}),0,-1);
   ok(withoutMountains.pixels.every(function(v,i){return (v!==8&&v!==9)||withMountains.pixels[i]===v;}),"road surfaces remain visible above mountain skirts");
 
-  // Moving a range to the board edge must preserve the silhouette it had
-  // when surrounded by plains, including all four corners and both staggers.
+  // The board ends the plateau; it is not low ground beyond a cliff.
+  // Check every combination of exposed edges with real low ground on the
+  // remaining sides, including isolated edge peaks and corner mountains.
+  var midpoints=[[16,8],[16,-8],[0,-16],[-16,-8],[-16,8],[0,16]];
+  for(var mask=1;mask<64;mask++) {
+    var ns=T.offsets.map(function(_,i){return mask&(1<<i)?null:"plain";});
+    var tile=T.tile("mountain",ns,0,-1),solid=true;
+    midpoints.forEach(function(p,i){if(!(mask&(1<<i)))return;
+      // Follow the plateau to each exposed side; no ground or transparency
+      // may suggest a way around the mountain within the playable hex.
+      for(var step=.5;step<1;step+=.05) {
+        var x=Math.floor(24+p[0]*step),y=Math.floor(16+p[1]*step);
+        if(tile.pixels[y*48+x]<13)solid=false;
+      }
+    });
+    ok(solid,"plateau reaches every exposed edge for boundary mask "+mask);
+  }
   var R=require("../js/render.js"),oldStyle=R.getStyle(),oldSet=R.getIconSet();
   R.setStyle("pixel");R.setIconSet("legacy");
   ctx.save=function(){};ctx.restore=function(){};
@@ -44,30 +59,17 @@ module.exports = function(ok) {
       terrainAt:function(){return {id:"mountain"};},buildingAt:function(){return null;}};
     var renderer=new R.Renderer({width:300,height:220,getContext:function(){return ctx;}},g);
     renderer.originX=40;renderer.originY=40;
-    function terrain(c,r){return g.inBounds(c,r)?"mountain":"plain";}
     raster={};
-    for(var r=-1;r<=height;r++)for(var c=-1;c<=width;c++){
-      var at=renderer.hexCenter(c,r);
-      T.draw(ctx,at.x,at.y,1,terrain(c,r),H.neighbors(c,r).map(function(n){return terrain(n.col,n.row);}),0,-1);
-    }
-    function cliffPixels(){var result={};Object.keys(raster).forEach(function(p){
-      var v=T.palette.indexOf(raster[p]);if(v>=11&&v<=14)result[p]=raster[p];
-    });return result;}
-    var expected=cliffPixels();raster={};
     renderer.drawTerrainLayer({minCol:0,maxCol:width-1,minRow:0,maxRow:height-1});
-    var actual=cliffPixels();
-    ok(Object.keys(expected).length===Object.keys(actual).length&&Object.keys(expected).every(function(p){return expected[p]===actual[p];}),
-      width+"x"+height+" board preserves complete mountain contours at every edge and corner");
-    ok(!Object.keys(raster).some(function(p){var v=T.palette.indexOf(raster[p]);return v>=1&&v<=4;}),
-      "mountain perimeter has no leftover ground-colored hex tips on "+width+"x"+height);
-    raster={};renderer.drawTerrainBorder({minCol:0,maxCol:width-1,minRow:0,maxRow:height-1});
-    var dims=renderer.mapDimensions();
-    ok(Object.keys(raster).every(function(p){var xy=p.split(",").map(Number);
-      return xy[0]>=16&&xy[0]<16+dims.width&&xy[1]>=24&&xy[1]<24+dims.height;
-    }),"decorative border stays within map dimensions on "+width+"x"+height);
+    var visible=Object.keys(raster).filter(function(p){return raster[p]!=="#181510";});
+    ok(visible.length>0&&visible.every(function(p){var v=T.palette.indexOf(raster[p]);return v===13||v===14;}),
+      width+"x"+height+" mountain board has no outer slope, ground strip or tapered corners");
+    ok(visible.every(function(p){var xy=p.split(",").map(Number);
+      return renderer.pixelToHex(xy[0]+.5,xy[1]+.5)!==null;
+    }),"mountain art ends at the actual board boundary on "+width+"x"+height);
     ok(H.neighbors(0,0).filter(function(n){return !g.inBounds(n.col,n.row);}).every(function(n){
       var p=renderer.hexCenter(n.col,n.row);return renderer.pixelToHex(p.x,p.y)===null;
-    }),"decorative border adds no selectable hexes on "+width+"x"+height);
+    }),"plateau continuation adds no selectable hexes on "+width+"x"+height);
   });});
   ok(!T.tile("void",Array(6).fill(null),0,-1).pixels.some(Boolean),"empty board border remains transparent");
   R.setIconSet(oldSet);R.setStyle(oldStyle);

@@ -210,12 +210,13 @@ var AI = (function () {
     Object.keys(range).forEach(function (key) {
       var rec = range[key], occupant = game.unitAt(rec.col, rec.row);
       if (!rec.canStop || rec.load || rec.enterBuilding || occupant && occupant !== carrier) return;
-      var wasMoved = cargo.moved;
+      var wasMoved = cargo.moved, transferUsed = carrier.transferUsed;
       try {
         carrier.col = rec.col; carrier.row = rec.row;
         // Newly boarded cargo waits until next turn, but its landing site
         // must still be planned now. No action flag escapes this simulation.
         cargo.moved = false;
+        delete carrier.transferUsed;
         game.unloadTargets(carrier, cargo).forEach(function (drop) {
           if (game.buildingAt(drop.col, drop.row)) return;
           var remaining = distances[HEX.key(drop.col, drop.row)];
@@ -232,11 +233,13 @@ var AI = (function () {
         });
       } finally {
         carrier.col = origin.col; carrier.row = origin.row; cargo.moved = wasMoved;
+        if (transferUsed === undefined) delete carrier.transferUsed;
+        else carrier.transferUsed = transferUsed;
       }
     });
     if (!chosen) return { kind: "finish" };
     return { kind: "transport", dest: chosen.dest, range: range, cargo: cargo,
-      drop: !cargo.moved && chosen.remaining <= Math.max(1, cargo.type.move) ? chosen.drop : null };
+      drop: !carrier.transferUsed && !cargo.moved && chosen.remaining <= Math.max(1, cargo.type.move) ? chosen.drop : null };
   }
 
   function nearestOwnedRepair(game, unit) {

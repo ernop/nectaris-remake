@@ -75,7 +75,10 @@ var LEGACY_TERRAIN = (function () {
       offsets.forEach(function (p,i) {if(neighbors[i]===id)d=Math.min(d,segmentDistance(x*.8,y*1.15,p[0]*.8,p[1]*1.15));});
       return d;
     }
-    var mountains=mountainShape(mountainMask);
+    // Missing neighbors are the end of the board, not low ground. Continue
+    // a perimeter plateau through those edges instead of drawing an outer
+    // slope (or trimming its ground-colored tips to transparency).
+    var mountains=mountainShape(mountainMask|edgeMask);
     for(var y=0;y<32;y++)for(var x=0;x<48;x++) {
       var dx=x+.5-24,dy=y+.5-16;
       if(Math.abs(dx)+Math.abs(dy)>24)continue;
@@ -102,16 +105,6 @@ var LEGACY_TERRAIN = (function () {
         if(edge<2)v=4;else if(edge<4)v=18;else if(edge<6)v=17;else if(edge<8)v=16;
       }
       if(mountains[y*48+x])v=mountains[y*48+x];
-      else if(id==="mountain") {
-        // Trim the tiny ground-colored hex tips outside a perimeter cliff.
-        // Null means an actual board edge; ordinary neighboring ground stays.
-        var nearest=Infinity,side=-1;
-        offsets.forEach(function(p,i){
-          var distance=p[0]?(24-Math.sign(p[0])*dx-Math.sign(p[1])*dy)/Math.SQRT2:16-Math.sign(p[1])*dy;
-          if(distance<nearest){nearest=distance;side=i;}
-        });
-        if(neighbors[side]===null)v=0;
-      }
       if(id==="road"||id==="bridge") {
         var roadDistance=Infinity,found=false;
         offsets.forEach(function(p,i){if(connects(neighbors[i])){found=true;roadDistance=Math.min(roadDistance,segmentDistance(dx,dy,p[0],p[1]));}});

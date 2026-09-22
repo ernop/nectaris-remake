@@ -250,12 +250,6 @@ var RENDER = (function () {
       var at = this.hexCenter(c, r), building = g.buildingAt(c, r);
       var neighbors = HEX.neighbors(c, r).map(function(n) { var t = g.inBounds(n.col,n.row) && g.terrainAt(n.col,n.row); return t ? t.id : null; });
       LEGACY_TILES.draw(ctx,at.x,at.y,this.zoom,terr.id,neighbors,(c*3+r*7)%8,building ? building.owner : -1,this._activeTerrainRaster);
-      if (building && terr.id === "factory" && building.stored.length) {
-        ctx.fillStyle="#fff9e5";ctx.font="bold 9px monospace";ctx.textAlign="center";
-        var label=String(building.stored.length),x=Math.round(at.x+7),y=Math.round(at.y+10);
-        if(this._activeTerrainRaster)this._activeTerrainRaster.text(ctx,label,x,y);
-        else ctx.fillText(label,x,y);
-      }
       return;
     }
     var pal = TERRAIN_COLORS[terr.id];
@@ -369,11 +363,6 @@ var RENDER = (function () {
           ctx.closePath(); ctx.fill();
           ctx.fillStyle = "#2b2024";
           ctx.fillRect(-9 * u, 2 * u, 6 * u, 8 * u);
-          if (b && b.stored.length) {
-            ctx.fillStyle = "#ffe9a0";
-            ctx.font = "bold " + (9 * u) + "px monospace"; ctx.textAlign = "center";
-            ctx.fillText("" + b.stored.length, 7 * u, 9 * u);
-          }
         } else {
           ctx.fillStyle = col2.body;
           ctx.beginPath(); ctx.arc(0, 2 * u, 12 * u, Math.PI, 0); ctx.closePath(); ctx.fill();
@@ -1201,29 +1190,6 @@ var RENDER = (function () {
 
   /* --- frame ------------------------------------------------------------ */
 
-  Renderer.prototype.drawTerrainBorder = function (bounds) {
-    if (!legacyMap()) return;
-    var g = this.game, renderer = this;
-    function border(c, r) {
-      var neighbors = HEX.neighbors(c, r).map(function(n) {
-        return g.inBounds(n.col, n.row) ? g.terrainAt(n.col, n.row).id : null;
-      });
-      if (neighbors.indexOf("mountain") < 0) return;
-      var at = renderer.hexCenter(c, r);
-      LEGACY_TILES.draw(renderer.ctx, at.x, at.y, renderer.zoom, "void", neighbors, 0, -1,renderer._activeTerrainRaster);
-    }
-    // Finish mountain contours in the missing outer hex corners. These are
-    // decorative pixels only; board dimensions and selectable hexes stay exact.
-    for (var c = bounds.minCol - 1; c <= bounds.maxCol + 1; c++) {
-      if (bounds.minRow === 0) border(c, -1);
-      if (bounds.maxRow === g.height - 1) border(c, g.height);
-    }
-    for (var r = bounds.minRow; r <= bounds.maxRow; r++) {
-      if (bounds.minCol === 0) border(-1, r);
-      if (bounds.maxCol === g.width - 1) border(g.width, r);
-    }
-  };
-
   Renderer.prototype.drawTerrainLayer = function (bounds) {
     var g = this.game, canvas = this.canvas, ctx = this.ctx;
     // A viewport-sized surface keeps memory bounded even on custom maps.
@@ -1265,7 +1231,6 @@ var RENDER = (function () {
       }
       this.ctx.fillStyle = "#181510";
       this.ctx.fillRect(0, 0, canvas.width, canvas.height);
-      this.drawTerrainBorder(bounds);
       for (var row = bounds.minRow; row <= bounds.maxRow; row++) {
         for (var col = bounds.minCol; col <= bounds.maxCol; col++) this.drawTerrainHex(col, row);
       }
@@ -1276,6 +1241,38 @@ var RENDER = (function () {
       this.ctx.restore(); this.ctx = ctx;
     }
     if (layer) { this._terrainKey = key; ctx.drawImage(layer, 0, 0); }
+  };
+
+  Renderer.prototype.drawFactoryCounts = function () {
+    var ctx = this.ctx, g = this.game;
+    // Screen-space minimum keeps reserves legible in the map overview.
+    // Draw above terrain and movement overlays, with the same contrast for
+    // neutral, friendly and enemy buildings in every art style.
+    var fontSize = Math.round(Math.max(13, Math.min(24, 16 * this.zoom)));
+    var height = fontSize + 8;
+    ctx.save();
+    ctx.font = "bold " + fontSize + "px monospace";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    for (var key in g.buildings) {
+      var building = g.buildings[key];
+      if (!building.stored.length || g.terrainAt(building.col, building.row).id !== "factory") continue;
+      var at = this.hexCenter(building.col, building.row);
+      var label = String(building.stored.length);
+      var width = Math.max(height, Math.ceil(label.length * fontSize * 0.65) + 12);
+      var x = Math.round(at.x + (legacyMap() ? 15 : 21) * this.zoom - width / 2);
+      var y = Math.round(at.y + (legacyMap() ? 11 : 15) * this.zoom - height / 2);
+      if (x + width < 0 || y + height < 0 || x > this.canvas.width || y > this.canvas.height) continue;
+      var color = PLAYER_COLORS[building.owner >= 0 ? building.owner : 2].light;
+      ctx.fillStyle = "#080b12";
+      ctx.fillRect(x - 2, y - 2, width + 4, height + 4);
+      ctx.fillStyle = color;
+      ctx.fillRect(x, y, width, height);
+      ctx.fillStyle = "#080b12";
+      ctx.fillRect(x + 2, y + 2, width - 4, height - 4);
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText(label, x + width / 2, y + height / 2 + 0.5);
+    }
+    ctx.restore();
   };
 
   Renderer.prototype.draw = function () {
@@ -1312,6 +1309,7 @@ var RENDER = (function () {
       }
     }
     for (i = 0; i < this.explosions.length; i++) this.drawExplosion(this.explosions[i]);
+    this.drawFactoryCounts();
 
     // selected ring
     if (this.selected) {
