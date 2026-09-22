@@ -28,6 +28,9 @@ document.getElementById("run").onclick = async function () {
   var game = new ENGINE.Game({grid: grid, buildings: buildings, units: [
     {t: "BISON", o: 0, x: 30, y: 22}, {t: "FALCON", o: 1, x: 31, y: 23}
   ]}, {seed: 7});
+  // This harness reads every pixel repeatedly; avoid browser GPU-to-CPU
+  // migration changing antialiasing partway through a comparison.
+  canvas.getContext("2d", {willReadFrequently: true});
   var renderer = new RENDER.Renderer(canvas, game), visibleBounds = renderer.visibleTileBounds;
   function fullBounds() { return {minCol: 0, minRow: 0, maxCol: game.width - 1, maxRow: game.height - 1}; }
   var cases = [{style: "pixel", set: "remake"}, {style: "pixel", set: "legacy"},
