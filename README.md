@@ -13,10 +13,14 @@ an original procedural chiptune score, and a level editor with URL sharing.
 
 | File | Purpose |
 |---|---|
+| [PROJECT_GUIDE.md](PROJECT_GUIDE.md) | Guidance and decision index: current requirements, pending work, experiments and historical evidence |
+| [agents.md](agents.md) | Repository working rules and persistent constraints (entry point: `AGENTS.md`) |
 | `index.html` | The game: mission menu, campaign, custom levels, hotseat |
 | `editor.html` | Level editor: terrain, units, factories, custom unit types |
 | `PRODUCT.md` | Settled UI/product decisions |
 | `MECHANICS.md` | Full rules reconstruction, with sources |
+| [ART_DIRECTION.md](ART_DIRECTION.md) | Current visual theme, art specification and implementation status |
+| [tools/design-space/README.md](tools/design-space/README.md) | Fifteen experimental ground-unit concepts; separate from the production roster |
 | `MANUAL_AUDIT.md` | Full original-manual review, implementation coverage and remaining gaps |
 | `inspiration/nectaris-original/README.md` | Manifest for local, gitignored visual references |
 | `inspiration/nectaris-original/index.html` | Local full-page viewer for those captures |
@@ -309,6 +313,9 @@ adapted from [ユニットデータ](https://anka.sakura.ne.jp/nectaris/d2.html)
 with original-style pixel terrain: maroon plains, gray ridges, pink plateaus,
 pale connected roads and domed installations. Legacy uses 48×32 flattened
 hexes, 32×32 pitch and a 16-pixel column stagger. The 32×32 unit frames scale with their hexes when zooming.
+Mountain ranges join continuously across hex corners. A thin rounded board
+frame fills exterior gaps with decorative terrain, without adding playable
+cells, duplicating buildings or extending roads beyond the map.
 The terrain is a reconstruction; the icons are JPEG-derived adaptations,
 not a bit-exact ROM atlas. Provenance and rebuilding: [art/legacy/README.md](art/legacy/README.md).
 

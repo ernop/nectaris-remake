@@ -1,5 +1,11 @@
 # Original Nectaris fidelity audit — 2026-09-20
 
+This is a dated audit with subsequent evidence updates. Current adopted rules
+live in [MECHANICS.md](MECHANICS.md), and current controls in
+[PRODUCT.md](PRODUCT.md). In particular, the historical Shift/Attack choice
+below has been superseded by simultaneous movement and firing targets with
+top-bar Undo/Redo. Test counts describe the snapshots tested, not today's total.
+
 **Verdict: closer after the corrections below, but not an exact reproduction.**
 The earlier implementation both omitted original behavior and allowed extra
 actions. Passing our tests establishes consistency with the adopted rules;
@@ -226,7 +232,7 @@ deleted. Missing old Mule passenger restrictions are migrated on restoration.
 
 ## Verification
 
-`node test/run-tests.js` exercises all 56 maps, combat, transport timing and
+At this audit's validation, `node test/run-tests.js` exercised all 56 maps, combat, transport timing and
 terrain, factory/base behavior, victory exceptions, save/resume and UI actions.
 The normal campaign extraction is byte-identical after adding the advanced
 selector. All 56 maps undergo validation and AI self-play. Targeted CPU tests

@@ -4,8 +4,9 @@
 set. **Legacy** is the user-requested exception: JPEG-derived unit-chart art
 with mirrored source shading, plus reconstructed original-style terrain and
 buildings. Legacy's 48×32 flattened geometry is integrated in production;
-Remake's terrain migration remains pending. Both sets retain native 32×32
-unit display, horizontal centering and small infantry. See `art/legacy/README.md`.
+Remake's terrain migration remains pending. Both sets use native 32×32 unit
+sources, scaled with map zoom; panel and review icons stay native-sized.
+Horizontal centering and small infantry remain required. See `art/legacy/README.md`.
 
 
 **Complete unit roster implemented:** all 23 stock types now use the approved
@@ -15,7 +16,7 @@ Review the full set in `tools/unit-sheet.html` or substitute any type on
 `tools/art-pilot.html`. Source, exports and validation are in `art/units/README.md`.
 
 Decided 2026-09-20. The user approved the angular pilot and requested the full
-roster, with distinct silhouettes and small infantry. Production terrain,
+roster, with distinct silhouettes and small infantry. Remake production terrain,
 buildings and flattened geometry migration remain pending. Supersedes the size
 alternatives in `ART_RESEARCH.md`.
 
@@ -96,7 +97,8 @@ aircraft: their visual lift is authored inside the frame, not a runtime offset.
 - Factory, inspector and review icons reuse the same native source at 1:1.
 - Retain odd-column adjacency, gameplay distances and all map data. Update
   projection, picking, bounds, road anchors, pan and overlays in game and editor
-  together. Optional classic/neon modes share the flattened geometry.
+  together. Legacy already uses this flattened geometry; Remake migration is
+  pending. Classic/neon retain their existing vector rendering and projection.
 - The new polygon is not a regular hex, and its edges are not the Euclidean
   Voronoi boundaries of its centers. Neither existing `HEX.fromPixel` nor
   nearest-center selection is sufficient. Estimate a lattice candidate and
@@ -216,6 +218,13 @@ Review their placement against long guns and rotor tips; do not bake UI into art
 - Use six-neighbor masks, reusable edge/corner pieces and curated variants.
   Coordinate-seeded variation stays stable while moving the camera. Review
   concave joins, junctions, isolated features and long runs.
+- Legacy mountain ranges join continuously across corners, including vertical
+  runs, without repeating hex-tip cutouts. Boundary plateaus continue to the
+  map edge without a false low-ground route outside them. The current Legacy
+  board has a thin rounded frame and decorative terrain in the exterior gaps,
+  without extra playable cells, copied buildings or extended roads. See
+  [the border record](PRODUCT.md#connected-terrain-and-board-borders-2026-09-23)
+  for the user request, implementation choice and superseded edge treatment.
 - Terrain frames are 48×32. Buildings are original 32×32 objects with the
   common anchor, pixel lighting and faction colors, above continuous ground.
   Bases use low domed bunkers, uneven service blocks, perimeter walls and an
@@ -248,8 +257,10 @@ Implemented unit outputs:
   two indexed 32×32 frames per stock ID and rejecting invalid results.
 - `js/data-unit-art.js`: checked-in generated data for all **46 directional
   frames**, loaded as a normal script; production still needs no build step.
-- Cache palette-decoded horizontal pixel runs once, then draw at integer
-  coordinates with smoothing disabled. PNG previews are exported separately.
+- Cache decoded unit artwork and terrain outside repeated interaction draws;
+  keep integer raster boundaries and smoothing disabled. See `PERFORMANCE.md`
+  for the implemented cache strategy and dated measurements. PNG previews are
+  exported separately.
 - Preserve custom `sprite` overrides, class fallbacks and stock unit IDs.
 - `tools/unit-sheet.html` provides native-size previews, both directions,
   state palettes, light/dark terrain backdrops, frame guides and silhouette view.
@@ -293,19 +304,22 @@ outlines and remain subject to the safe envelope; they are not solid rectangles.
 2. **Unit integration complete.** Game/editor maps and factories use generated
    native data. Map sprites scale proportionally at fractional and whole map
    zooms, with shared pixel boundaries rounded for crisp rendering. Larger maps scroll. Classic/neon retain their existing vector artwork.
-3. **Geometry and terrain pending.** The review fixture uses the planned 48×32
-   geometry, connected hills/valley/roads and domed base. Production still uses
-   its earlier terrain and regular hex projection. Centralize flattened map
-   geometry, picking, bounds, editor projection and road anchors before replacing
-   all terrain/building art and connection rules.
-4. **Broader terrain verification pending.** Review campaign/expansion maps,
-   narrow/wide viewports and device/browser scaling with the final terrain.
-   Validate overlays, seams, raster coverage and hit testing as part of that work.
+3. **Legacy geometry and terrain integrated.** Production game/editor maps use
+   48×32 flattened terrain, connected roads/relief and domed installations.
+   Continuous mountains and the rounded board frame have dedicated regression
+   checks. Picking, bounds, panning and editor projection share that geometry.
+4. **Remake geometry and terrain pending.** Its review fixture uses the planned
+   48×32 geometry, connected hills/valley/roads and domed base. Remake production
+   still uses its earlier terrain and regular hex projection. Migrate projection,
+   picking, bounds, editor and road anchors together with its terrain/building art.
+   Review campaign/expansion maps, narrow/wide viewports and browser/device
+   scaling; validate overlays, seams, raster coverage and hit testing in that pass.
 
 Unit automated checks: all 23 IDs and 46 nonempty 32×32 frames; valid
 palette indices/binary alpha; padding and safe fit; anchor invariance;
 generated-source parity and actual renderer output for both facings and states.
-Remaining geometry checks: center-to-cell round trips; shared-edge/corner ownership for both parities;
+Required geometry checks for the pending Remake migration (retain existing
+Legacy coverage): center-to-cell round trips; shared-edge/corner ownership for both parities;
 single-column bounds; exactly-once raster coverage; unchanged logical neighbors.
 Exercise all 64 six-neighbor combinations for each connected terrain type's
 connection validity. This does not require 64 separately painted full tiles.
@@ -326,5 +340,6 @@ Upper-left lighting, selective charcoal contours and native pixel authoring rema
 
 The user approved the revised angular pilot. All 23 unit types are now rebuilt
 and integrated; Charlie and Kilroy are 17 visible pixels tall, Panther 14.
-The full roster has 46 directional frames and 184 state PNGs. Production
-terrain, building regeneration and flattened geometry remain the next art phase.
+The full roster has 46 directional frames and 184 state PNGs. Remake production
+terrain, building regeneration and flattened geometry remain the next art phase;
+Legacy's separate terrain implementation is already live.

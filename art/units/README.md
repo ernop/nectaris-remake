@@ -52,5 +52,7 @@ Browser review covered native faction/state previews on light and dark ground,
 Pelican in the map fixture, the ARATUS game map and REVOLT in the editor.
 
 The 48×32 flattened terrain and domed base in the map fixture are review art.
-Production terrain, building regeneration and geometry migration remain separate
-work; this roster is already integrated into the existing game/editor maps.
+Remake production terrain, building regeneration and geometry migration remain
+separate work; this roster is already integrated into the game/editor maps.
+Legacy's separate flattened terrain is already in production; see
+[its record](../legacy/README.md) and [current art status](../../ART_DIRECTION.md).

@@ -1,5 +1,10 @@
 # Original manual coverage review — 2026-09-21
 
+This records coverage at the audit date. Later interaction choices, including
+simultaneous movement/firing targets and top-bar Undo/Redo, are recorded in
+[PRODUCT.md](PRODUCT.md); the sidebar-undo description below is historical.
+Current adopted gameplay rules live in [MECHANICS.md](MECHANICS.md).
+
 **Verdict: the Shift/Attack command gap is fixed. The remake is not a complete
 reproduction of the original game.** Core documented actions have implementation
 and regression coverage; several interfaces are missing or deliberately replaced,

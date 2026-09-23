@@ -1,8 +1,9 @@
 # Product decisions
 
-Settled product and UI decisions for this remake. Mechanics reconstruction
-(with sources) lives in `MECHANICS.md`. Link this file from `agents.md` and
-the README so later sessions load it.
+Settled product and UI decisions for this remake, with implementation choices
+identified where relevant. Mechanics reconstruction (with sources) lives in
+`MECHANICS.md`. [PROJECT_GUIDE.md](PROJECT_GUIDE.md) indexes current guidance,
+pending work, experiments and historical evidence.
 
 ## Optional inspector and full map height (2026-09-22)
 
@@ -55,15 +56,37 @@ to the map and viewport, allowing a full overview in every style and art set
 until its separate terrain migration is complete. Classic/neon keep their
 existing vector appearance and disable the art-set picker.
 
-At the board boundary, Legacy mountain plateaus continue to the outer hex
-edge. Missing neighbors must not produce a low-ground strip or an outer
-cliff that suggests a route around the mountain. Cliffs remain where actual
-on-board low ground meets the range; the art adds no playable hexes.
-
 Selection persists independently of saves/profiles and synchronizes across
 same-origin game, editor and review pages. Adding a set uses the validated
 registry in `js/unit-icon-sets.js`. Switching sets updates open inventories
 and refits the map without changing game data.
+
+## Connected terrain and board borders (2026-09-23)
+
+The user requested smoother vertical mountain ranges, then better outside
+edges and borders across the board. Legacy mountains form continuous plateaus
+across shared edges and corners: avoid repeating triangular cutouts, isolated
+hex outlines and seams in long vertical runs. Keep layered cliffs where actual
+on-board low ground meets a range, including bends and concave joins.
+
+At the board boundary, mountain plateaus continue to the outer edge. Missing
+neighbors must not create a low-ground strip or an outer cliff suggesting a
+route around the mountain. This supersedes the earlier decorative outer cliff
+and skirt treatment.
+
+The implemented response uses a thin rounded rectangular frame for every
+Legacy terrain type. Small gaps outside the edge hexes carry reflected nearby
+terrain, without copied buildings or roads continuing outside the map. The
+frame shape was selected during implementation; the user requested the border
+improvement but did not explicitly choose between frame shapes.
+
+This is decorative rendering only: preserve map bounds, logical cells,
+adjacency, movement, picking and editor painting. Interior terrain pixels stay
+unchanged. Keep the border crisp at map zoom, clip work to the viewport and
+include it in the existing terrain cache. Classic/neon and Remake retain their
+current rendering. Implementation/provenance is in `art/legacy/README.md`;
+regressions live in `test/mountain-terrain-tests.js` and
+`test/board-border-tests.js`.
 
 ## Native pixel art and flattened geometry (2026-09-20)
 

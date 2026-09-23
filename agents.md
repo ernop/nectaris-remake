@@ -1,5 +1,9 @@
 # Nectaris remake — agent notes
 
+Use [PROJECT_GUIDE.md](PROJECT_GUIDE.md) to find each guidance/decision record,
+its status and the procedure for recording changes. `AGENTS.md` links here as
+the repository instruction entry point.
+
 JavaScript remake of the TG-16 hex-tactics game (Nectaris / Military
 Madness). Start with `README.md` (usage, deployment, modding),
 `PRODUCT.md` (settled UI/product decisions), and `MECHANICS.md`
@@ -8,7 +12,7 @@ Madness). Start with `README.md` (usage, deployment, modding),
 `inspiration/nectaris-original/README.md` and open
 `inspiration/nectaris-original/index.html` to inspect its local reference PNGs.
 
-Facts wei need across sessions:
+Facts we need across sessions:
 
 - **No build step, no dependencies.** Plain scripts with globals, loaded in
   order by `index.html` / `editor.html`. Files are dual-environment: every
@@ -26,9 +30,8 @@ Facts wei need across sessions:
   never recenter merely because the map is smaller than the viewport.
   Disable grabbing while actively choosing a unit's movement destination;
   show a crosshair and restore grabbing after moving or cancelling.
-- **Deploy target:** none written yet. It is a static folder; any web host
-  works. When youi picks a live target, record it here (per the pdeploy
-  rule).
+- **Deploy target:** none selected in the records. It is a static folder; any
+  static web host works. Record the target and deployment procedure when chosen.
 - **Public home:** [ernop/nectaris-remake](https://github.com/ernop/nectaris-remake),
   published on 2026-08-26. Development lives only in this standalone repo;
   the former nested copy in `mybrowser` was removed after its newest changes
@@ -64,6 +67,10 @@ Facts wei need across sessions:
   `js/data-unit-art.js`. Read `art/units/README.md` before edits. Unit art is
   integrated; Remake production terrain/geometry migration is still pending.
   Legacy already uses 48×32 flattened tiles and 32-pixel pitch in production.
+  Connected mountains must not form repeating hex-tip notches. Legacy's outer
+  board now uses a thin rounded frame with decorative terrain in the edge gaps;
+  it adds no playable cells, roads, buildings or route around boundary mountains.
+  See `PRODUCT.md` for the border requirements and implementation choice.
   Follow `ART_DIRECTION.md`: 32×32 frames, 48×32 flattened hexes,
   fixed upper-left lighting, bright white/pale armor and selective charcoal
   contours on shadow-facing edges. Use angular military silhouettes: long low

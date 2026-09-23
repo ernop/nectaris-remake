@@ -3,11 +3,13 @@
 Research date: 2026-09-20. Historical research and initial alternatives.
 **The subsequent decision is in [ART_DIRECTION.md](ART_DIRECTION.md): 32×32
 unit frames on 48×32 flattened hexes, with 32×32 pitch and 16-pixel stagger.
-Icons display at native size only and their visible artwork is centered horizontally.**
-The alternatives below are research history, not active choices. Runtime art
-and rendering behavior have not yet changed in this planning pass.
+Unit sources are native 32×32 and horizontally centered. Map icons scale with
+zoom (2026-09-21 correction); panel and review icons remain native-sized.**
+The alternatives and code observations below are a historical snapshot, not
+active choices or a description of today's renderer. Remake unit art and
+Legacy flattened terrain have since shipped; ART_DIRECTION tracks their status.
 
-## Current remake: verified in code
+## Snapshot at research time: verified in code on 2026-09-20
 
 - Pixel is the default; classic and neon are also selectable. Terrain and
   buildings do not have a separate pixel rendering path.

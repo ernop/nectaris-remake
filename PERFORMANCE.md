@@ -1,5 +1,9 @@
 # Performance analysis — 2026-09-22
 
+Sections below record successive measurements and their tested snapshots.
+Map counts, check totals and timings are dated results, not current guarantees;
+use the reproduction commands to measure a later version.
+
 Measured the existing algorithms before changing them, using a saved source
 snapshot and identical map inputs for both versions. The Node CPU profile put
 most sampled time in movement searches and their repeated AI callers. Browser

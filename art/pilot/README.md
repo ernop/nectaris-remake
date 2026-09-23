@@ -47,7 +47,10 @@ at **32×32**. There are no enlarged views or icon zoom controls.
 
 The map is an original **art review fixture**, not a campaign mission. Its
 continuous hills, valley, road and bridge establish contrast and scale.
-Production terrain connection rules are still pending. The complete unit roster
+Remake production terrain connections are still pending; Legacy has its own
+integrated connected terrain. This native-size review fixture does not override
+production map icons scaling with zoom; see [current art guidance](../../ART_DIRECTION.md).
+The complete unit roster
 now uses this source in the game/editor renderer; see `../units/README.md`.
 The interactive map supports substituting any of the 23 types and shows the
 full roster sheet below it. The fixed pilot PNGs retain the original five types.
