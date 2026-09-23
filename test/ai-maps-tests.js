@@ -2,13 +2,14 @@
 module.exports = function (ok) {
   var maps = require("../js/data-ai-maps.js"), HEX = require("../js/hex.js");
   var ENGINE = require("../js/engine.js"), types = require("../js/data-units.js").UNIT_TYPES;
-  ok(maps.length === 10 && new Set(maps.map(function (m) {return JSON.stringify(m.grid);})).size === 10,
-    "all ten fjord maps have distinct layouts");
+  ok(maps.length === 15 && new Set(maps.map(function (m) {return JSON.stringify(m.grid);})).size === 15,
+    "all fifteen AI-made maps have distinct layouts");
   require("./arsenal-map-tests.js")(ok);
   require("./scarce-fjords-tests.js")(ok);
   require("./symmetric-fjords-tests.js")(ok);
   require("./laced-fjords-tests.js")(ok);
   require("./turning-fjords-tests.js")(ok);
+  require("./curiosity-maps-tests.js")(ok);
   ok(maps[2].grid.length === 40 && maps[2].grid.every(function (row) {return row.length === 40;}),
     "Part 3 is exactly 40 by 40 hexes");
   maps.slice(0,3).forEach(function (map, mapIndex) {

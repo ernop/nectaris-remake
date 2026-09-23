@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nectaris — hex tactics remake</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='24,16 20,23 12,23 8,16 12,9 20,9' fill='%23ffd94a'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/nectaris.css?v=20260923-library">
+<link rel="stylesheet" href="css/nectaris.css?v=20260923-dense-factories">
 </head>
 <body>
 <div id="save-error" class="hidden" role="alert"></div>
@@ -85,7 +85,7 @@
   </div>
 
   <footer class="menu-footer">
-    Controls: click a unit to move · Attack aims from its current hex · after moving, attack or End; no shot ends automatically · Undo last in the top bar reverses moves since the last battle or turn boundary · Details toggles the inspector · right-click or Esc clears selection · wheel zooms · left-drag pans at any zoom · E ends the side's turn.
+    Controls: click a unit for blue move destinations and red attack targets · after moving, attack or End; no shot ends automatically · Undo / Redo reverse noncombat actions · Details toggles the inspector · right-click cancels or undoes; Esc clears selection · wheel zooms · Ctrl+left-drag pans · E ends the side's turn.
     See <a href="MECHANICS.md">MECHANICS.md</a> for the full rules reconstruction.
   </footer>
 </div>
@@ -111,7 +111,10 @@
     </div>
     <div class="topbar-actions">
     <button id="btn-details" aria-expanded="false" aria-controls="sidebar" title="Show unit details and combat forecasts">Details</button>
-    <button id="btn-undo" disabled>Undo last</button>
+    <div class="history-controls" role="group" aria-label="Action history">
+      <button id="btn-undo" disabled>↶ Undo</button>
+      <button id="btn-redo" disabled>↷ Redo</button>
+    </div>
     <button id="btn-endturn">End Turn (E)</button>
     </div>
   </div>
@@ -139,7 +142,7 @@
       <canvas id="game-canvas"></canvas>
       <div id="map-action-rail" class="hidden" aria-hidden="true"></div>
       <div id="action-menu" class="hidden" role="group" aria-label="Unit actions"></div>
-      <div id="range-legend" class="hidden" role="status" aria-label="Enemy movement and firing ranges"></div>
+      <div id="range-legend" class="hidden" role="status" aria-label="Unit movement and firing ranges"></div>
       <div id="unit-hover" class="hidden" role="tooltip" aria-label="Hovered unit details"></div>
       <div id="factory-panel" class="hidden popup" role="dialog" aria-labelledby="factory-title" aria-describedby="factory-summary">
         <div class="factory-heading">
@@ -186,17 +189,17 @@
 <script src="js/data-advanced-maps.js?v=20260920-advanced"></script>
 <script src="js/data-expansion-maps.js?v=20260920-fidelity"></script>
 <script src="js/data-basenectaris-maps.js?v=20260920-fidelity"></script>
-<script src="js/data-ai-maps.js?v=20260922-turning-fjords"></script>
+<script src="js/data-ai-maps.js?v=20260922-curiosity-maps"></script>
 <script src="js/data-unit-art.js?v=20260920-battle-forecast"></script>
 <script src="js/data-unit-art-legacy.js?v=20260920-battle-forecast"></script>
 <script src="js/unit-icon-sets.js?v=20260920-battle-forecast"></script>
 <script src="js/legacy-terrain.js?v=20260923-board-frame"></script>
-<script src="js/render.js?v=20260923-board-frame"></script>
+<script src="js/render.js?v=20260923-range-borders"></script>
 <script src="js/unit-view.js?v=20260922-factory-actions"></script>
 <script src="js/music.js?v=20260920-battle-forecast"></script>
 <script src="js/combat-view.js?v=20260922-unit-actions-2"></script>
-<script src="js/ui.js?v=20260922-combined"></script>
+<script src="js/ui.js?v=20260923-dense-factories"></script>
 <script src="js/profiles.js?v=20260922-fjords"></script>
-<script src="js/main.js?v=20260923-library"></script>
+<script src="js/main.js?v=20260923-dense-factories"></script>
 </body>
 </html>

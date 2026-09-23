@@ -76,9 +76,14 @@ module.exports = function (ok) {
     var card=get(id).children[0];
     ok(card.tagName==="article" && find(card,"level-card-heading") && find(card,"level-card-meta") &&
       find(card,"level-card-forces") && find(card,"mission-record") && find(card,"level-play") && find(card,"level-help"),
-      id+": shared card contains name, metadata, army totals, result, Play and help");
+      id+": shared entry contains name, size, army totals, result, a large Play target and separate help");
     ok(!card.onclick && !card.onmouseenter && !card.onfocus && !card.title,
-      id+": the card has no whole-area launch, hover or native title tooltip");
+      id+": the wrapper never opens hover details or a native title tooltip");
+    ok(find(card,"level-play").contains(find(card,"level-card-heading")) &&
+      find(card,"level-play").contains(find(card,"level-card-forces")) &&
+      !find(card,"level-play").contains(find(card,"level-help")) &&
+      !find(card,"level-card-meta").textContent.includes("turn"),
+      id+": name and counts are clickable, help is separate, and turn limits are omitted");
   });
   ok(find(get("normal-section"),"group-progress").textContent==="1 / 16 won" &&
     find(get("advanced-section"),"group-progress").textContent==="0 / 16 won",
@@ -131,10 +136,12 @@ module.exports = function (ok) {
   var customCard=get("custom-list").children[0];
   ok(find(customCard,"level-card-heading").textContent===custom.name && !find(customCard,"level-card-heading").innerHTML &&
     !find(find(customCard,"level-briefing"),"level-source"),"custom titles stay plain text and unsafe source schemes are omitted");
-  ok(find(customCard,"level-card-meta").textContent==="3 × 2 hexes · 50 turns" &&
-    find(customCard,"level-card-forces").innerHTML.includes("<strong>3</strong>") &&
-    find(customCard,"level-card-forces").innerHTML.includes("<strong>1</strong>"),
-    "custom cards use the engine's default turn limit and count owned reserves, excluding neutral stock");
+  ok(find(customCard,"level-card-meta").textContent==="3 × 2" &&
+    find(customCard,"level-card-forces").innerHTML===
+      "<span class='level-force force-union'>Union <span class='force-count'>3</span></span>"+
+      "<span class='level-force force-xenon'>Xenon <span class='force-count'>1</span></span>"+
+      "<span class='level-force force-neutral'>Neutral <span class='force-count'>3</span></span>",
+    "entries list Union, Xenon and Neutral in order, with field units plus each side’s stored reserves");
   ok(!find(customCard,"level-briefing").textContent.includes("undefined"),"missing custom metadata never displays undefined fields");
   var customTools=get("custom-level-tools");get("online-level-url").value="https://example.com/map.json";
   get("lang-select").value="ja";get("lang-select").onchange();

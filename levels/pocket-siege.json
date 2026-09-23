@@ -1,0 +1,283 @@
+{
+  "name": "POCKET SIEGE",
+  "pack": "AI-made",
+  "author": "Codex · original level",
+  "source": "levels/pocket-siege.json",
+  "description": "Part 15 · 42×20 · 180-degree rotational symmetry. Four small battle chambers are linked by dogleg throats and a long route around the flanks. Each chamber gives artillery a staging area, but reinforcements must file through the narrow approaches. Twelve factories and two isolated five-hex clearings make transport timing matter.",
+  "special": "12 neutral factories hold 4–8 units each, with equal numbers of one-, two- and three-exit alcoves. Half include a Charlie or Kilroy. Focused teams collectively cover every tank, gun, missile vehicle and anti-air type. Each Atlas or mine follows its own carrier; Pelicans are the only aircraft. Both sides start with Charlie, Panther and Rabbit plus Polar, Hadrian, Pelican in identical rotated formations.",
+  "tags": [
+    "part 15",
+    "four chambers",
+    "narrow throats",
+    "airlift"
+  ],
+  "turnLimit": 180,
+  "grid": [
+    ".hMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM.MMM",
+    "M...MMMMMMM.M-M-M.M.MMMMMMMMMMMMMMMMMMhMMM",
+    "MMM.w..wh..--h-.--.-h.w.h.MMFMMMMMMMMMhMMM",
+    "MM.B..MM.h-MhM.--M-M------.-----h.h---h-..",
+    "MM..--MMM--MM.MMFMMMMMMMM.-.MMM.---MMM-FMM",
+    "MMM.M-----FM...MMMMMMMMMw.-.MMh.wM-.MM-MMM",
+    "MMM.M-hwhhMMMM.MMMMMMMMMw.-..M.MMM--.M.MMM",
+    "MMM.M-...wMMMMMMMMMMMMMM..-..MMMMMMM-hhMMM",
+    "MMM.M.--wMMMMMMMMMMMMMMh.M-MMMMMMMMM-.hMMM",
+    "MMM.M--FMMMMMMMMMMM.h.h..MFMMMMMMMMM-hhMMM",
+    "MMMhh-MMMMMMMMMFM..h.h.MMMMMMMMMMMF--M.MMM",
+    "MMMh.-MMMMMMMMM-M.hMMMMMMMMMMMMMMw--.M.MMM",
+    "MMMhh-MMMMMMM..-..MMMMMMMMMMMMMMw...-M.MMM",
+    "MMM.M.--MMM.M..-.wMMMMMMMMM.MMMMhhwh-M.MMM",
+    "MMM-MM.-Mw.hMM.-.wMMMMMMMMM...MF-----M.MMM",
+    "MMF-MMM---.MMM.-.MMMMMMMMFMM.MM--MMM--..MM",
+    "..-h---h.h-----.------M-M--.MhM-h.MM..B.MM",
+    "MMMhMMMMMMMMMFMM.h.w.h-.--.-h--..hw..w.MMM",
+    "MMMhMMMMMMMMMMMMMMMMMM.M.M-M-M.MMMMMMM...M",
+    "MMM.MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMh."
+  ],
+  "buildings": [
+    {
+      "col": 3,
+      "row": 3,
+      "owner": 0
+    },
+    {
+      "col": 38,
+      "row": 16,
+      "owner": 1
+    },
+    {
+      "col": 13,
+      "row": 17,
+      "owner": -1,
+      "inventoryTheme": "Mixed battery",
+      "stored": [
+        "KILROY",
+        "HADRIAN",
+        "OCTOPUS",
+        "SEEKER",
+        "SEEKER"
+      ]
+    },
+    {
+      "col": 28,
+      "row": 2,
+      "owner": -1,
+      "inventoryTheme": "Mixed battery",
+      "stored": [
+        "KILROY",
+        "HADRIAN",
+        "OCTOPUS",
+        "SEEKER",
+        "SEEKER"
+      ]
+    },
+    {
+      "col": 16,
+      "row": 4,
+      "owner": -1,
+      "inventoryTheme": "Siege engineers",
+      "stored": [
+        "MULE",
+        "ATLAS",
+        "MULE",
+        "TRIGGER"
+      ]
+    },
+    {
+      "col": 25,
+      "row": 15,
+      "owner": -1,
+      "inventoryTheme": "Siege engineers",
+      "stored": [
+        "MULE",
+        "ATLAS",
+        "MULE",
+        "TRIGGER"
+      ]
+    },
+    {
+      "col": 2,
+      "row": 15,
+      "owner": -1,
+      "inventoryTheme": "Missile screen",
+      "stored": [
+        "CHARLIE",
+        "RABBIT",
+        "LYNX",
+        "HAWKEYE",
+        "LENET",
+        "LENET"
+      ]
+    },
+    {
+      "col": 39,
+      "row": 4,
+      "owner": -1,
+      "inventoryTheme": "Missile screen",
+      "stored": [
+        "CHARLIE",
+        "RABBIT",
+        "LYNX",
+        "HAWKEYE",
+        "LENET",
+        "LENET"
+      ]
+    },
+    {
+      "col": 15,
+      "row": 10,
+      "owner": -1,
+      "inventoryTheme": "Airlift reserve",
+      "stored": [
+        "PELICAN",
+        "ATLAS",
+        "TITAN",
+        "TITAN",
+        "RABBIT",
+        "RABBIT",
+        "TITAN",
+        "RABBIT"
+      ]
+    },
+    {
+      "col": 26,
+      "row": 9,
+      "owner": -1,
+      "inventoryTheme": "Airlift reserve",
+      "stored": [
+        "PELICAN",
+        "ATLAS",
+        "TITAN",
+        "TITAN",
+        "RABBIT",
+        "RABBIT",
+        "TITAN",
+        "RABBIT"
+      ]
+    },
+    {
+      "col": 7,
+      "row": 9,
+      "owner": -1,
+      "inventoryTheme": "Fast armor",
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET",
+        "SLAGGER",
+        "SLAGGER"
+      ]
+    },
+    {
+      "col": 34,
+      "row": 10,
+      "owner": -1,
+      "inventoryTheme": "Fast armor",
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET",
+        "SLAGGER",
+        "SLAGGER"
+      ]
+    },
+    {
+      "col": 10,
+      "row": 5,
+      "owner": -1,
+      "inventoryTheme": "Heavy armor",
+      "stored": [
+        "POLAR",
+        "GRIZZLY",
+        "TITAN",
+        "GIANT"
+      ]
+    },
+    {
+      "col": 31,
+      "row": 14,
+      "owner": -1,
+      "inventoryTheme": "Heavy armor",
+      "stored": [
+        "POLAR",
+        "GRIZZLY",
+        "TITAN",
+        "GIANT"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 4
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 37,
+      "y": 15
+    },
+    {
+      "t": "PANTHER",
+      "o": 0,
+      "x": 4,
+      "y": 3
+    },
+    {
+      "t": "PANTHER",
+      "o": 1,
+      "x": 37,
+      "y": 16
+    },
+    {
+      "t": "RABBIT",
+      "o": 0,
+      "x": 3,
+      "y": 2
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 38,
+      "y": 17
+    },
+    {
+      "t": "POLAR",
+      "o": 0,
+      "x": 2,
+      "y": 3
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 39,
+      "y": 16
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 2,
+      "y": 4
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 39,
+      "y": 15
+    },
+    {
+      "t": "PELICAN",
+      "o": 0,
+      "x": 3,
+      "y": 4
+    },
+    {
+      "t": "PELICAN",
+      "o": 1,
+      "x": 38,
+      "y": 15
+    }
+  ]
+}

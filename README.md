@@ -33,7 +33,7 @@ an original procedural chiptune score, and a level editor with URL sharing.
 | `js/data-maps.js` / `js/data-advanced-maps.js` | Official normal and advanced campaigns, 16 missions each, from Hudson's 1997 PC Engine remake |
 | `js/data-expansion-maps.js` | 12-map Lunar Frontiers online expansion |
 | `js/data-basenectaris-maps.js` | 12-map Base Nectaris terrain pack (bilingual briefings) |
-| `js/data-ai-maps.js` | Ten original AI-made fjord maps, including narrow branching valleys, compact tunnel arsenals and mirrored or rotated battlefields |
+| `js/data-ai-maps.js` | Fifteen original AI-made maps, from branching fjords to bridge crossings, caldera circuits and siege chambers |
 | `tools/build-ai-fjords.js` | Deterministic builder for the AI-made maps and importable JSON in `levels/` |
 | `tools/nmd-to-level.js` | Converts a Windows-edition `.nmd` map file to a level |
 | `js/render.js` | Canvas renderer with selectable Remake/Legacy art |
@@ -92,9 +92,9 @@ profile. Storage problems display an error instead of claiming progress is saved
 
 The mission library uses the same layout for campaigns, expansion packs and
 custom levels. Collection links jump between groups; each header shows your
-progress. Cards show the level's number/name, dimensions, turn budget, army
-totals and your result. **Play** starts a match. Returning to the library keeps
-your scroll position.
+progress. Dense entries show the level's number/name, dimensions, Union/Xenon/
+Neutral totals and any result. **Click the entry to play**; the separate `?`
+opens details. Returning to the library keeps your scroll position.
 
 Hover or focus the small **?** beside a level or collection for its briefing,
 design notes, credits and sources. Click/tap **?** to keep it open; click again,
@@ -119,8 +119,10 @@ anything. Panels close when the page scrolls or resizes.
   longer ranges sit under their attack value, with mixed ground/air bands explicit.
   Terrain defense, earned damage bonuses and damaged strength remain visible. Move away or
   press Esc to dismiss it; the sidebar keeps the persistent selection details.
-- Click a unit to immediately show legal moves and boardable transports.
-  Choose **Attack** to fire from its current hex without moving.
+- Click a unit to immediately show blue legal moves, boardable transports,
+  firing-area borders and red attack targets. Firing borders trace the outer
+  limit and any inner blind spot, without outlining each covered hex.
+  Click a red enemy to fire from the current hex.
   Unavailable commands are disabled and explained. Hadrian, Octopus and Hawkeye
   may shift or attack, never both in one turn. Atlas shows firing targets
   immediately and cannot shift once placed. Trigger has neither action;
@@ -129,36 +131,41 @@ anything. Panels close when the page scrolls or resizes.
 - Click an enemy to see its next-turn movement in orange plus firing range from
   its current hex: solid red for ground fire, dashed violet for air fire.
   Both stay visible where they overlap, with a compact legend on the map.
-- After choosing Attack or a Shift destination, attackable enemies turn red. Hover a target for
+- On selection and after a Shift destination, attackable enemies turn red. Hover a target for
   its identity, both sides' calculations and a casualty probability heatmap
   based on 100,000 independent simulations. The forecast never uses the match's
   actual random state. Click the red target to attack; there is no automatic
   approach to a distant enemy.
 - After a move, attack a red target or choose **End**. If no attack is available,
   the unit ends immediately and you can choose the next unit. Controls stay clear
-  of target hexes; transport passengers retain their Unload controls.
-- **Undo last** in the top bar reverses any number of your noncombat actions in
+  of target hexes. A loaded carrier automatically shows orange legal unloading
+  hexes after moving. Click orange to disembark; right-click, Esc or Cancel
+  dismisses the choices while keeping the carrier's move. Reselect the carrier
+  to reopen them. Before moving, its orange Unload control offers unloading first.
+- The paired **Undo / Redo** buttons in the top bar reverse and restore noncombat actions in
   order: movement, factory deployment/capture/storage, boarding and unloading.
-  A move plus **End** is one undo step. The history survives saving and reopening.
+  A move plus **End** is one undo step. Both histories survive saving and reopening.
   Battles, turn changes and match completion clear it; combat can never be undone
-  or replayed. Escape only clears selection; use Undo to change a completed move.
-- Right-click or Esc: cancel. Mouse wheel: zoom. Left-, middle- or right-drag
-  pans at any zoom level, even when the whole map fits; a plain left click still selects.
-  Grabbing pauses while choosing a movement destination and returns after moving or cancelling.
+  or replayed. A new action clears redo. Ctrl/Cmd+Z undoes; Ctrl/Cmd+Shift+Z or Ctrl/Cmd+Y redoes.
+- Right-click backs out of menus or undoes the last move when nothing is selected
+  or a just-moved unit is aiming. Esc clears selection. Mouse wheel: zoom.
+  **Ctrl+left-drag** pans at any zoom level, even during movement selection;
+  ordinary clicks and drags never move the map.
   `E`: end turn.
   If a unit can still move, attack, unload or deploy, the first End Turn warns;
   choose End turn anyway or Keep playing inside the confirmation popup. It lists
   only units with legal actions on the current board, with deployment counted separately.
 - Unit chrome shows remaining strength only when damaged (1–7), with a 1.6×
   larger corner number. Full strength (8) is omitted — see `PRODUCT.md`.
-- Click any unoccupied base or factory to inspect its stored units: yours,
-  neutral, or enemy. Empty buildings do not open a dialog. Hovering also lists the contents
-  in the sidebar. Capture with infantry to gain control of the reserves.
-  The nearby popup uses the mouseover's two-column roster. At an owned building,
-  click anywhere on a ready unit's tile to deploy,
+- Hover a base or factory to inspect its contents. Neutral, enemy, empty and
+  fully blocked buildings do not open a click-to-inspect popup. Capture with
+  infantry to gain control of reserves. Clicking an owned building opens the
+  deployment picker only when at least one reserve has a legal destination.
+  It uses the mouseover's two-column roster; click a ready unit's tile to deploy,
   then choose a highlighted destination among the six surrounding
   hexes: an unoccupied deployable terrain hex, or an adjacent friendly Mule or
-  Pelican with an empty cargo slot. The remaining roster reopens after deployment;
+  Pelican with an empty cargo slot. The remaining roster reopens after deployment
+  only while another reserve has a legal exit or carrier; otherwise it closes;
   Back to factory and Cancel stay in the bottom action strip. Capturing infantry goes inside the factory
   and leaves the map; it can deploy again from the next turn. Stop a damaged
   unit on your own factory to store and repair it under the same delay.
@@ -187,14 +194,15 @@ anything. Panels close when the page scrolls or resizes.
   for both sides, plus surround, experience, damage arithmetic and outcome rates.
 - Every campaign and expansion map is available immediately. Use the map
   selector in the top bar to move directly between them.
-- Mission choices show the initial Union and Xenon squad totals, including
-  reserves already stored in each side's factories.
+- Mission choices list Union, Xenon and Neutral squad totals in that order,
+  including fielded units and the reserves stored under each side's ownership.
+  Labels and numbers use the same size, saturated faction colors and strong contrast.
 - **Music: On/Off** starts an original square-wave/triangle/noise military
   chiptune. Browsers require the button press before audio may begin.
 
 ## Custom levels
 
-The **AI-made** category contains ten original fjord scenarios:
+The **AI-made** category contains fifteen original scenarios:
 
 | Level | Size | Factories | Starting forces per side |
 |---|---|---|---|
@@ -208,6 +216,11 @@ The **AI-made** category contains ten original fjord scenarios:
 | 8 · Mirror Fjords | 31×30 | 21 × 4–8 reserves (118 total) | Charlie, Panther, Rabbit, Bison, Polar, Hadrian |
 | 9 · Laced Fjords | 31×30 | 21 × 4–8 reserves (127 total) | Charlie, Panther, Rabbit, Bison, Polar, Hadrian |
 | 10 · Turning Fjords | 42×20 | 24 × 4–8 reserves (138 total) | Charlie, Panther, Rabbit, Slagger, Titan, Octopus |
+| 11 · Switchback Fjords | 42×20 | 12 × 4–8 reserves (64 total) | Charlie, Panther, Rabbit, Lenet, Slagger, Hadrian |
+| 12 · Delta Crossings | 42×20 | 24 × 4–8 reserves (128 total) | Charlie, Panther, Rabbit, Polar, Lynx, Pelican |
+| 13 · Caldera Circuit | 42×20 | 24 × 4–8 reserves (128 total) | Charlie, Panther, Rabbit, Grizzly, Octopus, Mule |
+| 14 · Faultline Steps | 42×20 | 12 × 4–8 reserves (64 total) | Charlie, Panther, Rabbit, Giant, Titan, Seeker |
+| 15 · Pocket Siege | 42×20 | 12 × 4–8 reserves (64 total) | Charlie, Panther, Rabbit, Polar, Hadrian, Pelican |
 
 All factories start neutral. Parts 1–4 use one road exit surrounded by five
 mountain hexes. Part 1 is a winding tree; Parts 2–3 add angular passages, two-hex
@@ -247,7 +260,22 @@ artillery, anti-air and missile vehicle, with carriers before Atlas and mines.
 Interior mountain islands contain at least five hexes, four isolated plain
 clearings contain five hexes each, and edge mountains are at most three thick.
 Roads occupy less than 30% of the connected valley floor in Parts 9–10.
-Parts 1–4 exclude aircraft; Parts 5–10 permit Pelicans only.
+Parts 11–15 use five separately authored route designs:
+
+- **Switchback Fjords:** folded lanes and hairpins, with two diagonal shortcuts.
+- **Delta Crossings:** branching tributaries divided by a valley river with three bridge crossings.
+- **Caldera Circuit:** concentric routes, radial passes, abundant wasteland and an isolated ten-hex clearing.
+- **Faultline Steps:** diagonal mountain fingers, hill-heavy approaches and slow heavy starting armor.
+- **Pocket Siege:** four small combat chambers, narrow dogleg approaches and two isolated five-hex landing zones.
+
+These five maps preserve 180-degree symmetry, matched six-unit formations,
+4–8 reserves per factory, equal proportions of one/two/three exits, and one
+Charlie or Kilroy in half the factories. Each map's focused teams collectively
+include every permitted reserve type. Edge mountains stay at most three hexes
+thick; interior mountain islands have at least five hexes. Their authored route
+builder is `tools/build-curiosity-maps.js`, invoked by the main AI-made builder.
+
+Parts 1–4 exclude aircraft; Parts 5–15 permit Pelicans only.
 Charlie and Kilroy can cross mountains; Panther cannot. See the
 [movement table and audit](MECHANICS.md#movement-and-terrain).
 All maps are available in the menu and map selector, with

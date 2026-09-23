@@ -19,17 +19,17 @@ Facts we need across sessions:
   logic module ends with `if (typeof module !== "undefined") module.exports`
   so the node test suite loads them.
 - **Tests:** `node test/run-tests.js` — map validation, rule unit-tests, and
-  AI-vs-AI self-play on all 32 normal/advanced campaign + 24 extra-pack + 10 AI-made maps. Run it
+  AI-vs-AI self-play on all 32 normal/advanced campaign + 24 extra-pack + 15 AI-made maps. Run it
   after any engine, data, or map change.
 - **Local development:** `./serve.sh` serves the repo on fixed backend port
   `127.0.0.1:8001`; do not substitute a random port. The machine's shared
   Caddy registry exposes it at `http://nectaris.localhost` and the local
   dashboard can start/stop it under project name `nectaris-remake`.
-- **Map navigation (2026-09-22):** grabbing pans at every zoom level, even when
-  the entire map fits. Preserve the drag threshold so clicks still select units;
-  never recenter merely because the map is smaller than the viewport.
-  Disable grabbing while actively choosing a unit's movement destination;
-  show a crosshair and restore grabbing after moving or cancelling.
+- **Map navigation (2026-09-23):** only Ctrl+left-drag pans, at every zoom level,
+  including during movement selection. Ordinary left/middle/right drags never
+  pan; Ctrl-click never issues a unit command. Never recenter merely because
+  the map is smaller than the viewport. Show grab while Ctrl is held and
+  grabbing during panning; use a crosshair for normal map actions.
 - **Deploy target:** none selected in the records. It is a static folder; any
   static web host works. Record the target and deployment procedure when chosen.
 - **Public home:** [ernop/nectaris-remake](https://github.com/ernop/nectaris-remake),
@@ -116,12 +116,15 @@ Facts we need across sessions:
   actions and complete AI turns; unfinished AI turns resume from their start.
   Tests in `test/profiles-tests.js` run through the main suite. See `PRODUCT.md`.
 
-- **Unit labels and factory hovers (2026-09-22):** use `UNIT_VIEW` for short
+- **Unit labels and factory hovers (updated 2026-09-23):** use `UNIT_VIEW` for short
   unit names and accompanying icons. Omit serial/model designations in the UI.
   Factory hovers list every reserve individually with that unit's experience
-  stars; never aggregate identical types. Empty factory clicks stay silent.
-  Factory popups reuse that two-column roster, anchor next to the factory,
-  and reopen after deployment. Ready tiles are whole Deploy buttons; blocked
+  stars; never aggregate identical types. Inspection lives in hover cards.
+  Neutral/enemy, empty and fully blocked factory clicks never open a popup.
+  Owned factories open only an actionable deployment picker. These pickers
+  reuse the two-column roster, anchor next to the factory,
+  and reopen after deployment only if another reserve has a legal exit or
+  compatible carrier, otherwise auto-close. Ready tiles are whole Deploy buttons; blocked
   tiles explain why. End Turn confirmation has both buttons inside its popup.
   Readiness must come from engine legal-action queries shared with execution,
   never a separate UI interpretation of movement points or nominal ranges.
@@ -129,12 +132,24 @@ Facts we need across sessions:
   load OR unload once per turn; movement does not consume that allowance.
   Cargo already aboard can unload after moving. End Turn warns about available
   movement, attacks, unloading and reserves; the popup's End turn anyway button confirms.
+  **Transport UI (2026-09-23):** moving/ending a loaded carrier or reselecting a
+  moved carrier automatically opens legal orange unloading hexes. Ready carriers
+  retain movement-first selection and orange Unload controls. Right-click/Esc/
+  Cancel dismisses unloading without undoing movement; selecting the carrier
+  again reopens it. Use the engine's unloadTargets, including transfer, passenger,
+  occupancy and terrain restrictions. Apply this to Pelican, Mule and custom carriers.
 
-- **Combat UI (2026-09-21, latest correction):** click a unit to move immediately;
-  **Attack** aims in place. Atlas aims immediately. After moving, attack or End
+- **Combat UI (2026-09-23, latest correction):** selecting a unit shows blue
+  moves plus firing ranges and red legal attack targets from its current hex.
+  The requested firing-border trial outlines only the outer area and inner
+  blind spots, replacing per-hex firing outlines; see `PRODUCT.md`.
+  Click a red target to fire directly; Attack can still isolate aiming.
+  Atlas aims immediately. After moving, attack or End
   if a shot exists; otherwise finish automatically. This supersedes the separate
-  Shift-selection/confirmation flow. Top-bar **Undo last** reverses noncombat
-  actions across units, including factory/cargo changes, and survives saves.
+  Shift-selection/confirmation flow. Top-bar **Undo / Redo** always appear as a
+  linked pair, enabled at full opacity. They restore whole noncombat states,
+  including factory/cargo changes, and both histories survive saves. New actions
+  clear redo. Right-click cancels menus or undoes a just-completed/idle move.
   Battle, turn and match-end boundaries clear history; never undo/redo combat.
   Buggies retain their remaining movement only after attacking. Keep action
   controls clear of target hexes. The left inspector is optional (Details,
@@ -143,7 +158,7 @@ Facts we need across sessions:
   no nearby space fits (2026-09-22 correction). Enemy inspection shows both orange
   movement fill and separate ground/air firing outlines from the current hex,
   including indirect blind spots. The top bar never wraps: keep its
-  height fixed and let settings scroll beside the persistent Details/Undo/End
+  height fixed and let settings scroll beside the persistent Details/Undo/Redo/End
   Turn controls (2026-09-22). Never restore permanent empty chrome or
   automatic move-and-attack shortcuts. `PRODUCT.md` records the current flow;
   `MANUAL_AUDIT.md` is the historical booklet review.
@@ -152,9 +167,16 @@ Facts we need across sessions:
   heatmap. See `PRODUCT.md`, `test/combat-ui-tests.js`, and `test/forecast-tests.js`.
 
 - **Level menu (2026-09-23):** restore its scroll position after leaving a level.
-  All campaigns, packs and custom maps share one collection/card layout: name,
-  number, size, turn budget, force totals, result and an explicit Play button.
+  All campaigns, packs and custom maps share dense entries: name, number, size,
+  normal-size Union/Xenon/Neutral totals in that order, and any result. The main
+  entry is a large click-to-play target; omit turn limits and the tiny Play button.
   Details open only from small edge `?` controls (intentional hover, focus or
   click/tap), never whole-card mouseovers. Keep briefings, making-of notes and
   provenance there; preserve numbering, result keys and import controls.
   See `PRODUCT.md` for the full content and dismissal behavior.
+
+- **UI contrast (2026-09-23):** never fade lettering toward a dark or light
+  background. Keep campaign numbers, secondary text and disabled labels opaque
+  and readable. Use saturated Union blue and Xenon green, not washed-out colors.
+  Use spacing/weight for hierarchy. See `PRODUCT.md`; this does not alter terrain
+  shading or the established spent-unit palette.

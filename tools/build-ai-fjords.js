@@ -510,7 +510,8 @@ for(let seed=74000;seed<174000&&!tenth;seed++){
   if(base){tenth=require("./carve-fjord-channels.js")(base,{rotate:true});if(tenth)tenth.seed=seed;}
 }
 if(!tenth)throw new Error("No turning fjord layout found");
-const results = [first, second, third, denseDesign(), denseDesign(true), sixth, seventh, eighth, ninth, tenth];
+const results = [first, second, third, denseDesign(), denseDesign(true), sixth, seventh, eighth, ninth, tenth,
+  ...require("./build-curiosity-maps.js")()];
 results.forEach((result, index) => {
   const map = result.map;
   if (map.buildings.some(b => (b.stored || []).some(t => UNIT_TYPES[t].moveType === "air" &&

@@ -92,11 +92,11 @@
 
   function appendLevelRecord(host, map, options) {
     var record = PROFILES.levelRecord(activeProfile, map, options);
-    var status = document.createElement("div");
+    var status = document.createElement("span");
     status.className = "mission-record";
     status.textContent = record.latest ? PROFILES.outcomeLabel(record.latest) + " · " +
       record.wins + "W / " + record.losses + "L" + (record.hotseat ? " · " + record.hotseat + " hotseat" : "") :
-      (levelWasWon(map, options) ? "Cleared" : "Not played");
+      (levelWasWon(map, options) ? "Cleared" : "");
     host.appendChild(status);
   }
 
@@ -149,6 +149,7 @@
     currentUI = new UI.GameUI($("game-canvas"), game, {
       hotseat: !!opts.hotseat,
       undoHistory: saved && saved.state.undoHistory,
+      redoHistory: saved && saved.state.redoHistory,
       onMenu: showMenu,
       onStateChange: saveMatch,
       onGameOver: function (winner) {
@@ -206,38 +207,38 @@
 
   var CARD_LABELS = {
     en: {
-      source: "Level source ↗", collectionSource: "Collection notes ↗", turns: " turns", play: "Play",
+      source: "Level source ↗", collectionSource: "Collection notes ↗", play: "Play",
       briefing: "Briefing", design: "Design notes", author: "Made by", sourceFile: "Terrain file",
       lastMatch: "Last match", collection: "About this collection", noNotes: "No briefing supplied by the author.",
-      union: "UNION", xenon: "XENON",
+      union: "Union", xenon: "Xenon", neutral: "Neutral",
     },
     ja: {
-      source: "出典 ↗", collectionSource: "コレクションの詳細 ↗", turns: "ターン", play: "開始",
+      source: "出典 ↗", collectionSource: "コレクションの詳細 ↗", play: "開始",
       briefing: "作戦概要", design: "設計の特徴", author: "作者", sourceFile: "地形ファイル",
       lastMatch: "前回の結果", collection: "このコレクションについて", noNotes: "作戦概要はありません。",
-      union: "連合軍", xenon: "ガイチ軍",
+      union: "連合軍", xenon: "ガイチ軍", neutral: "中立",
     },
   };
 
   function initialForceCounts(level) {
-    var counts = [0, 0];
+    var counts = [0, 0, 0];
     (level.units || []).forEach(function (unit) {
       if (unit.o === 0 || unit.o === 1) counts[unit.o]++;
+      else if (unit.o === -1) counts[2]++;
     });
     (level.buildings || []).forEach(function (building) {
-      if (building.owner === 0 || building.owner === 1) {
-        counts[building.owner] += (building.stored || []).length;
-      }
+      var owner = building.owner === 0 || building.owner === 1 ? building.owner : 2;
+      counts[owner] += (building.stored || []).length;
     });
     return counts;
   }
 
   function forceCountHtml(level, labels, className) {
     var counts = initialForceCounts(level);
-    return "<span class='" + className + " force-union'><span>" +
-      labels.union + "</span><strong>" + counts[0] + "</strong></span>" +
-      "<span class='" + className + " force-xenon'><span>" +
-      labels.xenon + "</span><strong>" + counts[1] + "</strong></span>";
+    return ["union", "xenon", "neutral"].map(function (side, index) {
+      return "<span class='" + className + " force-" + side + "'>" + labels[side] +
+        " <span class='force-count'>" + counts[index] + "</span></span>";
+    }).join("");
   }
 
   var menuHelpTimer = null, activeMenuHelp = null;
@@ -375,13 +376,24 @@
       var options = levelOptions(group, i), name = tr(lv, "name");
       var card = document.createElement("article");
       card.className = "level-card" + (levelWasWon(lv, options) ? " cleared" : "");
-      var heading = document.createElement("div"); heading.className = "level-card-top";
-      var title = menuText("h3", "level-card-heading", name);
+      var play = menuText("button", "level-play", "");
+      play.type = "button"; play.setAttribute("aria-label", L.play + " " + name);
+      play.onclick = function () {
+        closeMenuHelp(); options.hotseat = $("chk-hotseat").checked; startGame(lv, options);
+      };
+      var heading = document.createElement("span"); heading.className = "level-card-top";
+      var title = menuText("span", "level-card-heading", name);
       title.id = group.id + "-level-" + i;
       card.setAttribute("aria-labelledby", title.id);
       heading.appendChild(menuText("span", "level-number", String(i + 1 + (group.offset || 0)).padStart(2, "0")));
       heading.appendChild(title);
-      heading.appendChild(createMenuHelp(title.id + "-details", name, function (panel) {
+      heading.appendChild(menuText("span", "level-card-meta", lv.grid[0].length + " × " + lv.grid.length));
+      play.appendChild(heading);
+      var forces = document.createElement("span"); forces.className = "level-card-forces";
+      forces.innerHTML = forceCountHtml(lv, L, "level-force"); play.appendChild(forces);
+      appendLevelRecord(play, lv, options);
+      card.appendChild(play);
+      card.appendChild(createMenuHelp(title.id + "-details", name, function (panel) {
         addHelpText(panel, L.briefing, tr(lv, "description") || tr(lv, "blurb"));
         addHelpText(panel, L.design, tr(lv, "special"));
         var tags = tr(lv, "tags");
@@ -395,19 +407,7 @@
           panel.appendChild(menuText("p", "", L.noNotes));
         addHelpSource(panel, lv.source || group.source, lv.source ? L.source : L.collectionSource);
       }));
-      card.appendChild(heading);
-      card.appendChild(menuText("div", "level-card-meta", lv.grid[0].length + " × " + lv.grid.length +
-        " hexes · " + (lv.turnLimit || 50) + L.turns));
-      var forces = document.createElement("div"); forces.className = "level-card-forces";
-      forces.innerHTML = forceCountHtml(lv, L, "level-force"); card.appendChild(forces);
-      var footer = document.createElement("div"); footer.className = "level-card-actions";
-      appendLevelRecord(footer, lv, options);
-      var play = menuText("button", "level-play", L.play);
-      play.type = "button"; play.setAttribute("aria-label", L.play + " " + name);
-      play.onclick = function () {
-        closeMenuHelp(); options.hotseat = $("chk-hotseat").checked; startGame(lv, options);
-      };
-      footer.appendChild(play); card.appendChild(footer); host.appendChild(card);
+      host.appendChild(card);
     });
   }
   function buildMenu() {

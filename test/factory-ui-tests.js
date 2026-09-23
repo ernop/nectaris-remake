@@ -1,4 +1,4 @@
-/* Factory inspection through the click handler, using the real engine and icons. */
+/* Hover inspection and actionable factory deployment through the real UI. */
 "use strict";
 
 module.exports = function (ok) {
@@ -42,13 +42,13 @@ module.exports = function (ok) {
       units: [{ t: type || "CHARLIE", o: 0, x: 1, y: 1 }, { t: "POLAR", o: 1, x: 7, y: 2 }],
     }, { seed: 7 });
     var ui = Object.create(UI.GameUI.prototype);
-    ui.game = game; ui.mode = "idle";
+    ui.game = game; ui.mode = "idle"; ui.canvas = {style:{}};
     ui.renderer = { pixelToHex: function (col, row) { return { col: col, row: row }; } };
     // Factory behavior uses no canvas; action layout is covered by combat-ui-tests.
     ui.positionFactoryPanel = ui.positionActionMenu = ui.draw = ui.refreshStatus = ui.checkGameOver = ui.toast = ui.updateHoverInfo = function () {};
     return ui;
   }
-  function click(ui, col, row) { ui.onMouseUp({ offsetX: col, offsetY: row }); }
+  function click(ui, col, row) { ui.onMouseUp({ button: 0, offsetX: col, offsetY: row }); }
   global.RENDER = RENDER;
   global.document = {
     getElementById: function (id) { return nodes[id] || (nodes[id] = element("div")); },
@@ -64,25 +64,19 @@ module.exports = function (ok) {
           throw new Error("Inspecting an unowned factory must not calculate deployment actions");
         };
         click(ui, 2, 1);
-        ok(ui.mode === "factory" && !nodes["factory-panel"].classList.contains("hidden"),
-          style + ": unowned factory click opens inventory (owner " + owner + ")");
-        var contents = textContent(nodes["factory-list"]);
+        ok(ui.mode === "idle" && nodes["factory-panel"].classList.contains("hidden") && !ui.inspectedFactory,
+          style + ": unowned factory click never opens an inspection-only popup (owner " + owner + ")");
+        var hover = document.getElementById("unit-hover");
+        ui.renderFactoryInfo(hover, building);
+        var contents = textContent(hover);
         ok(contents.includes("Bison") && contents.includes("Lynx") && contents.includes("5/8") &&
-          !contents.includes("Strength") && !contents.includes("8/8") &&
-          nodes["factory-list"].children[1].innerHTML.includes("data-exp='3'") &&
-          nodes["factory-list"].children[1].attributes["aria-label"].includes("experience 3 of 8"),
-          "inspection shares the hover roster, including damage and individual experience stars");
-        ok(nodes["factory-title"].textContent.includes(owner === 1 ? "Xenon" : "Neutral") &&
-          nodes["factory-summary"].textContent.includes("2 stored units") &&
-          nodes["factory-summary"].textContent.includes("Capture with infantry"),
-          "inspection explains ownership, count and how to obtain the reserves");
-        ok(buttons(nodes["factory-list"]).length === 0 && JSON.stringify(ui.game.snapshot()) === before,
-          "inspection offers no deployment and does not change game state");
+          !contents.includes("Strength") && !contents.includes("8/8") && hover.innerHTML.includes("data-exp='3'"),
+          "hover retains individual reserves, damage, icons and experience without a click popup");
+        ok(contents.includes(owner === 1 ? "Xenon" : "Neutral") && contents.includes("2 stored units") &&
+          JSON.stringify(ui.game.snapshot()) === before,
+          "hover retains ownership and inventory totals without changing the match");
         ok(building.stored.every(function (unit) { return unit.player === building.owner; }),
           "omitting a factory owner also creates neutral stored units");
-        ui.onCancel();
-        ok(ui.mode === "idle" && nodes["factory-panel"].classList.contains("hidden"),
-          "Escape closes the inventory and restores map input");
         click(ui, 4, 1);
         ok(ui.mode === "idle" && nodes["factory-panel"].classList.contains("hidden") &&
           !ui.inspectedFactory && JSON.stringify(ui.game.snapshot()) === before,
@@ -90,12 +84,31 @@ module.exports = function (ok) {
       });
     });
 
+    ["spent", "blocked", "empty"].forEach(function (reason) {
+      var ui = fixture(0), building = ui.game.buildingAt(2, 1);
+      if (reason === "spent") building.stored.forEach(function (unit) { unit.moved = true; });
+      if (reason === "empty") building.stored = [];
+      if (reason === "blocked") HEX.neighbors(2, 1).forEach(function (hex) {
+        if (!ui.game.unitAt(hex.col, hex.row)) ui.game.units.push(ENGINE.makeUnit("BISON", 0, hex.col, hex.row));
+      });
+      var before = JSON.stringify(ui.game.snapshot());
+      click(ui, 2, 1);
+      ok(ui.mode === "idle" && nodes["factory-panel"].classList.contains("hidden") &&
+        JSON.stringify(ui.game.snapshot()) === before,
+        reason + " owned factory stays hover-only when no reserve can deploy");
+      var hover = document.getElementById("unit-hover");
+      ui.renderFactoryInfo(hover, building);
+      ok(hover.innerHTML.includes(reason === "empty" ? "Empty" : "2 stored units"),
+        reason + " factory inventory remains available in the hover card");
+    });
+
     var ui = fixture(-1, "BISON"), tank = ui.game.units[0];
     ui.selectUnit(tank);
     var before = JSON.stringify(ui.game.snapshot());
     click(ui, 2, 1);
-    ok(ui.mode === "factory" && ui.selected === null && JSON.stringify(ui.game.snapshot()) === before,
-      "clicking a factory the selected tank cannot enter opens inspection immediately");
+    ok(ui.mode === "idle" && ui.selected === null && JSON.stringify(ui.game.snapshot()) === before &&
+      nodes["factory-panel"].classList.contains("hidden"),
+      "an unreachable unowned factory does not interrupt play with an inspection popup");
     ui.onCancel();
     ui.showHexInfo(2, 1);
     ok(nodes["hex-info"].innerHTML.includes("Bison") && nodes["hex-info"].innerHTML.includes("Lynx") && nodes["hex-info"].innerHTML.includes("data-unit-type"), "hover reveals neutral inventory names");
@@ -134,6 +147,30 @@ module.exports = function (ok) {
     ui.undoLast();
     ok(JSON.stringify(ui.game.snapshot()) === beforeCapture,
       "undo capture restores the owner, all reserves, infantry experience and pre-repair damage");
+    ui.redoLast();
+    ok(JSON.stringify(ui.game.snapshot()) === afterCapture,"redo capture restores the owner and the complete repaired reserve identities");
+    ui.redoLast();
+    ok(ui.game.unitAt(exit.col,exit.row).id===reserve.id && ui.game.unitAt(exit.col,exit.row).moved,
+      "redo deployment restores the same reserve on the same exit with its spent activation");
+
+    [false,true].forEach(function(withTransport){
+      ui=fixture(0);building=ui.game.buildingAt(2,1);reserve=building.stored[0];
+      if(withTransport){
+        var passenger=ENGINE.makeUnit("CHARLIE",0,2,1);passenger.inFactory=true;
+        building.stored[1]=passenger;
+      }
+      var exits=ui.game.deployTargets(building,reserve);
+      exits.slice(1).forEach(function(space,index){ui.game.units.push(ENGINE.makeUnit(withTransport && index===0?"MULE":"BISON",0,space.col,space.row));});
+      ui.openFactoryPanel(building);ui.beginDeployment(building,reserve);click(ui,exits[0].col,exits[0].row);
+      ok(withTransport ? ui.mode==="factory" && buttons(nodes["factory-list"]).length===1 :
+        ui.mode==="idle" && nodes["factory-panel"].classList.contains("hidden") && building.stored.length===1,
+        withTransport ? "factory stays open when the only remaining deployment is into a compatible carrier" :
+        "factory auto-closes after deployment fills its final legal exit despite reserves remaining");
+      var after=JSON.stringify(ui.game.snapshot());
+      ui.onCancel(true);
+      if(withTransport)ok(ui.mode==="idle" && JSON.stringify(ui.game.snapshot())===after,"right-click closes the factory without undoing deployment");
+      else ok(ui.canRedo() && ui.game.buildingAt(2,1).stored.length===2,"right-click on the idle board undoes the last deployment");
+    });
 
     ui = fixture(0);
     ui.options = { hotseat: true };
@@ -142,8 +179,8 @@ module.exports = function (ok) {
     ok(ui.game.currentPlayer === 1 && ui.mode === "idle" && nodes["factory-panel"].classList.contains("hidden"),
       "ending the turn closes the old owner's deployment controls");
     click(ui, 2, 1);
-    ok(ui.mode === "factory" && buttons(nodes["factory-list"]).length === 0,
-      "a factory becomes inspectable enemy inventory after switching players");
+    ok(ui.mode === "idle" && nodes["factory-panel"].classList.contains("hidden"),
+      "the previous owner’s factory is hover-only after switching players");
 
     ui = fixture(0, "BISON", "B");
     ui.positionActionMenu = function () {};
@@ -176,8 +213,8 @@ module.exports = function (ok) {
         ui = fixture(owner, "BISON", kind);
         tank = ui.game.units[0];
         click(ui, 1, 1); click(ui, 2, 1);
-        ok(tank.col === 1 && tank.row === 1 && !tank.moved && ui.mode === "factory",
-          kind + ": tank click on an unowned building only inspects its inventory");
+        ok(tank.col === 1 && tank.row === 1 && !tank.moved && ui.mode === "idle" && nodes["factory-panel"].classList.contains("hidden"),
+          kind + ": tank click on an unowned building neither moves nor opens a popup");
         ui.onCancel();
       });
     });

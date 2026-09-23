@@ -30,12 +30,16 @@ retuned. These themes do not authorize extra features or unsourced rule changes.
 
 | Item | Status and record |
 | --- | --- |
+| Firing-area borders | User-requested visual trial implemented: outer and inner contours replace per-hex firing outlines; awaiting user assessment. [Trial scope](PRODUCT.md#firing-area-border-trial-2026-09-23). |
 | Remake stock unit roster | Implemented: 23 types, two native 32×32 facings. Map icons scale with zoom; panel/review icons remain native. [Unit record](art/units/README.md). |
-| Mission library | Implemented shared layout for all collections. Whole-card hovers are superseded by small edge help controls; the compact content selection is recorded as an implementation choice. [Content and interactions](PRODUCT.md#mission-library-and-deliberate-help-controls-2026-09-23). |
+| Mission library | User-corrected dense entries with a large click-to-play area, separate edge help, no turn-limit labels, and equal-size Union/Xenon/Neutral totals. [Content and interactions](PRODUCT.md#mission-library-and-deliberate-help-controls-2026-09-23). |
+| UI contrast | Explicit requirement: opaque readable text and saturated faction colors, including secondary labels and campaign numbers. [Color guidance](PRODUCT.md#readable-interface-colors-2026-09-23). |
+| Factory inspection | Hover supplies contents; clicking opens only an owned building's actionable deployment picker. [Factory behavior](PRODUCT.md#building-capture-storage-and-deployment-updated-2026-09-23). |
 | Legacy terrain and borders | Implemented: flattened geometry, connected relief, continuous mountain runs and a rounded board frame. The user requested better borders; the frame shape was an implementation choice, not an explicitly selected user preference. [Border requirements](PRODUCT.md#connected-terrain-and-board-borders-2026-09-23). |
 | Remake production terrain/buildings and flattened geometry | Planned, still pending. The art review fixture is not production completion. Classic/neon retain their existing vector rendering and projection. [Art status](ART_DIRECTION.md#implementation-status-and-remaining-checks). |
 | Fifteen numerical ground-unit concepts | Experimental proposals, not additions to the playable roster. Numerical coverage is not evidence of balance; artwork is a separate review pack. [Study, assumptions and playtesting needs](tools/design-space/README.md). |
 | Exact original CPU, random stream and PCE boundary cases | Unverified research gaps, not established rules or a claim of full fidelity. [Remaining gaps](FIDELITY_AUDIT.md#remaining-gaps-in-priority-order). |
+| Stronger AI, opponent styles and human experience | Research and proposals only; no gameplay changes or approved implementation. Includes a reproducible baseline probe, technical options and evaluation plan. [AI design analysis](AI_DESIGN_RESEARCH.md). |
 | Original battle presentation, soundtrack, Manual and Surrender | Excluded from the recorded fidelity implementation pass; do not silently turn them into scheduled work. [Scope](FIDELITY_AUDIT.md#requested-implementation-pass--2026-09-20). |
 | Public deployment target | Not selected in the records. The repository and local endpoint exist; neither establishes a hosted production site. [Working notes](agents.md). |
 
@@ -43,6 +47,7 @@ retuned. These themes do not authorize extra features or unsourced rule changes.
 
 | Record | How to use it |
 | --- | --- |
+| [FIRST_PLAYER_BALANCE_RESEARCH.md](FIRST_PLAYER_BALANCE_RESEARCH.md) | 2026-09-23 research on first-player advantage: sourced precedents, options, costs and proposed measurement. No balance change is approved or implemented; the reported advantage remains unmeasured. |
 | [FIDELITY_AUDIT.md](FIDELITY_AUDIT.md) | Dated comparison, remaining differences and scope; current adopted rules live in MECHANICS and controls in PRODUCT. |
 | [MANUAL_AUDIT.md](MANUAL_AUDIT.md) | Page-by-page source review and coverage at the time of the audit, with subsequent corrections. |
 | [ORIGINAL_EXECUTABLE_NOTES.md](ORIGINAL_EXECUTABLE_NOTES.md) | Windows executable observations and explicit limits on extrapolating them to PCE. |
@@ -50,6 +55,7 @@ retuned. These themes do not authorize extra features or unsourced rule changes.
 | [art/pilot/README.md](art/pilot/README.md) | Native-size art review fixture and its validation, not the production map display policy. |
 | [inspiration/nectaris-original/README.md](inspiration/nectaris-original/README.md) | Local reference manifest; captures are gitignored and not runtime/distributable assets. |
 | [PERFORMANCE.md](PERFORMANCE.md) | Dated measurements and reproduction methods; recorded counts/timings describe their tested snapshots. |
+| [AI_DESIGN_RESEARCH.md](AI_DESIGN_RESEARCH.md) | 2026-09-23 analysis of the current opponent, rules affecting AI strength and enjoyment, primary research, and proposed alternatives. The baseline sample is not a human-strength rating or balance verdict. |
 
 Superseded choices remain history: the 64-pixel pilot, rounded/chibi unit
 proportions, native-only map icons, and mountain-edge skirts that suggested a

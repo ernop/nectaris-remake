@@ -136,7 +136,7 @@ var RENDER = (function () {
     this.originY = 40;
     this.zoom = 1;
     this.highlights = null;   // {key -> css color}
-    this.fireRange = null;    // inspected enemy's current-position ground/air bands
+    this.fireRange = null;    // selected unit's current-position ground/air bands
     this.selected = null;     // unit
     this.hoverHex = null;
     this.attackables = null;  // array of units
@@ -234,8 +234,12 @@ var RENDER = (function () {
     return off;
   };
 
+  function hexCorners(cx, cy, size) {
+    return legacyMap() ? [[24,0],[8,16],[-8,16],[-24,0],[-8,-16],[8,-16]].map(function(p) { return {x:cx+p[0]*size/34,y:cy+p[1]*size/34}; }) : HEX.corners(cx, cy, size);
+  }
+
   function pathHex(ctx, cx, cy, size) {
-    var pts = legacyMap() ? [[24,0],[8,16],[-8,16],[-24,0],[-8,-16],[8,-16]].map(function(p) { return {x:cx+p[0]*size/34,y:cy+p[1]*size/34}; }) : HEX.corners(cx, cy, size);
+    var pts = hexCorners(cx, cy, size);
     ctx.beginPath();
     ctx.moveTo(pts[0].x, pts[0].y);
     for (var i = 1; i < 6; i++) ctx.lineTo(pts[i].x, pts[i].y);
@@ -1344,6 +1348,64 @@ var RENDER = (function () {
     ctx.restore();
   };
 
+  Renderer.prototype.firingContours = function (domain) {
+    var range = this.fireRange || {}, edges = {}, contours = [];
+    // Integer vertex identities join neighboring tiles exactly, independent
+    // of projection, camera position and floating-point screen coordinates.
+    var corners = [[2,0],[1,1],[-1,1],[-2,0],[-1,-1],[1,-1]];
+    var neighborByEdge = [0,5,4,3,2,1];
+    for (var key in range) {
+      if (!range[key][domain]) continue;
+      var cell = key.split(","), col = +cell[0], row = +cell[1];
+      var neighbors = HEX.neighbors(col, row), center = this.hexCenter(col, row);
+      var points = hexCorners(center.x, center.y, this.hexSize * this.zoom);
+      var vertices = corners.map(function (p) { return HEX.key(3 * col + p[0], 2 * row + (col & 1) + p[1]); });
+      for (var i = 0; i < 6; i++) {
+        var neighbor = neighbors[neighborByEdge[i]];
+        var adjacent = range[HEX.key(neighbor.col, neighbor.row)];
+        if (adjacent && adjacent[domain]) continue;
+        edges[vertices[i]] = { point: points[i], next: vertices[(i + 1) % 6] };
+      }
+    }
+    // Trace whole closed paths so dashes continue around bends. Holes retain
+    // their own contour, including artillery's minimum-range blind spot.
+    Object.keys(edges).forEach(function (start) {
+      if (!edges[start]) return;
+      var contour = [], cursor = start;
+      do {
+        var edge = edges[cursor];
+        contour.push(edge.point);
+        delete edges[cursor];
+        cursor = edge.next;
+      } while (cursor !== start);
+      contours.push(contour);
+    });
+    return contours;
+  };
+
+  Renderer.prototype.drawFiringRange = function () {
+    if (!this.fireRange) return;
+    var ctx = this.ctx, self = this;
+    ctx.save();
+    ctx.lineJoin = "round";
+    ["ground", "air"].forEach(function (domain) {
+      var contours = self.firingContours(domain);
+      if (!contours.length) return;
+      ctx.beginPath();
+      contours.forEach(function (points) {
+        ctx.moveTo(points[0].x, points[0].y);
+        for (var i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
+        ctx.closePath();
+      });
+      // A wider ground border remains visible beneath coincident air dashes.
+      ctx.setLineDash(domain === "air" ? [6, 4] : []);
+      ctx.strokeStyle = domain === "air" ? "#dab0ff" : "#ff7770";
+      ctx.lineWidth = domain === "air" ? 2 : 3.5;
+      ctx.stroke();
+    });
+    ctx.restore();
+  };
+
   Renderer.prototype.draw = function () {
     var ctx = this.ctx, g = this.game;
     this.drawTerrainLayer(this.visibleTileBounds());
@@ -1362,25 +1424,8 @@ var RENDER = (function () {
       }
     }
 
-    // Firing outlines stay distinct from the movement fill, including overlaps.
-    if (this.fireRange) {
-      ctx.save();
-      for (var fireKey in this.fireRange) {
-        var fireHex = fireKey.split(","), fire = this.fireRange[fireKey];
-        var fireCenter = this.hexCenter(+fireHex[0], +fireHex[1]);
-        if (fire.ground) {
-          pathHex(ctx, fireCenter.x, fireCenter.y, this.hexSize * this.zoom * 0.78);
-          ctx.setLineDash([]); ctx.strokeStyle = "#ff7770"; ctx.lineWidth = 2;
-          ctx.stroke();
-        }
-        if (fire.air) {
-          pathHex(ctx, fireCenter.x, fireCenter.y, this.hexSize * this.zoom * (fire.ground ? 0.6 : 0.78));
-          ctx.setLineDash([4, 3]); ctx.strokeStyle = "#dab0ff"; ctx.lineWidth = 2;
-          ctx.stroke();
-        }
-      }
-      ctx.restore();
-    }
+    // Only exposed firing-area edges; movement and legal targets keep their fill.
+    this.drawFiringRange();
 
     // units (ground first, then air on top)
     var i, u;

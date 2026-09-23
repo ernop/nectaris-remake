@@ -11,11 +11,11 @@ The left inspector starts closed. **Details** in the top bar toggles it, and
 its close button returns the space to the map. Remember the choice across
 matches and reloads. Selection and hovering never force it open. Hover cards
 remain available on the map; the Details button highlights when a combat
-forecast is ready to inspect. **Undo last** stays accessible in the top bar.
+forecast is ready to inspect. **Undo / Redo** stay accessible as an adjacent pair in the top bar.
 
 The top bar stays one fixed-height row, including when button labels or counts
 change. Match information and settings scroll horizontally when necessary;
-Details, Undo and End Turn stay together at the right. Never wrap controls onto
+Details, Undo, Redo and End Turn stay together at the right. Never wrap controls onto
 a second row or truncate information to fit.
 
 Attack, End, Cancel and transport commands sit beside the selected unit
@@ -40,6 +40,21 @@ Clicking a destination clears inspection; it never moves the enemy. Escape
 also clears it, and clicking another unit selects or inspects that unit.
 While choosing an attack, red targets retain their attack-click behavior;
 cancel the current action first to inspect enemy movement.
+
+### Firing-area border trial (2026-09-23)
+
+The user requested trying only the inner and outer borders of the firing area
+after finding Hawkeye's individual dashed target hexes too busy. Implemented
+for friendly selection and enemy inspection in all art styles: join covered
+hexes into one area per attack domain and draw only its exposed edges, including
+minimum-range holes and board boundaries. This replaces the per-hex firing
+outlines; movement destinations and red legal enemy targets retain their fills.
+Ground borders stay solid red and air borders dashed violet. A wider ground
+stroke under the air dashes keeps both visible on a shared boundary (an
+implementation choice). Hawkeye's air-only 2–5 band still excludes its own
+hex and all adjacent hexes; the firing area always uses the current position.
+This is the requested visual trial, pending the user's assessment, with no
+change to ranges, movement or attack eligibility.
 
 ## Selectable art sets (2026-09-20)
 
@@ -119,10 +134,11 @@ the same pixel density and light. Normal terrain has no permanent hex borders.
 All 46 directional unit frames are now integrated into pixel mode in the game,
 editor and factory. Review all states in `tools/unit-sheet.html` or substitute
 any unit on the native map fixture in `tools/art-pilot.html`. Map sprites scale
-proportionally with zoom. Grab with the left, middle or right mouse button to
-pan at any zoom level, including when the entire map fits (2026-09-22).
-Grabbing is disabled while choosing a unit's movement destination, with a
-crosshair cursor; it returns after moving or cancelling.
+proportionally with zoom. **Ctrl+left-drag** is the only map-pan gesture
+(2026-09-23), at any zoom and even while choosing a movement destination.
+Plain left, middle and right drags never pan. Ctrl-click without dragging never
+selects a unit or destination. Show a grab cursor while Ctrl is held and a
+grabbing cursor during the gesture; otherwise show a crosshair for map actions.
 Do not snap a dragged map back to center; keep a patch visible at the pan limits.
 Click without dragging retains normal selection and command behavior. Production
 terrain, buildings and flattened map geometry for Remake remain to be migrated.
@@ -245,18 +261,31 @@ captures: one full-width page, jump links, each filename as the section
 heading. It is not linked from the game menu. A missing PNG fails the page
 instead of rendering an empty slot.
 
-## Mission-card force totals (2026-09-03)
+## Mission-list force totals (updated 2026-09-23)
 
-Every campaign, expansion and custom-level choice shows the initial Union and
-Xenon squad totals. Each side's number includes fielded squads and units stored
-in factories already owned by that side; neutral-factory inventory belongs to
-neither side and is excluded. The numbers are larger than their labels and use
-tabular figures so force size can be compared before choosing a mission.
+Every campaign, expansion and custom-level entry lists total squads in this
+order: **Union, Xenon, Neutral**. Include fielded units and each side's stored
+reserves; unowned factory inventories count as Neutral, never as either army.
+Use normal, equal-size labels and numbers with tabular figures. The user
+explicitly rejected oversized army counts; this supersedes the earlier larger
+numbers and omission of neutral reserves.
+
+## Readable interface colors (2026-09-23)
+
+The user requires strong contrast throughout the interface. Never fade text
+toward its background, on dark or light surfaces; secondary labels and campaign
+numbers must stay readable. Use spacing, size and weight for hierarchy instead
+of reduced opacity. Disabled controls retain opaque, readable text and indicate
+their state with styling and behavior rather than fading the whole control.
+Use saturated Union blue and Xenon green, not washed-out substitutes. The level
+list uses the Pixel faction body colors (`#4a90e8` and `#3cb44b`) and bright,
+opaque neutral text. Apply this guidance to future UI work; terrain shading and
+the spent-unit art palette retain their separate gameplay/art requirements.
 
 ## AI-made fjord levels (2026-09-22)
 
-The AI-made category preserves ten separate original maps, with stable
-`aiMadeIndex` values 0–9 in the menu, map selector and profile records.
+The AI-made category preserves fifteen separate original maps, with stable
+`aiMadeIndex` values 0–14 in the menu, map selector and profile records.
 Twisted Fjords (65×49) is a winding tree; Shattered Fjords (65×49) and
 Fractured Fjords (40×40) introduce angular, variable-width passages and
 connections between branches. Each has fifteen neutral factories with twelve
@@ -316,6 +345,29 @@ islands are at least five hexes, isolated plain clearings are four groups of
 five, and edge mountains are at most three thick. Roads connect every factory
 approach and camp while covering less than 30% of the main valley floor.
 
+Parts 11–15 are five deliberately different 42×20 route designs, authored in
+`tools/build-curiosity-maps.js` and included by the main builder. All retain
+180-degree symmetry, matched six-unit starts, 4–8 reserves in focused teams,
+exactly half the factories with one Charlie/Kilroy, and equal exit-count groups.
+Every map covers the complete permitted reserve roster (all tanks, artillery,
+missile and anti-air vehicles, carriers, mines, Charlie and Kilroy). Only Pelicans
+fly. Mountain depth and edge bands are at most three hexes; interior mountain
+islands are at least five. Roads connect both camps and all factory mouths.
+
+- Part 11, **Switchback Fjords**, has 12 factories along folded lanes and
+  hairpins, with two diagonal shortcuts. Extras: Lenet, Slagger, Hadrian.
+- Part 12, **Delta Crossings**, has 24 factories around branching tributaries
+  and a central valley river. Exactly three bridge crossings carry ground units;
+  starting Pelicans offer another approach. Extras: Polar, Lynx, Pelican.
+- Part 13, **Caldera Circuit**, has 24 factories on concentric circuits joined
+  by radial passes. Wasteland discourages cutting across country; an isolated
+  ten-hex plain sits inside the central ridge. Extras: Grizzly, Octopus, Mule.
+- Part 14, **Faultline Steps**, has 12 factories among diagonal ridges and
+  hill-heavy stepped passes. Extras: Giant, Titan, Seeker.
+- Part 15, **Pocket Siege**, has 12 factories supplying four small chambers
+  joined by dogleg throats, plus an outer route and two isolated five-hex
+  clearings. Extras: Polar, Hadrian, Pelican.
+
 Importable JSON lives under `levels/`; `tools/build-ai-fjords.js` rebuilds it and
 the runtime data deterministically. Earlier layouts remain intact when a new
 part is added.
@@ -342,17 +394,21 @@ forecasts and all other modern features remain unchanged. The next-mission flow
 continues from NECTOR into TLOVER and ends at ROTCEN. Provenance and the two
 cross-source roster discrepancies are documented in `LEVEL_SOURCES.md`.
 
-## Building capture, storage and deployment (updated 2026-09-21)
+## Building capture, storage and deployment (updated 2026-09-23)
 
 The inventory popup uses the same two-column icon/name roster as factory
 mouseovers. Each ready tile is a native Deploy button, including its icon and
-name. Unavailable tiles say Next turn or No open exit; unowned tiles remain
-non-actionable. The panel anchors beside its factory, flips at map edges, and
+name. Unavailable tiles say Next turn or No open exit. This is a deployment
+picker only: open it for the current player's building only when at least one
+reserve has a legal exit or compatible carrier. The panel anchors beside its factory, flips at map edges, and
 scrolls its roster while keeping the heading and close button visible.
 Selecting a tile hides the panel and highlights legal exits; Back to factory
 and Cancel sit near the factory, falling back to the bottom strip when exits
 leave no clear space nearby. After deployment the remaining
-roster reopens for the next unit. Experience
+roster reopens only if a remaining reserve has a legal deployment destination,
+including a compatible carrier. Otherwise close it immediately, even if reserves
+remain. Clicking again while all reserves are blocked, spent or absent stays
+silent; inspect them through the hover card. Experience
 uses the map's traditional 3/2/3 star overlay (General at 8) on the icon, with
 an accessible label; there is no separate numeric experience row.
 
@@ -370,14 +426,14 @@ map hex. The factory becomes unoccupied and clickable, its existing inventory
 changes to the captor's side, and the capturing infantry joins that inventory
 with its deployment locked until its next turn.
 
-Clicking any unoccupied base or factory presents every stored unit, including
-neutral and enemy buildings before capture. Ownership and inventory count appear above
-the unit icons, names, damage and experience. Unowned inventories explain that
-infantry must capture the factory to deploy; they offer no deployment controls.
-Empty buildings do not open an inventory dialog when clicked. Hovering a building
-also lists its contents in the sidebar, even when a unit occupies its hex or
-another unit is selected. A valid movement click still moves the selected unit;
-an unreachable building with stored units opens for inspection on the same click.
+The user removed redundant click-to-inspect inventory popups on 2026-09-23.
+Neutral/enemy, empty and fully blocked buildings use hover inspection without
+opening a dialog. The hover card retains ownership, inventory count, every
+unit's icon/name, damage and experience; the sidebar also lists contents even
+when a unit occupies the hex or another unit is selected. A valid movement click
+still captures or stores the selected unit. An unreachable owned building may
+offer deployment if reserves can act, but an unreachable unowned building never
+opens a popup. This supersedes the earlier any-building inspection dialog.
 
 Unit names use the short name (Pelican, Grizzly, Atlas), without the model
 designation. Every visible unit name is paired with its icon, including cargo,
@@ -417,8 +473,8 @@ destinations among the six neighboring hexes:
 The player clicks one highlighted destination. Ground units may use compatible
 transports; aircraft cannot board, Mule has its original passenger restrictions,
 and Atlas/Trigger may deploy directly or aboard a carrier. Deployment spends the unit's activation, including deployment into
-a transport. This flow exposes the factory inventory as soon as capture is
-complete and makes the destination a player choice rather than selecting a
+a transport. After capture, hover reveals the inventory and a click offers any
+legal reserve deployments. The destination is a player choice rather than selecting a
 transport automatically.
 
 ## Local development endpoint (2026-09-03)
@@ -431,13 +487,27 @@ Caddy hostname removes the need to remember the port during normal use.
 
 ## Shift, target inspection and combat controls (updated 2026-09-21)
 
-Stopping a loaded transport offers **Unload [unit]** beside the map controls
-and in the sidebar. Ending the carrier's activation keeps eligible passenger
-actions open, with Close to dismiss them. Cargo that already acted (including
-boarding this turn) must wait; the sidebar explains this or a lack of legal exits.
+Stopping a loaded transport automatically opens its legal passenger-unloading
+hexes in orange (2026-09-23), without a second Unload click. Reselecting a moved
+carrier or ending its activation opens those choices whenever unloading is legal.
+An orange passenger prompt names the cargo, and available Unload buttons use the
+same orange accent. This applies to Pelican, Mule and custom transports; all
+hexes come from the engine's legal unloading query. With multiple passengers,
+open the first eligible passenger and keep controls for choosing another.
 
-Selecting a ready mobile unit immediately opens its legal movement destinations
-and boardable transports. **Attack** switches to targets from its current hex;
+Before movement, selecting a ready carrier still shows movement destinations;
+its orange **Unload [unit]** control can open unloading first. A Move control
+returns to movement if it is still legal. Right-click, Esc or Cancel dismisses
+the orange choices without spending an action or undoing the carrier's move;
+a subsequent right-click on the idle map can undo that move. Keep controls clear
+of the orange landing hexes and hide hover cards while choosing a landing. Cargo that already acted (including boarding this
+turn), a spent transfer allowance or blocked landing terrain never opens an
+illegal unloading choice; unavailable controls explain the reason.
+
+Selecting a ready mobile unit immediately opens its legal movement destinations,
+boardable transports, firing-range outlines and red legal attack targets from
+its current hex (2026-09-23). Clicking a red enemy attacks immediately without
+moving; clicking a blue destination moves. **Attack** can still isolate targeting;
 it is disabled if no target exists. A deployed Atlas aims immediately, Trigger
 has no movement/attack, and Pelican cannot attack. This 2026-09-21 speed-flow
 correction supersedes the earlier separate Shift-selection step.
@@ -447,9 +517,9 @@ red targets and **End**. Without a legal shot, end the unit automatically and
 return to the map. Shift-or-fire units therefore end immediately after moving.
 A unit with a remaining shot can be reselected to fire, but cannot move again.
 Surviving buggies immediately show their remaining movement after attacking.
-Enemy clicks during movement still inspect; never add automatic move-and-attack.
+Enemy clicks outside the legal attack targets still inspect; never add automatic move-and-attack.
 
-After choosing Attack or a Shift destination, only enemies attackable from that position turn
+On selection and after a Shift destination, only enemies attackable from that position turn
 red. Hovering one shows its identity, both units' combat stats, support, terrain,
 surround, experience, counterattack eligibility and the resulting calculation
 in the sidebar, outside the map. The last hovered matchup remains readable
@@ -470,23 +540,30 @@ the future real result unchanged. Cache projections for the current activation.
 Keep unit controls clear of attack/destination hexes, using a temporary strip
 below the map only if no on-map position fits. Reposition on pan, zoom and resize.
 After a committed move there is no Cancel confirmation; **End** finishes without attacking.
-Escape clears selection. Unload remains available for eligible passengers.
+Escape clears selection. Right-click backs out of the active menu, closes the
+End Turn confirmation, or undoes a just-committed move. With no selection it
+undoes the last noncombat action. This also works over popup controls, without
+opening the browser context menu. Unload remains available for eligible passengers.
 Results close automatically after the casualty animation and lock input while
 resolving.
 
-### Undo history (2026-09-21; moved to top bar 2026-09-22)
+### Undo and redo history (2026-09-23)
 
-**Undo last** reverses noncombat actions across units, with no fixed step limit.
+**Undo** reverses noncombat actions across units, with no fixed step limit.
 Movement (including subsequent End), boarding, unloading, deployment, storage,
 repair and factory capture restore the entire previous board and action state.
-History persists with the saved match. Each record holds dynamic state once;
+**Redo** restores undone actions in order. Both buttons always appear as a linked
+pair; available actions have full opacity and unavailable ones are disabled and
+faded. Ctrl/Cmd+Z undoes; Ctrl/Cmd+Shift+Z or Ctrl/Cmd+Y redoes. A new committed
+action discards the abandoned redo branch. Both histories persist with the saved match. Each record holds dynamic state once;
 map/roster definitions are shared by the save. Undo clears stale targeting and
 selection state and preserves cargo/factory identity relationships.
 
 Combat clears all earlier history immediately, before its result animation.
 Later moves may be undone only back to that postbattle state, never across the
 battle. Turn changes and match completion also clear history. Undo is disabled
-during combat/AI processing. There is no redo or way to reroll a battle.
+during combat/AI processing, as is Redo. Both histories stop at these boundaries;
+combat cannot be undone or rerolled.
 
 ## Mission library and deliberate help controls (2026-09-23)
 
@@ -499,20 +576,22 @@ The implemented content layout is:
 | Location | Visible content |
 | --- | --- |
 | Collection header | Category, title, one-line introduction, number of levels won and a small help button |
-| Every level card | Number, name, map dimensions, turn limit, initial Union/Xenon squad totals, personal result and explicit Play button |
+| Every level entry | Number, name, map dimensions, normal-size Union/Xenon/Neutral totals and any personal result; the entry itself is the Play target |
 | Level help | Briefing, design/special notes, tags, author/terrain attribution, source link and last-match detail, where supplied |
 | Collection help | Making-of context, provenance and links to the detailed collection record |
 
-These visible fields are the implementation's compact starting point, rather
-than an explicit user selection from the proposed content alternatives. Normal,
-advanced, AI-made, Lunar Frontiers, Base Nectaris and custom levels all use the
-same group/card renderer. Preserve campaign numbering and saved result keys.
+The user subsequently rejected the large cards, tiny Play buttons, turn-budget
+labels, oversized army totals and faded colors. Restore dense entries, omit
+turn limits from the list, and make the main entry area a native click-to-play
+button. Keep the edge `?` a separate action. This correction supersedes the
+initial card layout; retain the shared structure for normal, advanced, AI-made,
+Lunar Frontiers, Base Nectaris and custom collections. Preserve campaign numbering and saved result keys.
 Count solo victories once per level for group progress; keep legacy campaign
-clearance and separate hotseat result records. Initial armies still include
-owned reserves and exclude neutral inventories.
+clearance and separate hotseat result records. Show the three faction totals
+according to the force-count rule above. Unplayed entries need no empty result row.
 
-Cards themselves never open mouseovers or launch a match. Play is the launch
-action. Hovering the small help button deliberately opens its panel after a
+Clicking anywhere in the main entry area launches its match; focusing or hovering
+that area never opens details. Hovering the small help button deliberately opens its panel after a
 short delay; keyboard focus opens it immediately. Click/tap pins it, and a
 second click, outside click or Escape dismisses it. Keep the panel reachable
 while moving to its text or links, constrain it to the viewport, and close it

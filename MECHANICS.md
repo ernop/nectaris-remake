@@ -13,9 +13,9 @@ imported campaign to compensate for rule corrections.
 
 ## Units and actions
 
-Clicking a mobile unit immediately opens movement destinations; **Attack** aims
+Clicking a mobile unit immediately shows movement destinations and legal attacks
 from its current position. A move commits its movement phase: attack or End if
-there is a shot, otherwise finish automatically. Top-bar undo reverses noncombat
+there is a shot, otherwise finish automatically. Top-bar undo/redo reverse and restore noncombat
 actions up to the last battle or turn boundary. This is an intentional modern
 control-flow change; the underlying movement/attack restrictions are preserved.
 Atlas aims immediately and stationary units never offer movement.
