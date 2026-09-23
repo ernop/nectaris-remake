@@ -152,23 +152,32 @@ select, input[type="url"] {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh;
+  overflow: hidden;
 }
 #topbar {
   display: flex;
-  flex: 0 0 52px;
+  flex: 0 0 48px;
   flex-wrap: nowrap;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   min-width: 0;
   overflow-x: auto;
   overflow-y: hidden;
-  padding: 6px 12px;
+  padding: 4px 8px;
   background: #1d1912;
   border-bottom: 1px solid #3d382c;
 }
-.topbar-scroll { display: flex; flex: 1 1 auto; align-items: center; gap: 14px;
-  min-width: 80px; height: 100%; overflow-x: auto; overflow-y: hidden; }
+.topbar-scroll { display: flex; flex: 1 1 auto; align-items: center; gap: 10px;
+  min-width: 64px; height: 100%; overflow-x: auto; overflow-y: hidden; }
 .topbar-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 6px; }
+.view-controls { display: flex; flex: 0 0 auto; align-items: center; gap: 4px; }
+#topbar button { padding: 5px 9px; }
+#topbar select { padding: 5px 4px; }
+.opponent-control { display: inline-flex; align-items: center; gap: 6px; }
+#opponent-select { max-width: 235px; }
+.controls-left .opponent-control { display: flex; flex-direction: column; align-items: stretch; }
+.controls-left #opponent-select { width: 100%; min-width: 0; }
 .history-controls { display: inline-flex; }
 .history-controls button { min-width: 78px; border-radius: 0; }
 .history-controls button:first-child { border-radius: 4px 0 0 4px; }
@@ -177,13 +186,45 @@ select, input[type="url"] {
 .range-own-move { color: #78b7ff; }
 .topbar-scroll > *, .topbar-actions > * { flex-shrink: 0; white-space: nowrap; }
 #topbar, .topbar-scroll, #action-menu { scrollbar-width: thin; scrollbar-color: #6b6350 #1d1912; }
+/* Extremely narrow top layouts may scroll as a whole. Avoid a second
+   scrollbar consuming the settings row's height. Keyboard focus still scrolls. */
+#topbar { scrollbar-width: none; }
 #map-title { font-weight: 700; letter-spacing: 3px; color: #ffd94a; }
 #map-jump { max-width: 150px; }
 #btn-watch[aria-pressed="true"] { color: #bfe95c; border-color: #6f8d31; }
 #btn-music[aria-pressed="true"] { color: #ffd94a; border-color: #8c7930; }
 #btn-endturn { margin-left: auto; }
 
-#game-main { flex: 1; display: flex; min-height: 0; }
+#game-main { flex: 1; display: flex; min-width: 0; min-height: 0; }
+
+/* Dock the same controls in a narrow column; the board owns the full height. */
+#game-screen.controls-left { flex-direction: row; }
+.controls-left #topbar { flex: 0 0 184px; width: 184px; min-height: 0;
+  flex-direction: column; align-items: stretch; gap: 8px; padding: 8px;
+  overflow-x: hidden; overflow-y: auto; border-bottom: 0; border-right: 1px solid #3d382c; }
+.controls-left .view-controls { order: 0; display: grid; grid-template-columns: 1fr auto; }
+.controls-left #board-orientation { grid-column: 1 / -1; }
+.controls-left .topbar-scroll { order: 1; flex: 1 1 auto; flex-direction: column;
+  align-items: stretch; justify-content: flex-start; gap: 8px; min-height: 60px;
+  min-width: 0; height: auto; overflow-x: hidden; overflow-y: auto; }
+.controls-left .topbar-scroll > * { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.controls-left #map-title { letter-spacing: 1px; }
+.controls-left #map-jump { max-width: 100%; width: 100%; }
+.controls-left .topbar-actions { order: 2; flex-direction: column; align-items: stretch;
+  padding-top: 8px; border-top: 1px solid #3d382c; }
+.controls-left .history-controls { display: flex; }
+.controls-left .history-controls button { flex: 1; min-width: 0; }
+.controls-left #btn-endturn { margin-left: 0; }
+.controls-left #end-turn-warning { top: auto; bottom: 8px; left: 192px; right: auto;
+  max-width: calc(100% - 200px); max-height: calc(100dvh - 16px); }
+#dock-unit-controls:empty { display: none; }
+.controls-left #dock-unit-controls { order: 2; flex: 0 1 auto; min-height: 0;
+  max-height: 40%; overflow-y: auto; }
+.controls-left #action-menu, .controls-left #range-legend { position: static;
+  width: 100%; max-width: none; flex-wrap: wrap; }
+.controls-left #action-menu { margin-top: 5px; }
+.controls-left #action-menu > .unload-prompt { white-space: normal; }
+.controls-left #range-legend { padding: 6px; gap: 5px 8px; }
 #end-turn-warning { position: fixed; right: 12px; top: 60px; z-index: 30;
   width: 360px; max-width: calc(100% - 24px); max-height: calc(100vh - 72px);
   overflow-y: auto; border-color: #d1a85a; font-size: 13px; line-height: 1.5; }

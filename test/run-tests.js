@@ -337,6 +337,7 @@ require("./icon-set-tests.js")(ok);
 require("./legacy-terrain-tests.js")(ok);
 require("./mountain-terrain-tests.js")(ok);
 require("./board-border-tests.js")(ok);
+require("./board-view-tests.js")(ok);
 require("./firing-border-tests.js")(ok);
 
 section("attacker palette and faction colours");
@@ -1072,6 +1073,9 @@ ok(aiRabbit.moved && aiRabbit.movePointsLeft === 0,
 
 section("documented CPU transport and defense tactics");
 require("./ai-fidelity-tests.js")(ok);
+
+section("generic search opponents and independent chance planning");
+require("./ai-search-tests.js")(ok);
 
 section("AI self-play (all included maps)");
 ALL_MAPS.forEach(function (m, mi) {

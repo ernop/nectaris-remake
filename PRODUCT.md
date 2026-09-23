@@ -5,15 +5,15 @@ identified where relevant. Mechanics reconstruction (with sources) lives in
 `MECHANICS.md`. [PROJECT_GUIDE.md](PROJECT_GUIDE.md) indexes current guidance,
 pending work, experiments and historical evidence.
 
-## Optional inspector and full map height (2026-09-22)
+## Optional inspector and full map height (updated 2026-09-23)
 
-The left inspector starts closed. **Details** in the top bar toggles it, and
+The left inspector starts closed. **Details** in the control area toggles it, and
 its close button returns the space to the map. Remember the choice across
 matches and reloads. Selection and hovering never force it open. Hover cards
 remain available on the map; the Details button highlights when a combat
-forecast is ready to inspect. **Undo / Redo** stay accessible as an adjacent pair in the top bar.
+forecast is ready to inspect. **Undo / Redo** stay accessible as an adjacent pair in the control area.
 
-The top bar stays one fixed-height row, including when button labels or counts
+When controls are at the top, the bar stays one compact fixed-height row, including when button labels or counts
 change. Match information and settings scroll horizontally when necessary;
 Details, Undo, Redo and End Turn stay together at the right. Never wrap controls onto
 a second row or truncate information to fit.
@@ -23,7 +23,41 @@ Attack, End, Cancel and transport commands sit beside the selected unit
 and selectable destinations. Keep one row; scroll long command lists horizontally.
 Only use a temporary strip below the map when nearby controls cannot fit, aligned
 with the unit horizontally. Keep the camera stable and reclaim the strip when
-it closes; refit for window and inspector size changes.
+it closes; refit for window and inspector size changes. With controls on the
+left, put unit commands and the range legend in that column instead; selection
+must not create a bottom strip or consume any board height.
+
+## Board orientation and control docking (2026-09-23)
+
+Implemented from the user's request to rotate tall boards for wide monitors,
+move the control area to the left on demand, and reduce wasted screen space.
+This supersedes the requirement that match controls always occupy the top row.
+
+**Board: Auto / Normal / Sideways** selects the view. Auto is the game default:
+compare both orientations against the available canvas and use a clockwise
+quarter turn when it allows a larger full-board fit. Normal and Sideways are
+explicit overrides. Rotation affects presentation only, keeping logical cells,
+rules, saved games and movement costs unchanged. Unit sprites, strength and
+reserve counts, hover cards and controls stay upright. Terrain and its border,
+roads, movement highlights and firing contours rotate together. Click targets,
+wheel zoom around the cursor and Ctrl+left-drag use the displayed orientation.
+The editor retains its existing normal orientation.
+
+**Controls: Top / Left** moves the same controls into a compact 184-pixel left
+column on demand, leaving the entire right section at full window height.
+Keep view controls and Details / Undo / Redo / End Turn accessible; settings
+scroll vertically in a short window. Left mode also docks contextual unit
+commands and the range legend. Details remains optional. Top mode retains its
+single-row scrolling settings and nearby unit commands.
+
+Remember orientation and control position across maps and browser reloads.
+**Fit** restores the complete board after zooming or panning. Refit when the
+window, controls, inspector, art set or visual style changes. Auto reevaluates
+orientation only on those explicit fits, never while dragging or choosing a
+destination. Use the actual board bounds and an 8-pixel fit margin; small maps
+may enlarge to the existing 4× wheel-zoom limit instead of stopping at 1.6×.
+The exact column width, margin, clockwise direction and 2% Auto tie tolerance
+are implementation choices, not separately requested product constraints.
 
 ## Enemy movement and firing range inspection (updated 2026-09-22)
 
@@ -533,9 +567,21 @@ correction supersedes the earlier separate Shift-selection step.
 A destination click commits the movement immediately. With a legal shot, show
 red targets and **End**. Without a legal shot, end the unit automatically and
 return to the map. Shift-or-fire units therefore end immediately after moving.
-A unit with a remaining shot can be reselected to fire, but cannot move again.
 Surviving buggies immediately show their remaining movement after attacking.
 Enemy clicks outside the legal attack targets still inspect; never add automatic move-and-attack.
+
+**Uninterrupted unit activations (2026-09-23 user correction, implemented):**
+after moving, finish that unit's attack or choose to end it before using another
+unit. Switching units, inspecting an enemy, clicking away or pressing Escape
+ends a started activation; its unused attack cannot be saved for later in the
+same player turn. Leaving a buggy after combat also forfeits its remaining
+retreat. Merely selecting/cancelling a unit before it acts spends nothing, and
+clicking the active unit again keeps its current choices. This supersedes the
+earlier permission to reselect a moved unit and fire later. End and implicit
+deselection remain part of the move's Undo step. Saves preserve the finished
+state; a saved or undone activation that is still open can continue only until
+the player leaves it. The separately recorded passenger-transfer allowance
+still governs unloading.
 
 On selection and after a Shift destination, only enemies attackable from that position turn
 red. Hovering one shows its identity, both units' combat stats, support, terrain,
@@ -558,7 +604,7 @@ the future real result unchanged. Cache projections for the current activation.
 Keep unit controls clear of attack/destination hexes, using a temporary strip
 below the map only if no on-map position fits. Reposition on pan, zoom and resize.
 After a committed move there is no Cancel confirmation; **End** finishes without attacking.
-Escape clears selection. Right-click backs out of the active menu, closes the
+Escape clears selection and ends a started activation. Right-click backs out of the active menu, closes the
 End Turn confirmation, or undoes a just-committed move. With no selection it
 undoes the last noncombat action. This also works over popup controls, without
 opening the browser context menu. Unload remains available for eligible passengers.

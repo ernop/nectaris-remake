@@ -107,9 +107,17 @@ the page or list scrolls or resizes.
 
 - **Details** toggles the left inspector, initially closed; your choice is
   remembered. Unit details, factory information and combat forecasts remain
-  available there. The top bar always stays on one line; settings scroll sideways
-  if needed, while Details, Undo and End Turn stay at the right. Unit commands
-  sit beside the selected unit, using a temporary bottom strip only when no clear space fits.
+  available there.
+- **Board: Auto / Normal / Sideways** rotates the view by 90° when useful.
+  Auto picks the orientation that fits the board largest. Units and labels stay
+  upright; clicking, wheel zoom and Ctrl+left-drag follow the displayed board.
+  **Fit** restores the whole board after zooming or panning.
+- **Controls: Top / Left** moves controls into a narrow left column for a
+  full-height board. Left mode also puts unit commands and the range legend in
+  that column, so selection takes no board height. Top mode keeps one compact
+  row with scrolling settings and nearby unit commands, using a temporary
+  bottom strip only when no clear space fits. Both view choices are remembered
+  across maps and reloads; changing layout automatically refits the board.
 - Hover a unit for a compact stats card beside its hex. Factory hovers show
   each reserve separately with its icon and experience stars. Unit names use
   short names such as Pelican, without model numbers, and always have an icon.
@@ -141,7 +149,10 @@ the page or list scrolls or resizes.
   actual random state. Click the red target to attack; there is no automatic
   approach to a distant enemy.
 - After a move, attack a red target or choose **End**. If no attack is available,
-  the unit ends immediately and you can choose the next unit. Controls stay clear
+  the unit ends immediately and you can choose the next unit. Switching to another
+  unit or clearing selection ends a started activation: you cannot return later
+  that turn to attack or use a buggy's remaining retreat. Selecting a unit without
+  acting does not spend its turn. Controls stay clear
   of target hexes. A loaded carrier automatically shows orange legal unloading
   hexes after moving. Click orange to disembark; right-click, Esc or Cancel
   dismisses the choices while keeping the carrier's move. Reselect the carrier
@@ -152,7 +163,7 @@ the page or list scrolls or resizes.
   Battles, turn changes and match completion clear it; combat can never be undone
   or replayed. A new action clears redo. Ctrl/Cmd+Z undoes; Ctrl/Cmd+Shift+Z or Ctrl/Cmd+Y redoes.
 - Right-click backs out of menus or undoes the last move when nothing is selected
-  or a just-moved unit is aiming. Esc clears selection. Mouse wheel: zoom.
+  or a just-moved unit is aiming. Esc clears selection and ends a started activation. Mouse wheel: zoom.
   **Ctrl+left-drag** pans at any zoom level, even during movement selection;
   ordinary clicks and drags never move the map.
   `E`: end turn.

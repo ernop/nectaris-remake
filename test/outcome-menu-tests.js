@@ -42,7 +42,7 @@ module.exports = function (ok) {
   function cards(id){return all(get(id),"level-card");}
   var context = {document:{getElementById:get,createElement:element,baseURI:"http://nectaris.localhost/",activeElement:null,
       addEventListener:function(name,fn){documentListeners[name]=fn;}},
-    localStorage:storage,PROFILES:PROFILES,URL:URL,
+    localStorage:storage,PROFILES:PROFILES,AI_SEARCH:require("../js/ai-search.js"),URL:URL,
     setTimeout:function(fn){timers.set(++timerId,fn);return timerId;},clearTimeout:function(id){timers.delete(id);},
     window:{scrollY:0,innerWidth:1000,innerHeight:800,confirm:function(){return true;},
       scrollTo:function(x,y){this.scrollY=y;},addEventListener:function(name,fn){listeners[name]=fn;}},

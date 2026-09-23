@@ -81,7 +81,8 @@
       var detail = document.createElement("span");
       detail.textContent = PROFILES.reasonLabel(result.reason) + " · " +
         (result.hotseat ? "Hotseat" : "Solo") + " · Turn " + result.turn + " · " +
-        new Date(result.endedAt).toLocaleString();
+        new Date(result.endedAt).toLocaleString() + (!result.hotseat && result.opponent ?
+          " · " + AI_SEARCH.get(result.opponent).label + (result.opponentChanges && result.opponentChanges.length ? " (changed during match)" : "") : "");
       row.appendChild(title); row.appendChild(detail);
       history.appendChild(row);
     });
@@ -118,6 +119,9 @@
 
   function startGame(mapDef, opts, saved) {
     opts = opts || {};
+    var preferredOpponent = "apex";
+    try { preferredOpponent = localStorage.getItem("nectaris-opponent") || preferredOpponent; } catch (e) { /* optional preference */ }
+    opts.opponent = AI_SEARCH.get(opts.opponent || (saved ? "classic" : preferredOpponent)).id;
     if (!activeProfile) { openProfileForm(); return; }
     if (!saveMatch(currentUI)) return;
     var profile;
@@ -148,6 +152,12 @@
 
     currentUI = new UI.GameUI($("game-canvas"), game, {
       hotseat: !!opts.hotseat,
+      opponent: opts.opponent,
+      onOpponentChange: function (id, turn) {
+        if (!opts.opponentChanges) opts.opponentChanges = [];
+        opts.opponentChanges.push({turn:turn, from:opts.opponent, to:id});
+        opts.opponent = id;
+      },
       undoHistory: saved && saved.state.undoHistory,
       redoHistory: saved && saved.state.redoHistory,
       onMenu: showMenu,

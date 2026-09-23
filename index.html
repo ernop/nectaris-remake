@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nectaris — hex tactics remake</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='24,16 20,23 12,23 8,16 12,9 20,9' fill='%23ffd94a'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/nectaris.css?v=20260923-three-across">
+<link rel="stylesheet" href="css/nectaris.css?v=20260923-board-layout">
 </head>
 <body>
 <div id="save-error" class="hidden" role="alert"></div>
@@ -85,7 +85,7 @@
   </div>
 
   <footer class="menu-footer">
-    Controls: click a unit for blue move destinations and red attack targets · after moving, attack or End; no shot ends automatically · Undo / Redo reverse noncombat actions · Details toggles the inspector · right-click cancels or undoes; Esc clears selection · wheel zooms · Ctrl+left-drag pans · E ends the side's turn.
+    Controls: click a unit for blue move destinations and red attack targets · after moving, attack or End; no shot ends automatically · Undo / Redo reverse noncombat actions · Details toggles the inspector · Board: Auto fits the best orientation · Controls: Left gives the board full height · Fit restores the whole board · right-click cancels or undoes; Esc clears selection · wheel zooms · Ctrl+left-drag pans · E ends the side's turn.
     See <a href="MECHANICS.md">MECHANICS.md</a> for the full rules reconstruction.
   </footer>
 </div>
@@ -97,6 +97,9 @@
     <button id="btn-menu">◄ Save &amp; Menu</button>
     <span id="map-title"></span>
     <select id="map-jump" aria-label="Jump to campaign map"></select>
+    <label class="opponent-control" for="opponent-select">Opponent
+      <select id="opponent-select" aria-label="Opponent"></select>
+    </label>
     <span id="status-turn"></span>
     <span id="status-player"></span>
     <span id="status-units"></span>
@@ -109,6 +112,19 @@
     <button id="btn-watch" aria-pressed="true">Watch AI: On</button>
     <button id="btn-music" aria-pressed="false">Music: Off</button>
     </div>
+    <div class="view-controls" role="group" aria-label="Board view">
+      <select id="board-orientation" aria-label="Board orientation" title="Auto chooses the orientation that fits the largest board">
+        <option value="auto">Board: Auto</option>
+        <option value="normal">Board: Normal</option>
+        <option value="sideways">Board: Sideways</option>
+      </select>
+      <select id="controls-position" aria-label="Controls position" title="Move controls to the left for a full-height board">
+        <option value="top">Controls: Top</option>
+        <option value="left">Controls: Left</option>
+      </select>
+      <button id="btn-fit" title="Fit the entire board in the available space">Fit</button>
+    </div>
+    <div id="dock-unit-controls"></div>
     <div class="topbar-actions">
     <button id="btn-details" aria-expanded="false" aria-controls="sidebar" title="Show unit details and combat forecasts">Details</button>
     <div class="history-controls" role="group" aria-label="Action history">
@@ -182,9 +198,11 @@
 <script src="js/hex.js?v=20260920-battle-forecast"></script>
 <script src="js/data-terrain.js?v=20260920-fidelity"></script>
 <script src="js/data-units.js?v=20260920-cpu-tactics"></script>
-<script src="js/combat.js?v=20260922-unit-actions-2"></script>
+<script src="js/combat.js?v=20260923-search-1"></script>
 <script src="js/engine.js?v=20260922-factory-actions"></script>
-<script src="js/ai.js?v=20260922-unit-actions-2"></script>
+<script src="js/ai.js?v=20260923-search-1"></script>
+<script src="js/ai-model.js?v=20260923-search-1"></script>
+<script src="js/ai-search.js?v=20260923-search-1"></script>
 <script src="js/data-maps.js?v=20260920-battle-forecast"></script>
 <script src="js/data-advanced-maps.js?v=20260920-advanced"></script>
 <script src="js/data-expansion-maps.js?v=20260920-fidelity"></script>
@@ -194,11 +212,11 @@
 <script src="js/data-unit-art-legacy.js?v=20260920-battle-forecast"></script>
 <script src="js/unit-icon-sets.js?v=20260920-battle-forecast"></script>
 <script src="js/legacy-terrain.js?v=20260923-board-frame"></script>
-<script src="js/render.js?v=20260923-range-borders"></script>
+<script src="js/render.js?v=20260923-board-layout"></script>
 <script src="js/unit-view.js?v=20260922-factory-actions"></script>
 <script src="js/music.js?v=20260920-battle-forecast"></script>
 <script src="js/combat-view.js?v=20260922-unit-actions-2"></script>
-<script src="js/ui.js?v=20260923-single-line-library"></script>
+<script src="js/ui.js?v=20260923-board-layout"></script>
 <script src="js/profiles.js?v=20260922-fjords"></script>
 <script src="js/main.js?v=20260923-three-across"></script>
 </body>

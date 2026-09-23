@@ -187,3 +187,137 @@ Suggested measurement plan (not executed):
 The existing self-play in `test/run-tests.js` runs one seeded game per included
 map as a crash/termination check. It is not a first-player balance experiment.
 No gameplay tests were run for this documentation-only research task.
+
+## Compensation-offer design discussion — 2026-09-23
+
+The user favors the pie-rule family and wants to explore compensating whoever
+volunteers to play second, potentially through an automatic sequence of offers
+to both players. They specifically raised incomparable bundles (two Charlies
+versus one Polar), a small-value standard unit, distant reinforcement locations,
+and iterative offers before either player starts. **This is a preference for
+further design exploration, not authorization of a specific implementation.**
+The mechanisms and example parameters below remain proposals.
+
+### Two related mechanisms
+
+In a literal divide-and-choose version, one player specifies a complete bonus
+package and the other chooses between going first with the original army and
+going second with that package. The proposer takes the remaining role. No
+ordering of different packages is required. Specify placement, readiness and
+both role-specific starting positions before the choice; a winning opening or
+combat does not occur during this pregame process.
+
+The user's automated version is a compensation auction: increase an offer until
+someone volunteers for the compensated role. It needs an offer order but does
+not require an objective exchange rate between all units. Side-compensation
+bidding is an existing pattern; Axis & Allies players also describe bidding
+down the resources they require to accept a side. This does not establish
+optimal auction incentives or measured fairness for the proposed process here.
+[Community bidding explanation](https://www.axisandallies.org/forums/topic/4133/bidding/6).
+
+### Ordering offers without solving unit valuation
+
+There is no known universal answer to whether two Charlies outweigh one Polar.
+Capture opportunities, terrain, timing, supporting troops and the enemy roster
+change the comparison. The current AI's `unitValue` is a heuristic, not a
+validated exchange rate. Simulating the complete starting positions could
+estimate a map-specific comparison under the tested policies, but would not
+prove it or cover every combination.
+
+Three ways to avoid needing that comparison:
+
+1. **One unit, one location, variable quantity.** Offer up to zero, one, two,
+   etc. full squads of one fixed type at the same predetermined location and
+   readiness. Choose the bonus before play and allow declining some or all
+   extras; later offers retain all earlier starting packages.
+2. **Retain previous choices.** For example: offer 0 = no bonus; offer 1 = any
+   previous choice or one Charlie; offer 2 = any previous choice or two Charlies;
+   offer 3 = any previous choice or one Polar. On acceptance the player selects
+   exactly one package, not their union. Adding Polar is a weak improvement in
+   available choices, even if it is worse than two Charlies on this map. The
+   designer still chooses what to add, but need not claim an exchange rate.
+3. **An increasing spending allowance with a fixed menu.** Keep every cheaper
+   allocation available as the budget rises. This also gives nested choice
+   sets. Prices affect granularity, variety and which purchases dominate, even
+   though imperfect prices do not invalidate the ordering of the budgets.
+
+Do not replace one package with a different composition or move its required
+location and assume that the change is an improvement. Location choice can
+instead expand: retain the old legal sites and add new ones.
+
+### Small increments in this game's rules
+
+Charlie has low combat stats but can capture a factory regardless of its
+current squad strength. It is not inherently a small strategic increment.
+A damaged squad still occupies a hex and projects ZOC, and entering a factory
+repairs it to full strength. Thus a strength-one Charlie is not reliably an
+eighth of a full squad's value, and damaged reserve offers need particular care.
+Mines and transports likewise have positional or logistical effects that are
+poorly represented by their attack values.
+
+An ordinary noncapturing tank such as Lenet is a reasonable initial candidate
+because it avoids capture and special-action abilities. This is a design
+judgment, not a claim that its marginal value is small or constant. The first
+extra tank can still be decisive. Distant placement can reduce immediate impact
+but is sensitive to roads, carriers, choke points and game length.
+
+For finer steps, an illustrative optional-reinforcement schedule is:
+
+| Offer | Additional choice available to the eventual second player |
+| --- | --- |
+| 0 | No bonus. |
+| 1 | One Lenet available from the start of their own turn 4. |
+| 2 | The same Lenet available from their own turn 3. |
+| 3 | The same Lenet available from their own turn 2. |
+| 4 | The same Lenet available from their own turn 1. |
+| 5 | Keep the first Lenet available from turn 1; add a second from turn 4. |
+
+All previous packages remain selectable. Earlier availability is optional, not
+forced deployment; subsequent offers must never delay or remove an earlier
+entitlement. These timings are examples only, and may still cross decisive
+turn thresholds rather than create small balance changes. This version needs
+a new reinforcement rule; the quantity-only version is simpler.
+
+The map must specify corresponding locations for either possible second-player
+army. For an owned-factory version, it must really be an owned factory: do not
+silently grant a neutral factory or its existing inventory as part of a unit
+offer. A delayed entitlement would remain unclaimed until used, deploy only
+through the declared legal site under declared readiness rules, and not count
+as a surviving army or resurrect an eliminated player. Blocking, ownership
+loss, unavailable exits and storage/capture semantics need definition before
+implementation. Distance alone cannot guarantee usable compensation.
+
+### Proposed automatic offer protocol
+
+Display the complete map, both conditional placements and the finite offer
+schedule before any gameplay. At each step ask both players privately and
+without a reaction-speed contest whether they accept the second-player role
+with the displayed compensation. Lock both responses before resolving:
+
+| Responses | Result |
+| --- | --- |
+| Both decline | Advance one offer step. |
+| Exactly one accepts | That player goes second and chooses their included bonus package; the other goes first with the original army. |
+| Both accept | Use the announced random tie-break to assign the second-player role and its bonus. |
+
+The random tie-break avoids a first-click advantage; it does not prove that a
+coarse offer is balanced. Large jumps can take both players straight from
+preferring first to preferring compensated second. Smaller steps reduce, but
+do not eliminate, this uncertainty. Both accepting at zero can also indicate
+that second is preferred on that map; the one-direction ladder does not measure
+or fix that. A more general signed ladder could compensate either role.
+
+The maximum offer and no-deal outcome must be visible before negotiation. If
+both decline the maximum, return to setup for a different schedule/map rather
+than loop indefinitely or silently award rejected terms. Responses can be
+strategic: a player may pass hoping for a larger bonus, risking that the other
+accepts first. This is negotiation, not a truthful valuation oracle or a
+guarantee of 50/50 winning chances. Hotseat would need private pass-the-device
+responses or a declared sequential alternative; an AI needs to assess both
+complete roles, not just count bonus units.
+
+Suggested first exploration: a fixed noncapturing unit and equivalent rear
+locations, quantity-only offers with previous options retained, and private
+simultaneous acceptance. If whole-squad increments are too coarse, compare the
+optional arrival-time ladder. Keep mixed-unit menus as an extension, supported
+by retained choices rather than an asserted universal unit ranking.

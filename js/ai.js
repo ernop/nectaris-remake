@@ -450,7 +450,11 @@ var AI = (function () {
   /* A turn runner mutates one visible action per next() call. Movement,
    * battle preview and battle result are separate events, so the UI can
    * render each state before the next mutation. */
-  function createTurn(game, player) {
+  function createTurn(game, player, options) {
+    if (options && options.id && options.id !== "classic") {
+      var search = typeof module !== "undefined" ? require("./ai-search.js") : AI_SEARCH;
+      if (search.get(options.id).id !== "classic") return search.createTurn(game, player, options);
+    }
     var factories = game.playerFactories(player);
     var factoryIndex = 0;
     var units = null;
@@ -597,9 +601,9 @@ var AI = (function () {
   }
 
   /* Immediate mode consumes the same event stream without display delays. */
-  function playTurn(game, player) {
+  function playTurn(game, player, options) {
     var events = [];
-    var turn = createTurn(game, player);
+    var turn = createTurn(game, player, options && Object.assign({}, options, {async: false}));
     var event;
     while ((event = turn.next()) !== null) events.push(event);
     return events;

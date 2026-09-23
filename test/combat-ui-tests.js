@@ -166,6 +166,73 @@ module.exports = function (ok) {
     ui.redoLast();
     ok(ui.game.units[0].shifted && ui.game.units[0].moved,"redo preserves the End attached to a movement step");
 
+    // A unit's move and follow-up attack are one uninterrupted activation.
+    ui = fixture("BISON",3); unit = ui.selected;
+    second = ENGINE.makeUnit("BISON",0,0,2); ui.game.units.push(second);
+    ui.onHexClick(2,1);
+    ui.onHexClick(2,1);
+    ok(ui.selected === unit && !unit.moved && ui.pickTargets.length === 1,
+      "clicking the active unit again keeps its immediate follow-up shot available");
+    ui.onHexClick(0,2);
+    ok(unit.moved && !unit.attacked && unit.movePointsLeft === 0 && ui.selected === second,
+      "selecting another unit finishes the first unit's activation without attacking");
+    var firstEnded = JSON.stringify(ui.game.snapshot());
+    ui.onHexClick(1,2); ui.onHexClick(2,1);
+    ok(unit.moved && !ui.selected && !ui.previewTargets(unit).length &&
+      !ui.game.remainingTurnActions().field.some(function (entry) { return entry.unit === unit; }),
+      "move A, skip its attack, move B, reselect A cannot offer another action or End Turn reminder");
+    rejected = false;
+    try { ui.game.attack(unit,ui.game.units[1]); } catch (error) { rejected = true; }
+    ok(rejected, "the engine rejects an attack by the unit whose activation was abandoned");
+    saved = JSON.parse(JSON.stringify(ui.snapshotForSave()));
+    ui.game = ENGINE.Game.restore(saved); ui.undoHistory = saved.undoHistory;
+    ui.selectUnit(ui.game.units[0]);
+    ok(!ui.selected && !ui.game.legalAttackTargets(ui.game.units[0]).length,
+      "the finished activation stays finished after save/reload");
+    ui.undoLast();
+    ok(JSON.stringify(ui.game.snapshot()) === firstEnded,
+      "undoing the second unit's move keeps the first unit finished");
+    ui.undoLast();
+    ok(ui.game.units[0].col === 1 && !ui.game.units[0].moved && !ui.game.units[0].shifted,
+      "undoing the first unit's move restores its ready activation");
+    ui.redoLast();
+    ok(JSON.stringify(ui.game.snapshot()) === firstEnded,
+      "redo restores the first move together with its implicit End");
+
+    ["escape", "empty", "enemy"].forEach(function (exit) {
+      ui = fixture("BISON",3); unit = ui.selected;
+      ui.onHexClick(2,1);
+      if (exit === "escape") ui.onKey({key:"Escape"});
+      else if (exit === "empty") ui.onHexClick(7,2);
+      else ui.inspectEnemy(ui.game.units[1]);
+      ok(unit.moved && !unit.attacked && ui.undoHistory.length === 1,
+        exit + " finishes a started activation and keeps End grouped with the move");
+    });
+
+    ui = fixture("BISON",3); ui.onHexClick(2,1);
+    ui.onCancel(true);
+    ok(ui.game.units[0].col === 1 && !ui.game.units[0].moved && !ui.game.units[0].shifted,
+      "right-click still undoes the just-committed move instead of ending it");
+    ui.redoLast(); unit = ui.game.units[0];
+    ui.selectUnit(unit);
+    ok(!unit.moved && ui.pickTargets.length === 1,
+      "redoing an unfinished move permits continuing that unit's activation");
+
+    // Reload and history restoration clear selection, but not the activation rule.
+    ["same", "other", "factory"].forEach(function (next) {
+      ui = fixture("BISON",3); unit = ui.selected;
+      second = ENGINE.makeUnit("BISON",0,0,2); ui.game.units.push(second);
+      ui.onHexClick(2,1);
+      saved = JSON.parse(JSON.stringify(ui.snapshotForSave()));
+      ui.game = ENGINE.Game.restore(saved); ui.undoHistory = saved.undoHistory;
+      ui.selected = null; ui.mode = "idle"; unit = ui.game.units[0];
+      if (next === "same") ui.onHexClick(2,1);
+      else if (next === "other") ui.selectUnit(ui.game.units[2]);
+      else ui.openFactoryPanel({col:0,row:0,owner:0,kind:"factory",stored:[]});
+      ok(next === "same" ? !unit.moved && ui.pickTargets.length === 1 : unit.moved,
+        "after reload, choosing " + next + " respects the pending unit activation");
+    });
+
     ui = fixture("HADRIAN",4); unit=ui.selected;
     var readySnapshot=JSON.stringify(ui.game.snapshot());
     ok(ui.pickTargets.length===1 && ui.renderer.highlights[HEX.key(4,1)]==="rgba(255,80,60,0.55)" &&
@@ -221,6 +288,10 @@ module.exports = function (ok) {
       ok(ui.mode === "idle" && unit.moved && unit.attacked && ui.canUndo(), type + " retreat ends immediately");
       ui.undoLast();
       ok(JSON.stringify(ui.game.snapshot()) === before && !ui.canUndo(), type + " retreat undo stops at the completed battle");
+      second = ENGINE.makeUnit("BISON",0,0,2); ui.game.units.push(second);
+      ui.selectUnit(second);
+      ok(ui.game.units[0].moved && ui.game.units[0].movePointsLeft === 0,
+        type + " cannot bank its post-attack retreat while another unit acts");
     });
 
     ui = fixture("BISON",7); ui.onHexClick(2,1); ui.options = {hotseat:true}; ui.endTurn();

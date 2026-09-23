@@ -94,7 +94,8 @@ var PROFILES = (function () {
       p.results.push({id: match.id, name: state.map.name, endedAt: new Date().toISOString(),
         winner: state.winner, outcome: state.winner === 0 ? "win" : "loss",
         hotseat: !!match.options.hotseat, turn: Math.min(state.turn, state.turnLimit || state.turn),
-        levelKey: levelKey(state.map, match.options), reason: state.winReason});
+        levelKey: levelKey(state.map, match.options), reason: state.winReason,
+        opponent: match.options.opponent || "classic", opponentChanges: match.options.opponentChanges || []});
       var ci = match.options.campaignIndex;
       if (state.winner === 0 && ci !== undefined && p.cleared.indexOf(ci) < 0) p.cleared.push(ci);
       if (!p.savedMatch || p.savedMatch.id === match.id) p.savedMatch = null;

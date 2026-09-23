@@ -30,6 +30,12 @@ Facts we need across sessions:
   pan; Ctrl-click never issues a unit command. Never recenter merely because
   the map is smaller than the viewport. Show grab while Ctrl is held and
   grabbing during panning; use a crosshair for normal map actions.
+- **Board layout (2026-09-23):** game view offers Auto / Normal / Sideways
+  orientation and Top / Left controls, persisted across matches and reloads.
+  Auto chooses the larger full-board fit; Fit resets the camera. Left mode
+  docks unit commands and the range legend too, preserving full board height
+  even during selection. Keep units, counts and popups upright; rotate terrain,
+  highlights and hit testing consistently. See PRODUCT's board-layout record.
 - **Deploy target:** none selected in the records. It is a static folder; any
   static web host works. Record the target and deployment procedure when chosen.
 - **Public home:** [ernop/nectaris-remake](https://github.com/ernop/nectaris-remake),
@@ -145,7 +151,13 @@ Facts we need across sessions:
   blind spots, replacing per-hex firing outlines; see `PRODUCT.md`.
   Click a red target to fire directly; Attack can still isolate aiming.
   Atlas aims immediately. After moving, attack or End
-  if a shot exists; otherwise finish automatically. This supersedes the separate
+  if a shot exists; otherwise finish automatically. **Unit activation correction
+  (2026-09-23):** switching away or clearing selection after moving forfeits the
+  unused attack; returning later in the player turn never reopens it. Leaving
+  a buggy's post-attack retreat likewise ends its activation. Cancelling a ready,
+  unacted selection spends nothing. This supersedes the old permission to
+  reselect moved units and attack later; keep save/reload and Undo consistent.
+  See `PRODUCT.md` and `MECHANICS.md`. This supersedes the separate
   Shift-selection/confirmation flow. Top-bar **Undo / Redo** always appear as a
   linked pair, enabled at full opacity. They restore whole noncombat states,
   including factory/cargo changes, and both histories survive saves. New actions
@@ -154,12 +166,14 @@ Facts we need across sessions:
   Buggies retain their remaining movement only after attacking. Keep action
   controls clear of target hexes. The left inspector is optional (Details,
   initially closed); commands sit beside the selected unit, clear of other units
-  and selectable destinations. A temporary bottom rail is only a fallback when
+  and selectable destinations in Top mode. A temporary bottom rail is only a fallback when
   no nearby space fits (2026-09-22 correction). Enemy inspection shows both orange
   movement fill and separate ground/air firing outlines from the current hex,
   including indirect blind spots. The top bar never wraps: keep its
   height fixed and let settings scroll beside the persistent Details/Undo/Redo/End
-  Turn controls (2026-09-22). Never restore permanent empty chrome or
+  Turn controls (2026-09-22). The 2026-09-23 Left mode supersedes top-only
+  placement and keeps unit commands in the left dock, with no bottom rail.
+  Never restore permanent empty chrome or
   automatic move-and-attack shortcuts. `PRODUCT.md` records the current flow;
   `MANUAL_AUDIT.md` is the historical booklet review.
   `COMBAT.forecast` uses 100,000 independent simulation seeds and must never

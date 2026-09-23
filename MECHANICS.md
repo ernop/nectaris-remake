@@ -38,6 +38,14 @@ English names/designations are localization choices, not evidence for different
 stats. Charlie, Kilroy and Panther capture buildings.
 
 Each ordinary unit may move and attack once. Combat ends its activation.
+Per the user's original-game correction on 2026-09-23, that activation must be
+completed before using another unit: moving, declining the attack and switching
+away forfeits the shot for the rest of the player turn. The UI now finishes a
+started activation on deselection, so the engine rejects further movement or
+attacks and saves retain that spent state. This replaces the remake's earlier
+permission to return to a moved unit and attack later; source is the user's
+recollection, not a new original-executable trace. Merely selecting an unacted
+unit does not spend its activation. See `PRODUCT.md` for cancellation and Undo.
 Hadrian, Octopus, Atlas and Hawkeye move **or** fire. Atlas and Trigger have no
 movement once deployed; they may leave a factory onto an adjacent legal hex
 or aboard a compatible transport.
@@ -46,7 +54,8 @@ or aboard a compatible transport.
 remainder of the same allowance.** Attacking never refills it. Lynx attacks
 ground targets exactly two hexes away and aircraft at distance one. The UI
 and AI preserve the remaining allowance; undoing a completed retreat
-cannot undo combat. Sources: [PCE supplement](https://anka.sakura.ne.jp/nectaris/d1.html)
+cannot undo combat. Leaving the buggy before retreating ends that activation
+and forfeits the remaining movement. Sources: [PCE supplement](https://anka.sakura.ne.jp/nectaris/d1.html)
 and the [TG-16 FAQ](https://gamefaqs.gamespot.com/tg16/589030-military-madness/faqs/53871).
 
 ## Movement and terrain

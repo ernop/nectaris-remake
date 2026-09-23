@@ -135,6 +135,8 @@ var RENDER = (function () {
     this.originX = 40;
     this.originY = 40;
     this.zoom = 1;
+    this.orientation = "normal";
+    this.sideways = false;
     this.highlights = null;   // {key -> css color}
     this.fireRange = null;    // selected unit's current-position ground/air bands
     this.selected = null;     // unit
@@ -148,22 +150,24 @@ var RENDER = (function () {
   }
 
   Renderer.prototype.fitToMap = function () {
-    var s = this.hexSize;
     var dims = this.mapDimensions();
-    var mapW = dims.width, mapH = dims.height;
-    var zx = (this.canvas.width - 40) / mapW;
-    var zy = (this.canvas.height - 40) / mapH;
-    this.zoom = Math.max(this.minimumZoom(), Math.min(zx, zy, 1.6));
-    this.originX = (this.canvas.width - mapW * this.zoom) / 2 + (legacyMap() ? 24 : s) * this.zoom;
-    this.originY = (this.canvas.height - mapH * this.zoom) / 2 + (legacyMap() ? 16 : s) * this.zoom;
+    var w = Math.max(1, this.canvas.width - 16), h = Math.max(1, this.canvas.height - 16);
+    var normal = Math.min(w / dims.width, h / dims.height, 4);
+    var sideways = Math.min(w / dims.height, h / dims.width, 4);
+    this.sideways = this.orientation === "sideways" ||
+      (this.orientation === "auto" && sideways > normal * 1.02);
+    this.zoom = this.sideways ? sideways : normal;
+    var bounds = this.viewBounds();
+    this.originX = (this.canvas.width - bounds.width * this.zoom) / 2 - bounds.left * this.zoom;
+    this.originY = (this.canvas.height - bounds.height * this.zoom) / 2 - bounds.top * this.zoom;
   };
 
   Renderer.prototype.minimumZoom = function () {
     // Even very large custom maps must fit. Leave another 25% of zoom-out
     // room below the overview, in every art style and on small viewports.
-    var dims = this.mapDimensions();
-    var fit = Math.min(Math.max(1, this.canvas.width - 40) / dims.width,
-      Math.max(1, this.canvas.height - 40) / dims.height);
+    var dims = this.viewBounds();
+    var fit = Math.min(Math.max(1, this.canvas.width - 16) / dims.width,
+      Math.max(1, this.canvas.height - 16) / dims.height);
     return Math.min(0.2, fit * 0.75);
   };
 
@@ -171,15 +175,31 @@ var RENDER = (function () {
     if (legacyMap()) return {width: this.game.width * 32 + 16, height: this.game.height * 32 + (this.game.width > 1 ? 16 : 0)};
     return {
       width: (1.5 * (this.game.width - 1) + 2) * this.hexSize,
-      height: Math.sqrt(3) * (this.game.height + 0.5) * this.hexSize,
+      height: Math.sqrt(3) * (this.game.height + (this.game.width > 1 ? 0.5 : 0)) * this.hexSize,
     };
+  };
+
+  // Camera origins stay in screen coordinates; logical map coordinates never
+  // change. Terrain passes use the original projection under a canvas rotation.
+  Renderer.prototype.viewBounds = function () {
+    var dims = this.mapDimensions();
+    var left = legacyMap() ? -24 : -this.hexSize;
+    var top = legacyMap() ? -16 : -Math.sqrt(3) * this.hexSize / 2;
+    return this.sideways && !this._boardSpace ?
+      {left: -top - dims.height, top: left, width: dims.height, height: dims.width} :
+      {left: left, top: top, width: dims.width, height: dims.height};
+  };
+
+  Renderer.prototype.screenToBoard = function (px, py) {
+    var x = (px - this.originX) / this.zoom, y = (py - this.originY) / this.zoom;
+    return this.sideways && !this._boardSpace ? {x: y, y: -x} : {x: x, y: y};
   };
 
   Renderer.prototype.panAxes = function () {
     // Which axes currently clip terrain; dragging itself is available at any zoom.
-    var dims = this.mapDimensions();
-    var left = this.originX - (legacyMap() ? 24 : this.hexSize) * this.zoom;
-    var top = this.originY - (legacyMap() ? 16 : this.hexSize) * this.zoom;
+    var dims = this.viewBounds();
+    var left = this.originX + dims.left * this.zoom;
+    var top = this.originY + dims.top * this.zoom;
     return {
       x: left < 0 || left + dims.width * this.zoom > this.canvas.width,
       y: top < 0 || top + dims.height * this.zoom > this.canvas.height,
@@ -188,10 +208,10 @@ var RENDER = (function () {
 
   Renderer.prototype.constrainView = function () {
     this.zoom = Math.max(this.minimumZoom(), this.zoom);
-    var dims = this.mapDimensions();
+    var dims = this.viewBounds();
     var axes = this.panAxes();
-    var z = this.zoom, s = this.hexSize;
-    var offsetX = legacyMap() ? 24 : s, offsetY = legacyMap() ? 16 : s;
+    var z = this.zoom;
+    var offsetX = -dims.left, offsetY = -dims.top;
     var mapW = dims.width * z, mapH = dims.height * z;
     // Allow positioning a fitted map as freely as a zoomed one. Keep a
     // visible patch to grab back, even at minimum zoom or on tiny viewports.
@@ -214,12 +234,12 @@ var RENDER = (function () {
 
   Renderer.prototype.hexCenter = function (col, row) {
     var p = legacyMap() ? {x: col * 32, y: row * 32 + (col & 1) * 16} : HEX.toPixel(col, row, this.hexSize);
+    if (this.sideways && !this._boardSpace) p = {x: -p.y, y: p.x};
     return { x: this.originX + p.x * this.zoom, y: this.originY + p.y * this.zoom };
   };
 
   Renderer.prototype.pixelToHex = function (px, py) {
-    var x = (px - this.originX) / this.zoom;
-    var y = (py - this.originY) / this.zoom;
+    var p = this.screenToBoard(px, py), x = p.x, y = p.y;
     if (legacyMap()) {
       var col = Math.round(x / 32);
       for (var c = col - 1; c <= col + 1; c++) {
@@ -420,15 +440,16 @@ var RENDER = (function () {
   /* Include a generous border for terrain decorations and road joins. Work
    * follows viewport size even when most of a large map is off screen. */
   Renderer.prototype.visibleTileBounds = function () {
-    var legacy = legacyMap(), s = this.hexSize * this.zoom;
-    var pitchX = legacy ? 32 * this.zoom : 1.5 * s;
-    var pitchY = legacy ? 32 * this.zoom : Math.sqrt(3) * s;
-    var margin = legacy ? 64 * this.zoom : 2 * s;
+    var legacy = legacyMap(), s = this.hexSize;
+    var pitchX = legacy ? 32 : 1.5 * s;
+    var pitchY = legacy ? 32 : Math.sqrt(3) * s;
+    var margin = legacy ? 64 : 2 * s;
+    var a = this.screenToBoard(0, 0), b = this.screenToBoard(this.canvas.width, this.canvas.height);
     return {
-      minCol: Math.max(0, Math.floor((-this.originX - margin) / pitchX)),
-      maxCol: Math.min(this.game.width - 1, Math.ceil((this.canvas.width - this.originX + margin) / pitchX)),
-      minRow: Math.max(0, Math.floor((-this.originY - margin) / pitchY - 0.5)),
-      maxRow: Math.min(this.game.height - 1, Math.ceil((this.canvas.height - this.originY + margin) / pitchY)),
+      minCol: Math.max(0, Math.floor((Math.min(a.x, b.x) - margin) / pitchX)),
+      maxCol: Math.min(this.game.width - 1, Math.ceil((Math.max(a.x, b.x) + margin) / pitchX)),
+      minRow: Math.max(0, Math.floor((Math.min(a.y, b.y) - margin) / pitchY - 0.5)),
+      maxRow: Math.min(this.game.height - 1, Math.ceil((Math.max(a.y, b.y) + margin) / pitchY)),
     };
   };
 
@@ -1236,6 +1257,25 @@ var RENDER = (function () {
 
   /* --- frame ------------------------------------------------------------ */
 
+  Renderer.prototype.withBoardView = function (paint) {
+    if (!this.sideways) { paint.call(this); return; }
+    var canvas = this.canvas, ctx = this.ctx, x = this.originX, y = this.originY;
+    ctx.save();
+    // A quarter turn is pixel-exact. The terrain cache remains in board space,
+    // including Legacy's software raster and decorative border clipping.
+    ctx.translate(canvas.width, 0);
+    ctx.rotate(Math.PI / 2);
+    this.canvas = {width: canvas.height, height: canvas.width, ownerDocument: canvas.ownerDocument};
+    this.originX = y; this.originY = canvas.width - x;
+    this._boardSpace = true;
+    try { paint.call(this); }
+    finally {
+      this._boardSpace = false;
+      this.canvas = canvas; this.originX = x; this.originY = y;
+      ctx.restore();
+    }
+  };
+
   Renderer.prototype.drawTerrainLayer = function (bounds) {
     var g=this.game,canvas=this.canvas,ctx=this.ctx,renderer=this;
     if(!this._terrainCanvas && canvas.ownerDocument && ctx.drawImage)
@@ -1359,6 +1399,9 @@ var RENDER = (function () {
       var cell = key.split(","), col = +cell[0], row = +cell[1];
       var neighbors = HEX.neighbors(col, row), center = this.hexCenter(col, row);
       var points = hexCorners(center.x, center.y, this.hexSize * this.zoom);
+      if (this.sideways && !this._boardSpace) points = points.map(function (p) {
+        return {x: center.x - (p.y - center.y), y: center.y + (p.x - center.x)};
+      });
       var vertices = corners.map(function (p) { return HEX.key(3 * col + p[0], 2 * row + (col & 1) + p[1]); });
       for (var i = 0; i < 6; i++) {
         var neighbor = neighbors[neighborByEdge[i]];
@@ -1408,24 +1451,26 @@ var RENDER = (function () {
 
   Renderer.prototype.draw = function () {
     var ctx = this.ctx, g = this.game;
-    this.drawTerrainLayer(this.visibleTileBounds());
+    this.withBoardView(function () {
+      this.drawTerrainLayer(this.visibleTileBounds());
 
-    // movement / attack highlights (fill + bright outline for visibility)
-    if (this.highlights) {
-      for (var k in this.highlights) {
-        var parts = k.split(",");
-        var ctr = this.hexCenter(+parts[0], +parts[1]);
-        pathHex(ctx, ctr.x, ctr.y, this.hexSize * this.zoom * 0.92);
-        ctx.fillStyle = this.highlights[k];
-        ctx.fill();
-        ctx.strokeStyle = this.highlights[k].replace(/[\d.]+\)$/, "0.9)");
-        ctx.lineWidth = 1.5;
-        ctx.stroke();
+      // movement / attack highlights (fill + bright outline for visibility)
+      if (this.highlights) {
+        for (var k in this.highlights) {
+          var parts = k.split(",");
+          var ctr = this.hexCenter(+parts[0], +parts[1]);
+          pathHex(ctx, ctr.x, ctr.y, this.hexSize * this.zoom * 0.92);
+          ctx.fillStyle = this.highlights[k];
+          ctx.fill();
+          ctx.strokeStyle = this.highlights[k].replace(/[\d.]+\)$/, "0.9)");
+          ctx.lineWidth = 1.5;
+          ctx.stroke();
+        }
       }
-    }
 
-    // Only exposed firing-area edges; movement and legal targets keep their fill.
-    this.drawFiringRange();
+      // Only exposed firing-area edges; movement and legal targets keep their fill.
+      this.drawFiringRange();
+    });
 
     // units (ground first, then air on top)
     var i, u;
@@ -1445,21 +1490,23 @@ var RENDER = (function () {
     for (i = 0; i < this.explosions.length; i++) this.drawExplosion(this.explosions[i]);
     this.drawFactoryCounts();
 
-    // selected ring
-    if (this.selected) {
-      var sc = this.hexCenter(this.selected.col, this.selected.row);
-      pathHex(ctx, sc.x, sc.y, this.hexSize * this.zoom);
-      ctx.strokeStyle = theme.chrome.select; ctx.lineWidth = 2.5;
-      ctx.stroke();
-    }
+    this.withBoardView(function () {
+      // selected ring
+      if (this.selected) {
+        var sc = this.hexCenter(this.selected.col, this.selected.row);
+        pathHex(ctx, sc.x, sc.y, this.hexSize * this.zoom);
+        ctx.strokeStyle = theme.chrome.select; ctx.lineWidth = 2.5;
+        ctx.stroke();
+      }
 
-    // hover outline
-    if (this.hoverHex) {
-      var hc = this.hexCenter(this.hoverHex.col, this.hoverHex.row);
-      pathHex(ctx, hc.x, hc.y, this.hexSize * this.zoom);
-      ctx.strokeStyle = "rgba(255,255,255,0.6)"; ctx.lineWidth = 1.5;
-      ctx.stroke();
-    }
+      // hover outline
+      if (this.hoverHex) {
+        var hc = this.hexCenter(this.hoverHex.col, this.hoverHex.row);
+        pathHex(ctx, hc.x, hc.y, this.hexSize * this.zoom);
+        ctx.strokeStyle = "rgba(255,255,255,0.6)"; ctx.lineWidth = 1.5;
+        ctx.stroke();
+      }
+    });
   };
 
   return {

@@ -210,6 +210,36 @@ var COMBAT = (function () {
     return total / RANDOM_BUCKETS.length;
   }
 
+  /* Exact public chance model for planners. No match RNG access, sampling or
+   * duplicated combat arithmetic. Merge roll buckets with identical losses. */
+  function distribution(game, attacker, defender) {
+    var pv = preview(game, attacker, defender);
+    function marginal(shooter, target, ap, da, enabled) {
+      var losses = {};
+      if (!enabled) return [{loss: 0, probability: 1}];
+      RANDOM_WEIGHTS.forEach(function (entry) {
+        var loss = damageResult(shooter, target, ap, da, entry[0]).casualties;
+        losses[loss] = (losses[loss] || 0) + entry[1] / 100;
+      });
+      return Object.keys(losses).map(function (loss) { return {loss: +loss, probability: losses[loss]}; });
+    }
+    var outgoing = marginal(attacker, defender, pv.attacker.ap, pv.defender.da, true);
+    var incoming = marginal(defender, attacker, pv.defender.ap, pv.attacker.da, pv.counter);
+    var outcomes = [], out = 0, in_ = 0, kill = 0, death = 0;
+    outgoing.forEach(function (a) {
+      out += a.loss * a.probability;
+      if (a.loss === defender.strength) kill += a.probability;
+      incoming.forEach(function (d) {
+        outcomes.push({defenderLoss: a.loss, attackerLoss: d.loss, probability: a.probability * d.probability});
+      });
+    });
+    incoming.forEach(function (d) {
+      in_ += d.loss * d.probability;
+      if (d.loss === attacker.strength) death += d.probability;
+    });
+    return {out: out, in_: in_, kill: kill, death: death, outcomes: outcomes, preview: pv};
+  }
+
   // The seeds and coefficient weights do not depend on either squad. Count
   // each sampled pair once, then map the 14 x 14 counts onto battle losses.
   // This preserves every simulated outcome, including finite-sample noise;
@@ -310,7 +340,7 @@ var COMBAT = (function () {
     preview: preview, resolve: resolve, makeRng: makeRng,
     atkStat: atkStat, isAir: isAir,
     rangeBand: rangeBand, canAttackAt: canAttackAt,
-    experienceBonus: experienceBonus, expectedCasualties: expectedCasualties,
+    experienceBonus: experienceBonus, expectedCasualties: expectedCasualties, distribution: distribution,
     forecast: forecast,
     MAX_EXP: MAX_EXP, MAX_STRENGTH: MAX_STRENGTH,
     EXP_DAMAGE: EXP_DAMAGE,

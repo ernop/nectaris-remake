@@ -30,6 +30,8 @@ retuned. These themes do not authorize extra features or unsourced rule changes.
 
 | Item | Status and record |
 | --- | --- |
+| Board orientation and control docking | Implemented from the user's 2026-09-23 space-saving request: Auto / Normal / Sideways board views, Top / Left control placement, upright units and labels, a Fit button and persisted preferences. Left mode also docks unit commands and the legend, preserving full board height. [Layout behavior](PRODUCT.md#board-orientation-and-control-docking-2026-09-23). |
+| Unit activation completion | Implemented from the user's 2026-09-23 original-game correction: leaving a started activation forfeits its remaining attack or buggy retreat; returning to the unit later cannot reopen it. Saves and Undo retain the correct action state. [Action rules](MECHANICS.md#units-and-actions), [controls](PRODUCT.md#shift-target-inspection-and-combat-controls-updated-2026-09-21). |
 | Firing-area borders | User-requested visual trial implemented: outer and inner contours replace per-hex firing outlines; awaiting user assessment. [Trial scope](PRODUCT.md#firing-area-border-trial-2026-09-23). |
 | Remake stock unit roster | Implemented: 23 types, two native 32×32 facings. Map icons scale with zoom; panel/review icons remain native. [Unit record](art/units/README.md). |
 | Mission library | Each entry stays on one line; wide screens show three levels across per row, with two or one on narrower screens. Faction totals align vertically, the entry starts play, and edge help closes on mouseout with zero delay. [Content and interactions](PRODUCT.md#mission-library-and-deliberate-help-controls-2026-09-23), [comparison rule](PRODUCT.md#single-line-comparison-entries-2026-09-23-clarification). |
@@ -47,7 +49,7 @@ retuned. These themes do not authorize extra features or unsourced rule changes.
 
 | Record | How to use it |
 | --- | --- |
-| [FIRST_PLAYER_BALANCE_RESEARCH.md](FIRST_PLAYER_BALANCE_RESEARCH.md) | 2026-09-23 research on first-player advantage: sourced precedents, options, costs and proposed measurement. No balance change is approved or implemented; the reported advantage remains unmeasured. |
+| [FIRST_PLAYER_BALANCE_RESEARCH.md](FIRST_PLAYER_BALANCE_RESEARCH.md) | 2026-09-23 research on first-player advantage. The user favors exploring pie/compensation offers; the follow-up covers offer ordering, units, arrival timing and acceptance rules. No specific balance implementation is approved; the reported advantage remains unmeasured. |
 | [FIDELITY_AUDIT.md](FIDELITY_AUDIT.md) | Dated comparison, remaining differences and scope; current adopted rules live in MECHANICS and controls in PRODUCT. |
 | [MANUAL_AUDIT.md](MANUAL_AUDIT.md) | Page-by-page source review and coverage at the time of the audit, with subsequent corrections. |
 | [ORIGINAL_EXECUTABLE_NOTES.md](ORIGINAL_EXECUTABLE_NOTES.md) | Windows executable observations and explicit limits on extrapolating them to PCE. |
