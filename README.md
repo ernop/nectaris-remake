@@ -92,14 +92,18 @@ profile. Storage problems display an error instead of claiming progress is saved
 
 The mission library uses the same layout for campaigns, expansion packs and
 custom levels. Collection links jump between groups; each header shows your
-progress. Dense entries show the level's number/name, dimensions, Union/Xenon/
-Neutral totals and any result. **Click the entry to play**; the separate `?`
+progress. Each dense entry keeps its number/name, dimensions, Union/Xenon/
+Neutral totals and any result on one line. Totals align vertically beneath their
+column headings. Wide screens show entries side by side; narrow lists scroll
+horizontally instead of wrapping. **Click the entry to play**; the separate `?`
 opens details. Returning to the library keeps your scroll position.
 
 Hover or focus the small **?** beside a level or collection for its briefing,
-design notes, credits and sources. Click/tap **?** to keep it open; click again,
-click outside or press Escape to close it. Moving across a card does not open
-anything. Panels close when the page scrolls or resizes.
+design notes, credits and sources. Click/tap **?** toggles it. Moving outside the
+button and its popup closes it immediately, including after clicking. The popup
+touches its button so its links remain reachable. Clicking outside or pressing Escape
+also closes it. Moving across an entry does not open anything. Panels close when
+the page or list scrolls or resizes.
 
 - **Details** toggles the left inspector, initially closed; your choice is
   remembered. Unit details, factory information and combat forecasts remain

@@ -268,7 +268,23 @@ order: **Union, Xenon, Neutral**. Include fielded units and each side's stored
 reserves; unowned factory inventories count as Neutral, never as either army.
 Use normal, equal-size labels and numbers with tabular figures. The user
 explicitly rejected oversized army counts; this supersedes the earlier larger
-numbers and omission of neutral reserves.
+numbers and omission of neutral reserves. Put the three totals in shared,
+right-aligned columns so each side's digits line up vertically between levels.
+Column headings can supply the faction labels without repeating them in every entry.
+
+## Single-line comparison entries (2026-09-23 clarification)
+
+Each individual listing in a comparison list must occupy one text line. Never
+stack a name, metadata, numbers or result on multiple lines inside that entry;
+stacking breaks comparability even when every card has the same height. Multiple
+complete listings may sit side by side in columns when there is room. This is
+not a requirement for only one listing across the entire page.
+
+Keep corresponding fields aligned down each column. In the mission library,
+names, dimensions, faction totals and results remain on the same line. Use
+horizontal scrolling when necessary, preserving full text rather than wrapping,
+fading or truncating it. The earlier two-line dense cards are superseded.
+This comparison rule does not prohibit paragraphs in deliberate detail popups.
 
 ## Readable interface colors (2026-09-23)
 
@@ -576,7 +592,7 @@ The implemented content layout is:
 | Location | Visible content |
 | --- | --- |
 | Collection header | Category, title, one-line introduction, number of levels won and a small help button |
-| Every level entry | Number, name, map dimensions, normal-size Union/Xenon/Neutral totals and any personal result; the entry itself is the Play target |
+| Every level entry | One line containing number, name, map dimensions, aligned Union/Xenon/Neutral totals and any personal result; the entry itself is the Play target |
 | Level help | Briefing, design/special notes, tags, author/terrain attribution, source link and last-match detail, where supplied |
 | Collection help | Making-of context, provenance and links to the detailed collection record |
 
@@ -588,17 +604,21 @@ initial card layout; retain the shared structure for normal, advanced, AI-made,
 Lunar Frontiers, Base Nectaris and custom collections. Preserve campaign numbering and saved result keys.
 Count solo victories once per level for group progress; keep legacy campaign
 clearance and separate hotseat result records. Show the three faction totals
-according to the force-count rule above. Unplayed entries need no empty result row.
+according to the force-count rule above. Results never add a second line.
 
 Clicking anywhere in the main entry area launches its match; focusing or hovering
 that area never opens details. Hovering the small help button deliberately opens its panel after a
-short delay; keyboard focus opens it immediately. Click/tap pins it, and a
-second click, outside click or Escape dismisses it. Keep the panel reachable
-while moving to its text or links, constrain it to the viewport, and close it
-when scrolling or resizing. Only one panel may be open. It must not change the
-card's height or show missing metadata as `undefined`.
+short delay; keyboard focus opens it immediately. Click/tap toggles it. The latest
+explicit correction requires **0 ms mouseout dismissal**: no timeout, fade or
+click/focus exemption may keep it open after the pointer leaves the help button
+and panel. This supersedes click-to-pin behavior and the proposed 60 ms grace
+period. The panel touches its button so the pointer can enter its text or links
+directly without a gap. A second click, outside click, focus leaving the help
+region or Escape also dismisses it. Constrain it to the viewport, and close it
+when the page or list scrolls or resizes. Only one panel may be open. It must not
+change the entry's height or show missing metadata as `undefined`.
 
-Use responsive columns and collection jump links. Keep profile selection,
+Use responsive columns of individually single-line entries and collection jump links. Keep profile selection,
 Continue, history, hotseat, briefing language and custom imports accessible.
 Remember the menu's scroll position when starting a match and restore it after
 rebuilding the list on return. Language/profile changes must preserve entered

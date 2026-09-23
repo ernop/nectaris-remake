@@ -39,6 +39,7 @@ module.exports = function (ok) {
   function all(node, cls){return (node.classList.contains(cls)?[node]:[]).concat(node.children.flatMap(function(c){return all(c,cls);}));}
   function find(node,cls){return all(node,cls)[0];}
   function flushTimers(){var pending=Array.from(timers.values());timers.clear();pending.forEach(function(fn){fn();});}
+  function cards(id){return all(get(id),"level-card");}
   var context = {document:{getElementById:get,createElement:element,baseURI:"http://nectaris.localhost/",activeElement:null,
       addEventListener:function(name,fn){documentListeners[name]=fn;}},
     localStorage:storage,PROFILES:PROFILES,URL:URL,
@@ -58,12 +59,12 @@ module.exports = function (ok) {
   }};
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,"../js/main.js"),"utf8"),context);
   listeners.DOMContentLoaded();
-  ok(get("mission-list").children.length===16 && get("advanced-mission-list").children.length===16,
+  ok(cards("mission-list").length===16 && cards("advanced-mission-list").length===16,
     "both original campaigns use their complete sixteen-level collections");
   ok(get("map-jump").children[1].children.length===32,"map jump retains all original campaign indices");
   var aiLevels=context.AI_MADE_LEVELS;
-  ok(get("ai-made-list").children.length===aiLevels.length && aiLevels.every(function(level,i){
-    return find(get("ai-made-list").children[i],"level-card-heading").textContent===level.name;
+  ok(cards("ai-made-list").length===aiLevels.length && aiLevels.every(function(level,i){
+    return find(cards("ai-made-list")[i],"level-card-heading").textContent===level.name;
   }),"AI-made cards retain every separately named level in data order");
   var aiGroup=get("map-jump").children.find(function(g){return g.label==="AI-made";});
   ok(aiGroup.children.length===aiLevels.length && aiLevels.every(function(level,i){return aiGroup.children[i].value==="a:"+i;}),
@@ -73,7 +74,9 @@ module.exports = function (ok) {
   ok(get("level-groups").children.length===6 && get("level-groups-nav").children.length===6,
     "one shared collection structure covers campaigns, packs and custom levels with jump navigation");
   ["mission-list","advanced-mission-list","ai-made-list","expansion-list","basenec-list","custom-list"].forEach(function(id){
-    var card=get(id).children[0];
+    var card=cards(id)[0], columns=find(get(id),"level-columns");
+    ok(columns && columns.children.slice(3,6).map(function(c){return c.textContent;}).join("/") === "Union/Xenon/Neutral",
+      id+": column headings identify the three aligned numeric totals");
     ok(card.tagName==="article" && find(card,"level-card-heading") && find(card,"level-card-meta") &&
       find(card,"level-card-forces") && find(card,"mission-record") && find(card,"level-play") && find(card,"level-help"),
       id+": shared entry contains name, size, army totals, result, a large Play target and separate help");
@@ -88,7 +91,7 @@ module.exports = function (ok) {
   ok(find(get("normal-section"),"group-progress").textContent==="1 / 16 won" &&
     find(get("advanced-section"),"group-progress").textContent==="0 / 16 won",
     "collection progress counts won levels rather than wins or differently indexed campaigns");
-  var normalCard=get("mission-list").children[0];
+  var normalCard=cards("mission-list")[0];
   ok(find(normalCard,"mission-record").textContent==="Victory · 8W / 7L",
     "cards retain the latest outcome and cumulative result counts");
   ok(get("profile-history").children.length===10 && get("history-count").textContent==="Showing 10 of 15 matches",
@@ -104,7 +107,7 @@ module.exports = function (ok) {
   get("profile-select").value=first.id;get("profile-select").onchange();
   ok(get("profile-history").children.length===10 && get("profile-record").textContent.startsWith("8 wins · 7 losses"),
     "switching back restores independent results and resets history paging");
-  var card=get("ai-made-list").children[0],help=find(card,"level-help"),panel=find(card,"level-briefing"),wrap=find(card,"level-help-wrap");
+  var card=cards("ai-made-list")[0],help=find(card,"level-help"),panel=find(card,"level-briefing"),wrap=find(card,"level-help-wrap");
   ok(panel.classList.contains("hidden") && panel.textContent.includes(aiLevels[0].description) &&
     panel.textContent.includes(aiLevels[0].special) && panel.textContent.includes(aiLevels[0].tags[0]) &&
     panel.textContent.includes(aiLevels[0].author),"briefing, design notes, tags and credits are initially hidden behind help");
@@ -114,45 +117,51 @@ module.exports = function (ok) {
   ok(panel.classList.contains("hidden"),"leaving before the hover delay cancels opening");
   help.onmouseenter();flushTimers();
   ok(!panel.classList.contains("hidden") && help.attributes["aria-expanded"]==="true","intentional help hover opens the associated details");
-  wrap.onmouseleave();wrap.onmouseenter();flushTimers();
+  help.onmouseleave({relatedTarget:panel});panel.onmouseenter();flushTimers();
   ok(!panel.classList.contains("hidden"),"moving into the panel keeps its source links reachable");
-  wrap.onmouseleave();flushTimers();
-  ok(panel.classList.contains("hidden"),"leaving help and its panel dismisses hover details");
+  panel.onmouseleave();
+  ok(panel.classList.contains("hidden") && timers.size===0,"leaving help and its panel closes immediately without a dismissal timer");
   help.focus();
   ok(!panel.classList.contains("hidden"),"keyboard focus on the help button opens the same details");
   documentListeners.keydown({key:"Escape",stopPropagation:function(){}});
   ok(panel.classList.contains("hidden") && context.document.activeElement===help,"Escape closes details and retains focus at the help button");
-  help.onclick();wrap.onmouseleave();flushTimers();
-  ok(!panel.classList.contains("hidden"),"click/touch pins details for reading");
+  help.onclick();
+  ok(!panel.classList.contains("hidden"),"click/touch opens details for reading");
+  help.onmouseleave();
+  ok(panel.classList.contains("hidden") && context.document.activeElement===help,
+    "mouseout immediately closes clicked details even while the help button retains focus");
+  help.onclick();
   documentListeners.pointerdown({target:card});
   ok(panel.classList.contains("hidden") && !liveUI,"outside click closes details without starting a match");
   help.onclick();help.onclick();
-  ok(panel.classList.contains("hidden"),"a second click on help dismisses pinned details");
+  ok(panel.classList.contains("hidden"),"a second click on help dismisses details");
+  help.onclick();get("ai-made-list").events.scroll();
+  ok(panel.classList.contains("hidden"),"horizontal list scrolling closes details");
   help.onclick();listeners.scroll();
   ok(panel.classList.contains("hidden"),"scrolling closes a detached help panel even if its button has focus");
-  var otherHelp=find(get("mission-list").children[0],"level-help");help.onclick();otherHelp.focus();
+  var otherHelp=find(cards("mission-list")[0],"level-help");help.onclick();otherHelp.focus();
   ok(panel.classList.contains("hidden") && otherHelp.attributes["aria-expanded"]==="true","only one help panel stays open across collections");
   listeners.resize();
-  var customCard=get("custom-list").children[0];
+  var customCard=cards("custom-list")[0];
   ok(find(customCard,"level-card-heading").textContent===custom.name && !find(customCard,"level-card-heading").innerHTML &&
     !find(find(customCard,"level-briefing"),"level-source"),"custom titles stay plain text and unsafe source schemes are omitted");
   ok(find(customCard,"level-card-meta").textContent==="3 × 2" &&
     find(customCard,"level-card-forces").innerHTML===
-      "<span class='level-force force-union'>Union <span class='force-count'>3</span></span>"+
-      "<span class='level-force force-xenon'>Xenon <span class='force-count'>1</span></span>"+
-      "<span class='level-force force-neutral'>Neutral <span class='force-count'>3</span></span>",
+      "<span class='level-force force-union' aria-label='Union 3'><span class='force-count'>3</span></span>"+
+      "<span class='level-force force-xenon' aria-label='Xenon 1'><span class='force-count'>1</span></span>"+
+      "<span class='level-force force-neutral' aria-label='Neutral 3'><span class='force-count'>3</span></span>",
     "entries list Union, Xenon and Neutral in order, with field units plus each side’s stored reserves");
   ok(!find(customCard,"level-briefing").textContent.includes("undefined"),"missing custom metadata never displays undefined fields");
   var customTools=get("custom-level-tools");get("online-level-url").value="https://example.com/map.json";
   get("lang-select").value="ja";get("lang-select").onchange();
-  ok(find(get("basenec-list").children[0],"level-card-heading").textContent===context.BASE_NECTARIS_LEVELS[0].nameJa &&
-    find(get("basenec-list").children[0],"level-briefing").textContent.includes(context.BASE_NECTARIS_LEVELS[0].descriptionJa),
+  ok(find(cards("basenec-list")[0],"level-card-heading").textContent===context.BASE_NECTARIS_LEVELS[0].nameJa &&
+    find(cards("basenec-list")[0],"level-briefing").textContent.includes(context.BASE_NECTARIS_LEVELS[0].descriptionJa),
     "Japanese titles and briefings remain available in the common layout");
   ok(get("custom-level-tools")===customTools && customTools.parentNode.id==="custom-section" &&
     get("online-level-url").value==="https://example.com/map.json","menu rebuilds preserve import controls and the entered URL");
   get("lang-select").value="en";get("lang-select").onchange();
   context.window.scrollY=1460;get("chk-hotseat").checked=true;
-  find(get("advanced-mission-list").children[0],"level-play").onclick();
+  find(cards("advanced-mission-list")[0],"level-play").onclick();
   ok(get("menu-screen").classList.contains("hidden") && store.active().savedMatch.options.campaignIndex===16 && liveUI.options.hotseat,
     "Play starts the selected advanced mission with its original index and chosen mode");
   context.window.scrollY=0;liveUI.options.onMenu();

@@ -167,12 +167,18 @@ Facts we need across sessions:
   heatmap. See `PRODUCT.md`, `test/combat-ui-tests.js`, and `test/forecast-tests.js`.
 
 - **Level menu (2026-09-23):** restore its scroll position after leaving a level.
-  All campaigns, packs and custom maps share dense entries: name, number, size,
-  normal-size Union/Xenon/Neutral totals in that order, and any result. The main
+  All campaigns, packs and custom maps share dense, internally single-line entries:
+  name, number, size, normal-size Union/Xenon/Neutral totals in that order, and any
+  result. Align the numeric totals vertically in shared right-aligned columns.
+  Multiple complete entries may sit side by side; never stack or wrap fields
+  inside one listing. Scroll horizontally when needed, without truncating text. The main
   entry is a large click-to-play target; omit turn limits and the tiny Play button.
   Details open only from small edge `?` controls (intentional hover, focus or
   click/tap), never whole-card mouseovers. Keep briefings, making-of notes and
   provenance there; preserve numbering, result keys and import controls.
+  Mouseout closes help immediately (0 ms), even after a click or with lingering
+  button focus. No dismissal timer or fade. The panel touches its button so
+  source links remain reachable. Click-to-pin and the proposed 60 ms delay are superseded.
   See `PRODUCT.md` for the full content and dismissal behavior.
 
 - **UI contrast (2026-09-23):** never fade lettering toward a dark or light

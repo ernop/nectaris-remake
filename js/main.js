@@ -211,12 +211,14 @@
       briefing: "Briefing", design: "Design notes", author: "Made by", sourceFile: "Terrain file",
       lastMatch: "Last match", collection: "About this collection", noNotes: "No briefing supplied by the author.",
       union: "Union", xenon: "Xenon", neutral: "Neutral",
+      mission: "Level", size: "Size", result: "Result",
     },
     ja: {
       source: "出典 ↗", collectionSource: "コレクションの詳細 ↗", play: "開始",
       briefing: "作戦概要", design: "設計の特徴", author: "作者", sourceFile: "地形ファイル",
       lastMatch: "前回の結果", collection: "このコレクションについて", noNotes: "作戦概要はありません。",
       union: "連合軍", xenon: "ガイチ軍", neutral: "中立",
+      mission: "マップ", size: "サイズ", result: "結果",
     },
   };
 
@@ -236,8 +238,8 @@
   function forceCountHtml(level, labels, className) {
     var counts = initialForceCounts(level);
     return ["union", "xenon", "neutral"].map(function (side, index) {
-      return "<span class='" + className + " force-" + side + "'>" + labels[side] +
-        " <span class='force-count'>" + counts[index] + "</span></span>";
+      return "<span class='" + className + " force-" + side + "' aria-label='" + labels[side] + " " + counts[index] +
+        "'><span class='force-count'>" + counts[index] + "</span></span>";
     }).join("");
   }
 
@@ -251,7 +253,7 @@
     if (!activeMenuHelp) return;
     activeMenuHelp.panel.classList.add("hidden");
     activeMenuHelp.button.setAttribute("aria-expanded", "false");
-    activeMenuHelp.pinned = false;
+    activeMenuHelp.clicked = false;
     activeMenuHelp = null;
   }
   function menuText(tag, className, value) {
@@ -286,12 +288,13 @@
     button.setAttribute("aria-controls", id);
     var panel = document.createElement("div");
     panel.id = id; panel.className = "level-briefing hidden";
+    panel.tabIndex = -1;
     panel.setAttribute("role", "region");
     panel.setAttribute("aria-label", name + " details");
     panel.appendChild(menuText("h3", "briefing-title", name));
     fill(panel);
     wrap.appendChild(button); wrap.appendChild(panel);
-    var state = {wrap:wrap, button:button, panel:panel, pinned:false};
+    var state = {wrap:wrap, button:button, panel:panel, clicked:false};
     function show() {
       if (activeMenuHelp !== state) closeMenuHelp();
       else clearMenuHelpTimer();
@@ -301,8 +304,8 @@
       var rect = button.getBoundingClientRect();
       panel.style.left = Math.max(12, Math.min(rect.right - panel.offsetWidth,
         window.innerWidth - panel.offsetWidth - 12)) + "px";
-      var top = rect.bottom + 6;
-      if (top + panel.offsetHeight > window.innerHeight - 12) top = rect.top - panel.offsetHeight - 6;
+      var top = rect.bottom;
+      if (top + panel.offsetHeight > window.innerHeight - 12) top = rect.top - panel.offsetHeight;
       panel.style.top = Math.max(12, top) + "px";
     }
     // Only the small help button opens details; the card never owns a hover.
@@ -311,17 +314,19 @@
     };
     button.onfocus = show;
     button.onclick = function () {
-      if (activeMenuHelp === state && state.pinned) closeMenuHelp();
-      else { show(); state.pinned = true; }
+      if (activeMenuHelp === state && state.clicked) closeMenuHelp();
+      else { show(); state.clicked = true; }
     };
-    wrap.onmouseenter = clearMenuHelpTimer;
-    wrap.onmouseleave = function () {
+    // The panel touches the button so its links remain reachable with no
+    // dismissal delay. Clicks and lingering focus never pin it after mouseout.
+    function leave(event) {
       clearMenuHelpTimer();
-      if (state.pinned || wrap.contains(document.activeElement)) return;
-      menuHelpTimer = setTimeout(function () {
-        if (activeMenuHelp === state) closeMenuHelp();
-      }, 140);
-    };
+      var target = event && event.relatedTarget;
+      if (target && (button.contains(target) || panel.contains(target))) return;
+      if (activeMenuHelp === state) closeMenuHelp();
+    }
+    button.onmouseleave = panel.onmouseleave = wrap.onmouseleave = leave;
+    panel.onmouseenter = clearMenuHelpTimer;
     wrap.addEventListener("focusout", function (event) {
       if (!wrap.contains(event.relatedTarget) && activeMenuHelp === state) closeMenuHelp();
     });
@@ -372,6 +377,20 @@
   }
   function renderLevelCards(host, group) {
     var L = CARD_LABELS[lang()];
+    if (group.levels.length) {
+      [false, true].forEach(function (second) {
+        var columns = menuText("div", "level-columns", "");
+        if (second) columns.classList.add("level-columns-second");
+        columns.appendChild(menuText("span", "level-number", "#"));
+        columns.appendChild(menuText("span", "", L.mission));
+        columns.appendChild(menuText("span", "level-card-meta", L.size));
+        ["union", "xenon", "neutral"].forEach(function (side) {
+          columns.appendChild(menuText("span", "level-force force-" + side, L[side]));
+        });
+        columns.appendChild(menuText("span", "", L.result));
+        host.appendChild(columns);
+      });
+    }
     group.levels.forEach(function (lv, i) {
       var options = levelOptions(group, i), name = tr(lv, "name");
       var card = document.createElement("article");
@@ -439,6 +458,7 @@
       }));
       section.appendChild(heading);
       var list = document.createElement("div"); list.id = group.list; list.className = "level-library";
+      list.addEventListener("scroll", closeMenuHelp);
       renderLevelCards(list, group); section.appendChild(list);
       if (!group.levels.length) list.appendChild(menuText("p", "empty-levels", "No levels yet. Create a battlefield or import one below."));
       if (group.id === "custom") section.appendChild(customTools);
