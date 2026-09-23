@@ -1,0 +1,154 @@
+{
+  "name": "WALKING THE RIDGE",
+  "pack": "AI-made: Broken Ground",
+  "campaignId": "broken-ground",
+  "mission": 5,
+  "author": "AI-made by Codex",
+  "source": "levels/broken-ground/05-walking-the-ridge.json",
+  "description": "Infantry and Mules only. Connected hill belts are cheap for foot soldiers and costly for their carriers; the road around the edge offers a different kind of shortcut.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 60 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "terrain-dependent routes",
+    "split",
+    "limited roster"
+  ],
+  "design": {
+    "theme": "rough",
+    "layout": 5,
+    "formation": "split",
+    "road": "rim"
+  },
+  "turnLimit": 60,
+  "grid": [
+    "............................",
+    "............................",
+    "............h..-------......",
+    "...........hh--.wwwww-hh....",
+    "....--.....--wwwwwwwhh--h...",
+    "hh..-.--F--.wwwwwwwwhhhh--..",
+    "hhhh-...-..hwwwwwwwwwhhhh-..",
+    "hhhh-h.hhhhhwwwwwwwwwwww.-.h",
+    "..hh-hMhhhhhwwwwwwwwwwww.-hh",
+    "...--MMhhhhhhhwwwwwwww.hh-hh",
+    "..B.hMMhhhhhhhhhhh.hhhhhh-h.",
+    ".h-hhhhhh.hhhhhhhhhhhMMh.B..",
+    "hh-hh.wwwwwwwwhhhhhhhMM--...",
+    "hh-.wwwwwwwwwwwwhhhhhMh-hh..",
+    "h.-.wwwwwwwwwwwwhhhhh.h-hhhh",
+    "..-hhhhwwwwwwwwwh..-...-hhhh",
+    "..--hhhhwwwwwwww.--F--.-..hh",
+    "...h--hhwwwwwww--.....--....",
+    "....hh-wwwww.--hh...........",
+    "......-------..h............",
+    "............................",
+    "............................"
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 10,
+      "owner": 0
+    },
+    {
+      "col": 25,
+      "row": 11,
+      "owner": 1
+    },
+    {
+      "col": 8,
+      "row": 5,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "CHARLIE",
+        "KILROY",
+        "KILROY"
+      ]
+    },
+    {
+      "col": 19,
+      "row": 16,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "CHARLIE",
+        "KILROY",
+        "KILROY"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 5
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 15
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 4
+    },
+    {
+      "t": "KILROY",
+      "o": 0,
+      "x": 5,
+      "y": 14
+    },
+    {
+      "t": "KILROY",
+      "o": 0,
+      "x": 4,
+      "y": 5
+    },
+    {
+      "t": "MULE",
+      "o": 0,
+      "x": 4,
+      "y": 15
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 22,
+      "y": 16
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 22,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 22,
+      "y": 17
+    },
+    {
+      "t": "KILROY",
+      "o": 1,
+      "x": 22,
+      "y": 7
+    },
+    {
+      "t": "KILROY",
+      "o": 1,
+      "x": 23,
+      "y": 16
+    },
+    {
+      "t": "MULE",
+      "o": 1,
+      "x": 23,
+      "y": 6
+    }
+  ]
+}

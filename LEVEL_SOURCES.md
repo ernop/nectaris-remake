@@ -205,6 +205,23 @@ The resulting table is functional data about a file format, in the same
 category as the stat and terrain tables described above; no tile artwork is
 copied into this repository.
 
+## Included original terrain campaigns (2026-09-23)
+
+**Open Horizons**, **The Knotted Heart** and **Broken Ground** are original
+16-mission AI-made collections created by Codex for the project owner's requested physical map
+themes. Their layouts, armies, factory stocks and briefs were authored for this
+remake; no historical or community map data was imported. General military ideas
+inspired tactical problems, without copying a battle reconstruction or commentary.
+
+`tools/environment-campaign-specs.js` holds the mission catalog and
+`tools/build-environment-campaigns.js` holds the deterministic geometry recipes.
+They generate `js/data-environment-campaigns.js`, all 48 individual maps in
+`levels/open-horizons/`, `levels/knotted-heart/` and `levels/broken-ground/`, and
+[Open Horizons](levels/open-horizons.json), [The Knotted Heart](levels/knotted-heart.json)
+and [Broken Ground](levels/broken-ground.json) import bundles.
+[The catalog](ENVIRONMENT_CAMPAIGNS.md) lists every map with its source file.
+Existing official campaigns and earlier AI-made maps are preserved.
+
 ## Publishing your own
 
 An author can submit or publish a level under terms that allow redistribution;

@@ -1,0 +1,152 @@
+{
+  "name": "A NARROW ADVANTAGE",
+  "pack": "AI-made: Open Horizons",
+  "campaignId": "open-horizons",
+  "mission": 9,
+  "author": "AI-made by Codex",
+  "source": "levels/open-horizons/09-a-narrow-advantage.json",
+  "description": "Two Giants give Union impressive local strength but few bodies. The hourglass formations invite a frontal stand while lighter forces can use the wide outer lanes.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 60 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "open maneuver",
+    "line",
+    "mixed forces"
+  ],
+  "design": {
+    "theme": "open",
+    "layout": 9,
+    "formation": "line",
+    "road": "direct"
+  },
+  "turnLimit": 60,
+  "grid": [
+    "..............................",
+    "..............................",
+    ".............MM...............",
+    "..........wwwMMMMM............",
+    "..........MwwMMMMM............",
+    ".......-F.MMMMMMMM............",
+    ".....--.....MMMMM.............",
+    "...--...hh...MMM...---........",
+    "..-....hhhh...M..--hhh--......",
+    "..B-.-.hhhhh...--..hhhh---....",
+    "....---hhhh..--...hhhhh.-.-B..",
+    "......--hhh--..M...hhhh....-..",
+    "........---...MMM...hh...--...",
+    ".............MMMMM.....--.....",
+    "............MMMMMMMM.F-.......",
+    "............MMMMMwwM..........",
+    "............MMMMMwww..........",
+    "...............MM.............",
+    "..............................",
+    ".............................."
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 9,
+      "owner": 0
+    },
+    {
+      "col": 27,
+      "row": 10,
+      "owner": 1
+    },
+    {
+      "col": 8,
+      "row": 5,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "TITAN",
+        "TITAN",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 21,
+      "row": 14,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "TITAN",
+        "TITAN",
+        "TITAN"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 2,
+      "y": 8
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 9
+    },
+    {
+      "t": "GIANT",
+      "o": 0,
+      "x": 1,
+      "y": 8
+    },
+    {
+      "t": "GIANT",
+      "o": 0,
+      "x": 3,
+      "y": 8
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 1,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 27,
+      "y": 11
+    },
+    {
+      "t": "PANTHER",
+      "o": 1,
+      "x": 26,
+      "y": 10
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 28,
+      "y": 11
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 26,
+      "y": 11
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 28,
+      "y": 10
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 27,
+      "y": 9
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 26,
+      "y": 12
+    }
+  ]
+}

@@ -1,0 +1,186 @@
+{
+  "name": "THE INVITING BOWL",
+  "pack": "AI-made: Open Horizons",
+  "campaignId": "open-horizons",
+  "mission": 5,
+  "author": "AI-made by Codex",
+  "source": "levels/open-horizons/05-the-inviting-bowl.json",
+  "description": "A horseshoe of mountains wraps a tempting central arsenal. The straight road enters its mouth; the spacious outside flanks let the opponent approach its sides.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 55 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "open maneuver",
+    "forward",
+    "mixed forces"
+  ],
+  "design": {
+    "theme": "open",
+    "layout": 5,
+    "formation": "forward",
+    "road": "direct"
+  },
+  "turnLimit": 55,
+  "grid": [
+    "..............................",
+    "..............................",
+    "..............................",
+    "..........www.................",
+    "..........MwwM................",
+    ".......-FMM..-------..........",
+    ".......-.M.--.MMMMMM--........",
+    ".......-h--..MM...F-M.--......",
+    "......h--h-.M......-Mhh.-.....",
+    "..B-.--hhh-........-hhhh--....",
+    "....--hhhh-........-hhh--.-B..",
+    ".....-.hhM-......M.-h--h......",
+    "......--.M-F...MM..--h-.......",
+    "........--MMMMMM.--.M.-.......",
+    "..........-------..MMF-.......",
+    "................MwwM..........",
+    ".................www..........",
+    "..............................",
+    "..............................",
+    ".............................."
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 9,
+      "owner": 0
+    },
+    {
+      "col": 27,
+      "row": 10,
+      "owner": 1
+    },
+    {
+      "col": 8,
+      "row": 5,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "POLAR",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 21,
+      "row": 14,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "POLAR",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 11,
+      "row": 12,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "HADRIAN",
+        "OCTOPUS",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 18,
+      "row": 7,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "HADRIAN",
+        "OCTOPUS",
+        "POLAR"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 8,
+      "y": 8
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 8,
+      "y": 10
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 8,
+      "y": 11
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 7,
+      "y": 7
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 7,
+      "y": 9
+    },
+    {
+      "t": "OCTOPUS",
+      "o": 0,
+      "x": 7,
+      "y": 10
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 9,
+      "y": 7
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 21,
+      "y": 11
+    },
+    {
+      "t": "KILROY",
+      "o": 1,
+      "x": 21,
+      "y": 9
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 21,
+      "y": 8
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 22,
+      "y": 12
+    },
+    {
+      "t": "TITAN",
+      "o": 1,
+      "x": 22,
+      "y": 10
+    },
+    {
+      "t": "TITAN",
+      "o": 1,
+      "x": 22,
+      "y": 9
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 20,
+      "y": 12
+    }
+  ]
+}

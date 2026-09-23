@@ -1,8 +1,10 @@
 # AI strength, playing styles and human experience
 
-Research and proposals, 2026-09-23. Requested as an analysis and discussion;
-this document does **not** approve a new opponent, change the rules, or
-supersede the CPU fidelity requirements. No gameplay implementation changed.
+Historical research and proposals, 2026-09-23. The subsequent user request
+authorized stronger, capability-based algorithms and a tournament lab, now
+implemented in [AI_OPPONENTS.md](AI_OPPONENTS.md). Personality proposals below
+were explicitly excluded. This document preserves the earlier baseline;
+it does not supersede Classic's CPU fidelity requirements or change the rules.
 The analysis concerns the present remake, not an exact reconstruction of the
 original CPU. Source code, rules and current map data were inspected alongside
 the primary research linked below.

@@ -49,13 +49,14 @@ var UI = (function () {
     this.opponent = opponents.get(this.options.opponent || "apex").id;
     this.renderer = new RENDER.Renderer(canvas, game);
     this.renderer.orientation = "auto";
-    this.controlsPosition = "top";
+    this.controlsPosition = "auto";
     try {
       var orientation = localStorage.getItem("nectaris-board-orientation");
       if (["auto", "normal", "sideways"].indexOf(orientation) >= 0) this.renderer.orientation = orientation;
-      if (localStorage.getItem("nectaris-controls-position") === "left") this.controlsPosition = "left";
+      // The new default supersedes the first release's manual-only placement.
+      var position = localStorage.getItem("nectaris-controls-position-v2");
+      if (["auto", "top", "left"].indexOf(position) >= 0) this.controlsPosition = position;
     } catch (e) { /* optional view preferences */ }
-    this.refreshViewControls();
     this.mode = "idle"; // idle | command | unitSelected (movement) | moved (aim) | unload | factory | deployPick | battle | aiTurn | over
     this.selected = null;
     this.range = null;
@@ -68,6 +69,7 @@ var UI = (function () {
     this.detailsOpen = false;
     try { this.detailsOpen = localStorage.getItem("nectaris-details-open") === "on"; } catch (e) { /* optional preference */ }
     this.refreshDetailsPanel();
+    this.refreshViewControls();
 
     // Keep exact function references so destroy() can remove every listener.
     // Starting a second map used to leave the first map's listeners alive;
@@ -122,9 +124,7 @@ var UI = (function () {
     };
     $("controls-position").onchange = function () {
       self.controlsPosition = this.value;
-      try { localStorage.setItem("nectaris-controls-position", this.value); } catch (e) { /* optional preference */ }
-      self.refreshViewControls();
-      if (self.controlsPosition === "left") self.setActionRail(0);
+      try { localStorage.setItem("nectaris-controls-position-v2", this.value); } catch (e) { /* optional preference */ }
       self.resize();
     };
     $("btn-fit").onclick = function () { self.fitBoard(); };
@@ -169,7 +169,7 @@ var UI = (function () {
     iconSel.onchange = function () { RENDER.setIconSet(iconSel.value); };
     this._unsubscribeIconSet = RENDER.onIconSetChange(function () {
       iconSel.value = RENDER.getIconSet();
-      self.renderer.fitToMap();
+      self.fitBoard();
       if (self.mode === "factory" && self.inspectedFactory) self.openFactoryPanel(self.inspectedFactory);
       self.draw();
     });
@@ -177,7 +177,7 @@ var UI = (function () {
     styleSel.onchange = function () {
       RENDER.setStyle(styleSel.value);
       iconSel.disabled = RENDER.getStyle() !== "pixel";
-      self.renderer.fitToMap();
+      self.fitBoard();
       if (self.mode === "factory" && self.inspectedFactory) self.openFactoryPanel(self.inspectedFactory);
       self.refreshStatus();   // faction names/colors differ per style
       self.draw();
@@ -293,26 +293,53 @@ var UI = (function () {
   };
 
   GameUI.prototype.resize = function () {
+    if (this.controlsPosition) this.refreshViewControls();
     var wrap = this.canvas.parentElement;
     this.canvas.width = wrap.clientWidth;
     this.canvas.height = Math.max(1, wrap.clientHeight - $("map-action-rail").offsetHeight);
     if (this.renderer) { this.renderer.fitToMap(); this.draw(); }
   };
 
+  GameUI.prototype.bestControlsPosition = function (width, height, sidebarWidth, topHeight, leftWidth) {
+    if (this.controlsPosition !== "auto") return this.controlsPosition;
+    var top = this.renderer.fitForViewport(width - sidebarWidth, height - topHeight).zoom;
+    var left = this.renderer.fitForViewport(width - sidebarWidth - leftWidth, height).zoom;
+    // Keep the current dock for near-ties, so small resizes cannot flip it
+    // back and forth. Do not include transient selection/action-rail height.
+    if (this.controlsDock === "left") return top > left * 1.02 ? "top" : "left";
+    return left > top * 1.02 ? "left" : "top";
+  };
+
   GameUI.prototype.refreshViewControls = function () {
-    $("game-screen").classList[this.controlsPosition === "left" ? "add" : "remove"]("controls-left");
+    var screen = $("game-screen"), dock = this.controlsPosition;
+    if (dock === "auto") {
+      var style = getComputedStyle(screen);
+      dock = this.bestControlsPosition(screen.clientWidth, screen.clientHeight, $("sidebar").offsetWidth,
+        parseFloat(style.getPropertyValue("--controls-top-height")),
+        parseFloat(style.getPropertyValue("--controls-left-width")));
+    }
+    this.controlsDock = dock;
+    screen.classList[dock === "left" ? "add" : "remove"]("controls-left");
     $("controls-position").value = this.controlsPosition;
+    $("controls-position").title = this.controlsPosition === "auto" ?
+      "Auto: controls on the " + dock + " for the largest board" : "Choose automatic, top or left controls";
     $("board-orientation").value = this.renderer.orientation;
-    var home = $(this.controlsPosition === "left" ? "dock-unit-controls" : "canvas-wrap");
-    home.appendChild($("range-legend"));
-    home.appendChild($("action-menu"));
+    var parent = $(dock === "left" ? "dock-unit-controls" : "canvas-wrap");
+    ["range-legend", "action-menu"].forEach(function (id) {
+      var el = $(id);
+      if (el.parentElement !== parent) parent.appendChild(el);
+    });
+    if (dock === "left") {
+      this._actionRailHeight = 0;
+      $("map-action-rail").classList.add("hidden");
+      $("map-action-rail").style.height = "0px";
+    }
   };
 
   GameUI.prototype.fitBoard = function () {
     this.renderer.hoverHex = null;
     $("unit-hover").classList.add("hidden");
-    this.renderer.fitToMap();
-    this.draw();
+    this.resize();
   };
 
   GameUI.prototype.refreshDetailsPanel = function () {
@@ -679,7 +706,7 @@ var UI = (function () {
       return { x: p.x - radius, y: p.y - radius, width: radius * 2, height: radius * 2 };
     });
     var menu = $("action-menu");
-    if (this.controlsPosition !== "left" && !menu.classList.contains("hidden")) obstacles.push({
+    if (this.controlsDock !== "left" && !menu.classList.contains("hidden")) obstacles.push({
       x: parseFloat(menu.style.left), y: parseFloat(menu.style.top),
       width: menu.offsetWidth, height: menu.offsetHeight,
     });
@@ -712,7 +739,7 @@ var UI = (function () {
   // selectable destination. Crowded views can borrow a strip below the map.
   GameUI.prototype.positionActionMenu = function () {
     var menu = $("action-menu");
-    if (this.controlsPosition === "left") { this.setActionRail(0); return; }
+    if (this.controlsDock === "left") { this.setActionRail(0); return; }
     if ((!this.selected && !this.deployPending) || menu.classList.contains("hidden")) return;
     var r = this.renderer, anchor = this.deployPending ? this.deployPending.building : this.selected;
     var center = r.hexCenter(anchor.col, anchor.row), radius = Math.max(18, r.hexSize * r.zoom);
@@ -1496,10 +1523,25 @@ var UI = (function () {
     this.checkGameOver();
   };
 
+  GameUI.prototype.nextAIEvent = function () {
+    try { return this._aiTurn.next(); }
+    catch (error) {
+      if (this._aiTurn.destroy) this._aiTurn.destroy();
+      this._aiTurn = null;
+      // Preserve the turn-start checkpoint and leave Save & Menu available.
+      // Never turn a failed search into a passed turn or a different opponent.
+      this.busy = true;
+      $("status-player").textContent = "AI stopped — Save & Menu to retry";
+      this.toast("AI error: " + error.message);
+      return {t:"error"};
+    }
+  };
+
   GameUI.prototype.runNextAIEvent = function () {
     if (this.destroyed || !this._aiTurn) return;
     if (!this.watchAI) { this.runFastAITurn(); return; }
-    var event = this._aiTurn.next();
+    var event = this.nextAIEvent();
+    if (event && event.t === "error") return;
     if (event && event.t === "thinking") {
       $("status-player").textContent = RENDER.PLAYER_COLORS[this.game.currentPlayer].name + " · " +
         opponents.get(this.opponent).label + " (thinking…)";
@@ -1625,7 +1667,8 @@ var UI = (function () {
     // events. Long turns yield between actions so the browser stays usable.
     var deadline=Date.now()+8;
     do {
-      var event = this._aiTurn.next();
+      var event = this.nextAIEvent();
+      if (event && event.t === "error") return;
       if (!event) { this.finishAITurn(); return; }
       if (event.t === "thinking") break;
     } while (Date.now()<deadline);

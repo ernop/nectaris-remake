@@ -149,14 +149,20 @@ var RENDER = (function () {
     this.explosions = [];
   }
 
-  Renderer.prototype.fitToMap = function () {
+  Renderer.prototype.fitForViewport = function (width, height) {
     var dims = this.mapDimensions();
-    var w = Math.max(1, this.canvas.width - 16), h = Math.max(1, this.canvas.height - 16);
+    var w = Math.max(1, width - 16), h = Math.max(1, height - 16);
     var normal = Math.min(w / dims.width, h / dims.height, 4);
     var sideways = Math.min(w / dims.height, h / dims.width, 4);
-    this.sideways = this.orientation === "sideways" ||
+    var rotate = this.orientation === "sideways" ||
       (this.orientation === "auto" && sideways > normal * 1.02);
-    this.zoom = this.sideways ? sideways : normal;
+    return {sideways: rotate, zoom: rotate ? sideways : normal};
+  };
+
+  Renderer.prototype.fitToMap = function () {
+    var fit = this.fitForViewport(this.canvas.width, this.canvas.height);
+    this.sideways = fit.sideways;
+    this.zoom = fit.zoom;
     var bounds = this.viewBounds();
     this.originX = (this.canvas.width - bounds.width * this.zoom) / 2 - bounds.left * this.zoom;
     this.originY = (this.canvas.height - bounds.height * this.zoom) / 2 - bounds.top * this.zoom;

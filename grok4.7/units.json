@@ -1,0 +1,183 @@
+{
+  "IBEX": {
+    "name": "Ibex GX-41",
+    "cls": "infantry",
+    "move": 3,
+    "moveType": "foot",
+    "atkG": 40,
+    "atkA": 0,
+    "def": 10,
+    "rngG": 3,
+    "rngA": 0
+  },
+  "HARRIER": {
+    "name": "Harrier GX-52",
+    "cls": "infantry",
+    "move": 3,
+    "moveType": "foot",
+    "atkG": 10,
+    "atkA": 50,
+    "def": 10,
+    "rngG": 1,
+    "rngA": 1
+  },
+  "PIPIT": {
+    "name": "Pipit GX-44",
+    "cls": "infantry",
+    "move": 3,
+    "moveType": "foot",
+    "atkG": 40,
+    "atkA": 0,
+    "def": 10,
+    "rngG": 2,
+    "rngA": 0,
+    "capture": true
+  },
+  "ORYX": {
+    "name": "Oryx CBX-3",
+    "cls": "infantry",
+    "move": 6,
+    "moveType": "wheels",
+    "atkG": 30,
+    "atkA": 10,
+    "def": 20,
+    "rngG": 1,
+    "rngA": 1,
+    "capture": true
+  },
+  "COYOTE": {
+    "name": "Coyote AC-8",
+    "cls": "tank",
+    "move": 8,
+    "moveType": "wheels",
+    "atkG": 50,
+    "atkA": 0,
+    "def": 30,
+    "rngG": 1,
+    "rngA": 0
+  },
+  "JACKAL": {
+    "name": "Jackal MB-9",
+    "cls": "buggy",
+    "move": 9,
+    "moveType": "wheels",
+    "atkG": 50,
+    "atkA": 10,
+    "def": 20,
+    "rngG": 1,
+    "rngA": 1,
+    "moveAfterAttack": true
+  },
+  "OX": {
+    "name": "Ox T-55",
+    "cls": "tank",
+    "move": 4,
+    "moveType": "treads",
+    "atkG": 50,
+    "atkA": 20,
+    "def": 40,
+    "rngG": 1,
+    "rngA": 1
+  },
+  "AEGIS": {
+    "name": "Aegis T-50",
+    "cls": "tank",
+    "move": 6,
+    "moveType": "treads",
+    "atkG": 0,
+    "atkA": 30,
+    "def": 50,
+    "rngG": 0,
+    "rngA": 1
+  },
+  "BULLDOG": {
+    "name": "Bulldog SG-2",
+    "cls": "artillery",
+    "move": 4,
+    "moveType": "treads",
+    "atkG": 60,
+    "atkA": 0,
+    "def": 40,
+    "rngG": 2,
+    "rngA": 0
+  },
+  "MAMMOTH": {
+    "name": "Mammoth SG-70",
+    "cls": "artillery",
+    "move": 2,
+    "moveType": "treads",
+    "atkG": 70,
+    "atkA": 0,
+    "def": 40,
+    "rngG": 5,
+    "rngA": 0,
+    "moveOrFire": true
+  },
+  "HERON": {
+    "name": "Heron MR-4",
+    "cls": "artillery",
+    "move": 4,
+    "moveType": "treads",
+    "atkG": 40,
+    "atkA": 45,
+    "def": 30,
+    "rngG": 4,
+    "rngA": 2,
+    "moveOrFire": true
+  },
+  "REDOUBT": {
+    "name": "Redoubt SG-40",
+    "cls": "artillery",
+    "move": 0,
+    "moveType": "treads",
+    "atkG": 50,
+    "atkA": 0,
+    "def": 50,
+    "rngG": 3,
+    "rngA": 0,
+    "moveOrFire": true,
+    "placeByTransport": true
+  },
+  "MERLIN": {
+    "name": "Merlin AD-2",
+    "cls": "antiair",
+    "move": 6,
+    "moveType": "treads",
+    "atkG": 20,
+    "atkA": 60,
+    "def": 30,
+    "rngG": 1,
+    "rngA": 2
+  },
+  "CITADEL": {
+    "name": "Citadel AD-0",
+    "cls": "antiair",
+    "move": 0,
+    "moveType": "treads",
+    "atkG": 20,
+    "atkA": 50,
+    "def": 50,
+    "rngG": 1,
+    "rngA": 1,
+    "placeByTransport": true
+  },
+  "BURRO": {
+    "name": "Burro NC-2",
+    "cls": "transport",
+    "move": 5,
+    "moveType": "treads",
+    "atkG": 20,
+    "atkA": 10,
+    "def": 30,
+    "rngG": 1,
+    "rngA": 1,
+    "cargo": 1,
+    "cargoTypes": [
+      "CHARLIE",
+      "KILROY",
+      "IBEX",
+      "HARRIER",
+      "PIPIT"
+    ]
+  }
+}

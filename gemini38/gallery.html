@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>gemini38 — 15 Tactical Gap-Filling Units</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #090d14;
+    color: #ffffff;
+    font: 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .wrap {
+    width: 96%;
+    margin: 0 auto;
+    padding: 24px 0 64px;
+  }
+  h1 {
+    font-size: 32px;
+    font-weight: 800;
+    margin: 0 0 6px;
+    letter-spacing: -0.5px;
+    color: #ffffff;
+  }
+  h2 {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 36px 0 14px;
+    border-bottom: 2px solid #397ec0;
+    padding-bottom: 6px;
+    color: #ffffff;
+  }
+  h3 {
+    font-size: 19px;
+    font-weight: 700;
+    margin: 0 0 4px;
+    color: #ffffff;
+  }
+  .sub {
+    font-size: 15px;
+    margin: 0 0 20px;
+    color: #ffffff;
+  }
+  .sub a {
+    color: #73b5e8;
+    text-decoration: underline;
+    font-weight: 600;
+  }
+  .note-box {
+    font-size: 14px;
+    margin: 16px 0 24px;
+    color: #ffffff;
+    background: #121824;
+    border: 1px solid #233146;
+    padding: 14px 18px;
+    border-radius: 8px;
+  }
+  .filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 16px 0 20px;
+  }
+  .filters button {
+    background: #121824;
+    color: #ffffff;
+    border: 1px solid #2a3b54;
+    border-radius: 6px;
+    padding: 6px 14px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+  .filters button:hover, .filters button.active {
+    background: #24578b;
+    border-color: #73b5e8;
+  }
+  .table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid #233146;
+    border-radius: 8px;
+    background: #0f1520;
+    margin-bottom: 24px;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    font-size: 14px;
+  }
+  th, td {
+    border-bottom: 1px solid #233146;
+    padding: 8px 12px;
+    text-align: left;
+    white-space: nowrap;
+    color: #ffffff;
+  }
+  th {
+    background: #162030;
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  tr:hover td {
+    background: #182335;
+  }
+  td.num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    color: #ffffff;
+  }
+  td.val-highlight {
+    font-weight: 800;
+    font-size: 16px;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    color: #ffffff;
+  }
+  .icon-pair {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+  }
+  .icon-pair img {
+    width: 32px;
+    height: 32px;
+    image-rendering: pixelated;
+    background: #05080c;
+    border-radius: 4px;
+    border: 1px solid #233146;
+  }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #ffffff;
+    border: 1px solid #233146;
+  }
+  .badge-antiair { background: #163828; border-color: #28653b; }
+  .badge-artillery { background: #4a2810; border-color: #9c6a25; }
+  .badge-infantry { background: #15335a; border-color: #397ec0; }
+  .badge-tank { background: #2f1d44; border-color: #5c3584; }
+  .badge-buggy { background: #4a1d22; border-color: #832c37; }
+  .badge-transport { background: #153842; border-color: #2b6878; }
+  .badge-air { background: #1a3c5a; border-color: #3b82b6; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+    gap: 16px;
+  }
+  .card {
+    background: #121824;
+    border: 1px solid #233146;
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .card .card-head {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .card .card-head img {
+    width: 64px;
+    height: 64px;
+    image-rendering: pixelated;
+    background: #05080c;
+    border-radius: 8px;
+    border: 1px solid #233146;
+    flex-shrink: 0;
+  }
+  .card .card-title {
+    flex-grow: 1;
+  }
+  .card .card-role {
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+    margin-top: 3px;
+  }
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin: 12px 0;
+  }
+  .stat-box {
+    background: #090d14;
+    border: 1px solid #233146;
+    border-radius: 6px;
+    padding: 6px 8px;
+    text-align: center;
+  }
+  .stat-label {
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .stat-num {
+    font-size: 19px;
+    font-weight: 800;
+    color: #ffffff;
+    font-variant-numeric: tabular-nums;
+  }
+  .meta-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 8px 0 12px;
+  }
+  .meta-pill {
+    background: #090d14;
+    border: 1px solid #233146;
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #ffffff;
+  }
+  .card p {
+    margin: 6px 0;
+    font-size: 14px;
+    line-height: 1.45;
+    color: #ffffff;
+  }
+  .card .k {
+    font-weight: 700;
+    color: #ffffff;
+  }
+  .fac-strip {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid #233146;
+    margin-top: 14px;
+    padding-top: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: #ffffff;
+  }
+  .fac-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .fac-item img {
+    width: 32px;
+    height: 32px;
+    image-rendering: pixelated;
+    background: #05080c;
+    border-radius: 4px;
+    border: 1px solid #233146;
+  }
+  .sheet-preview {
+    margin: 20px 0;
+    background: #121824;
+    border: 1px solid #233146;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+  }
+  .sheet-preview img {
+    max-width: 100%;
+    height: auto;
+    image-rendering: pixelated;
+    border-radius: 6px;
+    border: 1px solid #233146;
+  }
+</style>
+</head>
+<body>
+<div class="wrap" id="app">
+  <h1>gemini38 — 15 Tactical Gap-Filling Units</h1>
+  <p class="sub">
+    Original tactical unit set designed specifically for Nectaris / Military Madness.
+    Data format: <a href="custom-units.json">custom-units.json</a> · Complete dossiers: <a href="README.md">README.md</a> ·
+    Verify with: <code>node validate.js</code>.
+  </p>
+
+  <div class="note-box">
+    <strong>Key Wargame Mechanics:</strong> Range 1 is direct combat (permits defensive counter-fire and support bonuses).
+    Range 2 is strictly distance 2. Ranges 2–3, 2–4, 2–5 are indirect firing bands (blind spot at adjacent distance 1, no defensive counter-fire).
+    <strong>Turn policies:</strong> THEN = Move-then-fire; OR = Move-or-fire (requires stationary setup); RET = Attack-then-retreat (hit-and-run buggy tempo); ST = Stationary deployable.
+  </div>
+
+  <h2>Master Characteristics Table</h2>
+  <div class="filters" id="filters"></div>
+  <div class="table-scroll">
+    <table id="overview-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Icons (U / X)</th>
+          <th>Name</th>
+          <th>Class</th>
+          <th>Move &amp; Type</th>
+          <th>Rng G</th>
+          <th>Rng A</th>
+          <th>Atk G</th>
+          <th>Atk A</th>
+          <th>Def</th>
+          <th>Turn Policy &amp; Traits</th>
+          <th>Operational Role &amp; Tactical Purpose</th>
+        </tr>
+      </thead>
+      <tbody id="table-body"></tbody>
+    </table>
+  </div>
+
+  <h2>Full Unit Dossiers</h2>
+  <div class="grid" id="cards-grid"></div>
+
+  <h2>Contact Sheet (32×32 Native Pixel Art, 3×5 Grid)</h2>
+  <div class="sheet-preview">
+    <img src="sheet.png" alt="15 Gap-Filling Units 3x5 Contact Sheet">
+  </div>
+</div>
+
+<script>
+const UNITS = [
+  {
+    id: 'PHALANX', name: 'Phalanx AA-50', cls: 'antiair',
+    move: 5, moveType: 'treads', rngG: 1, rngA: 1, atkG: 35, atkA: 75, def: 50,
+    turn: 'THEN', cap: false, cargo: 0,
+    role: 'Armored frontline flak tank',
+    use: 'Marches directly in the armored spearhead. 50 defense survives tank bombardment where fragile Seekers (30 def) die, while 75 air attack shreds loitering Eagles and Hunters.',
+    price: 'Slower than Seeker (5 treads vs 6); modest 35 ground attack cannot crack main battle tanks alone; direct range 1 only.',
+    t: 'Cross-country tracked mobility; Pelican airlift for rapid redeployment.'
+  },
+  {
+    id: 'SENTINEL', name: 'Sentinel AD-80', cls: 'antiair',
+    move: 0, moveType: 'treads', rngG: 0, rngA: 5, atkG: 0, atkA: 80, def: 25,
+    turn: 'ST', cap: false, cargo: 0, place: true,
+    role: 'Deployable static heavy SAM battery',
+    use: 'The air-defense equivalent of Atlas SS-80. Delivered by Pelican to lock down a 2–5 hex air perimeter (80 atkA) over vital factories, supply depots, or choke points.',
+    price: 'Completely unarmed against ground units (any tank attacks it without counterfire); immobile once deployed; defense 25.',
+    t: 'Pelican transport placement only (not in Mule whitelist).'
+  },
+  {
+    id: 'DART', name: 'Dart MB-6', cls: 'buggy',
+    move: 7, moveType: 'treads', rngG: 1, rngA: 2, atkG: 25, atkA: 50, def: 20,
+    turn: 'RET', cap: false, cargo: 0,
+    role: 'Tracked anti-air missile buggy',
+    use: 'Air-specialized counterpart to Lynx MB-4. Strikes enemy aircraft at exact distance 2 (50 atkA) without receiving counterfire, then spends leftover movement to retreat.',
+    price: 'Defense 20; blind to air targets at distance 1; light ground defense (25 atkG); easily crushed if pinned in enemy Zone of Control.',
+    t: 'Pelican airliftable.'
+  },
+  {
+    id: 'STORM', name: 'Storm SG-50', cls: 'artillery',
+    move: 4, moveType: 'treads', rngG: 3, rngA: 0, atkG: 50, atkA: 0, def: 35,
+    turn: 'THEN', cap: false, cargo: 0,
+    role: 'Mobile assault gun (move-and-fire indirect)',
+    use: 'Breaks the artillery setup bottleneck. Advances 1–4 hexes and immediately bombards ground targets at range 2–3 in the same turn without losing tempo.',
+    price: 'Shorter range and weaker single-shot punch (50) than Octopus (60 at 2–4) or Hadrian (45 at 2–5); zero anti-air defense.',
+    t: 'Pelican transportable.'
+  },
+  {
+    id: 'CYCLOPS', name: 'Cyclops MR-75', cls: 'artillery',
+    move: 3, moveType: 'treads', rngG: 5, rngA: 0, atkG: 75, atkA: 0, def: 25,
+    turn: 'OR', cap: false, cargo: 0,
+    role: 'Heavy siege rocket launcher',
+    use: 'Bridges the gap between Octopus (60 atkG, range 4) and stationary Atlas (90 atkG, range 6). Relocates on treads to bombard fortified bastions at range 2–5 with 75 attack.',
+    price: 'Move-or-fire setup restriction; slow (3 treads); defense 25; blind at adjacent distance 1; zero air defense.',
+    t: 'Pelican airliftable.'
+  },
+  {
+    id: 'BUNKER', name: 'Bunker FB-70', cls: 'artillery',
+    move: 0, moveType: 'treads', rngG: 1, rngA: 1, atkG: 65, atkA: 30, def: 70,
+    turn: 'ST', cap: false, cargo: 0, place: true,
+    role: 'Deployable combat cupola / armored strongpoint',
+    use: 'Unlike unarmed Trigger (def 80) or indirect Atlas, Bunker provides direct adjacent fire (65 ground, 30 air) and 70 armor. Air-dropped to plug mountain passes and factory gates.',
+    price: 'Immobile once placed; direct range 1 only; reduced by massed surround and long-range artillery bombardment.',
+    t: 'Pelican transport placement only.'
+  },
+  {
+    id: 'RANGER', name: 'Ranger GX-35', cls: 'infantry',
+    move: 4, moveType: 'foot', rngG: 1, rngA: 1, atkG: 35, atkA: 25, def: 16,
+    turn: 'THEN', cap: false, cargo: 0,
+    role: 'High-mobility mountain skirmisher',
+    use: 'Fast 4-move foot unit that scales impassable mountain crags to spot, harass armor (35 atkG), and pick off damaged units where vehicles cannot follow.',
+    price: 'Cannot capture factories or HQ bases; defense 16 leaves it vulnerable on open plains; direct range 1 only.',
+    t: 'Pelican mountain air-drops; Buffalo APC transport.'
+  },
+  {
+    id: 'HOPLITE', name: 'Hoplite GX-25', cls: 'infantry',
+    move: 2, moveType: 'foot', rngG: 1, rngA: 1, atkG: 25, atkA: 15, def: 26,
+    turn: 'THEN', cap: true, cargo: 0,
+    role: 'Heavy armored capturer',
+    use: 'Carries heavy ballistic mantlets providing 26 defense (highest among capturers). Seizes contested factories and survives the immediate enemy armored counterattack.',
+    price: 'Slow (2 foot movement); modest attack power (25 ground, 15 air); out-ranged and worn down by artillery.',
+    t: 'Pelican airlift or Buffalo APC transport.'
+  },
+  {
+    id: 'MORTAR', name: 'Mortar GX-40', cls: 'infantry',
+    move: 3, moveType: 'foot', rngG: 3, rngA: 0, atkG: 40, atkA: 0, def: 12,
+    turn: 'OR', cap: false, cargo: 0,
+    role: 'Mountain artillery infantry squad',
+    use: 'Carries man-portable mortars into steep mountain terrain where vehicles cannot enter. Bombards valley approaches at range 2–3 with 40 attack.',
+    price: 'Move-or-fire restriction; defense 12; blind at adjacent distance 1; zero air defense; cannot capture.',
+    t: 'Pelican transport or Buffalo APC carrier.'
+  },
+  {
+    id: 'CHEETAH', name: 'Cheetah AC-8', cls: 'tank',
+    move: 8, moveType: 'wheels', rngG: 1, rngA: 0, atkG: 50, atkA: 0, def: 30,
+    turn: 'THEN', cap: false, cargo: 0,
+    role: 'Wheeled cavalry tank',
+    use: 'High-speed 8-wheel response vehicle. Exploits highway corridors and open plains to secure contested center ground before enemy tracked armor arrives.',
+    price: 'Wheeled terrain penalties (cannot enter waste/mountains/valleys, 4 points per hill); defense 30; zero air defense.',
+    t: 'Pelican airlift for rough-terrain operations.'
+  },
+  {
+    id: 'RHINO', name: 'Rhino AT-85', cls: 'tank',
+    move: 3, moveType: 'treads', rngG: 1, rngA: 0, atkG: 85, atkA: 0, def: 45,
+    turn: 'THEN', cap: false, cargo: 0,
+    role: 'Heavy casemate tank destroyer',
+    use: 'Direct-fire anti-tank specialist packing a massive 85-power high-velocity gun. Decimates Grizzly, Polar, and Titan tanks in head-on clashes.',
+    price: 'Slow (3 tracked movement); zero air defense; defense 45 requires screening; vulnerable to indirect bombardment.',
+    t: 'Pelican transportable.'
+  },
+  {
+    id: 'MAMMOTH', name: 'Mammoth HMB-5', cls: 'tank',
+    move: 3, moveType: 'treads', rngG: 1, rngA: 0, atkG: 80, atkA: 0, def: 65,
+    turn: 'THEN', cap: false, cargo: 0,
+    role: 'Waste-capable breakthrough siege tank',
+    use: 'Giant HMB-2 is barred from waste, and 2-move tanks cannot enter it in one turn. Mammoth spends its full 3 move to traverse waste (cost 3) and crush fortified lines with 80/65 stats.',
+    price: 'Slow (3 treads); zero air defense; direct range 1 only; vulnerable to air strikes from Falcons and Hunters.',
+    t: 'Pelican transportable for strategic transfers.'
+  },
+  {
+    id: 'BUFFALO', name: 'Buffalo NC-5', cls: 'transport',
+    move: 5, moveType: 'treads', rngG: 1, rngA: 1, atkG: 25, atkA: 15, def: 35,
+    turn: 'THEN', cap: false, cargo: 1,
+    role: 'Armored combat personnel carrier',
+    use: 'Tracked armored battle taxi carrying 1 foot unit (Charlie, Kilroy, Ranger, Hoplite, Mortar). With 35 defense and 25/15 weapons, it delivers troops through artillery crossfire.',
+    price: 'Slower than Mule (5 treads vs 6 wheels on road); restricted passenger whitelist (foot infantry only; cannot carry Atlas or tanks).',
+    t: 'Is a ground carrier; can be airlifted empty by Pelican.'
+  },
+  {
+    id: 'CORSAIR', name: 'Corsair AX-80', cls: 'air',
+    move: 8, moveType: 'air', rngG: 1, rngA: 1, atkG: 80, atkA: 30, def: 40,
+    turn: 'THEN', cap: false, cargo: 0,
+    role: 'Heavy anti-tank attack gunship',
+    use: 'Dedicated close-air-support VTOL packing 80 ground attack and 40 armor. Bypasses terrain to dismantle entrenched heavy tanks and gun lines.',
+    price: 'Slower than Hunter/Eagle (8 air move vs 11/10); modest air defense (30 atkA) loses in dogfights against Falcon air-superiority fighters.',
+    t: 'Self-deploying aircraft.'
+  },
+  {
+    id: 'TALON', name: 'Talon MB-9', cls: 'buggy',
+    move: 9, moveType: 'wheels', rngG: 1, rngA: 1, atkG: 35, atkA: 20, def: 15,
+    turn: 'RET', cap: false, cargo: 0,
+    role: 'High-speed wheeled recon buggy',
+    use: 'Combines 9 wheeled movement with hit-and-run retreat. Exploits roads to probe enemy lines, eliminate soft transports, and retreat back into friendly lines.',
+    price: 'Defense 15; wheeled terrain restrictions; light combat power; destroyed if trapped inside enemy Zone of Control.',
+    t: 'Pelican transport across rough terrain.'
+  }
+];
+
+let activeClass = 'all';
+
+function renderFilters() {
+  const classes = ['all', 'antiair', 'artillery', 'infantry', 'tank', 'buggy', 'transport', 'air'];
+  const labels = {
+    all: 'All (15)',
+    antiair: 'Anti-Air (2)',
+    artillery: 'Artillery (3)',
+    infantry: 'Infantry (3)',
+    tank: 'Tanks (3)',
+    buggy: 'Buggies (2)',
+    transport: 'Transport (1)',
+    air: 'Air (1)'
+  };
+  const c = document.getElementById('filters');
+  c.innerHTML = classes.map(cls =>
+    '<button class="' + (activeClass === cls ? 'active' : '') + '" onclick="filterClass(\'' + cls + '\')">' + labels[cls] + '</button>'
+  ).join('');
+}
+
+function filterClass(cls) {
+  activeClass = cls;
+  renderFilters();
+  renderTable();
+  renderCards();
+}
+
+function renderTable() {
+  const list = activeClass === 'all' ? UNITS : UNITS.filter(u => u.cls === activeClass);
+  const tbody = document.getElementById('table-body');
+  tbody.innerHTML = list.map((u, i) => {
+    const uIcon = 'icons/' + u.id.toLowerCase() + '-union.png';
+    const xIcon = 'icons/' + u.id.toLowerCase() + '-xenon.png';
+    const turnLabel = u.place ? 'Stationary Place' : (u.turn === 'RET' ? 'Hit & Run (Retreat)' : (u.turn === 'OR' ? 'Move OR Fire' : (u.turn === 'ST' ? 'Stationary' : 'Move & Fire')));
+    const traits = [turnLabel];
+    if (u.cap) traits.push('Captures');
+    if (u.cargo) traits.push('Cargo ' + u.cargo);
+    return '<tr>' +
+      '<td class="num">' + (i + 1) + '</td>' +
+      '<td><div class="icon-pair"><img src="' + uIcon + '" alt="' + u.name + ' U" title="Union"><img src="' + xIcon + '" alt="' + u.name + ' X" title="Xenon"></div></td>' +
+      '<td><strong>' + u.name + '</strong></td>' +
+      '<td><span class="badge badge-' + u.cls + '">' + u.cls + '</span></td>' +
+      '<td class="num">' + u.move + ' ' + u.moveType + '</td>' +
+      '<td class="num">' + (u.rngG || '—') + '</td>' +
+      '<td class="num">' + (u.rngA || '—') + '</td>' +
+      '<td class="val-highlight">' + u.atkG + '</td>' +
+      '<td class="val-highlight">' + u.atkA + '</td>' +
+      '<td class="val-highlight">' + u.def + '</td>' +
+      '<td>' + traits.join(' · ') + '</td>' +
+      '<td>' + u.role + '</td>' +
+    '</tr>';
+  }).join('');
+}
+
+function renderCards() {
+  const list = activeClass === 'all' ? UNITS : UNITS.filter(u => u.cls === activeClass);
+  const grid = document.getElementById('cards-grid');
+  grid.innerHTML = list.map((u, i) => {
+    const uIcon = 'icons/' + u.id.toLowerCase() + '-union.png';
+    const xIcon = 'icons/' + u.id.toLowerCase() + '-xenon.png';
+    const turnLabel = u.place ? 'Stationary Deploy' : (u.turn === 'RET' ? 'Hit & Run Retreat' : (u.turn === 'OR' ? 'Move-or-Fire' : (u.turn === 'ST' ? 'Stationary' : 'Move-then-Fire')));
+    const pills = [
+      u.move + ' ' + u.moveType,
+      'G-Rng: ' + (u.rngG || '0'),
+      'A-Rng: ' + (u.rngA || '0'),
+      turnLabel
+    ];
+    if (u.cap) pills.push('Captures Buildings');
+    if (u.cargo) pills.push('Carries ' + u.cargo + ' unit');
+
+    return '<div class="card">' +
+      '<div>' +
+        '<div class="card-head">' +
+          '<img src="' + uIcon + '" alt="' + u.name + '">' +
+          '<div class="card-title">' +
+            '<h3>' + (i + 1) + '. ' + u.name + '</h3>' +
+            '<span class="badge badge-' + u.cls + '">' + u.cls + '</span>' +
+            '<div class="card-role">' + u.role + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<div class="stat-grid">' +
+          '<div class="stat-box"><span class="stat-label">Atk Ground</span><span class="stat-num">' + u.atkG + '</span></div>' +
+          '<div class="stat-box"><span class="stat-label">Atk Air</span><span class="stat-num">' + u.atkA + '</span></div>' +
+          '<div class="stat-box"><span class="stat-label">Defense</span><span class="stat-num">' + u.def + '</span></div>' +
+          '<div class="stat-box"><span class="stat-label">Move</span><span class="stat-num">' + u.move + '</span></div>' +
+        '</div>' +
+        '<div class="meta-pills">' + pills.map(p => '<span class="meta-pill">' + p + '</span>').join('') + '</div>' +
+        '<p><span class="k">Tactical Use:</span> ' + u.use + '</p>' +
+        '<p><span class="k">Trade-offs &amp; Counters:</span> ' + u.price + '</p>' +
+        '<p><span class="k">Logistics &amp; Transport:</span> ' + u.t + '</p>' +
+      '</div>' +
+      '<div class="fac-strip">' +
+        '<div class="fac-item"><img src="' + uIcon + '" alt="Union"><span>Union Facing</span></div>' +
+        '<div class="fac-item"><img src="' + xIcon + '" alt="Xenon"><span>Xenon Facing</span></div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+renderFilters();
+renderTable();
+renderCards();
+</script>
+</body>
+</html>

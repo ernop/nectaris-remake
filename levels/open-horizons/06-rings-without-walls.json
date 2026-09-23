@@ -1,0 +1,188 @@
+{
+  "name": "RINGS WITHOUT WALLS",
+  "pack": "AI-made: Open Horizons",
+  "campaignId": "open-horizons",
+  "mission": 6,
+  "author": "AI-made by Codex",
+  "source": "levels/open-horizons/06-rings-without-walls.json",
+  "description": "Broken mountain atolls enclose useful staging areas. Several gaps make each enclosure permeable; a force inside must watch more than the entrance it used.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "open maneuver",
+    "line",
+    "mixed forces"
+  ],
+  "design": {
+    "theme": "open",
+    "layout": 6,
+    "formation": "line",
+    "road": "fork"
+  },
+  "turnLimit": 65,
+  "grid": [
+    "..................................",
+    "..................................",
+    "..................................",
+    "........MMMMMM....................",
+    "......MMM....M....................",
+    ".........F.---M...................",
+    "........---.ww--.........---......",
+    ".......--...www.--..F-.--...-.....",
+    ".....--..hhh..M..-...--.....-.....",
+    ".....-M.hhhhh.M...---.hhh...-.....",
+    "...B.-MMhhhhhMM......hhhhh..--....",
+    "....--..hhhhh......MMhhhhhMM-.B...",
+    ".....-...hhh.---...M.hhhhh.M-.....",
+    ".....-.....--...-..M..hhh..--.....",
+    ".....-...--.-F..--.www...--.......",
+    "......---.........--ww.---........",
+    "...................M---.F.........",
+    "....................M....MMM......",
+    "....................MMMMMM........",
+    "..................................",
+    "..................................",
+    ".................................."
+  ],
+  "buildings": [
+    {
+      "col": 3,
+      "row": 10,
+      "owner": 0
+    },
+    {
+      "col": 30,
+      "row": 11,
+      "owner": 1
+    },
+    {
+      "col": 9,
+      "row": 5,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LENET",
+        "POLAR",
+        "LENET"
+      ]
+    },
+    {
+      "col": 24,
+      "row": 16,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LENET",
+        "POLAR",
+        "LENET"
+      ]
+    },
+    {
+      "col": 13,
+      "row": 14,
+      "owner": -1,
+      "stored": [
+        "PELICAN",
+        "ATLAS",
+        "TITAN",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 20,
+      "row": 7,
+      "owner": -1,
+      "stored": [
+        "PELICAN",
+        "ATLAS",
+        "TITAN",
+        "TITAN"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 11
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 9
+    },
+    {
+      "t": "PANTHER",
+      "o": 0,
+      "x": 2,
+      "y": 10
+    },
+    {
+      "t": "POLAR",
+      "o": 0,
+      "x": 4,
+      "y": 10
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 2,
+      "y": 11
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 3,
+      "y": 11
+    },
+    {
+      "t": "PELICAN",
+      "o": 0,
+      "x": 5,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 29,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 30,
+      "y": 12
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 31,
+      "y": 11
+    },
+    {
+      "t": "GRIZZLY",
+      "o": 1,
+      "x": 29,
+      "y": 11
+    },
+    {
+      "t": "TITAN",
+      "o": 1,
+      "x": 31,
+      "y": 10
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 30,
+      "y": 10
+    },
+    {
+      "t": "PELICAN",
+      "o": 1,
+      "x": 28,
+      "y": 12
+    }
+  ]
+}

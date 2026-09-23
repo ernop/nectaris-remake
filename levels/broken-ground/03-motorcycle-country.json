@@ -1,0 +1,140 @@
+{
+  "name": "MOTORCYCLE COUNTRY",
+  "pack": "AI-made: Broken Ground",
+  "campaignId": "broken-ground",
+  "mission": 3,
+  "author": "AI-made by Codex",
+  "source": "levels/broken-ground/03-motorcycle-country.json",
+  "description": "Capturers and Rabbits share a road network across broad wasteland shoals. Panthers cannot leave the firm routes into wasteland, even where a Rabbit can cross.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 50 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "terrain-dependent routes",
+    "spread",
+    "limited roster"
+  ],
+  "design": {
+    "theme": "rough",
+    "layout": 3,
+    "formation": "spread",
+    "road": "fork"
+  },
+  "turnLimit": 50,
+  "grid": [
+    "............................",
+    ".....................ww.....",
+    "...................wwwwww...",
+    "..B..wwwww........wwwhhhhw..",
+    "..-.www-wwww......wwhhhhhhw.",
+    "..-wwww-F-wwwwwwwww---hhhww.",
+    "..-wwww--w--wwwww--wwM--ww..",
+    "..--w--wwwww--w--ww.wMMw-...",
+    "....-wwwwwwwhw-wwww....--...",
+    "....-.....wwhwwwwww....-....",
+    "....-....wwwwwwhww.....-....",
+    "...--....wwww-whwwwwwww-....",
+    "...-wMMw.ww--w--wwwww--w--..",
+    "..ww--Mww--wwwww--w--wwww-..",
+    ".wwhhh---wwwwwwwww-F-wwww-..",
+    ".whhhhhhww......wwww-www.-..",
+    "..whhhhwww........wwwww..B..",
+    "...wwwwww...................",
+    ".....ww.....................",
+    "............................"
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 3,
+      "owner": 0
+    },
+    {
+      "col": 25,
+      "row": 16,
+      "owner": 1
+    },
+    {
+      "col": 8,
+      "row": 5,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "PANTHER",
+        "RABBIT",
+        "RABBIT"
+      ]
+    },
+    {
+      "col": 19,
+      "row": 14,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "PANTHER",
+        "RABBIT",
+        "RABBIT"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "PANTHER",
+      "o": 0,
+      "x": 4,
+      "y": 3
+    },
+    {
+      "t": "PANTHER",
+      "o": 0,
+      "x": 5,
+      "y": 7
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 6,
+      "y": 8
+    },
+    {
+      "t": "RABBIT",
+      "o": 0,
+      "x": 4,
+      "y": 11
+    },
+    {
+      "t": "RABBIT",
+      "o": 0,
+      "x": 5,
+      "y": 13
+    },
+    {
+      "t": "PANTHER",
+      "o": 1,
+      "x": 23,
+      "y": 16
+    },
+    {
+      "t": "PANTHER",
+      "o": 1,
+      "x": 22,
+      "y": 12
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 21,
+      "y": 11
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 23,
+      "y": 8
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 22,
+      "y": 6
+    }
+  ]
+}

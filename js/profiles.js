@@ -9,12 +9,15 @@ var PROFILES = (function () {
   }
   function levelKey(map, options) {
     options = options || {};
-    if (options.campaignIndex !== undefined) return "campaign:" + options.campaignIndex;
-    if (options.expansionIndex !== undefined) return "expansion:" + options.expansionIndex;
-    if (options.baseNecIndex !== undefined) return "base:" + options.baseNecIndex;
-    if (options.aiMadeIndex !== undefined) return "ai-made:" + options.aiMadeIndex;
+    var suffix=options.balance || options.opening==="offers" ? ":offers" : "";
+    if (options.campaignIndex !== undefined) return "campaign:" + options.campaignIndex+suffix;
+    if (options.expansionIndex !== undefined) return "expansion:" + options.expansionIndex+suffix;
+    if (options.baseNecIndex !== undefined) return "base:" + options.baseNecIndex+suffix;
+    if (options.aiMadeIndex !== undefined) return "ai-made:" + options.aiMadeIndex+suffix;
+    if (options.environmentCampaign && options.environmentIndex !== undefined)
+      return "environment:" + options.environmentCampaign + ":" + options.environmentIndex + suffix;
     // Custom levels with the same title but different layouts are distinct.
-    return "custom:" + JSON.stringify([map.name, map.grid]);
+    return "custom:" + JSON.stringify([map.name, map.grid])+suffix;
   }
   function outcomeLabel(result) {
     if (result.hotseat) return result.winner === 0 ? "Union victory" : "Xenon victory";
@@ -95,9 +98,10 @@ var PROFILES = (function () {
         winner: state.winner, outcome: state.winner === 0 ? "win" : "loss",
         hotseat: !!match.options.hotseat, turn: Math.min(state.turn, state.turnLimit || state.turn),
         levelKey: levelKey(state.map, match.options), reason: state.winReason,
+        balance:state.balance || null,firstPlayer:state.firstPlayer || 0,
         opponent: match.options.opponent || "classic", opponentChanges: match.options.opponentChanges || []});
       var ci = match.options.campaignIndex;
-      if (state.winner === 0 && ci !== undefined && p.cleared.indexOf(ci) < 0) p.cleared.push(ci);
+      if (state.winner === 0 && !state.balance && match.options.opening!=="offers" && ci !== undefined && p.cleared.indexOf(ci) < 0) p.cleared.push(ci);
       if (!p.savedMatch || p.savedMatch.id === match.id) p.savedMatch = null;
     } else {
       p.savedMatch = match;

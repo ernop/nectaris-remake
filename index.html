@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nectaris — hex tactics remake</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='24,16 20,23 12,23 8,16 12,9 20,9' fill='%23ffd94a'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/nectaris.css?v=20260923-board-layout">
+<link rel="stylesheet" href="css/nectaris.css?v=20260923-balance-offers-auto-layout">
 </head>
 <body>
 <div id="save-error" class="hidden" role="alert"></div>
@@ -60,6 +60,13 @@
 
   <div class="library-toolbar">
     <label><input type="checkbox" id="chk-hotseat"> Two players (hotseat)</label>
+    <label>Opening
+      <select id="opening-select" aria-label="Opening rules">
+        <option value="auto">Offers for custom battles</option>
+        <option value="offers">Compensation offers</option>
+        <option value="original">Original opening</option>
+      </select>
+    </label>
     <label>Briefing language / 表示言語
       <select id="lang-select">
         <option value="en">English</option>
@@ -75,6 +82,7 @@
     <div class="menu-controls">
       <label class="filebtn">Import level JSON<input type="file" id="file-import" accept=".json"></label>
       <a class="btn-like" href="editor.html">Open level editor</a>
+      <a class="btn-like" href="tournaments.html" target="_blank" rel="noopener">AI tournament lab</a>
     </div>
     <div class="url-import">
       <input type="url" id="online-level-url" placeholder="https://…/level.json" aria-label="Online level JSON URL">
@@ -85,16 +93,65 @@
   </div>
 
   <footer class="menu-footer">
-    Controls: click a unit for blue move destinations and red attack targets · after moving, attack or End; no shot ends automatically · Undo / Redo reverse noncombat actions · Details toggles the inspector · Board: Auto fits the best orientation · Controls: Left gives the board full height · Fit restores the whole board · right-click cancels or undoes; Esc clears selection · wheel zooms · Ctrl+left-drag pans · E ends the side's turn.
+    Controls: click a unit for blue move destinations and red attack targets · after moving, attack or End; no shot ends automatically · Undo / Redo reverse noncombat actions · Details toggles the inspector · Board: Auto fits the best orientation · Controls: Auto chooses top or left for the largest board · Fit restores the whole board · right-click cancels or undoes; Esc clears selection · wheel zooms · Ctrl+left-drag pans · E ends the side's turn.
     See <a href="MECHANICS.md">MECHANICS.md</a> for the full rules reconstruction.
   </footer>
 </div>
+
+<!-- ============ Pregame compensation ============ -->
+<section id="balance-screen" class="hidden" aria-labelledby="balance-title">
+  <header id="balance-header" class="balance-header">
+    <button id="balance-back">◄ Mission library</button>
+    <strong id="balance-title">Choose who moves second</strong>
+    <span id="balance-map-name"></span>
+  </header>
+  <div id="balance-body" class="balance-body">
+    <div class="balance-board">
+      <div class="balance-map-controls" role="group" aria-label="Preview the reinforcement locations">
+        <button id="balance-fit">Whole map</button>
+        <button id="balance-union">Union base</button>
+        <button id="balance-xenon">Xenon base</button>
+        <button id="balance-zoom-in" aria-label="Zoom in">+</button>
+        <button id="balance-zoom-out" aria-label="Zoom out">−</button>
+      </div>
+      <div id="balance-canvas-wrap"><canvas id="balance-canvas" aria-label="Battlefield preview with numbered reinforcement hexes"></canvas></div>
+      <div class="balance-map-caption">
+        <p id="balance-preview-caption"></p>
+        <p id="balance-hex-info" role="status">Wheel to zoom · Ctrl+drag to pan · Hover a unit or factory to inspect.</p>
+      </div>
+    </div>
+    <aside class="balance-panel" aria-label="Compensation offers">
+      <div class="balance-intro">
+        <p class="profile-eyebrow">FIRST MOVE OR REINFORCEMENTS</p>
+        <h2 id="balance-turn"></h2>
+        <p id="balance-message" role="status"></p>
+        <p id="balance-rules">Choose a package to go second. Earlier offers remain available. Both decline: add an offer. Both accept: random tie-break. Neither accepts the last offer: return to setup.</p>
+      </div>
+      <div id="balance-offers" role="group" aria-label="Offer sequence"></div>
+      <div class="balance-choice">
+        <strong id="balance-package-name"></strong>
+        <div id="balance-placement-list"></div>
+        <p id="balance-choice-note">Full strength · No experience · Ready on your first turn.</p>
+        <div class="balance-buttons">
+          <button id="balance-accept" class="primary">Take second with this package</button>
+          <button id="balance-pass">Prefer first — decline</button>
+          <button id="balance-start" class="primary hidden">Start match</button>
+          <button id="balance-original" class="hidden">Play original opening</button>
+        </div>
+      </div>
+    </aside>
+  </div>
+  <div id="balance-handoff" class="hidden" role="dialog" aria-modal="true" aria-labelledby="balance-handoff-title">
+    <div><h2 id="balance-handoff-title"></h2><p>The previous answer is locked and hidden.</p><button id="balance-ready" class="primary">Ready — show the offer</button></div>
+  </div>
+</section>
 
 <!-- ============ Game ============ -->
 <div id="game-screen" class="hidden">
   <div id="topbar">
     <div class="topbar-scroll" tabindex="0" role="region" aria-label="Match information and settings">
     <button id="btn-menu">◄ Save &amp; Menu</button>
+    <a class="btn-like" href="tournaments.html" target="_blank" rel="noopener">Tournaments</a>
     <span id="map-title"></span>
     <select id="map-jump" aria-label="Jump to campaign map"></select>
     <label class="opponent-control" for="opponent-select">Opponent
@@ -103,6 +160,7 @@
     <span id="status-turn"></span>
     <span id="status-player"></span>
     <span id="status-units"></span>
+    <span id="balance-match-label" class="hidden"></span>
     <select id="style-select" aria-label="Visual style">
       <option value="pixel">Pixel style</option>
       <option value="neon">Neon style</option>
@@ -118,7 +176,8 @@
         <option value="normal">Board: Normal</option>
         <option value="sideways">Board: Sideways</option>
       </select>
-      <select id="controls-position" aria-label="Controls position" title="Move controls to the left for a full-height board">
+      <select id="controls-position" aria-label="Controls position" title="Auto chooses top or left controls to fit the largest board">
+        <option value="auto">Controls: Auto</option>
         <option value="top">Controls: Top</option>
         <option value="left">Controls: Left</option>
       </select>
@@ -198,26 +257,29 @@
 <script src="js/hex.js?v=20260920-battle-forecast"></script>
 <script src="js/data-terrain.js?v=20260920-fidelity"></script>
 <script src="js/data-units.js?v=20260920-cpu-tactics"></script>
-<script src="js/combat.js?v=20260923-search-1"></script>
-<script src="js/engine.js?v=20260922-factory-actions"></script>
-<script src="js/ai.js?v=20260923-search-1"></script>
-<script src="js/ai-model.js?v=20260923-search-1"></script>
-<script src="js/ai-search.js?v=20260923-search-1"></script>
+<script src="js/combat.js?v=20260923-search-2"></script>
+<script src="js/engine.js?v=20260923-balance-offers"></script>
+<script src="js/balance.js?v=20260923-balance-offers"></script>
+<script src="js/ai.js?v=20260923-search-2"></script>
+<script src="js/ai-model.js?v=20260923-search-2"></script>
+<script src="js/ai-search.js?v=20260923-search-2"></script>
 <script src="js/data-maps.js?v=20260920-battle-forecast"></script>
 <script src="js/data-advanced-maps.js?v=20260920-advanced"></script>
 <script src="js/data-expansion-maps.js?v=20260920-fidelity"></script>
 <script src="js/data-basenectaris-maps.js?v=20260920-fidelity"></script>
 <script src="js/data-ai-maps.js?v=20260922-curiosity-maps"></script>
+<script src="js/data-environment-campaigns.js?v=20260923-ai-made-labels"></script>
 <script src="js/data-unit-art.js?v=20260920-battle-forecast"></script>
 <script src="js/data-unit-art-legacy.js?v=20260920-battle-forecast"></script>
 <script src="js/unit-icon-sets.js?v=20260920-battle-forecast"></script>
 <script src="js/legacy-terrain.js?v=20260923-board-frame"></script>
-<script src="js/render.js?v=20260923-board-layout"></script>
+<script src="js/render.js?v=20260923-auto-layout"></script>
 <script src="js/unit-view.js?v=20260922-factory-actions"></script>
+<script src="js/balance-ui.js?v=20260923-balance-offers"></script>
 <script src="js/music.js?v=20260920-battle-forecast"></script>
 <script src="js/combat-view.js?v=20260922-unit-actions-2"></script>
-<script src="js/ui.js?v=20260923-board-layout"></script>
-<script src="js/profiles.js?v=20260922-fjords"></script>
-<script src="js/main.js?v=20260923-three-across"></script>
+<script src="js/ui.js?v=20260923-auto-layout"></script>
+<script src="js/profiles.js?v=20260923-terrain-campaigns"></script>
+<script src="js/main.js?v=20260923-ai-made-labels"></script>
 </body>
 </html>

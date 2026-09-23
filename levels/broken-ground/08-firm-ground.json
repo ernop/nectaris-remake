@@ -1,0 +1,200 @@
+{
+  "name": "FIRM GROUND",
+  "pack": "AI-made: Broken Ground",
+  "campaignId": "broken-ground",
+  "mission": 8,
+  "author": "AI-made by Codex",
+  "source": "levels/broken-ground/08-firm-ground.json",
+  "description": "Mine teams compete over the few firm routes between large waste fields. Each mine has its own Mule, but transport unloading still needs plain, road, bridge or an owned factory.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 70 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "terrain-dependent routes",
+    "column",
+    "mixed forces"
+  ],
+  "design": {
+    "theme": "rough",
+    "layout": 8,
+    "formation": "column",
+    "road": "fork"
+  },
+  "turnLimit": 70,
+  "grid": [
+    "..................................",
+    ".....---..........................",
+    ".....-ww--wwwww...................",
+    "...B-wwww-wwwwww.wwwwww...hhhh....",
+    "..-..wwww---wwwwwwwwwwww.hhhhhh...",
+    "..-wwwww-Fw-wwwwwwwwwwwwwhhhhhh...",
+    "..-wwwwwwwww--wwwwwwwwwww--hhhh...",
+    "..-wwwwwwwwwhh--wwwwFww--w--......",
+    "..--wwwMwwwwwwww--hh---www..-.....",
+    "...-wwMMMwwwwwwwww---wwwww..-.....",
+    "....-wMMwwwwwwwwwwwwwwwwwww.--....",
+    "....--.wwwwwwwwwwwwwwwwwwwMMw-....",
+    ".....-..wwwww---wwwwwwwwwMMMww-...",
+    ".....-..www---hh--wwwwwwwwMwww--..",
+    "......--w--wwFwwww--hhwwwwwwwww-..",
+    "...hhhh--wwwwwwwwwww--wwwwwwwww-..",
+    "...hhhhhhwwwwwwwwwwwww-wF-wwwww-..",
+    "...hhhhhh.wwwwwwwwwwww---wwww..-..",
+    "....hhhh...wwwwww.wwwwww-wwww-B...",
+    "...................wwwww--ww-.....",
+    "..........................---.....",
+    ".................................."
+  ],
+  "buildings": [
+    {
+      "col": 3,
+      "row": 3,
+      "owner": 0
+    },
+    {
+      "col": 30,
+      "row": 18,
+      "owner": 1
+    },
+    {
+      "col": 9,
+      "row": 5,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "TRIGGER",
+        "BISON",
+        "BISON"
+      ]
+    },
+    {
+      "col": 24,
+      "row": 16,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "TRIGGER",
+        "BISON",
+        "BISON"
+      ]
+    },
+    {
+      "col": 13,
+      "row": 14,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET",
+        "LENET"
+      ]
+    },
+    {
+      "col": 20,
+      "row": 7,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET",
+        "LENET"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 11
+    },
+    {
+      "t": "MULE",
+      "o": 0,
+      "x": 4,
+      "y": 10
+    },
+    {
+      "t": "TRIGGER",
+      "o": 0,
+      "x": 5,
+      "y": 10
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 5,
+      "y": 11
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 6,
+      "y": 11
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 5,
+      "y": 9
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 7,
+      "y": 11
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 30,
+      "y": 11
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 29,
+      "y": 10
+    },
+    {
+      "t": "MULE",
+      "o": 1,
+      "x": 29,
+      "y": 11
+    },
+    {
+      "t": "TRIGGER",
+      "o": 1,
+      "x": 28,
+      "y": 11
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 28,
+      "y": 10
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 27,
+      "y": 10
+    },
+    {
+      "t": "TITAN",
+      "o": 1,
+      "x": 28,
+      "y": 12
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 26,
+      "y": 10
+    }
+  ]
+}

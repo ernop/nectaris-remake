@@ -5,6 +5,37 @@ identified where relevant. Mechanics reconstruction (with sources) lives in
 `MECHANICS.md`. [PROJECT_GUIDE.md](PROJECT_GUIDE.md) indexes current guidance,
 pending work, experiments and historical evidence.
 
+## Search opponents and tournament lab (2026-09-23)
+
+The user requested maximum-strength AI development, several distinct algorithms,
+a map-view opponent picker, support for combinations of existing numerical unit
+capabilities, and large configurable self-play tournaments with Elo and replays.
+Personality presets are explicitly excluded. Implemented policies are Classic,
+Tactical (greedy), Sequence (beam), Simulation (MCTS) and Apex (hybrid search
+with complete-turn verification). The new-match default is Apex; older saves
+without a policy retain Classic. All play under the same engine rules and cannot
+read future match randomness.
+
+The **Opponent** dropdown applies changes to the next enemy turn, saves the
+selection and records mid-match changes. It is disabled during combat, AI turns,
+finished matches and hotseat. Search runs in a cancellable background worker;
+Watch AI controls animation without changing decisions. Failures preserve the
+turn-start checkpoint and show an actionable error.
+
+**Tournaments** opens a separate lab with opponent and board selection, paired
+cycles, round limits, seed, worker count and Elo K. Each matchup swaps faction
+assignments at a common seed. An earlier lab cutoff is a draw; original map
+timeouts retain their ordinary winner. The lab has pause/stop/resume, ordered
+per-run Elo, W/D/L and faction counts, head-to-head tables, saved game replays,
+CSV and archive export, and individual replay import/download. Large disk runs
+are available through the dependency-free Node worker runner. Profiles and
+ordinary human match saves remain separate.
+
+Algorithm sophistication is not a guaranteed difficulty ordering. Elo is
+relative to the recorded experiment, not a human rating or a claim of superhuman
+play. [AI_OPPONENTS.md](AI_OPPONENTS.md) owns the technical details, resource and
+storage limits, generic-unit scope and validation record.
+
 ## Optional inspector and full map height (updated 2026-09-23)
 
 The left inspector starts closed. **Details** in the control area toggles it, and
@@ -43,8 +74,15 @@ roads, movement highlights and firing contours rotate together. Click targets,
 wheel zoom around the cursor and Ctrl+left-drag use the displayed orientation.
 The editor retains its existing normal orientation.
 
-**Controls: Top / Left** moves the same controls into a compact 184-pixel left
-column on demand, leaving the entire right section at full window height.
+**Controls: Auto / Top / Left** now defaults to Auto, following the user's
+2026-09-23 request to flip the layout automatically when needed. Compare the
+full-board fit with top controls and with a compact 184-pixel left column,
+including the selected board orientation and any open inspector. Choose the
+larger fit; keep the current position when the alternative gains at most 2%,
+so tiny resizes do not make the controls jump back and forth. The new Auto
+default replaces the initial manual-only placement preference; subsequent
+explicit Top / Left overrides remain saved. Left placement leaves the entire
+right section at full window height.
 Keep view controls and Details / Undo / Redo / End Turn accessible; settings
 scroll vertically in a short window. Left mode also docks contextual unit
 commands and the range legend. Details remains optional. Top mode retains its
@@ -53,8 +91,9 @@ single-row scrolling settings and nearby unit commands.
 Remember orientation and control position across maps and browser reloads.
 **Fit** restores the complete board after zooming or panning. Refit when the
 window, controls, inspector, art set or visual style changes. Auto reevaluates
-orientation only on those explicit fits, never while dragging or choosing a
-destination. Use the actual board bounds and an 8-pixel fit margin; small maps
+orientation and control placement only on those fits, never merely because a
+unit is selected, a temporary action strip opens, or the player pans. Use the
+actual board bounds and an 8-pixel fit margin; small maps
 may enlarge to the existing 4× wheel-zoom limit instead of stopping at 1.6×.
 The exact column width, margin, clockwise direction and 2% Auto tie tolerance
 are implementation choices, not separately requested product constraints.
@@ -424,6 +463,53 @@ Importable JSON lives under `levels/`; `tools/build-ai-fjords.js` rebuilds it an
 the runtime data deterministically. Earlier layouts remain intact when a new
 part is added.
 
+## Compensation offers before play (2026-09-23)
+
+The user approved implementing the automatic second-player compensation
+proposal with a longer list and predefined, visible locations near each base.
+`js/balance.js` supplies 32 mixed ground-unit packages, starting at zero and
+ending at four Polars plus two Charlies. Their ordering expands the available
+menu; it does not assert universal unit prices. Every unlocked package remains
+available. A player may preview the entire finite schedule before answering.
+
+The setup shows the unplayed battlefield, both conditional bonuses, fixed
+numbered hexes and exact one-based column/row coordinates. Zoom, base focus,
+whole-map fit, Ctrl+left-drag and unit/factory inspection support evaluation.
+Units are fielded on those exact empty ground hexes at full strength and zero
+experience, ready on their first turn. Sites are deterministic, within five
+hexes of the player's owned base, reachable by all offered ground types, closer
+to home than the other base, and not adjacent to enemy field units. Building
+tiles are excluded. Complete rotational/reflection symmetry detected by the
+planner gets corresponding sites. Map authors can instead declare validated
+`balanceSpawns` arrays. Use equal slot capacity on both sides, up to six; filter
+out packages that cannot fit. No suitable sites means an explained fallback,
+not a silently relocated bonus.
+
+At each step both players lock private acceptance or refusal. One acceptance
+assigns that player second with their selected package; two acceptances use a
+random tie-break, retaining the selected recipient's own choice. Two refusals
+unlock another offer. Final refusal returns to setup, with an explicit original
+opening option. Hotseat obscures the previous answer during device handoff.
+Solo commits the CPU response before the human answers, without consuming
+combat randomness. Its material/capture-opportunity heuristic is an initial
+negotiation policy, not a solved position evaluator or guarantee of equal odds.
+The agreement remains reviewable until Start match; no army acts before then.
+
+Menu defaults to offers on custom/original and expansion battlefields and
+original play on the 32 imported campaign missions. Explicit Offers and Original
+choices override that default and persist. Imported map data stays unchanged.
+Human/CPU factions remain Union/Xenon; only initiative changes. A round ends
+after both factions act, including Xenon-first matches. Existing timeout
+victory for Xenon is stated during negotiation and remains unchanged.
+
+Cancelling setup preserves the previous saved match. Negotiation drafts are
+not persisted. Started matches save the chosen package, exact placements and
+first-player identity; Continue does not renegotiate, while replay does.
+Compensated results use separate level keys and never award original campaign
+completion stars. Match history and the game toolbar identify the accepted
+compensation. Balance needs playtesting across maps, player skill and opening
+choices; the feature implements negotiation, not an established 50/50 outcome.
+
 ## Official normal campaign (2026-09-03)
 
 The main campaign reproduces the normal campaign built into Hudson's official
@@ -744,3 +830,111 @@ Existing custom or saved base inventories remain accessible. Loading and
 unloading consume the passenger's turn; unloading a ready passenger remains
 available after its carrier acts. Modern profiles, saves, editor and forecasts
 remain product features and are identified as extras, not original PCE rules.
+
+## Grok 4.7 15 tactical gap-filling units study (2026-09-23)
+
+Review of the experimental outline item "design 15 gap-filling units" recorded in
+`PROJECT_GUIDE.md` and `tools/design-space/README.md`. While the prior mathematical
+study used an unconstrained maximin distance search that yielded degenerate boundary
+extremes (e.g., 1-move wheeled units pinned to roads, 0-attack 80-defense tanks, and
+defense-cap overflow), this study establishes an alternative 15-unit tactical set
+grounded in operational wargame doctrine, combined-arms roles, and tempo tradeoffs:
+
+- **Directory:** `grok4.7/`
+- **Data & engine compatibility:** `grok4.7/custom-units.json` adheres to `mergeUnitTypes`
+  schema without duplicate stock statlines, verified by `grok4.7/validate.js`.
+- **Art assets:** 30 native 32×32 pixel sprites (15 Union, 15 Xenon) with upper-left lighting
+  and centered silhouettes generated via `grok4.7/icons.js` into `grok4.7/icons/` and
+  `grok4.7/sheet.png`.
+- **Visual interface:** `grok4.7/gallery.html` and `grok4.7/index.html` deliver a high-contrast
+  fluid overview (100% pure white `#ffffff` text on dark surfaces, prominent bold tabular stats,
+  no gray text, fluid fraction-based card grid, and class filtering).
+- **Roster scope:** 15 functional roles across 7 classes:
+  1. `AEGIS` (Aegis AA-60, antiair, move 3 treads, 20/70, def 60, rngA 2 indirect AA anchor)
+  2. `GADFLY` (Gadfly AD-31, antiair, move 8 wheels, 10/55, def 15, road AA interceptor)
+  3. `ARGUS` (Argus AD-77, antiair, move 0, 0/60, def 30, rngA 4 deployable air umbrella)
+  4. `BREACHER` (Breacher SG-9, artillery, move 4 treads, 55/0, def 35, rngG 3 move-and-fire assault gun)
+  5. `LONGBOW` (Longbow AT-22, artillery, move 5 treads, 75/0, def 25, rngG 2 stand-off tank destroyer)
+  6. `REDOUBT` (Redoubt FP-80, artillery, move 0, 60/0, def 70, rngG 2 deployable armored pillbox)
+  7. `JAVELIN` (Javelin GX-90, infantry, move 3 foot, 85/0, def 10, foot anti-armor hit-and-run)
+  8. `PAVISE` (Pavise GX-55, infantry, move 2 foot, 20/10, def 30, heavy shield capturer)
+  9. `TRENCH` (Trench GX-41, infantry, move 2 foot, 35/0, def 10, rngG 3 mortar capturer)
+  10. `DUSTER` (Duster AC-12, tank, move 7 wheels, 45/30, def 20, wheeled combat gun car)
+  11. `WHIPPET` (Whippet MB-7, buggy, move 10 wheels, 20/20, def 10, high-speed recon scout)
+  12. `CONDOR` (Condor CA-9, transport, move 7 air, 20/20, def 30, cargo 1 armed airlift)
+  13. `TICK` (Tick M-3, mine, move 3 treads, 0/0, def 70, mobile obstacle and ZOC drone)
+  14. `HAULER` (Hauler NC-7, transport, move 5 wheels, 30/20, def 30, cargo 1 foot combat transport)
+  15. `SLOGGER` (Slogger HMB-9, tank, move 3 treads, 80/0, def 60, waste-capable breakthrough tank)
+
+## Gemini 3.8 15 tactical gap-filling units study (2026-09-23)
+
+Dedicated proposal and review pack designed by Gemini 3.8 reviewing the project outline
+item "design 15 gap-filling units". The design addresses operational dilemmas
+and combined-arms roles missing from the stock 23-unit roster without degenerating into
+boundary-sampling statistical extremes:
+
+- **Directory:** `gemini38/`
+- **Data & engine compatibility:** `gemini38/custom-units.json` adheres to the `mergeUnitTypes`
+  schema, loaded without errors and verified by `gemini38/validate.js` (valid range bands,
+  Pelican loading compatibility, and zero duplicate statlines).
+- **Art assets:** 30 native 32×32 pixel art sprites (15 Union right-facing, 15 Xenon left-facing)
+  authored with upper-left illumination and centered silhouettes via `gemini38/icons.js` into
+  `gemini38/icons/` and a 3×5 contact sheet at `gemini38/sheet.png`.
+- **Visual interface:** `gemini38/gallery.html` and `gemini38/index.html` deliver a high-contrast
+  fluid overview (100% pure white `#ffffff` text on dark surfaces, prominent bold tabular stats,
+  no gray text, fluid fraction-based card grid, and class filtering).
+- **Roster scope:** 15 functional roles across 7 classes:
+  1. `PHALANX` (Phalanx AA-50, antiair, move 5 treads, 35/75, def 50, armored frontline flak tank)
+  2. `SENTINEL` (Sentinel AD-80, antiair, move 0 treads, 0/80, def 25, rngA 5 static SAM battery)
+  3. `DART` (Dart MB-6, buggy, move 7 treads, 25/50, def 20, rngA 2 hit-and-run anti-air buggy)
+  4. `STORM` (Storm SG-50, artillery, move 4 treads, 50/0, def 35, rngG 3 move-and-fire assault gun)
+  5. `CYCLOPS` (Cyclops MR-75, artillery, move 3 treads, 75/0, def 25, rngG 5 heavy siege rocket launcher)
+  6. `BUNKER` (Bunker FB-70, artillery, move 0 treads, 65/30, def 70, deployable direct-fire cupola)
+  7. `RANGER` (Ranger GX-35, infantry, move 4 foot, 35/25, def 16, mountain commando skirmisher)
+  8. `HOPLITE` (Hoplite GX-25, infantry, move 2 foot, 25/15, def 26, heavy armored capturer)
+  9. `MORTAR` (Mortar GX-40, infantry, move 3 foot, 40/0, def 12, rngG 3 mountain mortar squad)
+  10. `CHEETAH` (Cheetah AC-8, tank, move 8 wheels, 50/0, def 30, wheeled cavalry tank)
+  11. `RHINO` (Rhino AT-85, tank, move 3 treads, 85/0, def 45, heavy casemate tank destroyer)
+  12. `MAMMOTH` (Mammoth HMB-5, tank, move 3 treads, 80/0, def 65, waste-capable breakthrough tank)
+  13. `BUFFALO` (Buffalo NC-5, transport, move 5 treads, 25/15, def 35, cargo 1 armored combat APC)
+  14. `CORSAIR` (Corsair AX-80, air, move 8 air, 80/30, def 40, heavy anti-tank attack gunship)
+  15. `TALON` (Talon MB-9, buggy, move 9 wheels, 35/20, def 15, high-speed wheeled recon buggy)
+
+
+## Three terrain campaigns (2026-09-23)
+
+The user requested three new campaigns of sixteen levels each around **open sea
+of land**, **dense center / spacious outskirts**, and **difficult terrain**.
+The focus is physical map design and tactical situations, with permission for
+small forces, limited unit types and apparently strong but awkward positions.
+Hunters, Falcons and Eagles should generally be avoided. Implemented as **Open
+Horizons**, **The Knotted Heart**, and **Broken Ground**, with all three aircraft
+excluded entirely. Pelicans and all other stock types are used across the set.
+
+The user's follow-up explicitly requires clear AI-made attribution. All three
+campaign display names are prefixed **AI-made:** in the library, navigation and
+map selector; their collection category is **AI-made campaign**, and every
+individual level credits **AI-made by Codex**, including downloadable JSON.
+Campaign IDs, map names, progress keys and gameplay data remain unchanged.
+
+These are 48 new missions in three separate menu collections, with their own
+01–16 numbering, profile result keys, map-jump groups, saved-match identity and
+Next mission progression. Mission 16 ends its own campaign. Existing map packs,
+numbering and source data are preserved. Each mission starts with fresh forces;
+there is no army carryover or new campaign economy.
+
+Implementation choices: boards range from 24×16 to 42×28, terrain and stock
+placements use half-turn symmetry, and some starting armies are deliberately
+asymmetric. Factories carry focused four-unit teams; immobile reserves follow
+a compatible carrier. The old fjord-specific factory-count, mouth-count and
+mountain-thickness constraints do not apply to these newly requested physical
+families. Routes are checked for the units that actually use them, and factories
+have genuine legal deployment terrain. The normal movement, capture, elimination
+and turn-limit rules remain in force. The existing opening selector still applies;
+Original opening preserves the exact authored roster puzzles, while compensation
+offers may add units. The briefs describe tactical problems, not hidden objectives.
+
+[Campaign catalog and import bundles](ENVIRONMENT_CAMPAIGNS.md) record every
+mission. The deterministic builder, physical-route tests, menu/save/progression
+tests and all-map CPU self-play cover integration and execution. These are new
+scenarios whose difficulty and multiplayer balance still need human playtesting.

@@ -1,0 +1,266 @@
+{
+  "name": "OUTSIDE THE FORTRESS",
+  "pack": "AI-made: The Knotted Heart",
+  "campaignId": "knotted-heart",
+  "mission": 15,
+  "author": "AI-made by Codex",
+  "source": "levels/knotted-heart/15-outside-the-fortress.json",
+  "description": "The defender has an imposing heavy force beside a dense central fortress. The attacker has more flexible movement around its spacious outskirts; the strongest local position need not control the whole map.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 85 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "dense center / open flanks",
+    "spread",
+    "mixed forces"
+  ],
+  "design": {
+    "theme": "center",
+    "layout": 15,
+    "formation": "spread",
+    "road": "rim"
+  },
+  "turnLimit": 85,
+  "grid": [
+    ".........h..h......h....h...............",
+    "..h...........................hh........",
+    ".h...................h...h...h..........",
+    ".........-----------------------.....h..",
+    "h....hh--MMMMMMMMMMMMMMMMMMMMMM.--......",
+    "h....--..MM.M-M-M-MMMMMMMMMMMMM..-......",
+    "..h..-h..Mh--.-F-hFMMh.---.-.hM...--....",
+    ".....-h..M-MMMMMMM.MMhFMhM-M--M....-..h.",
+    ".....-..hM-MMMMMMM.MM.MMMMMMM-M....-....",
+    ".....-...M-MMMMMMM.MMhMMMMMMM-M....-h.h.",
+    ".....-...M-MMMMMMM.MMhMMMMMMM-M.....-h..",
+    ".....---.M-MMMMMMMhMM.MMMMMMM-M.....-...",
+    "h..B-...----Fh.hh...hh...h..h-......-...",
+    "...-......-h..h...hh...hh.hF----...-B..h",
+    "...-.....M-MMMMMMM.MMhMMMMMMM-M.---.....",
+    "..h-.....M-MMMMMMMhMM.MMMMMMM-M...-.....",
+    ".h.h-....M-MMMMMMMhMM.MMMMMMM-M...-.....",
+    "....-....M-MMMMMMM.MM.MMMMMMM-Mh..-.....",
+    ".h..-....M--M-MhMFhMM.MMMMMMM-M..h-.....",
+    "....--...Mh.-.---.hMMFh-F-.--hM..h-..h..",
+    "......-..MMMMMMMMMMMMM-M-M-M.MM..--....h",
+    "......--.MMMMMMMMMMMMMMMMMMMMMM--hh....h",
+    "..h.....-----------------------.........",
+    "..........h...h...h...................h.",
+    "........hh...........................h..",
+    "...............h....h......h..h........."
+  ],
+  "buildings": [
+    {
+      "col": 3,
+      "row": 12,
+      "owner": 0
+    },
+    {
+      "col": 36,
+      "row": 13,
+      "owner": 1
+    },
+    {
+      "col": 15,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET",
+        "LENET"
+      ]
+    },
+    {
+      "col": 24,
+      "row": 19,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET",
+        "LENET"
+      ]
+    },
+    {
+      "col": 17,
+      "row": 18,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "ATLAS",
+        "POLAR",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 22,
+      "row": 7,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "ATLAS",
+        "POLAR",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 12,
+      "row": 12,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "RABBIT",
+        "RABBIT",
+        "LYNX"
+      ]
+    },
+    {
+      "col": 27,
+      "row": 13,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "RABBIT",
+        "RABBIT",
+        "LYNX"
+      ]
+    },
+    {
+      "col": 18,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "KILROY",
+        "GRIZZLY",
+        "GRIZZLY",
+        "GRIZZLY"
+      ]
+    },
+    {
+      "col": 21,
+      "row": 19,
+      "owner": -1,
+      "stored": [
+        "KILROY",
+        "GRIZZLY",
+        "GRIZZLY",
+        "GRIZZLY"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 5
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 7,
+      "y": 8
+    },
+    {
+      "t": "PANTHER",
+      "o": 0,
+      "x": 8,
+      "y": 11
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 5,
+      "y": 14
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 7,
+      "y": 17
+    },
+    {
+      "t": "SLAGGER",
+      "o": 0,
+      "x": 8,
+      "y": 20
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 6,
+      "y": 5
+    },
+    {
+      "t": "RABBIT",
+      "o": 0,
+      "x": 7,
+      "y": 7
+    },
+    {
+      "t": "PELICAN",
+      "o": 0,
+      "x": 7,
+      "y": 11
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 34,
+      "y": 20
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 32,
+      "y": 17
+    },
+    {
+      "t": "GIANT",
+      "o": 1,
+      "x": 31,
+      "y": 14
+    },
+    {
+      "t": "GIANT",
+      "o": 1,
+      "x": 34,
+      "y": 11
+    },
+    {
+      "t": "TITAN",
+      "o": 1,
+      "x": 32,
+      "y": 8
+    },
+    {
+      "t": "TITAN",
+      "o": 1,
+      "x": 31,
+      "y": 5
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 33,
+      "y": 20
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 32,
+      "y": 18
+    },
+    {
+      "t": "MULE",
+      "o": 1,
+      "x": 32,
+      "y": 14
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 34,
+      "y": 12
+    }
+  ]
+}

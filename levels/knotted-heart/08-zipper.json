@@ -1,0 +1,222 @@
+{
+  "name": "ZIPPER",
+  "pack": "AI-made: The Knotted Heart",
+  "campaignId": "knotted-heart",
+  "mission": 8,
+  "author": "AI-made by Codex",
+  "source": "levels/knotted-heart/08-zipper.json",
+  "description": "Offset openings interlock through the central ridge. A force can change lanes at some points and must backtrack at others; the open margins remain a longer escape route.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "dense center / open flanks",
+    "split",
+    "mixed forces"
+  ],
+  "design": {
+    "theme": "center",
+    "layout": 8,
+    "formation": "split",
+    "road": "fork"
+  },
+  "turnLimit": 65,
+  "grid": [
+    "...h......................hh........",
+    ".......................h........h...",
+    "............h---------------........",
+    "...B.h..MMMM-MMhMMMMMMMMMMMM-..hh...",
+    "h...--..MMMM-MMhMMMMMMMMMMMM-.......",
+    "....-h-------Fh.h..hMMMMMMMM-.......",
+    "....-h.-MMMM-MMMMMM.MMMMMMMM--......",
+    "h...---.hh..------h.F---MMMM.-......",
+    ".....-..MMMMMMMMMM-..MM-MMMM.-h.....",
+    ".....-..MMMM-------.MMM-MMMM..-.....",
+    ".....-..MMMMFMMMMMMMMMM-MMMM..-.h...",
+    "...h.-..MMMM-MMMMMMMMMMFMMMM..-.....",
+    ".....-..MMMM-MMM.-------MMMM..-.....",
+    ".....h-.MMMM-MM..-MMMMMMMMMM..-.....",
+    "......-.MMMM---F.h------..hh.---...h",
+    "......--MMMMMMMM.MMMMMM-MMMM-.h-....",
+    ".......-MMMMMMMMh..h.hF-------h-....",
+    ".......-MMMMMMMMMMMMhMM-MMMM..--...h",
+    "...hh..-MMMMMMMMMMMMhMM-MMMM..h.B...",
+    "........---------------h............",
+    "...h........h.......................",
+    "........hh......................h..."
+  ],
+  "buildings": [
+    {
+      "col": 3,
+      "row": 3,
+      "owner": 0
+    },
+    {
+      "col": 32,
+      "row": 18,
+      "owner": 1
+    },
+    {
+      "col": 13,
+      "row": 5,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET",
+        "LENET"
+      ]
+    },
+    {
+      "col": 22,
+      "row": 16,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET",
+        "LENET"
+      ]
+    },
+    {
+      "col": 15,
+      "row": 14,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "HADRIAN",
+        "OCTOPUS",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 20,
+      "row": 7,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "HADRIAN",
+        "OCTOPUS",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 12,
+      "row": 10,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "RABBIT",
+        "RABBIT",
+        "LYNX"
+      ]
+    },
+    {
+      "col": 23,
+      "row": 11,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "RABBIT",
+        "RABBIT",
+        "LYNX"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 7,
+      "y": 5
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 7,
+      "y": 15
+    },
+    {
+      "t": "PANTHER",
+      "o": 0,
+      "x": 6,
+      "y": 5
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 6,
+      "y": 15
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 8,
+      "y": 5
+    },
+    {
+      "t": "POLAR",
+      "o": 0,
+      "x": 7,
+      "y": 16
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 7,
+      "y": 6
+    },
+    {
+      "t": "RABBIT",
+      "o": 0,
+      "x": 7,
+      "y": 14
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 28,
+      "y": 16
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 28,
+      "y": 6
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 29,
+      "y": 16
+    },
+    {
+      "t": "GRIZZLY",
+      "o": 1,
+      "x": 29,
+      "y": 6
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 27,
+      "y": 16
+    },
+    {
+      "t": "TITAN",
+      "o": 1,
+      "x": 28,
+      "y": 5
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 28,
+      "y": 15
+    },
+    {
+      "t": "OCTOPUS",
+      "o": 1,
+      "x": 28,
+      "y": 7
+    }
+  ]
+}

@@ -1,0 +1,146 @@
+{
+  "name": "THE GILDED CAGE",
+  "pack": "AI-made: Broken Ground",
+  "campaignId": "broken-ground",
+  "mission": 2,
+  "author": "AI-made by Codex",
+  "source": "levels/broken-ground/02-the-gilded-cage.json",
+  "description": "Giants dominate nearby ground but cannot enter wasteland. A winding road threads the waste fields; the lighter opposing army has more ways to approach the queue.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 60 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "terrain-dependent routes",
+    "column",
+    "mixed forces"
+  ],
+  "design": {
+    "theme": "rough",
+    "layout": 2,
+    "formation": "column",
+    "road": "zigzag"
+  },
+  "turnLimit": 60,
+  "grid": [
+    "..............................",
+    "..............................",
+    "........wwwwwww...............",
+    ".......wwwwwwwww.......hhhh...",
+    "......www-hhwwwwwwwwwwhhhhh...",
+    ".....ww-F-hhhhwwwwwwwwhhhhh...",
+    "....wwww----hhwwwwwwwwwhhh....",
+    "....wwMwh-hh--wwwwwwwwwww.....",
+    "....wwMMw-hhww--wwwwwwwwww....",
+    "..B-wwM--wwwww--wwwwwww---....",
+    "....---wwwwwww--wwwww--Mww-B..",
+    "....wwwwwwwwww--wwhh-wMMww....",
+    ".....wwwwwwwwwww--hh-hwMww....",
+    "....hhhwwwwwwwwwhh----wwww....",
+    "...hhhhhwwwwwwwwhhhh-F-ww.....",
+    "...hhhhhwwwwwwwwwwhh-www......",
+    "...hhhh.......wwwwwwwww.......",
+    "...............wwwwwww........",
+    "..............................",
+    ".............................."
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 9,
+      "owner": 0
+    },
+    {
+      "col": 27,
+      "row": 10,
+      "owner": 1
+    },
+    {
+      "col": 8,
+      "row": 5,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "TITAN",
+        "TITAN",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 21,
+      "row": 14,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "TITAN",
+        "TITAN",
+        "TITAN"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 10
+    },
+    {
+      "t": "GIANT",
+      "o": 0,
+      "x": 4,
+      "y": 10
+    },
+    {
+      "t": "GIANT",
+      "o": 0,
+      "x": 5,
+      "y": 10
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 5,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 26,
+      "y": 10
+    },
+    {
+      "t": "PANTHER",
+      "o": 1,
+      "x": 26,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 25,
+      "y": 10
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 25,
+      "y": 9
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 24,
+      "y": 10
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 24,
+      "y": 9
+    }
+  ]
+}

@@ -1,0 +1,182 @@
+{
+  "name": "GUNS IN THE MUD",
+  "pack": "AI-made: Broken Ground",
+  "campaignId": "broken-ground",
+  "mission": 7,
+  "author": "AI-made by Codex",
+  "source": "levels/broken-ground/07-guns-in-the-mud.json",
+  "description": "Your artillery-heavy force must relocate through broken waste and hill patches. An attractive firing position may take a full turn to leave and another to make useful again.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "terrain-dependent routes",
+    "gunline",
+    "mixed forces"
+  ],
+  "design": {
+    "theme": "rough",
+    "layout": 7,
+    "formation": "gunline",
+    "road": "zigzag"
+  },
+  "turnLimit": 65,
+  "grid": [
+    "..............................",
+    "..............................",
+    ".....---...............hhh....",
+    ".....-M.--............hhhhhh..",
+    ".....-MMw-wwww.......hhhhhhh..",
+    "...---M-Fw-wwwww.....hhhhhhh..",
+    "...-ww-www-wwwwww.....hhhhh...",
+    "..-wwwwwhh--hwwwwFwww---......",
+    "..-wwwwhhhhh--w-w----www--....",
+    "..-.wwwhhhhhh--w-hhhhhhw-w--..",
+    "..B.wwwhhhhhh-ww-hhhhhhw-ww-..",
+    "..-ww-whhhhhh-ww-hhhhhhwww.B..",
+    "..--w-whhhhhh-w--hhhhhhwww.-..",
+    "....--www----w-w--hhhhhwwww-..",
+    "......---wwwFwwwwh--hhwwwww-..",
+    "...hhhhh.....wwwwww-www-ww-...",
+    "..hhhhhhh.....wwwww-wF-M---...",
+    "..hhhhhhh.......wwww-wMM-.....",
+    "..hhhhhh............--.M-.....",
+    "....hhh...............---.....",
+    "..............................",
+    ".............................."
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 10,
+      "owner": 0
+    },
+    {
+      "col": 27,
+      "row": 11,
+      "owner": 1
+    },
+    {
+      "col": 8,
+      "row": 5,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "BISON",
+        "LENET"
+      ]
+    },
+    {
+      "col": 21,
+      "row": 16,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "BISON",
+        "LENET"
+      ]
+    },
+    {
+      "col": 12,
+      "row": 14,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "ATLAS",
+        "POLAR",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 17,
+      "row": 7,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "ATLAS",
+        "POLAR",
+        "POLAR"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 8,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 8,
+      "y": 8
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 6,
+      "y": 11
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 6,
+      "y": 13
+    },
+    {
+      "t": "OCTOPUS",
+      "o": 0,
+      "x": 6,
+      "y": 15
+    },
+    {
+      "t": "MULE",
+      "o": 0,
+      "x": 7,
+      "y": 5
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 21,
+      "y": 15
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 21,
+      "y": 13
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 21,
+      "y": 10
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 21,
+      "y": 8
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 21,
+      "y": 6
+    },
+    {
+      "t": "TITAN",
+      "o": 1,
+      "x": 22,
+      "y": 16
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 22,
+      "y": 14
+    }
+  ]
+}

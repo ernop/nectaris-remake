@@ -1,0 +1,19 @@
+name: Tests
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  engine-and-ai:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Rules, search, replays and all-map self-play
+        run: node test/run-tests.js
+      - name: Parallel tournament and checkpoint recovery
+        run: |
+          node tools/ai-research/run.cjs --opponents=classic,tactical --boards=0 --cycles=1 --rounds=3 --workers=2 --out=/tmp/nectaris-ci
+          node tools/ai-research/run.cjs --out=/tmp/nectaris-ci --resume

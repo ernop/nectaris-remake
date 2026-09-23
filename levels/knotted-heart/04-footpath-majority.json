@@ -1,0 +1,152 @@
+{
+  "name": "FOOTPATH MAJORITY",
+  "pack": "AI-made: The Knotted Heart",
+  "campaignId": "knotted-heart",
+  "mission": 4,
+  "author": "AI-made by Codex",
+  "source": "levels/knotted-heart/04-footpath-majority.json",
+  "description": "Infantry and Mules only. The serpentine center is a road problem for the carriers, while Charlie and Kilroy can climb directly across the surrounding mountains.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 55 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "dense center / open flanks",
+    "spread",
+    "limited roster"
+  ],
+  "design": {
+    "theme": "center",
+    "layout": 4,
+    "formation": "spread",
+    "road": "none"
+  },
+  "turnLimit": 55,
+  "grid": [
+    "..h.......h.............h..h..",
+    "h....h....h...hh..............",
+    "...h...h.B.....h....h.........",
+    ".......M...MMMM.MMMMMMM.......",
+    "....h...MhM.MhMhMhM.MMM.......",
+    "h......MhMhM-M..hMhM.MM...hh..",
+    ".h......h...Fh...hh.hMM.......",
+    "...h.h.MMMM.M.MhM.M..MM.h.....",
+    ".......MMMhM.M.M.M...MM.......",
+    ".......MMMhMMMMMMMM.MMM..h....",
+    "....h..MMM.MMMMMMMMhMMM.......",
+    ".......MM...M.M.M.MhMMM.......",
+    ".....h.MM..M.MhM.M.MMMM.h.h...",
+    ".......MMh.hh...hF...h......h.",
+    "..hh...MM.MhMh..M-MhMhM......h",
+    ".......MMM.MhMhMhM.MhM...h....",
+    ".......MMMMMMM.MMMM...M.......",
+    ".........h....h.....B.h...h...",
+    "..............hh...h....h....h",
+    "..h..h.............h.......h.."
+  ],
+  "buildings": [
+    {
+      "col": 9,
+      "row": 2,
+      "owner": 0
+    },
+    {
+      "col": 20,
+      "row": 17,
+      "owner": 1
+    },
+    {
+      "col": 12,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "CHARLIE",
+        "KILROY",
+        "KILROY"
+      ]
+    },
+    {
+      "col": 17,
+      "row": 13,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "CHARLIE",
+        "KILROY",
+        "KILROY"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 3
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 6,
+      "y": 8
+    },
+    {
+      "t": "KILROY",
+      "o": 0,
+      "x": 4,
+      "y": 11
+    },
+    {
+      "t": "KILROY",
+      "o": 0,
+      "x": 5,
+      "y": 13
+    },
+    {
+      "t": "MULE",
+      "o": 0,
+      "x": 6,
+      "y": 15
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 25,
+      "y": 16
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 24,
+      "y": 13
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 23,
+      "y": 11
+    },
+    {
+      "t": "KILROY",
+      "o": 1,
+      "x": 25,
+      "y": 8
+    },
+    {
+      "t": "KILROY",
+      "o": 1,
+      "x": 24,
+      "y": 6
+    },
+    {
+      "t": "MULE",
+      "o": 1,
+      "x": 23,
+      "y": 4
+    }
+  ]
+}

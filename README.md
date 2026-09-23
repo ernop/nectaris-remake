@@ -6,8 +6,10 @@ hex-based tactics game (TG-16 / PC Engine, 1989: *Nectaris* in Japan,
 combat calculation with support and surround fire, experience, terrain
 defense, factories with stored units, transports — while dropping the pure
 hardware limitations: the whole map is visible at once, with free zoom and
-pan, at any map size. It includes 32 original campaign maps, a 12-map online expansion,
-an original procedural chiptune score, and a level editor with URL sharing.
+pan, at any map size. It includes 119 maps: 32 official campaign missions,
+24 extra-pack maps, 15 AI-made scenarios and 48 maps in three original terrain
+campaigns. It also includes an original procedural chiptune score and a level
+editor with URL sharing.
 
 ## What's what
 
@@ -30,10 +32,16 @@ an original procedural chiptune score, and a level editor with URL sharing.
 | `js/combat.js` | Recovered per-machine damage and squad-casualty calculation |
 | `js/engine.js` | Game state, movement/ZOC, actions, victory |
 | `js/ai.js` | Computer opponent |
+| [AI_OPPONENTS.md](AI_OPPONENTS.md) | Five opponent algorithms, custom capability support, tournament instructions and strength limits |
+| `tournaments.html` | Parallel self-play, per-run Elo, saved games and replay viewer |
+| `tools/ai-research/run.cjs` | Multi-core disk tournaments, exact game archives and resumable ratings |
 | `js/data-maps.js` / `js/data-advanced-maps.js` | Official normal and advanced campaigns, 16 missions each, from Hudson's 1997 PC Engine remake |
 | `js/data-expansion-maps.js` | 12-map Lunar Frontiers online expansion |
 | `js/data-basenectaris-maps.js` | 12-map Base Nectaris terrain pack (bilingual briefings) |
 | `js/data-ai-maps.js` | Fifteen original AI-made maps, from branching fjords to bridge crossings, caldera circuits and siege chambers |
+| `js/data-environment-campaigns.js` | Three original 16-map campaigns: Open Horizons, The Knotted Heart and Broken Ground |
+| [ENVIRONMENT_CAMPAIGNS.md](ENVIRONMENT_CAMPAIGNS.md) | All 48 missions, tactical briefs, sizes, forces and import bundles |
+| `tools/environment-campaign-specs.js` / `tools/build-environment-campaigns.js` | Authored mission catalog and reproducible terrain-campaign builder |
 | `tools/build-ai-fjords.js` | Deterministic builder for the AI-made maps and importable JSON in `levels/` |
 | `tools/nmd-to-level.js` | Converts a Windows-edition `.nmd` map file to a level |
 | `js/render.js` | Canvas renderer with selectable Remake/Legacy art |
@@ -51,6 +59,20 @@ an original procedural chiptune score, and a level editor with URL sharing.
 | `tools/art-pilot.html` | Native map fixture with a selector for all 23 unit types |
 | `serve.sh` | Local server on the fixed development port |
 
+## Three new AI-made terrain campaigns
+
+**Open Horizons** explores broad plains around mountain islands. **The Knotted
+Heart** pairs a dense center with spacious outskirts. **Broken Ground** makes
+hills, wasteland and valleys create different routes for different units.
+Each is explicitly labeled **AI-made** in the menu and has 16 distinct maps,
+independent progress and a Next mission button.
+Tiny forces, restricted rosters and awkward heavy-armor positions are mixed
+with larger battles. No Hunters, Falcons or Eagles appear; Pelicans remain.
+
+Select **Opening → Original opening** to play the exact authored roster puzzles;
+compensation offers can add extra units. Read the [mission catalog](ENVIRONMENT_CAMPAIGNS.md)
+or use each map's **?** briefing in the game.
+
 ## Run locally
 
 ```bash
@@ -64,9 +86,16 @@ bind error rather than selecting a different port.
 
 ## Deployment
 
+The map's **Opponent** picker selects Classic, Tactical, Sequence, Simulation
+or Apex (the new-match default). **Tournaments** opens the self-play lab with
+board, game-count, round-cap and worker controls, Elo tables and saved replays.
+See [AI_OPPONENTS.md](AI_OPPONENTS.md) for algorithms and large disk runs.
+Serve the lab over HTTP on localhost or HTTPS; it uses Web Workers, IndexedDB
+and Web Locks. Ordinary match/profile saves remain in localStorage.
+
 Static files, no build step, no dependencies. Copy the folder to any web
-server (or open `index.html` from disk — no modules, plain scripts). All
-state (campaign progress, custom levels, custom units) lives in
+server (or open `index.html` from disk — no modules, plain scripts). Ordinary
+game state (campaign progress, custom levels, custom units) lives in
 `localStorage`.
 
 ## Player profiles and saved games
@@ -87,6 +116,44 @@ Hotseat results record the winning faction separately from solo wins/losses.
 Profiles stay in this browser at the same address—there is no cloud sync.
 Clearing site data removes them. Existing campaign stars migrate to your first
 profile. Storage problems display an error instead of claiming progress is saved.
+
+## Choosing the opening
+
+**Opening → Offers for custom battles** is the default: original/custom and
+expansion battlefields negotiate compensation; the normal and advanced imported
+campaigns use their original opening. Choose **Compensation offers** to use it
+on any eligible map, or **Original opening** to skip it everywhere.
+
+Before either army moves, inspect the whole map and both bases. Up to **32
+offers**, from no bonus through four Polars plus two Charlies, unlock in order.
+Each earlier package stays selectable, so two Charlies never become unavailable
+when a Polar is offered. Future packages can be previewed before they unlock.
+Numbered hexes, unit icons and column/row coordinates show exactly where the
+bonus would appear near each base. The positions stay fixed throughout setup;
+**Union base / Xenon base**, zoom and Ctrl+left-drag let you inspect them.
+
+Accept a package to go second or decline to prefer first. Both decline: unlock
+the next offer. One accepts: that army goes second with its chosen package.
+Both accept: a random tie-break chooses which army goes second with its own
+selection. Hotseat uses private pass-the-device responses; in solo the CPU
+commits independently. Review the agreement, then **Start match**. Bonuses are
+full strength, zero experience and ready on their owner's first turn. Solo
+always keeps you as Union. The existing timeout victory for Xenon still applies.
+
+Offers need legal ground hexes near both bases. Small sites shorten the list;
+unsuitable maps (including AIRLIFT) offer the original-opening fallback. If both
+players decline the final offer, return to the library or explicitly choose the
+original opening. Negotiation itself is not saved; cancelling or reloading it
+preserves your previous match. Once started, the agreement and turn order save
+with the game, and compensated results have separate level records. The CPU
+uses an opening heuristic; accepted terms are not a measured balance guarantee.
+
+Map authors can supply `balanceSpawns`, an array containing Union's and Xenon's
+ordered `{col, row}` arrays, using zero-based coordinates. Supply up to six
+distinct empty, reachable ground hexes per side, within five hexes of its owned
+base and closer to it than the enemy base, away from enemy units and buildings.
+Otherwise setup chooses deterministic legal sites and mirrors them on supported
+symmetric layouts. No campaign source deployment or inventory is modified.
 
 ## Controls
 
@@ -112,8 +179,10 @@ the page or list scrolls or resizes.
   Auto picks the orientation that fits the board largest. Units and labels stay
   upright; clicking, wheel zoom and Ctrl+left-drag follow the displayed board.
   **Fit** restores the whole board after zooming or panning.
-- **Controls: Top / Left** moves controls into a narrow left column for a
-  full-height board. Left mode also puts unit commands and the range legend in
+- **Controls: Auto / Top / Left** defaults to Auto: it chooses whichever
+  placement fits the board largest, adjusting when the window or map changes.
+  Top and Left are manual overrides. Left mode gives the board the full window
+  height and also puts unit commands and the range legend in
   that column, so selection takes no board height. Top mode keeps one compact
   row with scrolling settings and nearby unit commands, using a temporary
   bottom strip only when no clear space fits. Both view choices are remembered

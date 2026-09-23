@@ -1,0 +1,198 @@
+{
+  "name": "THE BRIGHT ROAD",
+  "pack": "AI-made: Open Horizons",
+  "campaignId": "open-horizons",
+  "mission": 14,
+  "author": "AI-made by Codex",
+  "source": "levels/open-horizons/14-the-bright-road.json",
+  "description": "A conspicuous straight road passes through a crooked reef. Its speed comes with no terrain defense; the surrounding plain leaves room to approach on a wider frontage.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 60 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "open maneuver",
+    "column",
+    "mixed forces"
+  ],
+  "design": {
+    "theme": "open",
+    "layout": 14,
+    "formation": "column",
+    "road": "direct"
+  },
+  "turnLimit": 60,
+  "grid": [
+    "....................................",
+    "....................................",
+    "....................................",
+    "...........M.......---..............",
+    ".........F.M.---.---MM--............",
+    "........-.M--ww.-..-..M.--..........",
+    "........-MM-wwww...-.FMM..--........",
+    "........---M.ww.....---.M...--......",
+    ".......--hhhMMM........MMhhh.-......",
+    "...B.--hhhhh.M.........Mhhhhh-.-....",
+    "....-.-hhhhhM.........M.hhhhh--.B...",
+    "......-.hhhMM........MMMhhh--.......",
+    "......--...M.---.....ww.M---........",
+    "........--..MMF.-...wwww-MM-........",
+    "..........--.M..-..-.ww--M.-........",
+    "............--MM---.---.M.F.........",
+    "..............---.......M...........",
+    "....................................",
+    "....................................",
+    "...................................."
+  ],
+  "buildings": [
+    {
+      "col": 3,
+      "row": 9,
+      "owner": 0
+    },
+    {
+      "col": 32,
+      "row": 10,
+      "owner": 1
+    },
+    {
+      "col": 9,
+      "row": 4,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LENET",
+        "POLAR",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 26,
+      "row": 15,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LENET",
+        "POLAR",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 14,
+      "row": 13,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "HADRIAN",
+        "HADRIAN",
+        "LENET"
+      ]
+    },
+    {
+      "col": 21,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "HADRIAN",
+        "HADRIAN",
+        "LENET"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 9
+    },
+    {
+      "t": "PANTHER",
+      "o": 0,
+      "x": 4,
+      "y": 10
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 5,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 5,
+      "y": 10
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 6,
+      "y": 9
+    },
+    {
+      "t": "SLAGGER",
+      "o": 0,
+      "x": 6,
+      "y": 10
+    },
+    {
+      "t": "TITAN",
+      "o": 0,
+      "x": 7,
+      "y": 8
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 7,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 31,
+      "y": 10
+    },
+    {
+      "t": "KILROY",
+      "o": 1,
+      "x": 31,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 30,
+      "y": 10
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 30,
+      "y": 9
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 29,
+      "y": 10
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 29,
+      "y": 9
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 28,
+      "y": 11
+    },
+    {
+      "t": "OCTOPUS",
+      "o": 1,
+      "x": 28,
+      "y": 9
+    }
+  ]
+}

@@ -1,0 +1,90 @@
+{
+  "name": "THREE AGAINST THREE",
+  "pack": "AI-made: Open Horizons",
+  "campaignId": "open-horizons",
+  "mission": 1,
+  "author": "AI-made by Codex",
+  "source": "levels/open-horizons/01-three-against-three.json",
+  "description": "Three squads per side and no replacements. Six small mountain islands break up a broad plain; every supporting position costs a third of your army.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 40 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "open maneuver",
+    "line",
+    "few units"
+  ],
+  "design": {
+    "theme": "open",
+    "layout": 1,
+    "formation": "line",
+    "road": "none"
+  },
+  "turnLimit": 40,
+  "grid": [
+    "........................",
+    "........................",
+    ".........w..............",
+    ".....MMMwww......M......",
+    ".....MMM........MMM.....",
+    "......M.........MMM.....",
+    "....hhh..MMM............",
+    "..B.hhh..MMM.M...hhh....",
+    "....hhh...M.MMM..hhh.B..",
+    "............MMM..hhh....",
+    ".....MMM.........M......",
+    ".....MMM........MMM.....",
+    "......M......wwwMMM.....",
+    "..............w.........",
+    "........................",
+    "........................"
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 7,
+      "owner": 0
+    },
+    {
+      "col": 21,
+      "row": 8,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 1,
+      "y": 6
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 2,
+      "y": 6
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 3,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 22,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 21,
+      "y": 9
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 20,
+      "y": 9
+    }
+  ]
+}

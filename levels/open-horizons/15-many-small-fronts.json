@@ -1,0 +1,270 @@
+{
+  "name": "MANY SMALL FRONTS",
+  "pack": "AI-made: Open Horizons",
+  "campaignId": "open-horizons",
+  "mission": 15,
+  "author": "AI-made by Codex",
+  "source": "levels/open-horizons/15-many-small-fronts.json",
+  "description": "A loose field of irregular islands creates many small fronts. Four arsenals per side of the map reward local captures, but scattering every squad leaves no reserve.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 75 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "open maneuver",
+    "spread",
+    "mixed forces"
+  ],
+  "design": {
+    "theme": "open",
+    "layout": 15,
+    "formation": "spread",
+    "road": "cross"
+  },
+  "turnLimit": 75,
+  "grid": [
+    "......................................",
+    "......................................",
+    ".......-..............................",
+    ".....--M--...MMM.............MMM......",
+    "....-M-MMM--.MMM............MMMMM.....",
+    "....-MMMMM..--M........M....MMMMM.....",
+    "....-MMMMMF--.---F....MMM...MMMMM.....",
+    "....-.MMM--.....--....MMM....FM.......",
+    "....-..--.........--..F-.....-........",
+    "....---..MhhhhwwMM.----.------........",
+    "....-..MMhhhhwwwwM.-....hhhhMM--......",
+    "...B-..MMhhhhwwwM.--....hhhhhMM.--....",
+    "....--.MMhhhhh....--.MwwwhhhhMM..-B...",
+    "......--MMhhhh....-.MwwwwhhhhMM..-....",
+    "........------.----.MMwwhhhhM..---....",
+    "........-.....-F..--.........--..-....",
+    ".......MF....MMM....--.....--MMM.-....",
+    ".....MMMMM...MMM....F---.--FMMMMM-....",
+    ".....MMMMM....M........M--..MMMMM-....",
+    ".....MMMMM............MMM.--MMM-M-....",
+    "......MMM.............MMM...--M--.....",
+    "..............................-.......",
+    "......................................",
+    "......................................"
+  ],
+  "buildings": [
+    {
+      "col": 3,
+      "row": 11,
+      "owner": 0
+    },
+    {
+      "col": 34,
+      "row": 12,
+      "owner": 1
+    },
+    {
+      "col": 10,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "BISON",
+        "BISON"
+      ]
+    },
+    {
+      "col": 27,
+      "row": 17,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "BISON",
+        "BISON"
+      ]
+    },
+    {
+      "col": 15,
+      "row": 15,
+      "owner": -1,
+      "stored": [
+        "KILROY",
+        "LENET",
+        "LENET",
+        "LENET"
+      ]
+    },
+    {
+      "col": 22,
+      "row": 8,
+      "owner": -1,
+      "stored": [
+        "KILROY",
+        "LENET",
+        "LENET",
+        "LENET"
+      ]
+    },
+    {
+      "col": 8,
+      "row": 16,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "RABBIT",
+        "RABBIT",
+        "LYNX"
+      ]
+    },
+    {
+      "col": 29,
+      "row": 7,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "RABBIT",
+        "RABBIT",
+        "LYNX"
+      ]
+    },
+    {
+      "col": 17,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "ATLAS",
+        "POLAR",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 20,
+      "row": 17,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "ATLAS",
+        "POLAR",
+        "POLAR"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 4
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 6,
+      "y": 7
+    },
+    {
+      "t": "PANTHER",
+      "o": 0,
+      "x": 7,
+      "y": 9
+    },
+    {
+      "t": "PANTHER",
+      "o": 0,
+      "x": 5,
+      "y": 13
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 6,
+      "y": 16
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 10,
+      "y": 18
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 5,
+      "y": 3
+    },
+    {
+      "t": "POLAR",
+      "o": 0,
+      "x": 5,
+      "y": 7
+    },
+    {
+      "t": "RABBIT",
+      "o": 0,
+      "x": 8,
+      "y": 9
+    },
+    {
+      "t": "LYNX",
+      "o": 0,
+      "x": 5,
+      "y": 12
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 32,
+      "y": 19
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 31,
+      "y": 16
+    },
+    {
+      "t": "PANTHER",
+      "o": 1,
+      "x": 30,
+      "y": 14
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 32,
+      "y": 10
+    },
+    {
+      "t": "GRIZZLY",
+      "o": 1,
+      "x": 31,
+      "y": 7
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 27,
+      "y": 5
+    },
+    {
+      "t": "TITAN",
+      "o": 1,
+      "x": 32,
+      "y": 20
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 32,
+      "y": 16
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 29,
+      "y": 14
+    },
+    {
+      "t": "LYNX",
+      "o": 1,
+      "x": 32,
+      "y": 11
+    }
+  ]
+}

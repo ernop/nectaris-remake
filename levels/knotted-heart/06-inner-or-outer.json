@@ -1,0 +1,188 @@
+{
+  "name": "INNER OR OUTER",
+  "pack": "AI-made: The Knotted Heart",
+  "campaignId": "knotted-heart",
+  "mission": 6,
+  "author": "AI-made by Codex",
+  "source": "levels/knotted-heart/06-inner-or-outer.json",
+  "description": "Nested interior loops contrast with a broad outer circuit. Taking the inside saves distance, while the outside provides room to bring several units alongside one another.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "dense center / open flanks",
+    "line",
+    "mixed forces"
+  ],
+  "design": {
+    "theme": "center",
+    "layout": 6,
+    "formation": "line",
+    "road": "rim"
+  },
+  "turnLimit": 65,
+  "grid": [
+    ".h.........h............h.........",
+    "........h.........h...............",
+    "......h..---------------..........",
+    "..h...h--.MMMMMMM-MMMMMM----......",
+    ".h..h--..MMMM.MMMMMMMMMMM.h.-...h.",
+    "h.h.h-.h.Mh--Fh..hhF----M...-h....",
+    ".h...-h.MM-MMMMMMMMMMMM-MMh.-hh...",
+    ".h...-..MM-MMMMMMMMMMMM-MM..-h....",
+    ".....-.----....h...hMMM-MMh.--...h",
+    "....h--.MM.MMMhMMMM.MMM-MM....-.h.",
+    "...B-.--MM.MM...MM...h..--....-...",
+    "...-....--..h...MM...MM.MM--.-B...",
+    ".h.-....MM-MMM.MMMMhMMM.MM.--h....",
+    "h...--.hMM-MMMh...h....----.-.....",
+    "....h-..MM-MMMMMMMMMMMM-MM..-...h.",
+    "...hh-.hMM-MMMMMMMMMMMM-MM.h-...h.",
+    "....h-...M----Fhh..hF--hM.h.-h.h.h",
+    ".h...-.h.MMMMMMMMMMM.MMMM..--h..h.",
+    "......----MMMMMM-MMMMMMM.--h...h..",
+    "..........---------------..h......",
+    "...............h.........h........",
+    ".........h............h.........h."
+  ],
+  "buildings": [
+    {
+      "col": 3,
+      "row": 10,
+      "owner": 0
+    },
+    {
+      "col": 30,
+      "row": 11,
+      "owner": 1
+    },
+    {
+      "col": 13,
+      "row": 5,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LENET",
+        "POLAR",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 20,
+      "row": 16,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LENET",
+        "POLAR",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 14,
+      "row": 16,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "ATLAS",
+        "POLAR",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 19,
+      "row": 5,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "ATLAS",
+        "POLAR",
+        "POLAR"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 11
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 3,
+      "y": 9
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 2,
+      "y": 10
+    },
+    {
+      "t": "POLAR",
+      "o": 0,
+      "x": 2,
+      "y": 11
+    },
+    {
+      "t": "TITAN",
+      "o": 0,
+      "x": 4,
+      "y": 11
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 5,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 29,
+      "y": 11
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 30,
+      "y": 10
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 30,
+      "y": 12
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 31,
+      "y": 11
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 31,
+      "y": 10
+    },
+    {
+      "t": "TITAN",
+      "o": 1,
+      "x": 29,
+      "y": 10
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 28,
+      "y": 12
+    }
+  ]
+}

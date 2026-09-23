@@ -1,0 +1,272 @@
+{
+  "name": "THE ISLAND ROAD",
+  "pack": "AI-made: Broken Ground",
+  "campaignId": "broken-ground",
+  "mission": 15,
+  "author": "AI-made by Codex",
+  "source": "levels/broken-ground/15-the-island-road.json",
+  "description": "Road-linked plateaus sit between valley seams and waste basins. Transports can shorten transfers, but ground escorts must choose among bridges, rough cuts and the long outer route.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 90 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "terrain-dependent routes",
+    "split",
+    "mixed forces"
+  ],
+  "design": {
+    "theme": "rough",
+    "layout": 15,
+    "formation": "split",
+    "road": "rim"
+  },
+  "turnLimit": 90,
+  "grid": [
+    "............v..............v............",
+    "............v..............v............",
+    "......wwwwwwvv.............v............",
+    "....wwwwwwwwww.....-------..v...........",
+    "...wwwwwwwwwwww..--..hhhh.--v-hhhhhh....",
+    "...www-wwwwwwww--...hhhhhh.-=h--h-hhh...",
+    "...www-wwwwww-----.hhhhhhh.-vhhh-h--h...",
+    "....ww-wwwwFw-v-..Fhhhhhhhh-vhhhhhhh-...",
+    ".....--www-w.-v-...hhhhFh--.vvMFhhh.-...",
+    "...--.-------vv-...hhhhh-hh..vMM--..-...",
+    "...-vvvvvv-v.v-..h.hhhhhhh...v....---...",
+    "...-......v.v.=vhhhvhhhhhh...v......-...",
+    "...B.......vv...hhh..hhhh...v.......-...",
+    "...-.......v...hhhh..hhh...vv.......B...",
+    "...-......v...hhhhhhvhhhv=.v.v......-...",
+    "...---....v...hhhhhhh.h..-v.v-vvvvvv-...",
+    "...-..--MMv..hh-hhhhh...-vv-------.--...",
+    "...-.hhhFMvv.--hFhhhh...-v-.w-www--.....",
+    "...-hhhhhhhv-hhhhhhhhF..-v-wFwwww-ww....",
+    "...h--h-hhhv-.hhhhhhh.-----wwwwww-www...",
+    "...hhh-h--h=-.hhhhhh...--wwwwwwww-www...",
+    "....hhhhhh-v--.hhhh..--..wwwwwwwwwwww...",
+    "...........v..-------.....wwwwwwwwww....",
+    "............v.............vvwwwwww......",
+    "............v..............v............",
+    "............v..............v............"
+  ],
+  "buildings": [
+    {
+      "col": 3,
+      "row": 12,
+      "owner": 0
+    },
+    {
+      "col": 36,
+      "row": 13,
+      "owner": 1
+    },
+    {
+      "col": 11,
+      "row": 7,
+      "owner": -1,
+      "stored": [
+        "PELICAN",
+        "ATLAS",
+        "TITAN",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 28,
+      "row": 18,
+      "owner": -1,
+      "stored": [
+        "PELICAN",
+        "ATLAS",
+        "TITAN",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 16,
+      "row": 17,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "ATLAS",
+        "POLAR",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 23,
+      "row": 8,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "ATLAS",
+        "POLAR",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 8,
+      "row": 17,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "HADRIAN",
+        "OCTOPUS",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 31,
+      "row": 8,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "HADRIAN",
+        "OCTOPUS",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 18,
+      "row": 7,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LENET",
+        "POLAR",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 21,
+      "row": 18,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LENET",
+        "POLAR",
+        "TITAN"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 8,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 8,
+      "y": 18
+    },
+    {
+      "t": "PANTHER",
+      "o": 0,
+      "x": 6,
+      "y": 5
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 7,
+      "y": 17
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 7,
+      "y": 5
+    },
+    {
+      "t": "POLAR",
+      "o": 0,
+      "x": 7,
+      "y": 18
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 8,
+      "y": 5
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 9,
+      "y": 18
+    },
+    {
+      "t": "MULE",
+      "o": 0,
+      "x": 6,
+      "y": 6
+    },
+    {
+      "t": "PELICAN",
+      "o": 0,
+      "x": 9,
+      "y": 17
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 31,
+      "y": 19
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 31,
+      "y": 7
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 32,
+      "y": 20
+    },
+    {
+      "t": "GRIZZLY",
+      "o": 1,
+      "x": 32,
+      "y": 8
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 31,
+      "y": 20
+    },
+    {
+      "t": "TITAN",
+      "o": 1,
+      "x": 32,
+      "y": 7
+    },
+    {
+      "t": "TITAN",
+      "o": 1,
+      "x": 30,
+      "y": 20
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 30,
+      "y": 7
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 32,
+      "y": 19
+    },
+    {
+      "t": "PELICAN",
+      "o": 1,
+      "x": 30,
+      "y": 8
+    }
+  ]
+}

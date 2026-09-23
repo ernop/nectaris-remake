@@ -5,6 +5,9 @@
   function $(id) { return document.getElementById(id); }
 
   var ORIGINAL_CAMPAIGN = CAMPAIGN.concat(ADVANCED_CAMPAIGN);
+  function terrainCampaign(id) {
+    return ENVIRONMENT_CAMPAIGNS.find(function (campaign) { return campaign.id === id; });
+  }
 
   var CUSTOM_LEVELS_KEY = "nectaris-custom-levels";
   var CUSTOM_UNITS_KEY = "nectaris-custom-units";
@@ -81,7 +84,8 @@
       var detail = document.createElement("span");
       detail.textContent = PROFILES.reasonLabel(result.reason) + " · " +
         (result.hotseat ? "Hotseat" : "Solo") + " · Turn " + result.turn + " · " +
-        new Date(result.endedAt).toLocaleString() + (!result.hotseat && result.opponent ?
+        new Date(result.endedAt).toLocaleString() + (result.balance ? " · Offers: "+
+          (result.balance.secondPlayer===0?"Union":"Xenon")+" second · "+result.balance.label : "") + (!result.hotseat && result.opponent ?
           " · " + AI_SEARCH.get(result.opponent).label + (result.opponentChanges && result.opponentChanges.length ? " (changed during match)" : "") : "");
       row.appendChild(title); row.appendChild(detail);
       history.appendChild(row);
@@ -114,11 +118,19 @@
   }
 
   var currentUI = null;
+  var currentSetup = null;
   var currentOptions = {};
   var menuScrollTop = 0;
 
+  function openingMode(options) {
+    var mode=options.opening || ($("opening-select") && $("opening-select").value) || "auto";
+    return mode==="auto" ? (options.campaignIndex===undefined ? "offers" : "original") : mode;
+  }
+
   function startGame(mapDef, opts, saved) {
-    opts = opts || {};
+    opts = Object.assign({}, opts || {});
+    opts.opening = saved ? (opts.opening || "original") : openingMode(opts);
+    if (!saved) delete opts.balance;
     var preferredOpponent = "apex";
     try { preferredOpponent = localStorage.getItem("nectaris-opponent") || preferredOpponent; } catch (e) { /* optional preference */ }
     opts.opponent = AI_SEARCH.get(opts.opponent || (saved ? "classic" : preferredOpponent)).id;
@@ -135,64 +147,99 @@
       game = saved ? ENGINE.Game.restore(saved.state) : new ENGINE.Game(mapDef, { seed: opts.seed });
     } catch (error) { reportSaveError(error); return; }
     readyToSave = false;
-    currentMatchId = saved ? saved.id : PROFILES.newId();
-    currentProfileId = profile.id;
+    if (currentSetup) currentSetup.destroy();
+    currentSetup = null;
     if (currentUI) currentUI.destroy();
     currentUI = null;
-    currentOptions = opts;
     if (!$("menu-screen").classList.contains("hidden")) menuScrollTop = window.scrollY || 0;
     $("menu-screen").classList.add("hidden");
-    $("game-screen").classList.remove("hidden");
-    $("gameover-panel").classList.add("hidden");
-    $("map-title").textContent = mapDef.name;
-    $("map-jump").value = opts.campaignIndex !== undefined ? "c:" + opts.campaignIndex :
-      (opts.expansionIndex !== undefined ? "e:" + opts.expansionIndex :
-      (opts.baseNecIndex !== undefined ? "b:" + opts.baseNecIndex :
-      (opts.aiMadeIndex !== undefined ? "a:" + opts.aiMadeIndex : "")));
+    $("game-screen").classList.add("hidden");
+    function launchGame() {
+      if (currentSetup) currentSetup.destroy();
+      currentSetup = null;
+      currentMatchId = saved ? saved.id : PROFILES.newId();
+      currentProfileId = profile.id;
+      if (currentUI) currentUI.destroy();
+      currentUI = null;
+      currentOptions = opts;
+      if (!$("menu-screen").classList.contains("hidden")) menuScrollTop = window.scrollY || 0;
+      $("menu-screen").classList.add("hidden");
+      $("game-screen").classList.remove("hidden");
+      $("gameover-panel").classList.add("hidden");
+      $("map-title").textContent = mapDef.name;
+      var balanceLabel=$("balance-match-label");
+      balanceLabel.classList.toggle("hidden",!game.balance);
+      balanceLabel.textContent=game.balance ? (game.firstPlayer===0?"Union":"Xenon")+" first · "+
+        (game.balance.secondPlayer===0?"Union":"Xenon")+" bonus: "+game.balance.label : "";
+      $("map-jump").value = opts.environmentCampaign ?
+        "t:" + opts.environmentCampaign + ":" + opts.environmentIndex : opts.campaignIndex !== undefined ? "c:" + opts.campaignIndex :
+        (opts.expansionIndex !== undefined ? "e:" + opts.expansionIndex :
+        (opts.baseNecIndex !== undefined ? "b:" + opts.baseNecIndex :
+        (opts.aiMadeIndex !== undefined ? "a:" + opts.aiMadeIndex : "")));
 
-    currentUI = new UI.GameUI($("game-canvas"), game, {
-      hotseat: !!opts.hotseat,
-      opponent: opts.opponent,
-      onOpponentChange: function (id, turn) {
-        if (!opts.opponentChanges) opts.opponentChanges = [];
-        opts.opponentChanges.push({turn:turn, from:opts.opponent, to:id});
-        opts.opponent = id;
-      },
-      undoHistory: saved && saved.state.undoHistory,
-      redoHistory: saved && saved.state.redoHistory,
-      onMenu: showMenu,
-      onStateChange: saveMatch,
-      onGameOver: function (winner) {
-        var recorded = saveMatch(currentUI);
-        $("gameover-record").textContent = (opts.hotseat ?
-          (winner === 0 ? "Union victory" : "Xenon victory") : (winner === 0 ? "Victory" : "Defeat")) +
-          (recorded ? " · Recorded for " + profile.name : " · Not saved yet — keep this page open");
-        $("gameover-again").onclick = function () { startGame(mapDef, opts); };
-        $("gameover-menu").onclick = function () { showMenu(); };
-        var next = $("gameover-next");
-        if (opts.campaignIndex !== undefined && opts.campaignIndex + 1 < ORIGINAL_CAMPAIGN.length) {
-          next.classList.remove("hidden");
-          next.onclick = function () {
-            var ni = opts.campaignIndex + 1;
-            startGame(ORIGINAL_CAMPAIGN[ni], { campaignIndex: ni, hotseat: !!opts.hotseat });
-          };
-        } else {
-          next.classList.add("hidden");
-          next.onclick = null;
-        }
-      },
-    });
-    currentUI.resize();
-    $("playing-profile").textContent = "PLAYER · " + profile.name;
-    readyToSave = true;
-    saveMatch(currentUI);
-    if (game.winner !== null) currentUI.checkGameOver();
-    else if (!opts.hotseat && game.currentPlayer === 1) currentUI.beginAITurn();
+      currentUI = new UI.GameUI($("game-canvas"), game, {
+        hotseat: !!opts.hotseat,
+        opponent: opts.opponent,
+        onOpponentChange: function (id, turn) {
+          if (!opts.opponentChanges) opts.opponentChanges = [];
+          opts.opponentChanges.push({turn:turn, from:opts.opponent, to:id});
+          opts.opponent = id;
+        },
+        undoHistory: saved && saved.state.undoHistory,
+        redoHistory: saved && saved.state.redoHistory,
+        onMenu: showMenu,
+        onStateChange: saveMatch,
+        onGameOver: function (winner) {
+          var recorded = saveMatch(currentUI);
+          $("gameover-record").textContent = (opts.hotseat ?
+            (winner === 0 ? "Union victory" : "Xenon victory") : (winner === 0 ? "Victory" : "Defeat")) +
+            (recorded ? " · Recorded for " + profile.name : " · Not saved yet — keep this page open");
+          $("gameover-again").onclick = function () { startGame(mapDef, opts); };
+          $("gameover-menu").onclick = function () { showMenu(); };
+          var next = $("gameover-next");
+          var terrain = terrainCampaign(opts.environmentCampaign);
+          if (terrain && opts.environmentIndex + 1 < terrain.levels.length) {
+            next.classList.remove("hidden");
+            next.onclick = function () {
+              var ni = opts.environmentIndex + 1;
+              startGame(terrain.levels[ni], {environmentCampaign:terrain.id, environmentIndex:ni,
+                hotseat:!!opts.hotseat, opponent:opts.opponent, opening:opts.opening});
+            };
+          } else if (opts.campaignIndex !== undefined && opts.campaignIndex + 1 < ORIGINAL_CAMPAIGN.length) {
+            next.classList.remove("hidden");
+            next.onclick = function () {
+              var ni = opts.campaignIndex + 1;
+              startGame(ORIGINAL_CAMPAIGN[ni], { campaignIndex: ni, hotseat: !!opts.hotseat, opening:opts.opening });
+            };
+          } else {
+            next.classList.add("hidden");
+            next.onclick = null;
+          }
+        },
+      });
+      currentUI.resize();
+      $("playing-profile").textContent = "PLAYER · " + profile.name;
+      readyToSave = true;
+      saveMatch(currentUI);
+      if (game.winner !== null) currentUI.checkGameOver();
+      else if (!opts.hotseat && game.currentPlayer === 1) currentUI.beginAITurn();
+    }
+    if (!saved && opts.opening==="offers") {
+      currentSetup=new BALANCE_UI.Setup(game,{hotseat:!!opts.hotseat,onCancel:showMenu,onStart:function(result,plan){
+        try {
+          if(result)opts.balance=BALANCE.apply(game,plan,result);
+          else opts.opening="original";
+          launchGame();
+        } catch(error) {reportSaveError(error);}
+      }});
+    } else launchGame();
   }
 
   function showMenu() {
     if (!saveMatch(currentUI)) return;
     readyToSave = false;
+    if (currentSetup) currentSetup.destroy();
+    currentSetup = null;
     if (currentUI) currentUI.destroy();
     currentUI = null;
     $("game-screen").classList.add("hidden");
@@ -345,15 +392,22 @@
   function levelOptions(group, index) {
     var options = {};
     if (group.pack) options[group.pack] = index + (group.offset || 0);
+    if (group.environmentCampaign) options.environmentCampaign = group.environmentCampaign;
+    options.opening=openingMode(options);
     return options;
   }
   function levelWasWon(level, options) {
     return PROFILES.levelRecord(activeProfile, level, options).wins > 0 ||
-      !!(activeProfile && options.campaignIndex !== undefined &&
+      !!(activeProfile && options.opening!=="offers" && options.campaignIndex !== undefined &&
         activeProfile.cleared.indexOf(options.campaignIndex) >= 0);
   }
   function levelGroups() {
-    return [
+    return ENVIRONMENT_CAMPAIGNS.map(function (campaign) {
+      return {id:campaign.id, list:campaign.id+"-list", title:campaign.name, kind:"AI-made campaign",
+        intro:campaign.description, levels:campaign.levels, pack:"environmentIndex", environmentCampaign:campaign.id,
+        notes:"Sixteen AI-made battles created by Codex, each with its own terrain, forces and tactical problem. Normal capture/elimination rules apply. No Hunters, Falcons or Eagles; some missions include Pelicans. Forces start fresh each mission.",
+        source:"ENVIRONMENT_CAMPAIGNS.md#"+campaign.id};
+    }).concat([
       {id:"ai-made", list:"ai-made-list", title:"AI-made", kind:"Original scenarios",
         intro:"Branching fjords, narrow passes and new routes to explore.",
         levels:AI_MADE_LEVELS, pack:"aiMadeIndex",
@@ -383,7 +437,7 @@
         intro:"Battlefields you create or import, saved in this browser.", levels:getCustomLevels(),
         notes:"Create a map in the editor, import a JSON file, or install a level from a URL. Custom maps can include their own units and rules data. Briefings and attribution appear here when provided by their author.",
         source:"LEVEL_SOURCES.md#installing-levels-from-the-web"}
-    ];
+    ]);
   }
   function renderLevelCards(host, group) {
     var L = CARD_LABELS[lang()];
@@ -539,6 +593,12 @@
   }
 
   window.addEventListener("DOMContentLoaded", function () {
+    var openingSelect=$("opening-select");
+    try {openingSelect.value=localStorage.getItem("nectaris-opening") || "auto";} catch(e) {openingSelect.value="auto";}
+    openingSelect.onchange=function(){
+      try {localStorage.setItem("nectaris-opening",openingSelect.value);} catch(e) { /* optional preference */ }
+      buildMenu();
+    };
     window.addEventListener("scroll", closeMenuHelp);
     window.addEventListener("resize", closeMenuHelp);
     document.addEventListener("pointerdown", function (event) {
@@ -632,18 +692,32 @@
       aiMadeGroup.appendChild(option);
     });
     jump.appendChild(aiMadeGroup);
+    ENVIRONMENT_CAMPAIGNS.forEach(function (campaign) {
+      var group = document.createElement("optgroup"); group.label = campaign.name;
+      campaign.levels.forEach(function (map, index) {
+        var option = document.createElement("option");
+        option.value = "t:"+campaign.id+":"+index;
+        option.textContent = String(index+1).padStart(2,"0")+" · "+map.name;
+        group.appendChild(option);
+      });
+      jump.appendChild(group);
+    });
     jump.onchange = function () {
       if (this.value === "") return;
       var parts = this.value.split(":");
       var i = +parts[1];
-      if (parts[0] === "c") {
-        startGame(ORIGINAL_CAMPAIGN[i], { campaignIndex: i, hotseat: !!currentOptions.hotseat });
+      if (parts[0] === "t") {
+        var terrain = terrainCampaign(parts[1]), ti = Number(parts[2]);
+        if (terrain && Number.isInteger(ti) && terrain.levels[ti]) startGame(terrain.levels[ti],
+          {environmentCampaign:terrain.id, environmentIndex:ti, hotseat:!!currentOptions.hotseat, opening:currentOptions.opening});
+      } else if (parts[0] === "c") {
+        startGame(ORIGINAL_CAMPAIGN[i], { campaignIndex: i, hotseat: !!currentOptions.hotseat, opening:currentOptions.opening });
       } else if (parts[0] === "b") {
-        startGame(BASE_NECTARIS_LEVELS[i], { baseNecIndex: i, hotseat: !!currentOptions.hotseat });
+        startGame(BASE_NECTARIS_LEVELS[i], { baseNecIndex: i, hotseat: !!currentOptions.hotseat, opening:currentOptions.opening });
       } else if (parts[0] === "a") {
-        startGame(AI_MADE_LEVELS[i], { aiMadeIndex: i, hotseat: !!currentOptions.hotseat });
+        startGame(AI_MADE_LEVELS[i], { aiMadeIndex: i, hotseat: !!currentOptions.hotseat, opening:currentOptions.opening });
       } else {
-        startGame(EXPANSION_LEVELS[i], { expansionIndex: i, hotseat: !!currentOptions.hotseat });
+        startGame(EXPANSION_LEVELS[i], { expansionIndex: i, hotseat: !!currentOptions.hotseat, opening:currentOptions.opening });
       }
     };
     $("file-import").onchange = function (e) {

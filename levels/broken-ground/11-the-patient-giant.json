@@ -1,0 +1,194 @@
+{
+  "name": "THE PATIENT GIANT",
+  "pack": "AI-made: Broken Ground",
+  "campaignId": "broken-ground",
+  "mission": 11,
+  "author": "AI-made by Codex",
+  "source": "levels/broken-ground/11-the-patient-giant.json",
+  "description": "A slow heavy group faces a broad diagonal waste belt. The long firm route keeps the Giant mobile, while mobile opponents can choose when to cross closer to it.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 70 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "terrain-dependent routes",
+    "line",
+    "mixed forces"
+  ],
+  "design": {
+    "theme": "rough",
+    "layout": 11,
+    "formation": "line",
+    "road": "rim"
+  },
+  "turnLimit": 70,
+  "grid": [
+    ".wwwww............................",
+    ".wwwwww...........................",
+    ".wwwwwwww--B......................",
+    "..wwwww--w.---...-.......-hhhh....",
+    "..www--wwww-w.---.--...--h----h...",
+    "...--wwwwF-www......---.hhhhhh--..",
+    "...-wwwwwwwwwwww.....-.hhhhhhhh-..",
+    "...-..wwwwwwwwwww...F-.hhhhhhhh-..",
+    "...-...Mwwwwwwwwww..-..hhhhhhhh-..",
+    "...-.hMMMwwwwwhhwwww...hhhhhhhh-..",
+    "...-hhMMhhwwwwhhwwwwww.hhhhhhhh-..",
+    "..-hhhhhhhh.wwwwwwhhwwwwhhMMhh-...",
+    "..-hhhhhhhh...wwwwhhwwwwwMMMh.-...",
+    "..-hhhhhhhh..-..wwwwwwwwwwM...-...",
+    "..-hhhhhhhh.-F...wwwwwwwwwww..-...",
+    "..-hhhhhhhh.-.....wwwwwwwwwwww-...",
+    "..--hhhhhh.---......www-Fwwww--...",
+    "...h----h--...--.---.w-wwww--www..",
+    "....hhhh-.......-...---.w--wwwww..",
+    "......................B--wwwwwwww.",
+    "...........................wwwwww.",
+    "............................wwwww."
+  ],
+  "buildings": [
+    {
+      "col": 11,
+      "row": 2,
+      "owner": 0
+    },
+    {
+      "col": 22,
+      "row": 19,
+      "owner": 1
+    },
+    {
+      "col": 9,
+      "row": 5,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "ATLAS",
+        "POLAR",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 24,
+      "row": 16,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "ATLAS",
+        "POLAR",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 13,
+      "row": 14,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LENET",
+        "POLAR",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 20,
+      "row": 7,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LENET",
+        "POLAR",
+        "TITAN"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 11,
+      "y": 3
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 12,
+      "y": 3
+    },
+    {
+      "t": "GIANT",
+      "o": 0,
+      "x": 11,
+      "y": 4
+    },
+    {
+      "t": "TITAN",
+      "o": 0,
+      "x": 10,
+      "y": 3
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 10,
+      "y": 4
+    },
+    {
+      "t": "MULE",
+      "o": 0,
+      "x": 9,
+      "y": 2
+    },
+    {
+      "t": "RABBIT",
+      "o": 0,
+      "x": 12,
+      "y": 4
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 22,
+      "y": 18
+    },
+    {
+      "t": "PANTHER",
+      "o": 1,
+      "x": 21,
+      "y": 18
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 22,
+      "y": 17
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 23,
+      "y": 18
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 23,
+      "y": 17
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 21,
+      "y": 17
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 24,
+      "y": 19
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 23,
+      "y": 19
+    }
+  ]
+}

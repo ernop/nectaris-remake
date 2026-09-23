@@ -1,0 +1,232 @@
+{
+  "name": "FINGER COUNTRY",
+  "pack": "AI-made: Open Horizons",
+  "campaignId": "open-horizons",
+  "mission": 8,
+  "author": "AI-made by Codex",
+  "source": "levels/open-horizons/08-finger-country.json",
+  "description": "Long mountain fingers project into open ground. Their tips are turning points, while gaps between the fingers shelter artillery and isolated detachments.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 70 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "open maneuver",
+    "column",
+    "mixed forces"
+  ],
+  "design": {
+    "theme": "open",
+    "layout": 8,
+    "formation": "column",
+    "road": "rim"
+  },
+  "turnLimit": 70,
+  "grid": [
+    "......................................",
+    "......................................",
+    ".........-.........-..................",
+    "...B...--M--.....--.--................",
+    "....---..MFM--.--.....--.......-......",
+    ".....-....MMM.-......--.--...--.-.....",
+    ".....-....MMMM.M.....-MM..---F..-.....",
+    ".....-...hh...M.M....-FwM...--.--.....",
+    ".....-..hhhhh........w-wwMhhhh-M-.....",
+    ".....-.hhhhhh.........wwwhhhhhh.-.....",
+    ".....-.hhhhhhwww.........hhhhhh.-.....",
+    ".....-M-hhhhMww-w........hhhhh..-.....",
+    ".....--.--...MwF-....M.M...hh...-.....",
+    ".....-..F---..MM-.....M.MMMM....-.....",
+    ".....-.--...--.--......-.MMM....-.....",
+    "......-.......--.....--.--MFM..---....",
+    "................--.--.....--M--...B...",
+    "..................-.........-.........",
+    "......................................",
+    "......................................"
+  ],
+  "buildings": [
+    {
+      "col": 3,
+      "row": 3,
+      "owner": 0
+    },
+    {
+      "col": 34,
+      "row": 16,
+      "owner": 1
+    },
+    {
+      "col": 10,
+      "row": 4,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "ATLAS",
+        "TITAN",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 27,
+      "row": 15,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "ATLAS",
+        "TITAN",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 15,
+      "row": 12,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET",
+        "LENET"
+      ]
+    },
+    {
+      "col": 22,
+      "row": 7,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET",
+        "LENET"
+      ]
+    },
+    {
+      "col": 8,
+      "row": 13,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "HADRIAN",
+        "OCTOPUS",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 29,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "HADRIAN",
+        "OCTOPUS",
+        "POLAR"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 10
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 5,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 5,
+      "y": 10
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 6,
+      "y": 9
+    },
+    {
+      "t": "POLAR",
+      "o": 0,
+      "x": 6,
+      "y": 10
+    },
+    {
+      "t": "TITAN",
+      "o": 0,
+      "x": 7,
+      "y": 9
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 7,
+      "y": 10
+    },
+    {
+      "t": "MULE",
+      "o": 0,
+      "x": 8,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 33,
+      "y": 10
+    },
+    {
+      "t": "KILROY",
+      "o": 1,
+      "x": 33,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 32,
+      "y": 10
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 32,
+      "y": 9
+    },
+    {
+      "t": "GRIZZLY",
+      "o": 1,
+      "x": 31,
+      "y": 10
+    },
+    {
+      "t": "TITAN",
+      "o": 1,
+      "x": 31,
+      "y": 9
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 30,
+      "y": 10
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 30,
+      "y": 9
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 29,
+      "y": 10
+    }
+  ]
+}

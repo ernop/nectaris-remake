@@ -1,0 +1,194 @@
+{
+  "name": "THE COMFORTABLE COURT",
+  "pack": "AI-made: The Knotted Heart",
+  "campaignId": "knotted-heart",
+  "mission": 9,
+  "author": "AI-made by Codex",
+  "source": "levels/knotted-heart/09-the-comfortable-court.json",
+  "description": "Small protected courts look ideal for heavy tanks. Their narrow connections make it hard to bring that weight to bear against mobile units working around the outside.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "dense center / open flanks",
+    "column",
+    "mixed forces"
+  ],
+  "design": {
+    "theme": "center",
+    "layout": 9,
+    "formation": "column",
+    "road": "direct"
+  },
+  "turnLimit": 65,
+  "grid": [
+    "..hhhh......h.....h........h....",
+    "..h...h.........................",
+    ".......h..........h.......h.....",
+    "....h..MMMMM.MMMMMMMMMMMM.......",
+    ".h.....MMMMM.MMMMMMMMMMMM.......",
+    ".....h.MMMMM.MMMMMMMMMMMM.......",
+    "......h....-F....hF-h-.h........",
+    ".......h.--h---------h--.h......",
+    "..h....--..h..h.h.h.h...--..h...",
+    ".....--MMMM.h.MMM...hMMMM-......",
+    "..B--h-MMMM.h.MMMhh..MMMM-....h.",
+    ".h....-MMMM..hhMMM.h.MMMM-h--B..",
+    "......-MMMMh...MMM.h.MMMM--.....",
+    "...h..--...h.h.h.h..h..--....h..",
+    "......h.--h---------h--.h.......",
+    "........h.-h-Fh....F-....h......",
+    ".......MMMMMMMMMMMM.MMMMM.h.....",
+    ".......MMMMMMMMMMMM.MMMMM.....h.",
+    ".......MMMMMMMMMMMM.MMMMM..h....",
+    ".....h.......h..........h.......",
+    ".........................h...h..",
+    "....h........h.....h......hhhh.."
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 10,
+      "owner": 0
+    },
+    {
+      "col": 29,
+      "row": 11,
+      "owner": 1
+    },
+    {
+      "col": 12,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "TITAN",
+        "TITAN",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 19,
+      "row": 15,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "TITAN",
+        "TITAN",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 13,
+      "row": 15,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET",
+        "LENET"
+      ]
+    },
+    {
+      "col": 18,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET",
+        "LENET"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 11
+    },
+    {
+      "t": "GRIZZLY",
+      "o": 0,
+      "x": 4,
+      "y": 10
+    },
+    {
+      "t": "GRIZZLY",
+      "o": 0,
+      "x": 5,
+      "y": 10
+    },
+    {
+      "t": "TITAN",
+      "o": 0,
+      "x": 5,
+      "y": 9
+    },
+    {
+      "t": "TITAN",
+      "o": 0,
+      "x": 5,
+      "y": 11
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 6,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 28,
+      "y": 11
+    },
+    {
+      "t": "PANTHER",
+      "o": 1,
+      "x": 27,
+      "y": 10
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 27,
+      "y": 11
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 26,
+      "y": 11
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 26,
+      "y": 12
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 26,
+      "y": 10
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 25,
+      "y": 11
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 25,
+      "y": 10
+    }
+  ]
+}

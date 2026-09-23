@@ -1,0 +1,248 @@
+{
+  "name": "FAN OUT",
+  "pack": "AI-made: The Knotted Heart",
+  "campaignId": "knotted-heart",
+  "mission": 12,
+  "author": "AI-made by Codex",
+  "source": "levels/knotted-heart/12-fan-out.json",
+  "description": "Several passages fan away from an off-center meeting point. Occupying that point shortens transfers between fronts, but moving too much through it creates traffic.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 75 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "dense center / open flanks",
+    "forward",
+    "mixed forces"
+  ],
+  "design": {
+    "theme": "center",
+    "layout": 12,
+    "formation": "forward",
+    "road": "fork"
+  },
+  "turnLimit": 75,
+  "grid": [
+    "..............h....h.........h........",
+    "..................h.....h.............",
+    "......................................",
+    "h.........MMMMMhMMMMMMMMMMMMM......h..",
+    ".........hMMMMMM.MMMMMMMMMMM..........",
+    "...hh....M.MMMMMh.MMMMMMMMM...........",
+    ".........-.--MMMM.MMMMMMMMhMM.........",
+    "........-M-.-MMMMM.MMMMMM..----h......",
+    "........-MMM--MFMM.hMMMMh--MM.--......",
+    ".h......-MMMMM-M--M-M-F--MMMM...-.....",
+    "........-MMMMM..MM-.-h-MMMMMM...-.....",
+    "h..B...--MMMMMM..--M-.h...hF--h---....",
+    "....---h--Fh...h.-M--..MMMMMM--...B..h",
+    ".....-...MMMMMM-h-.-MM..MMMMM-........",
+    ".....-...MMMM--F-M-M--M-MMMMM-......h.",
+    "......--.MM--hMMMMh.MMFM--MMM-........",
+    "......h----..MMMMMM.MMMMM-.-M-........",
+    ".........MMhMMMMMMMM.MMMM--.-.........",
+    "...........MMMMMMMMM.hMMMMM.M....hh...",
+    "..........MMMMMMMMMMM.MMMMMMh.........",
+    "..h......MMMMMMMMMMMMMhMMMMM.........h",
+    "......................................",
+    ".............h.....h..................",
+    "........h.........h....h.............."
+  ],
+  "buildings": [
+    {
+      "col": 3,
+      "row": 11,
+      "owner": 0
+    },
+    {
+      "col": 34,
+      "row": 12,
+      "owner": 1
+    },
+    {
+      "col": 15,
+      "row": 8,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LENET",
+        "POLAR",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 22,
+      "row": 15,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LENET",
+        "POLAR",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 15,
+      "row": 14,
+      "owner": -1,
+      "stored": [
+        "KILROY",
+        "GRIZZLY",
+        "GRIZZLY",
+        "GRIZZLY"
+      ]
+    },
+    {
+      "col": 22,
+      "row": 9,
+      "owner": -1,
+      "stored": [
+        "KILROY",
+        "GRIZZLY",
+        "GRIZZLY",
+        "GRIZZLY"
+      ]
+    },
+    {
+      "col": 10,
+      "row": 12,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "HADRIAN",
+        "OCTOPUS",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 27,
+      "row": 11,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "HADRIAN",
+        "OCTOPUS",
+        "POLAR"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 10,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 9,
+      "y": 12
+    },
+    {
+      "t": "PANTHER",
+      "o": 0,
+      "x": 11,
+      "y": 15
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 10,
+      "y": 7
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 11,
+      "y": 12
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 12,
+      "y": 15
+    },
+    {
+      "t": "POLAR",
+      "o": 0,
+      "x": 8,
+      "y": 8
+    },
+    {
+      "t": "TITAN",
+      "o": 0,
+      "x": 8,
+      "y": 11
+    },
+    {
+      "t": "OCTOPUS",
+      "o": 0,
+      "x": 10,
+      "y": 16
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 12,
+      "y": 8
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 27,
+      "y": 14
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 28,
+      "y": 11
+    },
+    {
+      "t": "KILROY",
+      "o": 1,
+      "x": 27,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 27,
+      "y": 16
+    },
+    {
+      "t": "GRIZZLY",
+      "o": 1,
+      "x": 26,
+      "y": 11
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 26,
+      "y": 8
+    },
+    {
+      "t": "TITAN",
+      "o": 1,
+      "x": 29,
+      "y": 15
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 29,
+      "y": 12
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 25,
+      "y": 8
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 25,
+      "y": 15
+    }
+  ]
+}

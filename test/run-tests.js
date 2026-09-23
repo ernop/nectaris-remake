@@ -26,7 +26,9 @@ var ADVANCED_CAMPAIGN = require(path.join(__dirname, "../js/data-advanced-maps.j
 var EXPANSION_LEVELS = require(path.join(__dirname, "../js/data-expansion-maps.js"));
 var BASE_NECTARIS_LEVELS = require(path.join(__dirname, "../js/data-basenectaris-maps.js")).BASE_NECTARIS_LEVELS;
 var AI_MADE_LEVELS = require(path.join(__dirname, "../js/data-ai-maps.js"));
-var ALL_MAPS = CAMPAIGN.concat(ADVANCED_CAMPAIGN, EXPANSION_LEVELS, BASE_NECTARIS_LEVELS, AI_MADE_LEVELS);
+var ENVIRONMENT_CAMPAIGNS = require("../js/data-environment-campaigns.js");
+var ALL_MAPS = CAMPAIGN.concat(ADVANCED_CAMPAIGN, EXPANSION_LEVELS, BASE_NECTARIS_LEVELS, AI_MADE_LEVELS,
+  ENVIRONMENT_CAMPAIGNS.flatMap(function (campaign) { return campaign.levels; }));
 
 var failures = 0, checks = 0;
 function ok(cond, msg) {
@@ -93,6 +95,8 @@ console.log("  " + ALL_MAPS.length + " maps checked");
 
 section("AI-made fjord layout and factory bottlenecks");
 require("./ai-maps-tests.js")(ok);
+section("Original terrain campaigns: 48 maps, routes and rosters");
+require("./environment-campaigns-tests.js")(ok);
 
 var campaignPayload = CAMPAIGN.map(function (m) {
   return { grid: m.grid, buildings: m.buildings, units: m.units };
@@ -1076,6 +1080,7 @@ require("./ai-fidelity-tests.js")(ok);
 
 section("generic search opponents and independent chance planning");
 require("./ai-search-tests.js")(ok);
+require("./tournament-tests.js")(ok);
 
 section("AI self-play (all included maps)");
 ALL_MAPS.forEach(function (m, mi) {
@@ -1110,6 +1115,9 @@ require("./combat-ui-tests.js")(ok);
 
 section("profiles and saved matches");
 require("./profiles-tests.js")(ok);
+
+section("compensation offers, placement and opening order");
+require("./balance-tests.js")(ok);
 
 section("completed match outcomes");
 require("./outcome-tests.js")(ok);

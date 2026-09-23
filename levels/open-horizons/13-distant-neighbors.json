@@ -1,0 +1,224 @@
+{
+  "name": "DISTANT NEIGHBORS",
+  "pack": "AI-made: Open Horizons",
+  "campaignId": "open-horizons",
+  "mission": 13,
+  "author": "AI-made by Codex",
+  "source": "levels/open-horizons/13-distant-neighbors.json",
+  "description": "Two island clusters face each other across an open gulf. Pelicans can shift cargo across the gulf, while unsupported ground units spend several turns crossing it.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 80 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "open maneuver",
+    "split",
+    "mixed forces"
+  ],
+  "design": {
+    "theme": "open",
+    "layout": 13,
+    "formation": "split",
+    "road": "rim"
+  },
+  "turnLimit": 80,
+  "grid": [
+    "........................................",
+    "........................................",
+    ".............-----......................",
+    "...........--.www.----..................",
+    "....B-.----...wwww....--................",
+    ".....--.MM-...www.......--.......-......",
+    ".....-..MM-F.............---...--.-.....",
+    ".....-.......MM.........-MM.--F...-.....",
+    ".....-......MMM........F-MM...--..-.....",
+    ".....-.hhhh..MM........--MM.....---.....",
+    ".....-hhhhhh.............MM..hhhh.-.....",
+    ".....-hhhhhh................hhhhhh-.....",
+    ".....-hhhhhh................hhhhhh-.....",
+    ".....-.hhhh..MM.............hhhhhh-.....",
+    ".....---.....MM--........MM..hhhh.-.....",
+    ".....-..--...MM-F........MMM......-.....",
+    ".....-...F--.MM-.........MM.......-.....",
+    ".....-.--...---.............F-MM..-.....",
+    "......-.......--.......www...-MM.--.....",
+    "................--....wwww...----.-B....",
+    "..................----.www.--...........",
+    "......................-----.............",
+    "........................................",
+    "........................................"
+  ],
+  "buildings": [
+    {
+      "col": 4,
+      "row": 4,
+      "owner": 0
+    },
+    {
+      "col": 35,
+      "row": 19,
+      "owner": 1
+    },
+    {
+      "col": 11,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "PELICAN",
+        "ATLAS",
+        "TITAN",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 28,
+      "row": 17,
+      "owner": -1,
+      "stored": [
+        "PELICAN",
+        "ATLAS",
+        "TITAN",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 16,
+      "row": 15,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET",
+        "LENET"
+      ]
+    },
+    {
+      "col": 23,
+      "row": 8,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET",
+        "LENET"
+      ]
+    },
+    {
+      "col": 9,
+      "row": 16,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "SEEKER",
+        "POLAR",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 30,
+      "row": 7,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "SEEKER",
+        "POLAR",
+        "POLAR"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 8,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 8,
+      "y": 17
+    },
+    {
+      "t": "PANTHER",
+      "o": 0,
+      "x": 7,
+      "y": 5
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 7,
+      "y": 17
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 7,
+      "y": 6
+    },
+    {
+      "t": "TITAN",
+      "o": 0,
+      "x": 7,
+      "y": 16
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 8,
+      "y": 7
+    },
+    {
+      "t": "PELICAN",
+      "o": 0,
+      "x": 8,
+      "y": 16
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 31,
+      "y": 17
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 31,
+      "y": 6
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 32,
+      "y": 18
+    },
+    {
+      "t": "GRIZZLY",
+      "o": 1,
+      "x": 32,
+      "y": 6
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 32,
+      "y": 17
+    },
+    {
+      "t": "TITAN",
+      "o": 1,
+      "x": 32,
+      "y": 7
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 31,
+      "y": 16
+    },
+    {
+      "t": "PELICAN",
+      "o": 1,
+      "x": 31,
+      "y": 7
+    }
+  ]
+}

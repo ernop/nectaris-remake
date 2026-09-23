@@ -1,0 +1,224 @@
+{
+  "name": "THE FALSE SHORTCUT",
+  "pack": "AI-made: Broken Ground",
+  "campaignId": "broken-ground",
+  "mission": 13,
+  "author": "AI-made by Codex",
+  "source": "levels/broken-ground/13-the-false-shortcut.json",
+  "description": "A visually short route cuts straight through deep wasteland. The road bends away from the objective but can be faster, especially for a Panther or a heavy vehicle with little movement.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 75 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "terrain-dependent routes",
+    "split",
+    "mixed forces"
+  ],
+  "design": {
+    "theme": "rough",
+    "layout": 13,
+    "formation": "split",
+    "road": "zigzag"
+  },
+  "turnLimit": 75,
+  "grid": [
+    "....................................",
+    "....................................",
+    "......hhhhhhhh......................",
+    "....hhhMhhhhhhhhh............h......",
+    "...B.hhMMhhhhhhhh..hhhhhhh.hhhhh....",
+    "..-..hhMM---hhh-.hhhhhhhhhhhhhhhh...",
+    "..-..hhMM-Fh---w--hhhhhhhhhhhhhhh...",
+    "..-....--..wwwwwwh-hhhhhhhhFhhhh....",
+    "..-..--w.wwwwwwwww--hFhhhh.-........",
+    "..---wwwwwwwwwwww--w--.....-.www....",
+    "..-wwwwwwwwwwwwww--w..--.--w--www...",
+    "..--wwwwwwwwwwwww--www.w-wwww---w...",
+    "...w---wwww-w.www--wwwwwwwwwwwww--..",
+    "...www--w--.--..w--wwwwwwwwwwwwww-..",
+    "....www.-.....--w--wwwwwwwwwwww---..",
+    "........-.hhhhFh--wwwwwwwww.w--..-..",
+    "....hhhhFhhhhhhhh-hwwwwww..--....-..",
+    "...hhhhhhhhhhhhhhh--w---hF-MMhh..-..",
+    "...hhhhhhhhhhhhhhhh.-hhh---MMhh..-..",
+    "....hhhhh.hhhhhhh..hhhhhhhhMMhh.B...",
+    "......h............hhhhhhhhhMhhh....",
+    "......................hhhhhhhh......",
+    "....................................",
+    "...................................."
+  ],
+  "buildings": [
+    {
+      "col": 3,
+      "row": 4,
+      "owner": 0
+    },
+    {
+      "col": 32,
+      "row": 19,
+      "owner": 1
+    },
+    {
+      "col": 10,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LENET",
+        "POLAR",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 25,
+      "row": 17,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LENET",
+        "POLAR",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 14,
+      "row": 15,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "HADRIAN",
+        "OCTOPUS",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 21,
+      "row": 8,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "HADRIAN",
+        "OCTOPUS",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 8,
+      "row": 16,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "TRIGGER",
+        "BISON",
+        "BISON"
+      ]
+    },
+    {
+      "col": 27,
+      "row": 7,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "TRIGGER",
+        "BISON",
+        "BISON"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 7,
+      "y": 6
+    },
+    {
+      "t": "PANTHER",
+      "o": 0,
+      "x": 7,
+      "y": 17
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 7,
+      "y": 7
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 7,
+      "y": 16
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 8,
+      "y": 7
+    },
+    {
+      "t": "SLAGGER",
+      "o": 0,
+      "x": 6,
+      "y": 17
+    },
+    {
+      "t": "TITAN",
+      "o": 0,
+      "x": 6,
+      "y": 6
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 8,
+      "y": 17
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 28,
+      "y": 17
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 28,
+      "y": 6
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 28,
+      "y": 16
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 28,
+      "y": 7
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 27,
+      "y": 16
+    },
+    {
+      "t": "TITAN",
+      "o": 1,
+      "x": 29,
+      "y": 6
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 29,
+      "y": 17
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 27,
+      "y": 6
+    }
+  ]
+}

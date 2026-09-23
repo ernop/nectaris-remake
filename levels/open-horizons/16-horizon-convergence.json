@@ -1,0 +1,366 @@
+{
+  "name": "HORIZON CONVERGENCE",
+  "pack": "AI-made: Open Horizons",
+  "campaignId": "open-horizons",
+  "mission": 16,
+  "author": "AI-made by Codex",
+  "source": "levels/open-horizons/16-horizon-convergence.json",
+  "description": "Several island chains converge around a wide central gulf. Large mixed armies must choose where to concentrate while keeping distant factory approaches and their own camp covered.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 90 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "open maneuver",
+    "split",
+    "mixed forces"
+  ],
+  "design": {
+    "theme": "open",
+    "layout": 16,
+    "formation": "split",
+    "road": "fork"
+  },
+  "turnLimit": 90,
+  "grid": [
+    "..........................................",
+    "..........................................",
+    "..........................................",
+    ".........---..............................",
+    ".......--MMM--............................",
+    ".......-MMMMM-.............-----..........",
+    ".......-MMMMMF--.......----MMMM.--........",
+    ".......-MMMMMMMM---F..-MMMMMMMM..-........",
+    ".......-MMMMM..M..--..--.FMMMMMMF-........",
+    ".......-.MMM....MMMM---.--MMMMMM-.--......",
+    "......-hhhhh.........-..wwwMMMM--...-.....",
+    "......-hhhhhh..-.......wwwwwMMh-hhh.-.....",
+    "...B..-hhhhhh--.F.......www..--hhhh---....",
+    "....---hhhh--..www.......F.--hhhhhh-..B...",
+    ".....-.hhh-hMMwwwww.......-..hhhhhh-......",
+    ".....-...--MMMMwww..-.........hhhhh-......",
+    "......--.-MMMMMM--.---MMMM....MMM.-.......",
+    "........-FMMMMMMF.--..--..M..MMMMM-.......",
+    "........-..MMMMMMMM-..F---MMMMMMMM-.......",
+    "........--.MMMM----.......--FMMMMM-.......",
+    "..........-----.............-MMMMM-.......",
+    "............................--MMM--.......",
+    "..............................---.........",
+    "..........................................",
+    "..........................................",
+    ".........................................."
+  ],
+  "buildings": [
+    {
+      "col": 3,
+      "row": 12,
+      "owner": 0
+    },
+    {
+      "col": 38,
+      "row": 13,
+      "owner": 1
+    },
+    {
+      "col": 13,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LENET",
+        "POLAR",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 28,
+      "row": 19,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LENET",
+        "POLAR",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 16,
+      "row": 17,
+      "owner": -1,
+      "stored": [
+        "KILROY",
+        "GRIZZLY",
+        "GRIZZLY",
+        "GRIZZLY"
+      ]
+    },
+    {
+      "col": 25,
+      "row": 8,
+      "owner": -1,
+      "stored": [
+        "KILROY",
+        "GRIZZLY",
+        "GRIZZLY",
+        "GRIZZLY"
+      ]
+    },
+    {
+      "col": 9,
+      "row": 17,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "ATLAS",
+        "POLAR",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 32,
+      "row": 8,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "ATLAS",
+        "POLAR",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 19,
+      "row": 7,
+      "owner": -1,
+      "stored": [
+        "PELICAN",
+        "ATLAS",
+        "TITAN",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 22,
+      "row": 18,
+      "owner": -1,
+      "stored": [
+        "PELICAN",
+        "ATLAS",
+        "TITAN",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 16,
+      "row": 12,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "TRIGGER",
+        "LENET",
+        "LENET"
+      ]
+    },
+    {
+      "col": 25,
+      "row": 13,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "TRIGGER",
+        "LENET",
+        "LENET"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 8,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 8,
+      "y": 18
+    },
+    {
+      "t": "PANTHER",
+      "o": 0,
+      "x": 7,
+      "y": 5
+    },
+    {
+      "t": "KILROY",
+      "o": 0,
+      "x": 8,
+      "y": 17
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 7,
+      "y": 6
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 8,
+      "y": 19
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 7,
+      "y": 4
+    },
+    {
+      "t": "POLAR",
+      "o": 0,
+      "x": 7,
+      "y": 17
+    },
+    {
+      "t": "SLAGGER",
+      "o": 0,
+      "x": 8,
+      "y": 4
+    },
+    {
+      "t": "TITAN",
+      "o": 0,
+      "x": 7,
+      "y": 18
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 7,
+      "y": 7
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 9,
+      "y": 18
+    },
+    {
+      "t": "OCTOPUS",
+      "o": 0,
+      "x": 6,
+      "y": 5
+    },
+    {
+      "t": "RABBIT",
+      "o": 0,
+      "x": 7,
+      "y": 16
+    },
+    {
+      "t": "MULE",
+      "o": 0,
+      "x": 6,
+      "y": 6
+    },
+    {
+      "t": "PELICAN",
+      "o": 0,
+      "x": 9,
+      "y": 16
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 33,
+      "y": 19
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 33,
+      "y": 7
+    },
+    {
+      "t": "PANTHER",
+      "o": 1,
+      "x": 34,
+      "y": 20
+    },
+    {
+      "t": "KILROY",
+      "o": 1,
+      "x": 33,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 34,
+      "y": 19
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 33,
+      "y": 6
+    },
+    {
+      "t": "GRIZZLY",
+      "o": 1,
+      "x": 34,
+      "y": 21
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 34,
+      "y": 8
+    },
+    {
+      "t": "TITAN",
+      "o": 1,
+      "x": 33,
+      "y": 21
+    },
+    {
+      "t": "TITAN",
+      "o": 1,
+      "x": 34,
+      "y": 7
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 34,
+      "y": 18
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 32,
+      "y": 7
+    },
+    {
+      "t": "OCTOPUS",
+      "o": 1,
+      "x": 35,
+      "y": 20
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 34,
+      "y": 9
+    },
+    {
+      "t": "MULE",
+      "o": 1,
+      "x": 35,
+      "y": 19
+    },
+    {
+      "t": "PELICAN",
+      "o": 1,
+      "x": 32,
+      "y": 9
+    }
+  ]
+}

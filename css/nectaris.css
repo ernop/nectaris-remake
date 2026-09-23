@@ -146,9 +146,61 @@ select, input[type="url"] {
   .level-group h2 { font-size: 20px; }
 }
 
+/* ---------- compensation opening ---------- */
+#balance-screen { height: 100vh; height: 100dvh; display: flex; flex-direction: column; overflow: hidden; }
+.balance-header { display: flex; align-items: center; gap: 18px; flex-shrink: 0; min-height: 56px;
+  padding: 10px 16px; background: #211d16; border-bottom: 1px solid #685b40; }
+#balance-map-name { color: var(--ui-secondary); font-size: 13px; }
+.balance-body { display: flex; flex: 1; min-height: 0; }
+.balance-board { display: flex; flex-direction: column; min-width: 0; min-height: 0; flex: 1; }
+.balance-map-controls { display: flex; gap: 6px; flex-wrap: wrap; padding: 8px 12px; background: #1c1913; }
+#balance-union { border-color: var(--union-color); color: var(--union-color); }
+#balance-xenon { border-color: var(--xenon-color); color: var(--xenon-color); }
+#balance-canvas-wrap { flex: 1; min-height: 0; overflow: hidden; }
+#balance-canvas { display: block; cursor: crosshair; }
+.balance-map-caption { flex: 0 0 auto; padding: 8px 16px; font-size: 12px; line-height: 1.4; background: #211d16; }
+.balance-map-caption p { margin: 3px 0; }
+#balance-hex-info { max-height: 72px; overflow-y: auto; color: var(--ui-secondary); }
+.balance-panel { flex: 0 0 370px; min-width: 0; display: flex; flex-direction: column; min-height: 0;
+  border-left: 1px solid #685b40; background: #1c1913; }
+.balance-intro { padding: 16px 18px 10px; flex: 0 0 auto; }
+.balance-intro .profile-eyebrow { margin: 0; color: #ffda76; font-size: 10px; letter-spacing: 1.6px; }
+.balance-intro h2 { font-size: 19px; margin: 9px 0; }
+.balance-intro p { font-size: 12px; line-height: 1.45; margin: 8px 0; }
+#balance-rules { color: var(--ui-secondary); }
+#balance-offers { flex: 1 1 150px; min-height: 85px; overflow-y: auto; padding: 4px 12px 10px; }
+.balance-offer { display: block; width: 100%; padding: 9px 10px; text-align: left; font-size: 12px;
+  margin: 3px 0; border-color: #685b40; }
+.balance-offer.selected { background: #44391f; border: 2px solid #ffda76; padding: 8px 9px; }
+.balance-offer.future { border-style: dashed; color: var(--ui-secondary); }
+.balance-choice { flex: 0 0 auto; padding: 12px 18px; background: #292319; border-top: 1px solid #685b40; }
+#balance-package-name { font-size: 14px; color: #ffdf88; }
+#balance-placement-list { margin: 7px 0; max-height: 165px; overflow-y: auto; }
+#balance-placement-list p { font-size: 12px; margin: 5px 0; }
+.balance-location { display: flex; flex-direction: row-reverse; justify-content: flex-end; gap: 7px;
+  width: 100%; padding: 2px 4px; text-align: left; font-size: 12px; margin-bottom: 3px; }
+#balance-choice-note { font-size: 11px; margin: 8px 0; color: var(--ui-secondary); }
+.balance-buttons { display: flex; flex-direction: column; gap: 7px; }
+.balance-buttons button { min-height: 36px; font-size: 13px; }
+#balance-handoff { position: fixed; inset: 0; z-index: 100; background: #17140f; display: grid; place-items: center; padding: 24px; }
+#balance-handoff > div { max-width: 440px; text-align: center; }
+#balance-match-label { font-size: 11px; color: #ffdf88; white-space: nowrap; }
+@media (max-width: 760px) {
+  .balance-header { gap: 8px; flex-wrap: wrap; padding: 8px; }
+  .balance-header strong { font-size: 14px; }
+  #balance-map-name { display: none; }
+  .balance-body { flex-direction: column; overflow-y: auto; }
+  .balance-board { flex: 0 0 48vh; min-height: 280px; }
+  .balance-panel { flex: 0 0 auto; border-left: 0; border-top: 1px solid #685b40; }
+  #balance-offers { flex: none; height: 180px; }
+  .balance-intro { padding-top: 12px; }
+}
+
 /* ---------- game ---------- */
 
 #game-screen {
+  --controls-top-height: 48px;
+  --controls-left-width: 184px;
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -157,7 +209,7 @@ select, input[type="url"] {
 }
 #topbar {
   display: flex;
-  flex: 0 0 48px;
+  flex: 0 0 var(--controls-top-height);
   flex-wrap: nowrap;
   align-items: center;
   gap: 8px;
@@ -199,7 +251,7 @@ select, input[type="url"] {
 
 /* Dock the same controls in a narrow column; the board owns the full height. */
 #game-screen.controls-left { flex-direction: row; }
-.controls-left #topbar { flex: 0 0 184px; width: 184px; min-height: 0;
+.controls-left #topbar { flex: 0 0 var(--controls-left-width); width: var(--controls-left-width); min-height: 0;
   flex-direction: column; align-items: stretch; gap: 8px; padding: 8px;
   overflow-x: hidden; overflow-y: auto; border-bottom: 0; border-right: 1px solid #3d382c; }
 .controls-left .view-controls { order: 0; display: grid; grid-template-columns: 1fr auto; }

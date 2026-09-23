@@ -1,0 +1,106 @@
+{
+  "name": "FOUR MACHINES",
+  "pack": "AI-made: Broken Ground",
+  "campaignId": "broken-ground",
+  "mission": 9,
+  "author": "AI-made by Codex",
+  "source": "levels/broken-ground/09-four-machines.json",
+  "description": "Four squads each, no replacement stock. A quilt of hills and wasteland makes the Lenet's speed, Polar's weight and Hadrian's firing position matter in different ways.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 50 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "terrain-dependent routes",
+    "spread",
+    "few units"
+  ],
+  "design": {
+    "theme": "rough",
+    "layout": 9,
+    "formation": "spread",
+    "road": "none"
+  },
+  "turnLimit": 50,
+  "grid": [
+    "..........................",
+    "..........................",
+    ".....hh....hhh.....hh.....",
+    "....hhhh..hhhhhh..hhhhh...",
+    "...hhhhhh.hhhhhh.hhhhhhh..",
+    "...hhhhhh.hhhhhh.hhhhhhh..",
+    "....hhhh..hhhhhh..hMhhh...",
+    "....................M.....",
+    "....wwww..wwwwww..wwww....",
+    "..B.wwwww.wwwwww.wwwwww...",
+    "...wwwwww.wwwwww.wwwww.B..",
+    "....wwww..wwwwww..wwww....",
+    ".....M....................",
+    "...hhhMh..hhhhhh..hhhh....",
+    "..hhhhhhh.hhhhhh.hhhhhh...",
+    "..hhhhhhh.hhhhhh.hhhhhh...",
+    "...hhhhh..hhhhhh..hhhh....",
+    ".....hh.....hhh....hh.....",
+    "..........................",
+    ".........................."
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 9,
+      "owner": 0
+    },
+    {
+      "col": 23,
+      "row": 10,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 3
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 4,
+      "y": 6
+    },
+    {
+      "t": "POLAR",
+      "o": 0,
+      "x": 5,
+      "y": 8
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 4,
+      "y": 11
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 21,
+      "y": 16
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 21,
+      "y": 13
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 20,
+      "y": 11
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 21,
+      "y": 8
+    }
+  ]
+}

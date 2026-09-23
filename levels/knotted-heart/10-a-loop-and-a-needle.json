@@ -1,0 +1,224 @@
+{
+  "name": "A LOOP AND A NEEDLE",
+  "pack": "AI-made: The Knotted Heart",
+  "campaignId": "knotted-heart",
+  "mission": 10,
+  "author": "AI-made by Codex",
+  "source": "levels/knotted-heart/10-a-loop-and-a-needle.json",
+  "description": "A roomy interior loop is cut by one narrow direct tunnel. Guns can cover nearby sectors, while moving the supporting vehicles between those sectors takes a different route.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 70 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "dense center / open flanks",
+    "gunline",
+    "mixed forces"
+  ],
+  "design": {
+    "theme": "center",
+    "layout": 10,
+    "formation": "gunline",
+    "road": "rim"
+  },
+  "turnLimit": 70,
+  "grid": [
+    "................................h...",
+    "...................h.........h......",
+    "..........h-------h-------...h......",
+    "....h....--MMMMMMM-MMMMMM.--..h.....",
+    ".......--.MMMMMMMMMMMMMMMM..--......",
+    ".....--..MMMM.MMMMMMMMMMMMM...--....",
+    ".....-..hMM--Fh...h.hF--.MM..h.-....",
+    ".....-..MMM-MMMMMMMMMMMM-MMM...-....",
+    "....h-..MMM-MMMMMMMMMMMM-MMM...-..h.",
+    ".....-.hMMM-MMMMMMMMMMMM-MMM...-....",
+    ".....-..MMM-MMMMMMMMMMMM-MMMh.h-h...",
+    "...B-.--M-.FM.M.M.MhM.M.--M-....-...",
+    "...-....-M--.M.MhM.M.M.MF.-M--.-B...",
+    "...h-h.hMMM-MMMMMMMMMMMM-MMM..-.....",
+    "....-...MMM-MMMMMMMMMMMM-MMMh.-.....",
+    ".h..-...MMM-MMMMMMMMMMMM-MMM..-h....",
+    "....-...MMM-MMMMMMMMMMMM-MMM..-.....",
+    "....-.h..MM.--Fh.h...hF--MMh..-.....",
+    "....--...MMMMMMMMMMMMM.MMMM..--.....",
+    "......--..MMMMMMMMMMMMMMMM.--.......",
+    ".....h..--.MMMMMM-MMMMMMM--....h....",
+    "......h...-------h-------h..........",
+    "......h.........h...................",
+    "...h................................"
+  ],
+  "buildings": [
+    {
+      "col": 3,
+      "row": 11,
+      "owner": 0
+    },
+    {
+      "col": 32,
+      "row": 12,
+      "owner": 1
+    },
+    {
+      "col": 13,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "ATLAS",
+        "POLAR",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 22,
+      "row": 17,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "ATLAS",
+        "POLAR",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 14,
+      "row": 17,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "HADRIAN",
+        "HADRIAN",
+        "LENET"
+      ]
+    },
+    {
+      "col": 21,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "HADRIAN",
+        "HADRIAN",
+        "LENET"
+      ]
+    },
+    {
+      "col": 11,
+      "row": 11,
+      "owner": -1,
+      "stored": [
+        "PELICAN",
+        "ATLAS",
+        "TITAN",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 24,
+      "row": 12,
+      "owner": -1,
+      "stored": [
+        "PELICAN",
+        "ATLAS",
+        "TITAN",
+        "TITAN"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 9,
+      "y": 7
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 9,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 9,
+      "y": 11
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 11,
+      "y": 13
+    },
+    {
+      "t": "POLAR",
+      "o": 0,
+      "x": 8,
+      "y": 17
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 7,
+      "y": 7
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 7,
+      "y": 9
+    },
+    {
+      "t": "MULE",
+      "o": 0,
+      "x": 8,
+      "y": 12
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 26,
+      "y": 16
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 26,
+      "y": 14
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 26,
+      "y": 12
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 24,
+      "y": 10
+    },
+    {
+      "t": "GRIZZLY",
+      "o": 1,
+      "x": 27,
+      "y": 6
+    },
+    {
+      "t": "TITAN",
+      "o": 1,
+      "x": 24,
+      "y": 17
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 28,
+      "y": 14
+    },
+    {
+      "t": "PELICAN",
+      "o": 1,
+      "x": 26,
+      "y": 11
+    }
+  ]
+}

@@ -1,0 +1,150 @@
+{
+  "name": "THE LONG HOOK",
+  "pack": "AI-made: Open Horizons",
+  "campaignId": "open-horizons",
+  "mission": 2,
+  "author": "AI-made by Codex",
+  "source": "levels/open-horizons/02-the-long-hook.json",
+  "description": "Crescent ridges shelter the direct approach. Fast Lenets and a Rabbit can take the long outside route, but the infantry must still reach a camp or arsenal.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 55 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "open maneuver",
+    "split",
+    "mixed forces"
+  ],
+  "design": {
+    "theme": "open",
+    "layout": 2,
+    "formation": "split",
+    "road": "rim"
+  },
+  "turnLimit": 55,
+  "grid": [
+    "................................",
+    "................................",
+    ".......-------.---..............",
+    ".....--.MMMMMM-...--.....---....",
+    ".....-...F....M.....-----...--..",
+    ".....-.--..wwwMM....MMM......-..",
+    ".....--....www.M..MMM........-..",
+    "...--..hhhh....M.MM...hhh....-..",
+    "..B...hhhhh....M.M...hhhhh...-..",
+    "..-...hhhhh...M.M....hhhhh...B..",
+    "..-....hhh...MM.M....hhhh..--...",
+    "..-........MMM..M.www....--.....",
+    "..-......MMM....MMwww..--.-.....",
+    "..--...-----.....M....F...-.....",
+    "....---.....--...-MMMMMM.--.....",
+    "..............---.-------.......",
+    "................................",
+    "................................"
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 8,
+      "owner": 0
+    },
+    {
+      "col": 29,
+      "row": 9,
+      "owner": 1
+    },
+    {
+      "col": 9,
+      "row": 4,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET",
+        "LENET"
+      ]
+    },
+    {
+      "col": 22,
+      "row": 13,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET",
+        "LENET"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 6,
+      "y": 4
+    },
+    {
+      "t": "PANTHER",
+      "o": 0,
+      "x": 6,
+      "y": 12
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 5,
+      "y": 3
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 5,
+      "y": 11
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 6,
+      "y": 3
+    },
+    {
+      "t": "RABBIT",
+      "o": 0,
+      "x": 6,
+      "y": 11
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 25,
+      "y": 13
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 25,
+      "y": 5
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 26,
+      "y": 14
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 26,
+      "y": 6
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 25,
+      "y": 14
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 25,
+      "y": 6
+    }
+  ]
+}

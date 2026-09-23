@@ -1,0 +1,150 @@
+{
+  "name": "NO HEAVY ANSWER",
+  "pack": "AI-made: Open Horizons",
+  "campaignId": "open-horizons",
+  "mission": 7,
+  "author": "AI-made by Codex",
+  "source": "levels/open-horizons/07-no-heavy-answer.json",
+  "description": "Capturers and missile buggies only. Scattered small islands provide turning points for hit-and-retreat movement, with very little armor to absorb mistakes.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 45 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "open maneuver",
+    "spread",
+    "limited roster"
+  ],
+  "design": {
+    "theme": "open",
+    "layout": 7,
+    "formation": "spread",
+    "road": "none"
+  },
+  "turnLimit": 45,
+  "grid": [
+    "............................",
+    ".....M......................",
+    "...MMMMM.M..................",
+    "...MMMMMMMM....MMM..........",
+    "...MMMMMMMM....MMM..........",
+    "....MMM-F.......M....M......",
+    "...........MMM.....MMMMM....",
+    ".....hhh..wwMM.....MMhMM....",
+    "..B.hhhhh.wwM......Mhhhh....",
+    "....hhhhM......Mww.hhhhh.B..",
+    "....MMhMM.....MMww..hhh.....",
+    "....MMMMM.....MMM...........",
+    "......M....M.......F-MMM....",
+    "..........MMM....MMMMMMMM...",
+    "..........MMM....MMMMMMMM...",
+    "..................M.MMMMM...",
+    "......................M.....",
+    "............................"
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 8,
+      "owner": 0
+    },
+    {
+      "col": 25,
+      "row": 9,
+      "owner": 1
+    },
+    {
+      "col": 8,
+      "row": 5,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "RABBIT",
+        "RABBIT",
+        "LYNX"
+      ]
+    },
+    {
+      "col": 19,
+      "row": 12,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "RABBIT",
+        "RABBIT",
+        "LYNX"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 3
+    },
+    {
+      "t": "PANTHER",
+      "o": 0,
+      "x": 4,
+      "y": 6
+    },
+    {
+      "t": "RABBIT",
+      "o": 0,
+      "x": 6,
+      "y": 7
+    },
+    {
+      "t": "RABBIT",
+      "o": 0,
+      "x": 4,
+      "y": 9
+    },
+    {
+      "t": "LYNX",
+      "o": 0,
+      "x": 5,
+      "y": 12
+    },
+    {
+      "t": "LYNX",
+      "o": 0,
+      "x": 6,
+      "y": 14
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 23,
+      "y": 14
+    },
+    {
+      "t": "PANTHER",
+      "o": 1,
+      "x": 23,
+      "y": 11
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 21,
+      "y": 10
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 23,
+      "y": 8
+    },
+    {
+      "t": "LYNX",
+      "o": 1,
+      "x": 22,
+      "y": 5
+    },
+    {
+      "t": "LYNX",
+      "o": 1,
+      "x": 21,
+      "y": 3
+    }
+  ]
+}

@@ -1,0 +1,108 @@
+{
+  "name": "EMPTY MILES",
+  "pack": "AI-made: Open Horizons",
+  "campaignId": "open-horizons",
+  "mission": 11,
+  "author": "AI-made by Codex",
+  "source": "levels/open-horizons/11-empty-miles.json",
+  "description": "Four squads each on a very wide field. Elongated shoals interrupt pursuit; committing two units to one side leaves enormous areas unguarded.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "open maneuver",
+    "split",
+    "few units"
+  ],
+  "design": {
+    "theme": "open",
+    "layout": 11,
+    "formation": "split",
+    "road": "none"
+  },
+  "turnLimit": 65,
+  "grid": [
+    "..........................................",
+    "..........................................",
+    ".............B............................",
+    "..........................................",
+    "..........................................",
+    ".........M..................MMMM..........",
+    "..........MMMM..................M.........",
+    "..........................................",
+    ".........hhhh..www........................",
+    "........hhhhhhwwwww..........hhhh.........",
+    "........hhhhhh.www....MM....hhhhhh........",
+    "........hhhhhh....MM....www.hhhhhh........",
+    ".........hhhh..........wwwwwhhhhhh........",
+    "........................www..hhhh.........",
+    "..........................................",
+    ".........M..................MMMM..........",
+    "..........MMMM..................M.........",
+    "..........................................",
+    "..........................................",
+    "............................B.............",
+    "..........................................",
+    ".........................................."
+  ],
+  "buildings": [
+    {
+      "col": 13,
+      "row": 2,
+      "owner": 0
+    },
+    {
+      "col": 28,
+      "row": 19,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 8,
+      "y": 5
+    },
+    {
+      "t": "PANTHER",
+      "o": 0,
+      "x": 8,
+      "y": 15
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 7,
+      "y": 4
+    },
+    {
+      "t": "RABBIT",
+      "o": 0,
+      "x": 7,
+      "y": 14
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 33,
+      "y": 16
+    },
+    {
+      "t": "PANTHER",
+      "o": 1,
+      "x": 33,
+      "y": 6
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 34,
+      "y": 17
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 34,
+      "y": 7
+    }
+  ]
+}

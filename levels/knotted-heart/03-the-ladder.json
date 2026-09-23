@@ -1,0 +1,142 @@
+{
+  "name": "THE LADDER",
+  "pack": "AI-made: The Knotted Heart",
+  "campaignId": "knotted-heart",
+  "mission": 3,
+  "author": "AI-made by Codex",
+  "source": "levels/knotted-heart/03-the-ladder.json",
+  "description": "Two close interior lanes are joined by short rungs. Forces on the open flanks can enter at different heights, turning a seemingly simple corridor into several possible fights.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 55 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "dense center / open flanks",
+    "split",
+    "limited roster"
+  ],
+  "design": {
+    "theme": "center",
+    "layout": 3,
+    "formation": "split",
+    "road": "none"
+  },
+  "turnLimit": 55,
+  "grid": [
+    "........h...h......h........",
+    "............................",
+    "............h.hh.....h......",
+    "..B...MMM.MMMMMMMM.MMM......",
+    "h.....MMM.MMMMMMMM.MMM......",
+    ".h...hMMMhMMMMMMMM.MMM......",
+    ".........h-F.h..h......h....",
+    "......MMM.MMMMMMMMhMMM...h..",
+    "......MMMhMMMMMMMMhMMM......",
+    ".h....MMMhMMMMMMMM.MMMh.....",
+    "......h.....h.....h.........",
+    ".........h.....h.....h......",
+    ".....hMMM.MMMMMMMMhMMM....h.",
+    "......MMMhMMMMMMMMhMMM......",
+    "..h...MMMhMMMMMMMM.MMM......",
+    "....h......h..h.F-h.........",
+    "......MMM.MMMMMMMMhMMMh...h.",
+    "......MMM.MMMMMMMM.MMM.....h",
+    "......MMM.MMMMMMMM.MMM...B..",
+    "......h.....hh.h............",
+    "............................",
+    "........h......h...h........"
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 3,
+      "owner": 0
+    },
+    {
+      "col": 25,
+      "row": 18,
+      "owner": 1
+    },
+    {
+      "col": 11,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "BISON",
+        "BISON"
+      ]
+    },
+    {
+      "col": 16,
+      "row": 15,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "BISON",
+        "BISON"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 5
+    },
+    {
+      "t": "PANTHER",
+      "o": 0,
+      "x": 5,
+      "y": 15
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 5,
+      "y": 4
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 5,
+      "y": 14
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 4,
+      "y": 5
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 22,
+      "y": 16
+    },
+    {
+      "t": "PANTHER",
+      "o": 1,
+      "x": 22,
+      "y": 6
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 22,
+      "y": 17
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 22,
+      "y": 7
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 23,
+      "y": 16
+    }
+  ]
+}

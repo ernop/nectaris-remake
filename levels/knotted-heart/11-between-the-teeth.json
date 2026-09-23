@@ -1,0 +1,152 @@
+{
+  "name": "BETWEEN THE TEETH",
+  "pack": "AI-made: The Knotted Heart",
+  "campaignId": "knotted-heart",
+  "mission": 11,
+  "author": "AI-made by Codex",
+  "source": "levels/knotted-heart/11-between-the-teeth.json",
+  "description": "Only capturers and missile buggies. A comb of narrow mouths opens onto two broad flanks, giving retreating buggies many positions but few places to hide a careless capturer.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 55 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "dense center / open flanks",
+    "spread",
+    "limited roster"
+  ],
+  "design": {
+    "theme": "center",
+    "layout": 11,
+    "formation": "spread",
+    "road": "cross"
+  },
+  "turnLimit": 55,
+  "grid": [
+    "...............h.......h..hh......",
+    ".........h..h.......h.....hh......",
+    "....h..----B.......h....h.........",
+    "h....--.MM.-.MMMhMMMMMMMMM..h.....",
+    "...h....M.M-M-Mh..MhMhMMMM......h.",
+    "...h.......--F...h....MMMM....h..h",
+    ".........M.M-M.M.M.M.MMMMM.h......",
+    ".h......MMM.--h.h.h......h........",
+    "....h...MMM.h.--h.h...h..h........",
+    "......h.MMMMMMMM--MMMMMMMM.......h",
+    "h.......MMMMMMMM--MMMMMMMM.h......",
+    "........h..h...h.h--.h.MMM...h....",
+    "........h......h.h.h--.MMM......h.",
+    "......h.MMMMM.M.M.M.M-M.M.........",
+    "h..h....MMMM....h...F--.......h...",
+    ".h......MMMMhMhM..hM-M-M.M....h...",
+    ".....h..MMMMMMMMMhMMM.-.MM.--....h",
+    ".........h....h.......B----..h....",
+    "......hh.....h.......h..h.........",
+    "......hh..h.......h..............."
+  ],
+  "buildings": [
+    {
+      "col": 11,
+      "row": 2,
+      "owner": 0
+    },
+    {
+      "col": 22,
+      "row": 17,
+      "owner": 1
+    },
+    {
+      "col": 13,
+      "row": 5,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "RABBIT",
+        "RABBIT",
+        "LYNX"
+      ]
+    },
+    {
+      "col": 20,
+      "row": 14,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "RABBIT",
+        "RABBIT",
+        "LYNX"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 3
+    },
+    {
+      "t": "PANTHER",
+      "o": 0,
+      "x": 6,
+      "y": 6
+    },
+    {
+      "t": "RABBIT",
+      "o": 0,
+      "x": 7,
+      "y": 8
+    },
+    {
+      "t": "RABBIT",
+      "o": 0,
+      "x": 5,
+      "y": 11
+    },
+    {
+      "t": "LYNX",
+      "o": 0,
+      "x": 6,
+      "y": 13
+    },
+    {
+      "t": "LYNX",
+      "o": 0,
+      "x": 7,
+      "y": 15
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 28,
+      "y": 16
+    },
+    {
+      "t": "PANTHER",
+      "o": 1,
+      "x": 27,
+      "y": 13
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 26,
+      "y": 11
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 28,
+      "y": 8
+    },
+    {
+      "t": "LYNX",
+      "o": 1,
+      "x": 27,
+      "y": 6
+    },
+    {
+      "t": "LYNX",
+      "o": 1,
+      "x": 26,
+      "y": 4
+    }
+  ]
+}

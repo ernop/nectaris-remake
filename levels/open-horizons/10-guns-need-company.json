@@ -1,0 +1,186 @@
+{
+  "name": "GUNS NEED COMPANY",
+  "pack": "AI-made: Open Horizons",
+  "campaignId": "open-horizons",
+  "mission": 10,
+  "author": "AI-made by Codex",
+  "source": "levels/open-horizons/10-guns-need-company.json",
+  "description": "Offset mountain ribbons put neighboring lanes within artillery reach. Your gun-heavy army still needs infantry and a small mobile screen to occupy the ground.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "open maneuver",
+    "gunline",
+    "mixed forces"
+  ],
+  "design": {
+    "theme": "open",
+    "layout": 10,
+    "formation": "gunline",
+    "road": "cross"
+  },
+  "turnLimit": 65,
+  "grid": [
+    "................................",
+    "................................",
+    "................................",
+    ".....-.---......................",
+    ".....--..F-.....................",
+    ".....-MMMM-wwwM.................",
+    ".....---..Mwww.....F............",
+    ".....-hh--..w......--..MM.......",
+    "...--hhhh.--.......-.MMhhh......",
+    "..B..hhhhh..--.---.-M.hhhhh.....",
+    ".....hhhhh.M-.---.--..hhhhh..B..",
+    "......hhhMM.-.......--.hhhh--...",
+    ".......MM..--......w..--hh-.....",
+    "............F.....wwwM..---.....",
+    ".................Mwww-MMMM-.....",
+    ".....................-F..--.....",
+    "......................---.-.....",
+    "................................",
+    "................................",
+    "................................"
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 9,
+      "owner": 0
+    },
+    {
+      "col": 29,
+      "row": 10,
+      "owner": 1
+    },
+    {
+      "col": 9,
+      "row": 4,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "BISON",
+        "LENET"
+      ]
+    },
+    {
+      "col": 22,
+      "row": 15,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "BISON",
+        "LENET"
+      ]
+    },
+    {
+      "col": 12,
+      "row": 13,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "ATLAS",
+        "POLAR",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 19,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "ATLAS",
+        "POLAR",
+        "POLAR"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 8,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 8,
+      "y": 8
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 7,
+      "y": 10
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 7,
+      "y": 11
+    },
+    {
+      "t": "OCTOPUS",
+      "o": 0,
+      "x": 7,
+      "y": 13
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 7,
+      "y": 6
+    },
+    {
+      "t": "MULE",
+      "o": 0,
+      "x": 8,
+      "y": 7
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 23,
+      "y": 13
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 23,
+      "y": 11
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 23,
+      "y": 9
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 23,
+      "y": 8
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 23,
+      "y": 6
+    },
+    {
+      "t": "TITAN",
+      "o": 1,
+      "x": 24,
+      "y": 13
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 23,
+      "y": 12
+    }
+  ]
+}

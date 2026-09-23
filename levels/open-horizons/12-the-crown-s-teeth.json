@@ -1,0 +1,234 @@
+{
+  "name": "THE CROWN'S TEETH",
+  "pack": "AI-made: Open Horizons",
+  "campaignId": "open-horizons",
+  "mission": 12,
+  "author": "AI-made by Codex",
+  "source": "levels/open-horizons/12-the-crown-s-teeth.json",
+  "description": "A broken crown of mountains offers several protected approaches to the center. The gaps face different directions, so one supporting group cannot cover them all.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 70 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "open maneuver",
+    "forward",
+    "mixed forces"
+  ],
+  "design": {
+    "theme": "open",
+    "layout": 12,
+    "formation": "forward",
+    "road": "fork"
+  },
+  "turnLimit": 70,
+  "grid": [
+    "..................................",
+    "..................................",
+    "..................................",
+    "...........MMMMMMM................",
+    ".........FMMMM.MMMM...............",
+    ".......--MM-M...M.MM..............",
+    ".......-MM.---.....M.....---......",
+    ".......-MMM-..--...-M-.---F.-.....",
+    ".......-M--h....----F--...---.....",
+    ".......--hhhh......w-whhh...-.....",
+    "...B...-hhhhh......wwwhhhh.---....",
+    "....---.hhhhwww......hhhhh-...B...",
+    ".....-...hhhw-w......hhhh--.......",
+    ".....---...--F----....h--M-.......",
+    ".....-.F---.-M-...--..-MMM-.......",
+    "......---.....M.....---.MM-.......",
+    "..............MM.M...M-MM--.......",
+    "...............MMMM.MMMMF.........",
+    "................MMMMMMM...........",
+    "..................................",
+    "..................................",
+    ".................................."
+  ],
+  "buildings": [
+    {
+      "col": 3,
+      "row": 10,
+      "owner": 0
+    },
+    {
+      "col": 30,
+      "row": 11,
+      "owner": 1
+    },
+    {
+      "col": 9,
+      "row": 4,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "HADRIAN",
+        "OCTOPUS",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 24,
+      "row": 17,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "HADRIAN",
+        "OCTOPUS",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 13,
+      "row": 13,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "TRIGGER",
+        "BISON",
+        "BISON"
+      ]
+    },
+    {
+      "col": 20,
+      "row": 8,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "TRIGGER",
+        "BISON",
+        "BISON"
+      ]
+    },
+    {
+      "col": 7,
+      "row": 14,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LENET",
+        "POLAR",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 26,
+      "row": 7,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LENET",
+        "POLAR",
+        "TITAN"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 9,
+      "y": 8
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 9,
+      "y": 11
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 9,
+      "y": 13
+    },
+    {
+      "t": "POLAR",
+      "o": 0,
+      "x": 10,
+      "y": 8
+    },
+    {
+      "t": "TITAN",
+      "o": 0,
+      "x": 9,
+      "y": 10
+    },
+    {
+      "t": "TITAN",
+      "o": 0,
+      "x": 8,
+      "y": 14
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 8,
+      "y": 9
+    },
+    {
+      "t": "MULE",
+      "o": 0,
+      "x": 8,
+      "y": 11
+    },
+    {
+      "t": "RABBIT",
+      "o": 0,
+      "x": 9,
+      "y": 14
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 24,
+      "y": 13
+    },
+    {
+      "t": "KILROY",
+      "o": 1,
+      "x": 24,
+      "y": 10
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 24,
+      "y": 8
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 23,
+      "y": 13
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 24,
+      "y": 11
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 25,
+      "y": 7
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 25,
+      "y": 12
+    },
+    {
+      "t": "OCTOPUS",
+      "o": 1,
+      "x": 25,
+      "y": 10
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 24,
+      "y": 7
+    }
+  ]
+}

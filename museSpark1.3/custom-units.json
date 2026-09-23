@@ -1,0 +1,17 @@
+{
+  "AEGIS":   { "name": "Aegis AA-60",   "cls": "antiair",   "move": 3,  "moveType": "treads", "rngG": 1, "rngA": 2, "atkG": 20, "atkA": 70, "def": 60 },
+  "GADFLY":  { "name": "Gadfly AD-31",  "cls": "antiair",   "move": 8,  "moveType": "wheels", "rngG": 1, "rngA": 1, "atkG": 10, "atkA": 55, "def": 15 },
+  "ARGUS":   { "name": "Argus AD-77",   "cls": "antiair",   "move": 0,  "moveType": "treads", "rngG": 0, "rngA": 4, "atkG": 0,  "atkA": 60, "def": 30, "moveOrFire": true, "placeByTransport": true },
+  "BREACHER":{ "name": "Breacher SG-9", "cls": "artillery", "move": 4,  "moveType": "treads", "rngG": 3, "rngA": 0, "atkG": 55, "atkA": 0,  "def": 35 },
+  "LONGBOW": { "name": "Longbow AT-22","cls": "artillery", "move": 5,  "moveType": "treads", "rngG": 2, "rngA": 0, "atkG": 75, "atkA": 0,  "def": 25, "moveOrFire": true },
+  "REDOUBT": { "name": "Redoubt FP-80","cls": "artillery", "move": 0,  "moveType": "treads", "rngG": 2, "rngA": 0, "atkG": 60, "atkA": 0,  "def": 70, "moveOrFire": true, "placeByTransport": true },
+  "JAVELIN": { "name": "Javelin GX-90","cls": "infantry",  "move": 3,  "moveType": "foot",   "rngG": 1, "rngA": 0, "atkG": 85, "atkA": 0,  "def": 10, "moveAfterAttack": true },
+  "PAVISE":  { "name": "Pavise GX-55",  "cls": "infantry",  "move": 2,  "moveType": "foot",   "rngG": 1, "rngA": 1, "atkG": 20, "atkA": 10, "def": 30, "capture": true },
+  "TRENCH":  { "name": "Trench GX-41",  "cls": "infantry",  "move": 2,  "moveType": "foot",   "rngG": 3, "rngA": 0, "atkG": 35, "atkA": 0,  "def": 10, "capture": true, "moveOrFire": true },
+  "DUSTER":  { "name": "Duster AC-12",  "cls": "tank",      "move": 7,  "moveType": "wheels", "rngG": 1, "rngA": 1, "atkG": 45, "atkA": 30, "def": 20 },
+  "WHIPPET": { "name": "Whippet MB-7",  "cls": "buggy",     "move": 10, "moveType": "wheels", "rngG": 1, "rngA": 1, "atkG": 20, "atkA": 20, "def": 10, "moveAfterAttack": true },
+  "CONDOR":  { "name": "Condor CA-9",   "cls": "transport", "move": 7,  "moveType": "air",    "rngG": 1, "rngA": 1, "atkG": 20, "atkA": 20, "def": 30, "cargo": 1 },
+  "TICK":    { "name": "Tick M-3",      "cls": "mine",      "move": 3,  "moveType": "treads", "rngG": 0, "rngA": 0, "atkG": 0,  "atkA": 0,  "def": 70 },
+  "HAULER":  { "name": "Hauler NC-7",   "cls": "transport", "move": 5,  "moveType": "wheels", "rngG": 1, "rngA": 1, "atkG": 30, "atkA": 20, "def": 30, "cargo": 1, "cargoTypes": ["CHARLIE", "KILROY", "PANTHER", "JAVELIN", "PAVISE", "TRENCH", "TICK"] },
+  "SLOGGER": { "name": "Slogger HMB-9", "cls": "tank",      "move": 3,  "moveType": "treads", "rngG": 1, "rngA": 0, "atkG": 80, "atkA": 0,  "def": 60 }
+}

@@ -19,8 +19,18 @@ Facts we need across sessions:
   logic module ends with `if (typeof module !== "undefined") module.exports`
   so the node test suite loads them.
 - **Tests:** `node test/run-tests.js` — map validation, rule unit-tests, and
-  AI-vs-AI self-play on all 32 normal/advanced campaign + 24 extra-pack + 15 AI-made maps. Run it
+  AI-vs-AI self-play on all 32 normal/advanced campaign + 24 extra-pack + 15 AI-made + 48 terrain-campaign maps (119 total). Run it
   after any engine, data, or map change.
+- **Terrain campaigns (2026-09-23):** Open Horizons, The Knotted Heart and Broken
+  Ground each have 16 independent missions. Explicitly label all three campaigns
+  AI-made in headings/navigation and credit each map as AI-made by Codex.
+  Rebuild only these 48 with
+  `node tools/build-environment-campaigns.js`; authored briefs/rosters live in
+  `tools/environment-campaign-specs.js`. No Hunters/Falcons/Eagles; Pelicans are
+  permitted. Existing maps must remain intact. Menu/save keys pair campaign ID
+  with mission index; Next mission stops at 16. These new physical families are
+  not bound to the old fjord-specific counts. See `ENVIRONMENT_CAMPAIGNS.md` and
+  PRODUCT for the implemented scope and playtesting limits.
 - **Local development:** `./serve.sh` serves the repo on fixed backend port
   `127.0.0.1:8001`; do not substitute a random port. The machine's shared
   Caddy registry exposes it at `http://nectaris.localhost` and the local
@@ -31,8 +41,10 @@ Facts we need across sessions:
   the map is smaller than the viewport. Show grab while Ctrl is held and
   grabbing during panning; use a crosshair for normal map actions.
 - **Board layout (2026-09-23):** game view offers Auto / Normal / Sideways
-  orientation and Top / Left controls, persisted across matches and reloads.
-  Auto chooses the larger full-board fit; Fit resets the camera. Left mode
+  orientation and Auto / Top / Left controls, persisted across matches and reloads.
+  Both default to Auto, jointly choosing the larger full-board fit on map,
+  window, inspector or art changes. Keep the dock stable for near-ties and
+  during selection/panning. Fit resets the camera. Left mode
   docks unit commands and the range legend too, preserving full board height
   even during selection. Keep units, counts and popups upright; rotate terrain,
   highlights and hit testing consistently. See PRODUCT's board-layout record.
@@ -108,7 +120,7 @@ Facts we need across sessions:
   `js/combat.js` (top). `MECHANICS.md` records the combat formula, source, and
   remaining exact-arithmetic and PRNG gaps.
 
-- **CPU factory exits (2026-09-20):** the user corrected the scan to start
+- **Classic CPU factory exits (2026-09-20):** the user corrected the scan to start
   upper-left and run clockwise, choosing the first available legal destination
   for each reserve. A friendly
   compatible Mule/Pelican with room counts as available at its position in that
@@ -117,10 +129,29 @@ Facts we need across sessions:
   `test/ai-fidelity-tests.js`. Keep this ordering instead of scoring exits by
   distance to an objective or requiring a tactical reason to board a carrier.
 
+- **Search opponents and tournaments (2026-09-23):** the user authorized
+  progressively more sophisticated, strength-focused algorithms and explicitly
+  excluded personalities. New policies use numerical capabilities and ENGINE
+  legality, with no stock unit-name handlers or live-RNG inspection. The classic
+  fidelity policy remains separate. See [AI_OPPONENTS.md](AI_OPPONENTS.md) for
+  architecture, budgets, custom hybrids, worker cancellation and replay/Elo
+  invariants. Bump the tournament protocol version when algorithm/rule changes
+  invalidate a comparison; do not mix versions or label smoke-test Elo as human
+  strength. `tools/ai-research/run.cjs` provides reproducible multi-core matches.
+
 - **Profiles/save state:** `js/profiles.js` stores browser-local profiles; engine
   snapshots preserve cargo identity and RNG state. UI checkpoints committed human
   actions and complete AI turns; unfinished AI turns resume from their start.
   Tests in `test/profiles-tests.js` run through the main suite. See `PRODUCT.md`.
+
+- **Compensation offers (2026-09-23):** implemented by user request, with 32
+  cumulative mixed packages and fixed numbered, previewable ground sites near
+  each base. Keep earlier choices, private simultaneous responses, random
+  both-accept tie-breaks and explicit no-deal handling. `firstPlayer` must survive
+  saves and AI copies; rounds advance after both sides act. Imported campaigns
+  default to original play, other battlefields to offers. Preserve separate
+  compensated results and original map data. The CPU bidding heuristic is not
+  evidence of balance. See PRODUCT's compensation record and `test/balance-tests.js`.
 
 - **Unit labels and factory hovers (updated 2026-09-23):** use `UNIT_VIEW` for short
   unit names and accompanying icons. Omit serial/model designations in the UI.

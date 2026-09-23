@@ -1,0 +1,198 @@
+{
+  "name": "DIVIDED WEIGHT",
+  "pack": "AI-made: Open Horizons",
+  "campaignId": "open-horizons",
+  "mission": 4,
+  "author": "AI-made by Codex",
+  "source": "levels/open-horizons/04-divided-weight.json",
+  "description": "Two large mountain formations divide the approach into three wide lanes. Your separated detachments can concentrate quickly only if you keep the middle passage usable.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "open maneuver",
+    "split",
+    "mixed forces"
+  ],
+  "design": {
+    "theme": "open",
+    "layout": 4,
+    "formation": "split",
+    "road": "fork"
+  },
+  "turnLimit": 65,
+  "grid": [
+    "....................................",
+    "....................................",
+    "...........B.-......................",
+    ".........----M--....................",
+    ".......---M-MMM.--..................",
+    ".....--...F-MMM...-.................",
+    ".....-....MMMMMM..-..F--...---......",
+    ".....-.hh.MMMMMMMM----w.---...-.....",
+    ".....-hhhhhMMMMMM--.wwww..hhh.-.....",
+    ".....-hhhhh......--.www..hhhhh-.....",
+    ".....-hhhhh..www.--......hhhhh-.....",
+    ".....-.hhh..wwww.--MMMMMMhhhhh-.....",
+    ".....-...---.w----MMMMMMMM.hh.-.....",
+    "......---...--F..-..MMMMMM....-.....",
+    ".................-...MMM-F...--.....",
+    "..................--.MMM-M---.......",
+    "....................--M----.........",
+    "......................-.B...........",
+    "....................................",
+    "...................................."
+  ],
+  "buildings": [
+    {
+      "col": 11,
+      "row": 2,
+      "owner": 0
+    },
+    {
+      "col": 24,
+      "row": 17,
+      "owner": 1
+    },
+    {
+      "col": 10,
+      "row": 5,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LENET",
+        "POLAR",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 25,
+      "row": 14,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LENET",
+        "POLAR",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 14,
+      "row": 13,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "HADRIAN",
+        "HADRIAN",
+        "LENET"
+      ]
+    },
+    {
+      "col": 21,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "HADRIAN",
+        "HADRIAN",
+        "LENET"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 7,
+      "y": 5
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 7,
+      "y": 14
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 7,
+      "y": 4
+    },
+    {
+      "t": "POLAR",
+      "o": 0,
+      "x": 7,
+      "y": 13
+    },
+    {
+      "t": "TITAN",
+      "o": 0,
+      "x": 6,
+      "y": 5
+    },
+    {
+      "t": "TITAN",
+      "o": 0,
+      "x": 6,
+      "y": 14
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 8,
+      "y": 5
+    },
+    {
+      "t": "RABBIT",
+      "o": 0,
+      "x": 8,
+      "y": 14
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 28,
+      "y": 14
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 28,
+      "y": 5
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 28,
+      "y": 15
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 28,
+      "y": 6
+    },
+    {
+      "t": "GRIZZLY",
+      "o": 1,
+      "x": 29,
+      "y": 14
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 29,
+      "y": 5
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 27,
+      "y": 14
+    },
+    {
+      "t": "OCTOPUS",
+      "o": 1,
+      "x": 27,
+      "y": 5
+    }
+  ]
+}

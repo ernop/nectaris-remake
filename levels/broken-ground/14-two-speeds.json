@@ -1,0 +1,270 @@
+{
+  "name": "TWO SPEEDS",
+  "pack": "AI-made: Broken Ground",
+  "campaignId": "broken-ground",
+  "mission": 14,
+  "author": "AI-made by Codex",
+  "source": "levels/broken-ground/14-two-speeds.json",
+  "description": "Fast patrols and a slower core begin together on a patchwork of firm and difficult ground. Keeping them mutually supporting takes more care than sending every unit its maximum distance.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 80 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "terrain-dependent routes",
+    "spread",
+    "mixed forces"
+  ],
+  "design": {
+    "theme": "rough",
+    "layout": 14,
+    "formation": "spread",
+    "road": "ladder"
+  },
+  "turnLimit": 80,
+  "grid": [
+    "........................................",
+    "........................................",
+    ".......-------..........................",
+    "......-wwwwwww--.........-----..........",
+    ".....h-wwwwwwww.--.....--.wwww--hhhh....",
+    ".....w-wwwwwwwww.---.---.wwwwhhh-hhhh...",
+    ".....w--wwwFwwww.hF--..-wwwwwhhh--hhh...",
+    ".....ww-h--wwwwwhhhwwwh-wwwwwwF--h--....",
+    "......w--hwwwwwwwhwwwwwF-wwwww-wwww-....",
+    ".......-MMhwwwwwwwwwwww.-hwwwwwwww.-....",
+    ".....--MMMhh.wwwwwwwwwww.h.wwwwww..-....",
+    "...B-...MM..hwwwwwwwwwwwwwhh.......-....",
+    "....-.......hhwwwwwwwwwwwwwh..MM...-B...",
+    "....-..wwwwww.h.wwwwwwwwwww.hhMMM--.....",
+    "....-.wwwwwwwwh-.wwwwwwwwwwwwhMM-.......",
+    "....-wwww-wwwww-Fwwwwwhwwwwwwwh--w......",
+    "....--h--Fwwwwww-hwwwhhhwwwww--h-ww.....",
+    "...hhh--hhhwwwww-..--Fh.wwwwFwww--w.....",
+    "...hhhh-hhhwwww.---.---.wwwwwwwww-w.....",
+    "....hhhh--wwww.--.....--.wwwwwwww-h.....",
+    "..........-----.........--wwwwwww-......",
+    "..........................-------.......",
+    "........................................",
+    "........................................"
+  ],
+  "buildings": [
+    {
+      "col": 3,
+      "row": 11,
+      "owner": 0
+    },
+    {
+      "col": 36,
+      "row": 12,
+      "owner": 1
+    },
+    {
+      "col": 11,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET",
+        "LENET"
+      ]
+    },
+    {
+      "col": 28,
+      "row": 17,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET",
+        "LENET"
+      ]
+    },
+    {
+      "col": 16,
+      "row": 15,
+      "owner": -1,
+      "stored": [
+        "KILROY",
+        "GRIZZLY",
+        "GRIZZLY",
+        "GRIZZLY"
+      ]
+    },
+    {
+      "col": 23,
+      "row": 8,
+      "owner": -1,
+      "stored": [
+        "KILROY",
+        "GRIZZLY",
+        "GRIZZLY",
+        "GRIZZLY"
+      ]
+    },
+    {
+      "col": 9,
+      "row": 16,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "RABBIT",
+        "RABBIT",
+        "LYNX"
+      ]
+    },
+    {
+      "col": 30,
+      "row": 7,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "RABBIT",
+        "RABBIT",
+        "LYNX"
+      ]
+    },
+    {
+      "col": 18,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "ATLAS",
+        "POLAR",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 21,
+      "row": 17,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "ATLAS",
+        "POLAR",
+        "POLAR"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 4
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 7,
+      "y": 7
+    },
+    {
+      "t": "PANTHER",
+      "o": 0,
+      "x": 7,
+      "y": 9
+    },
+    {
+      "t": "PANTHER",
+      "o": 0,
+      "x": 5,
+      "y": 13
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 7,
+      "y": 16
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 8,
+      "y": 19
+    },
+    {
+      "t": "RABBIT",
+      "o": 0,
+      "x": 6,
+      "y": 4
+    },
+    {
+      "t": "RABBIT",
+      "o": 0,
+      "x": 7,
+      "y": 6
+    },
+    {
+      "t": "TITAN",
+      "o": 0,
+      "x": 7,
+      "y": 8
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 4,
+      "y": 13
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 34,
+      "y": 19
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 32,
+      "y": 16
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 32,
+      "y": 14
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 34,
+      "y": 10
+    },
+    {
+      "t": "GRIZZLY",
+      "o": 1,
+      "x": 32,
+      "y": 7
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 31,
+      "y": 4
+    },
+    {
+      "t": "TITAN",
+      "o": 1,
+      "x": 33,
+      "y": 19
+    },
+    {
+      "t": "TITAN",
+      "o": 1,
+      "x": 32,
+      "y": 17
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 32,
+      "y": 15
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 35,
+      "y": 10
+    }
+  ]
+}

@@ -1,0 +1,222 @@
+{
+  "name": "RIDGES AND RUNWAYS",
+  "pack": "AI-made: Broken Ground",
+  "campaignId": "broken-ground",
+  "mission": 12,
+  "author": "AI-made by Codex",
+  "source": "levels/broken-ground/12-ridges-and-runways.json",
+  "description": "Long hill ridges alternate with flat landing strips and waste depressions. Pelican cargo needs those firm strips; flying over a good defensive hill does not make it a legal unloading site.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 75 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "terrain-dependent routes",
+    "forward",
+    "mixed forces"
+  ],
+  "design": {
+    "theme": "rough",
+    "layout": 12,
+    "formation": "forward",
+    "road": "fork"
+  },
+  "turnLimit": 75,
+  "grid": [
+    "......................................",
+    "......................................",
+    ".....................h.h.h.h..........",
+    "...hhhhhhh.h.h.h....hhhhhhhhhhhhhh....",
+    "...hhhhhhhhhhhhhhh..hhhhhhhhhhhhhhh...",
+    "....hhhhh-Fw-wwwwww...h.h.h.hhhhhhh...",
+    ".......www---wwwwwwwwwww....hh--hh....",
+    "......wwwwww-wwwwwwwwwF-....MMM-......",
+    "........wwww-wwwwww-hh.-.h.h.MF-......",
+    ".........-.---.-.---hhh-hhhhhh--hh....",
+    "...B.hh--h-h.h-h--.-hhh-hhhhhhh---....",
+    "....---hhhhhhh-hhh-.--h-h.h-h--hh.B...",
+    "....hh--hhhhhh-hhh---.-.---.-.........",
+    "......-FM.h.h.-.hh-wwwwww-wwww........",
+    "......-MMM....-Fwwwwwwwww-wwwwww......",
+    "....hh--hh....wwwwwwwwwww---www.......",
+    "...hhhhhhh.h.h.h...wwwwww-wF-hhhhh....",
+    "...hhhhhhhhhhhhhhh..hhhhhhhhhhhhhhh...",
+    "....hhhhhhhhhhhhhh....h.h.h.hhhhhhh...",
+    "..........h.h.h.h.....................",
+    "......................................",
+    "......................................"
+  ],
+  "buildings": [
+    {
+      "col": 3,
+      "row": 10,
+      "owner": 0
+    },
+    {
+      "col": 34,
+      "row": 11,
+      "owner": 1
+    },
+    {
+      "col": 10,
+      "row": 5,
+      "owner": -1,
+      "stored": [
+        "PELICAN",
+        "ATLAS",
+        "HAWKEYE",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 27,
+      "row": 16,
+      "owner": -1,
+      "stored": [
+        "PELICAN",
+        "ATLAS",
+        "HAWKEYE",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 15,
+      "row": 14,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET",
+        "LENET"
+      ]
+    },
+    {
+      "col": 22,
+      "row": 7,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET",
+        "LENET"
+      ]
+    },
+    {
+      "col": 7,
+      "row": 13,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "HADRIAN",
+        "OCTOPUS",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 30,
+      "row": 8,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "HADRIAN",
+        "OCTOPUS",
+        "POLAR"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 10,
+      "y": 8
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 10,
+      "y": 11
+    },
+    {
+      "t": "PANTHER",
+      "o": 0,
+      "x": 10,
+      "y": 13
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 9,
+      "y": 7
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 10,
+      "y": 10
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 9,
+      "y": 12
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 10,
+      "y": 7
+    },
+    {
+      "t": "PELICAN",
+      "o": 0,
+      "x": 9,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 27,
+      "y": 13
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 27,
+      "y": 10
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 27,
+      "y": 8
+    },
+    {
+      "t": "GRIZZLY",
+      "o": 1,
+      "x": 28,
+      "y": 14
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 27,
+      "y": 11
+    },
+    {
+      "t": "TITAN",
+      "o": 1,
+      "x": 28,
+      "y": 9
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 27,
+      "y": 14
+    },
+    {
+      "t": "PELICAN",
+      "o": 1,
+      "x": 28,
+      "y": 11
+    }
+  ]
+}

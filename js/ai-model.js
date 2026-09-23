@@ -28,7 +28,7 @@ var AI_MODEL = (function () {
   function find(game, id) { return allUnits(game).find(function (u) { return u.id === id; }); }
   function clone(game, seed) {
     var copy = Object.create(engine.Game.prototype), units = {};
-    ["map", "width", "height", "terrain", "currentPlayer", "turn", "turnLimit", "winner", "winReason"].forEach(function (k) { copy[k] = game[k]; });
+    ["map", "width", "height", "terrain", "currentPlayer", "firstPlayer", "balance", "turn", "turnLimit", "winner", "winReason"].forEach(function (k) { copy[k] = game[k]; });
     allUnits(game).forEach(function (u) { units[u.id] = Object.assign({}, u); });
     Object.values(units).forEach(function (u) { u.cargo = u.cargo.map(function (c) { return units[c.id]; }); });
     copy.units = game.units.map(function (u) { return units[u.id]; });
@@ -43,8 +43,8 @@ var AI_MODEL = (function () {
   }
   function signature(game) {
     return JSON.stringify([game.currentPlayer, game.turn, game.winner,
-      game.units.map(function (u) { return [u.id, u.col, u.row, u.strength, u.exp, !!u.moved, !!u.shifted,
-        !!u.attacked, !!u.attackSpent, u.movePointsLeft, !!u.transferUsed, u.carriedBy || 0, u.cargo.map(function (c) { return c.id; })]; }),
+      allUnits(game).map(function (u) { return [u.id, u.player, u.typeId, u.col, u.row, u.strength, u.exp, !!u.moved, !!u.shifted,
+        !!u.attacked, !!u.attackSpent, u.movePointsLeft, !!u.transferUsed, u.carriedBy || 0, !!u.inFactory, u.cargo.map(function (c) { return c.id; })]; }),
       Object.values(game.buildings).map(function (b) { return [b.col, b.row, b.owner,
         b.stored.map(function (u) { return [u.id, u.strength, u.exp, !!u.moved]; })]; })]);
   }
@@ -161,6 +161,47 @@ var AI_MODEL = (function () {
       if (Number.isFinite(d)) best = Math.max(best, t.worth / (1.5 + d / move));
     });
     return best;
+  }
+
+  function deliveryPlans(game,carrier,cargo,ctx) {
+    return objectives(game,cargo,ctx).map(function(target){
+      var key="delivery:"+routeKey(carrier)+":"+routeKey(cargo)+":"+target.goals.map(function(g){return HEX.key(g.col,g.row);}).join(";");
+      var field=ctx.routes.get(key);
+      if(!field){
+        field=new Float64Array(game.width*game.height);field.fill(Infinity);
+        var queue=new engine.CostQueue(), speed=Math.max(1,carrier.type.move);
+        for(var row=0;row<game.height;row++)for(var col=0;col<game.width;col++){
+          if(terrainCost(game.terrainAt(col,row),carrier.type.moveType,carrier.type)===null)continue;
+          var best=Infinity;
+          HEX.neighbors(col,row).forEach(function(n){
+            if(!game.inBounds(n.col,n.row)||game.buildingAt(n.col,n.row))return;
+            best=Math.min(best,1+target.field[n.row*game.width+n.col]/Math.max(1,cargo.type.move));
+          });
+          if(Number.isFinite(best)){field[row*game.width+col]=best;queue.push({col:col,row:row,cost:best});}
+        }
+        var current;
+        while((current=queue.pop())!==null){
+          if(current.cost!==field[current.row*game.width+current.col])continue;
+          var terr=game.terrainAt(current.col,current.row), cost=terrainCost(terr,carrier.type.moveType,carrier.type);
+          if(terr.costsAllMovement&&carrier.type.moveType!=="air")cost=speed;
+          HEX.neighbors(current.col,current.row).forEach(function(n){
+            if(!game.inBounds(n.col,n.row)||terrainCost(game.terrainAt(n.col,n.row),carrier.type.moveType,carrier.type)===null)return;
+            var at=n.row*game.width+n.col,next=current.cost+cost/speed;
+            if(next<field[at]){field[at]=next;queue.push({col:n.col,row:n.row,cost:next});}
+          });
+        }
+        if(ctx.routes.size>384)ctx.routes.delete(ctx.routes.keys().next().value);
+        ctx.routes.set(key,field);
+      }
+      return {field:field,foot:target.field,worth:target.worth};
+    });
+  }
+  function deliveryValue(game,plans,col,row,landed,cargo) {
+    var best=0;
+    plans.forEach(function(plan){
+      var at=row*game.width+col,turns=landed?1+plan.foot[at]/Math.max(1,cargo.type.move):plan.field[at];
+      if(Number.isFinite(turns))best=Math.max(best,plan.worth/(1.5+turns));
+    });return best;
   }
 
   function analysis(game, ctx) {
@@ -295,7 +336,7 @@ var AI_MODEL = (function () {
 
   function unitActions(game,u,ctx,info,limit) {
     var actions=[], targets=objectives(game,u,ctx), origin={col:u.col,row:u.row};
-    var cargoPlans=u.cargo.map(function(cargo){return {unit:cargo,targets:objectives(game,cargo,ctx)};});
+    var cargoPlans=u.cargo.map(function(cargo){return {unit:cargo,targets:deliveryPlans(game,u,cargo,ctx)};});
     var ready=!u.moved, range=game.canMoveNow(u)?game.movementRange(u):{};
     if (ready && !Object.keys(range).length) range[HEX.key(u.col,u.row)]={col:u.col,row:u.row,cost:0,canStop:true};
     var recs=Object.values(range).filter(function (r) {return r.canStop;});
@@ -305,7 +346,7 @@ var AI_MODEL = (function () {
       var base={kind:"act",unit:u.id,to:moved?[rec.col,rec.row]:null};
       var score=scorePosition(game,u,rec,targets,info);
       cargoPlans.forEach(function(plan){
-        score+=(potential(game,plan.unit,plan.targets,rec.col,rec.row)-potential(game,plan.unit,plan.targets,origin.col,origin.row))*1.4;
+        score+=(deliveryValue(game,plan.targets,rec.col,rec.row)-deliveryValue(game,plan.targets,origin.col,origin.row))*1.4;
       });
       if (rec.load) {
         var carrier=game.unitAt(rec.col,rec.row);
@@ -329,10 +370,9 @@ var AI_MODEL = (function () {
         cargoPlans.forEach(function (plan) {
           var cargo=plan.unit,cargoTargets=plan.targets;
           game.unloadTargets(u,cargo).forEach(function (drop) {
-            var gain=potential(game,cargo,cargoTargets,drop.col,drop.row);
-            var carry=potential(game,cargo,cargoTargets,rec.col,rec.row);
-            var close=Number.isFinite(carry) && carry>12;
-            var unloadScore=(close?12:-8)+gain*0.3-danger(game,cargo,drop.col,drop.row,info)*0.5;
+            var gain=deliveryValue(game,cargoTargets,drop.col,drop.row,true,cargo);
+            var carry=deliveryValue(game,cargoTargets,rec.col,rec.row);
+            var unloadScore=2+(gain-carry)*1.4-danger(game,cargo,drop.col,drop.row,info)*0.5;
             var action=Object.assign({},base,{cargo:cargo.id,drop:[drop.col,drop.row]});
             add(action,score+unloadScore);
             game.legalAttackTargets(u).forEach(function (enemy) {
@@ -347,10 +387,10 @@ var AI_MODEL = (function () {
     // simulated transfer prefixes. No mutually exclusive carrier/weapon role.
     if (u.cargo.length && !u.transferUsed) {
       var prefixes=[];
-      u.cargo.forEach(function (cargo) {
-        var goals=objectives(game,cargo,ctx);
+      cargoPlans.forEach(function (plan) {
+        var cargo=plan.unit,goals=plan.targets;
         game.unloadTargets(u,cargo).forEach(function (drop) {
-          var s=12+potential(game,cargo,goals,drop.col,drop.row)*0.3-danger(game,cargo,drop.col,drop.row,info)*0.5;
+          var s=2+(deliveryValue(game,goals,drop.col,drop.row,true,cargo)-deliveryValue(game,goals,u.col,u.row))*1.4-danger(game,cargo,drop.col,drop.row,info)*0.5;
           prefixes.push({kind:"act",unit:u.id,cargo:cargo.id,drop:[drop.col,drop.row],before:true,score:s});
         });
       });
@@ -483,8 +523,13 @@ var AI_MODEL = (function () {
   function apply(game,action,ctx) {
     var it=execute(game,action,ctx);while(!it.next().done){}ctx.analysis.delete(game);return game;
   }
-  function simulate(game,action,ctx,seed) {
-    ctx.stats.simulations++;return apply(clone(game,seed),action,ctx);
+  function simulate(game,action,ctx,seed,representative) {
+    var state=clone(game,seed);
+    // Beam ranking uses the central combat outcome; otherwise maximizing over
+    // sampled branches would select lucky dice rather than better sequences.
+    // Monte Carlo search uses independent rolls and correct weighted chance.
+    if(representative)state.rng=function(){return 0.5;};
+    ctx.stats.simulations++;return apply(state,action,ctx);
   }
   return {clone:clone,find:find,context:context,prepareEvaluation:prepareEvaluation,value:value,key:key,seedFor:seedFor,signature:signature,
     candidates:candidates,evaluate:evaluate,simulate:simulate,apply:apply,execute:execute,baseDanger:baseDanger};

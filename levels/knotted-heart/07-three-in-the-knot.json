@@ -1,0 +1,92 @@
+{
+  "name": "THREE IN THE KNOT",
+  "pack": "AI-made: The Knotted Heart",
+  "campaignId": "knotted-heart",
+  "mission": 7,
+  "author": "AI-made by Codex",
+  "source": "levels/knotted-heart/07-three-in-the-knot.json",
+  "description": "One Charlie, one Hadrian and one Rabbit per side. Diagonal interior cuts offer gun positions, but every detached unit leaves only two to defend the rest of the board.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 40 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "dense center / open flanks",
+    "line",
+    "few units"
+  ],
+  "design": {
+    "theme": "center",
+    "layout": 7,
+    "formation": "line",
+    "road": "none"
+  },
+  "turnLimit": 40,
+  "grid": [
+    "................h.h....h",
+    "...........h............",
+    "...h......hh............",
+    ".....hMMMM.MMMM.MM.....h",
+    "..h...MMMMh.M..MM..h.h..",
+    "......MMMMMMh.MMM.......",
+    "...h.hMMMMM...M.hMh.....",
+    ".......MMMM.MM..MM...h..",
+    "..B.h...MM.MMhh.MM......",
+    "......MM.hhMM.MM...h.B..",
+    "..h...MM..MM.MMMM.......",
+    ".....hMh.M...MMMMMh.h...",
+    ".......MMM.hMMMMMM......",
+    "..h.h..MM..M.hMMMM...h..",
+    "h.....MM.MMMM.MMMMh.....",
+    "............hh......h...",
+    "............h...........",
+    "h....h.h................"
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 8,
+      "owner": 0
+    },
+    {
+      "col": 21,
+      "row": 9,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 1,
+      "y": 7
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 2,
+      "y": 7
+    },
+    {
+      "t": "RABBIT",
+      "o": 0,
+      "x": 3,
+      "y": 7
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 22,
+      "y": 10
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 21,
+      "y": 10
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 20,
+      "y": 10
+    }
+  ]
+}

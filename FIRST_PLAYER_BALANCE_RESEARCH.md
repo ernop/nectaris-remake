@@ -2,11 +2,14 @@
 
 Researched 2026-09-23 in response to the user's report that the first player
 often has a large advantage, particularly on symmetric maps with equal armies.
-**Status: research and proposals only.** No balancing rule, map edit or feature
-in this document is approved or implemented. The size of the reported advantage
-has not been measured in this investigation. Imported campaigns retain their
-recorded fidelity requirements; potential experiments belong in separately
-identified original/custom competitive variants.
+**Status updated 2026-09-23:** the user subsequently requested implementation
+of the automated offers, a longer list and predefined visible locations near
+each base. The implemented 32-package cumulative menu and acceptance rules are
+recorded in [PRODUCT](PRODUCT.md#compensation-offers-before-play-2026-09-23).
+Other alternatives below remain research and proposals. The size of the
+reported advantage and the balance achieved by negotiation have not been
+measured. Imported campaign data retains its recorded fidelity requirements;
+compensated openings are separately identified optional variants.
 
 ## What appears relevant to this remake
 

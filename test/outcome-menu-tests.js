@@ -50,12 +50,18 @@ module.exports = function (ok) {
     CAMPAIGN:campaign,ADVANCED_CAMPAIGN:require("../js/data-advanced-maps.js"),
     EXPANSION_LEVELS:require("../js/data-expansion-maps.js"),
     BASE_NECTARIS_LEVELS:require("../js/data-basenectaris-maps.js").BASE_NECTARIS_LEVELS,
-    AI_MADE_LEVELS:require("../js/data-ai-maps.js")};
-  var liveUI;
+    AI_MADE_LEVELS:require("../js/data-ai-maps.js"),
+    ENVIRONMENT_CAMPAIGNS:require("../js/data-environment-campaigns.js")};
+  var liveUI, liveSetup;
   context.ENGINE=require("../js/engine.js");
+  context.BALANCE=require("../js/balance.js");
+  context.BALANCE_UI={Setup:function(game,options){
+    liveSetup=this;this.game=game;this.options=options;this.destroy=function(){this.destroyed=true;};
+  }};
   context.UI={GameUI:function(canvas,game,options){
     liveUI=this;this.options=options;this.game=game;this.resize=this.destroy=function(){};
     this.snapshotForSave=function(){return game.snapshot();};
+    this.beginAITurn=function(){this.aiStarted=true;};
   }};
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,"../js/main.js"),"utf8"),context);
   listeners.DOMContentLoaded();
@@ -71,9 +77,18 @@ module.exports = function (ok) {
     "map jump retains stable AI-made pack indices");
   ok(aiLevels.every(function(level,i){return PROFILES.levelKey(level,{aiMadeIndex:i})==="ai-made:"+i;}),
     "AI-made results retain their pack identity");
-  ok(get("level-groups").children.length===6 && get("level-groups-nav").children.length===6,
+  context.ENVIRONMENT_CAMPAIGNS.forEach(function(campaign){
+    var group=get("map-jump").children.find(function(g){return g.label===campaign.name;});
+    ok(cards(campaign.id+"-list").length===16 && group.children.length===16 && campaign.levels.every(function(level,i){
+      return find(cards(campaign.id+"-list")[i],"level-card-heading").textContent===level.name &&
+        group.children[i].value==="t:"+campaign.id+":"+i &&
+        PROFILES.levelKey(level,{environmentCampaign:campaign.id,environmentIndex:i})==="environment:"+campaign.id+":"+i;
+    }),campaign.name+": sixteen ordered cards, jump options and independent progress keys");
+  });
+  ok(get("level-groups").children.length===9 && get("level-groups-nav").children.length===9,
     "one shared collection structure covers campaigns, packs and custom levels with jump navigation");
-  ["mission-list","advanced-mission-list","ai-made-list","expansion-list","basenec-list","custom-list"].forEach(function(id){
+  ["mission-list","advanced-mission-list","ai-made-list","expansion-list","basenec-list","custom-list",
+    "open-horizons-list","knotted-heart-list","broken-ground-list"].forEach(function(id){
     var card=cards(id)[0], columns=all(get(id),"level-columns");
     ok(columns.length===3 && columns.every(function(header){
       return header.children.slice(3,6).map(function(c){return c.textContent;}).join("/") === "Union/Xenon/Neutral";
@@ -168,6 +183,68 @@ module.exports = function (ok) {
   context.window.scrollY=0;liveUI.options.onMenu();
   ok(!get("menu-screen").classList.contains("hidden") && context.window.scrollY===1460,
     "returning from a match preserves the library scroll position after rebuilding cards");
+  var previousSave=JSON.stringify(store.active().savedMatch),previousUI=liveUI;
+  get("chk-hotseat").checked=false;
+  find(cards("ai-made-list")[9],"level-play").onclick();
+  ok(liveSetup && !liveSetup.options.hotseat && liveUI===previousUI &&
+    JSON.stringify(store.active().savedMatch)===previousSave,
+    "custom battles default to offers without starting play or replacing the existing checkpoint");
+  liveSetup.options.onCancel();
+  ok(liveSetup.destroyed && JSON.stringify(store.active().savedMatch)===previousSave &&
+    !get("menu-screen").classList.contains("hidden"),"cancelling setup preserves the previous match and returns to the library");
+  find(cards("ai-made-list")[9],"level-play").onclick();
+  var plan=context.BALANCE.plan(liveSetup.game),decision=context.BALANCE.resolve(plan,1,[1,null]);
+  liveSetup.options.onStart(decision,plan);
+  var acceptedSave=store.active().savedMatch;
+  ok(liveUI.aiStarted && liveUI.game.currentPlayer===1 && liveUI.game.firstPlayer===1 && liveSetup.destroyed,
+    "accepting second launches the solo CPU first and closes the setup");
+  ok(acceptedSave.options.balance.label==="1 × Charlie" && acceptedSave.state.balance.secondPlayer===0 &&
+    get("balance-match-label").textContent==="Xenon first · Union bonus: 1 × Charlie",
+    "the committed checkpoint and match toolbar retain the accepted compensation");
+  liveUI.options.onMenu();var previousSetup=liveSetup;
+  get("continue-button").onclick();
+  ok(liveSetup===previousSetup && liveUI.aiStarted && liveUI.game.firstPlayer===1 &&
+    liveUI.game.balance.label==="1 × Charlie", "continuing an agreed match preserves its opening without renegotiation");
+  liveUI.options.onMenu();get("opening-select").value="original";get("opening-select").onchange();
+  find(cards("ai-made-list")[9],"level-play").onclick();
+  ok(liveSetup===previousSetup && !liveUI.game.balance && liveUI.game.firstPlayer===0,
+    "Original opening bypasses offers even on a custom battle");
+  liveUI.options.onMenu();get("opening-select").value="offers";get("opening-select").onchange();
+  find(cards("mission-list")[0],"level-play").onclick();
+  ok(liveSetup!==previousSetup && liveSetup.game.map.name===campaign[0].name,
+    "explicit Compensation offers is available on an imported campaign without editing its source map");
+  liveSetup.options.onStart(null);
+  ok(!liveUI.game.balance && store.active().savedMatch.options.opening==="original",
+    "the original-opening fallback starts a regular match with no compensation metadata");
+  liveUI.options.onMenu();
+  // Exercise real start/save/continue/next wiring, without changing browser storage.
+  get("opening-select").value="original";
+  get("lang-select").onchange();get("chk-hotseat").checked=false;
+  find(cards("open-horizons-list")[0],"level-play").onclick();
+  var saved=store.active().savedMatch;
+  ok(saved.options.environmentCampaign==="open-horizons" && saved.options.environmentIndex===0 &&
+    saved.state.map.name===context.ENVIRONMENT_CAMPAIGNS[0].levels[0].name && get("map-jump").value==="t:open-horizons:0",
+    "terrain campaign Play starts the selected mission and saves its campaign identity");
+  liveUI.options.onMenu();get("continue-button").onclick();
+  ok(store.active().savedMatch.id===saved.id && get("map-jump").value==="t:open-horizons:0",
+    "Continue restores the same terrain-campaign match and map selector");
+  liveUI.game.winner=0;liveUI.game.winReason="base";liveUI.options.onGameOver(0);
+  ok(!get("gameover-next").classList.contains("hidden"),"terrain campaign completion offers the next mission");
+  get("gameover-next").onclick();
+  ok(store.active().savedMatch.options.environmentIndex===1 && store.active().savedMatch.options.environmentCampaign==="open-horizons",
+    "Next mission advances inside its own sixteen-level campaign");
+  liveUI.options.onMenu();
+  ok(find(get("open-horizons-section"),"group-progress").textContent==="1 / 16 won" &&
+    find(get("knotted-heart-section"),"group-progress").textContent==="0 / 16 won" &&
+    find(get("broken-ground-section"),"group-progress").textContent==="0 / 16 won",
+    "a terrain-campaign victory never leaks into another campaign's progress");
+  get("map-jump").value="t:broken-ground:15";get("map-jump").onchange();
+  ok(store.active().savedMatch.options.environmentCampaign==="broken-ground" && store.active().savedMatch.options.environmentIndex===15,
+    "map jump switches directly to another terrain campaign's final mission");
+  liveUI.game.winner=0;liveUI.game.winReason="base";liveUI.options.onGameOver(0);
+  ok(get("gameover-next").classList.contains("hidden") && !get("gameover-next").onclick,
+    "mission sixteen ends its campaign instead of advancing into an unrelated collection");
+  liveUI.options.onMenu();
   storage.setItem("nectaris-custom-levels","[]");get("lang-select").onchange();
   ok(find(get("custom-list"),"empty-levels") && get("custom-level-tools").parentNode.id==="custom-section",
     "an empty custom collection still has a useful empty state and import controls");

@@ -1,0 +1,92 @@
+{
+  "name": "THE PRICE OF A HILL",
+  "pack": "AI-made: Broken Ground",
+  "campaignId": "broken-ground",
+  "mission": 1,
+  "author": "AI-made by Codex",
+  "source": "levels/broken-ground/01-the-price-of-a-hill.json",
+  "description": "Three squads each cross a field of hill belts. Charlie, Bison and Panther pay different movement costs for the same terrain; a short route on the map can be a slow route for the unit.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 45 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "terrain-dependent routes",
+    "line",
+    "few units"
+  ],
+  "design": {
+    "theme": "rough",
+    "layout": 1,
+    "formation": "line",
+    "road": "none"
+  },
+  "turnLimit": 45,
+  "grid": [
+    "........................",
+    "........................",
+    ".............hhh........",
+    ".......hhhhhhhhhhhhh....",
+    "....hhhhhhhhhhhhhhhh....",
+    ".....hhhhhhhhhh.........",
+    "........................",
+    ".........hhhhhhhhhhh....",
+    "..B.....hhhhhhhhhhhh....",
+    "....hhhhhhhhhhhh.....B..",
+    "....hhhhhhhhhhh.........",
+    "........................",
+    ".........hhhhhhhhhh.....",
+    "....hhhhhhhhhhhhhhhh....",
+    "....hhhhhhhhhhhhh.......",
+    "........hhh.............",
+    "........................",
+    "........................"
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 8,
+      "owner": 0
+    },
+    {
+      "col": 21,
+      "row": 9,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 1,
+      "y": 7
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 2,
+      "y": 7
+    },
+    {
+      "t": "PANTHER",
+      "o": 0,
+      "x": 3,
+      "y": 7
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 22,
+      "y": 10
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 21,
+      "y": 10
+    },
+    {
+      "t": "PANTHER",
+      "o": 1,
+      "x": 20,
+      "y": 10
+    }
+  ]
+}

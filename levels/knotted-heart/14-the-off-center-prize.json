@@ -1,0 +1,210 @@
+{
+  "name": "THE OFF-CENTER PRIZE",
+  "pack": "AI-made: The Knotted Heart",
+  "campaignId": "knotted-heart",
+  "mission": 14,
+  "author": "AI-made by Codex",
+  "source": "levels/knotted-heart/14-the-off-center-prize.json",
+  "description": "Unevenly placed spokes lead toward valuable central factories. The fastest-looking entry turns your force away from the route it must take to continue toward the enemy camp.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "dense center / open flanks",
+    "split",
+    "mixed forces"
+  ],
+  "design": {
+    "theme": "center",
+    "layout": 14,
+    "formation": "split",
+    "road": "direct"
+  },
+  "turnLimit": 65,
+  "grid": [
+    "h....................h.......h..h...",
+    "...h..................h............h",
+    "h..........h............h...........",
+    "...........MMMMMM.MMMMMMM...h.....h.",
+    ".h.....h..MMMMMMMhMMMMMMMM......h...",
+    "........h.M-MMMMM.MMMMMMMMM.........",
+    ".......----M-FMM.MMMMMMMMh.-........",
+    ".......-M-MMMM--.-MMMMMh.--M--..h...",
+    ".......-MM--MMMM-M--Mh.--MMM.-......",
+    ".......-MMMFMMMMhMM-F--MMMMM.-...h..",
+    "...B.--.MMMMh.Mh.----.MMMMMM.-.-....",
+    "....-.-.MMMMMM.----.hM.hMMMM.--.B...",
+    "..h...-.MMMMM--F-MMhMMMMFMMM-.......",
+    "......-.MMM--.hM--M-MMMM--MM-.......",
+    "...h..--M--.hMMMMM-.--MMMM-M-.......",
+    "........-.hMMMMMMMM.MMF-M----.......",
+    ".........MMMMMMMMM.MMMMM-M.h........",
+    "...h......MMMMMMMMhMMMMMMM..h.....h.",
+    ".h.....h...MMMMMMM.MMMMMM...........",
+    "...........h............h..........h",
+    "h............h..................h...",
+    "...h..h.......h....................h"
+  ],
+  "buildings": [
+    {
+      "col": 3,
+      "row": 10,
+      "owner": 0
+    },
+    {
+      "col": 32,
+      "row": 11,
+      "owner": 1
+    },
+    {
+      "col": 13,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "HADRIAN",
+        "OCTOPUS",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 22,
+      "row": 15,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "HADRIAN",
+        "OCTOPUS",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 15,
+      "row": 12,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LENET",
+        "POLAR",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 20,
+      "row": 9,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LENET",
+        "POLAR",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 11,
+      "row": 9,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "TRIGGER",
+        "BISON",
+        "BISON"
+      ]
+    },
+    {
+      "col": 24,
+      "row": 12,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "TRIGGER",
+        "BISON",
+        "BISON"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 7,
+      "y": 5
+    },
+    {
+      "t": "PANTHER",
+      "o": 0,
+      "x": 7,
+      "y": 15
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 7,
+      "y": 6
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 7,
+      "y": 14
+    },
+    {
+      "t": "POLAR",
+      "o": 0,
+      "x": 8,
+      "y": 6
+    },
+    {
+      "t": "TITAN",
+      "o": 0,
+      "x": 8,
+      "y": 15
+    },
+    {
+      "t": "RABBIT",
+      "o": 0,
+      "x": 7,
+      "y": 4
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 28,
+      "y": 16
+    },
+    {
+      "t": "KILROY",
+      "o": 1,
+      "x": 28,
+      "y": 6
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 28,
+      "y": 15
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 28,
+      "y": 7
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 27,
+      "y": 15
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 27,
+      "y": 6
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 28,
+      "y": 17
+    }
+  ]
+}

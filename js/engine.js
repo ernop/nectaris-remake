@@ -141,7 +141,8 @@ var ENGINE = (function () {
       this.units.push(makeUnit(u.t, u.o, u.x, u.y, u.str, u.exp));
     }
 
-    this.currentPlayer = 0;
+    this.firstPlayer = options.firstPlayer === 1 ? 1 : 0;
+    this.currentPlayer = this.firstPlayer;
     this.turn = 1;
     this.turnLimit = mapDef.turnLimit || 50;
     this.winner = null;
@@ -172,7 +173,8 @@ var ENGINE = (function () {
     }, this);
     return JSON.parse(JSON.stringify({version: 1, map: this.map, types: types,
       units: Object.values(all), field: this.units.map(function (u) { return u.id; }),
-      buildings: buildings, turn: this.turn, currentPlayer: this.currentPlayer,
+      buildings: buildings, turn: this.turn, currentPlayer: this.currentPlayer, firstPlayer: this.firstPlayer,
+      balance: this.balance || null,
       turnLimit: this.turnLimit, winner: this.winner, winReason: this.winReason,
       rngState: this.rng.getState(), log: this.log}));
   };
@@ -182,7 +184,8 @@ var ENGINE = (function () {
     if (!data || data.version !== 1 || !Array.isArray(data.units) ||
         !Array.isArray(data.field) || !data.types || !data.buildings ||
         !Number.isInteger(data.rngState) || !Number.isInteger(data.turn) || data.turn < 1 ||
-        (data.currentPlayer !== 0 && data.currentPlayer !== 1)) {
+        (data.currentPlayer !== 0 && data.currentPlayer !== 1) ||
+        (data.firstPlayer !== undefined && data.firstPlayer !== 0 && data.firstPlayer !== 1)) {
       throw new Error("This saved match is invalid or from an unsupported version.");
     }
     // Saves made before the fidelity audit have no Mule passenger policy.
@@ -192,7 +195,8 @@ var ENGINE = (function () {
       data.types.MULE.cargoFactoryTypes = ["PANTHER"];
     }
     mergeUnitTypes(data.types);
-    var game = new Game(data.map, {seed: data.rngState});
+    var game = new Game(data.map, {seed: data.rngState, firstPlayer:data.firstPlayer});
+    if(data.balance)game.balance=data.balance;
     var byId = {};
     data.units.forEach(function (u) {
       if (!Number.isInteger(u.id) || u.id < 1 || byId[u.id] || !data.types[u.typeId] || !Array.isArray(u.cargo)) {
@@ -771,7 +775,7 @@ var ENGINE = (function () {
         stored[j].movePointsLeft = stored[j].type.move;
       }
     }
-    if (this.currentPlayer === 1) {
+    if (this.currentPlayer !== (this.firstPlayer || 0)) {
       this.turn++;
       if (this.winner === null && this.turn > this.turnLimit) {
         this.winner = 1;

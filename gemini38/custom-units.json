@@ -1,0 +1,183 @@
+{
+  "PHALANX": {
+    "name": "Phalanx AA-50",
+    "cls": "antiair",
+    "move": 5,
+    "moveType": "treads",
+    "atkG": 35,
+    "atkA": 75,
+    "def": 50,
+    "rngG": 1,
+    "rngA": 1
+  },
+  "SENTINEL": {
+    "name": "Sentinel AD-80",
+    "cls": "antiair",
+    "move": 0,
+    "moveType": "treads",
+    "atkG": 0,
+    "atkA": 80,
+    "def": 25,
+    "rngG": 0,
+    "rngA": 5,
+    "moveOrFire": true,
+    "placeByTransport": true
+  },
+  "DART": {
+    "name": "Dart MB-6",
+    "cls": "buggy",
+    "move": 7,
+    "moveType": "treads",
+    "atkG": 25,
+    "atkA": 50,
+    "def": 20,
+    "rngG": 1,
+    "rngA": 2,
+    "moveAfterAttack": true
+  },
+  "STORM": {
+    "name": "Storm SG-50",
+    "cls": "artillery",
+    "move": 4,
+    "moveType": "treads",
+    "atkG": 50,
+    "atkA": 0,
+    "def": 35,
+    "rngG": 3,
+    "rngA": 0
+  },
+  "CYCLOPS": {
+    "name": "Cyclops MR-75",
+    "cls": "artillery",
+    "move": 3,
+    "moveType": "treads",
+    "atkG": 75,
+    "atkA": 0,
+    "def": 25,
+    "rngG": 5,
+    "rngA": 0,
+    "moveOrFire": true
+  },
+  "BUNKER": {
+    "name": "Bunker FB-70",
+    "cls": "artillery",
+    "move": 0,
+    "moveType": "treads",
+    "atkG": 65,
+    "atkA": 30,
+    "def": 70,
+    "rngG": 1,
+    "rngA": 1,
+    "placeByTransport": true
+  },
+  "RANGER": {
+    "name": "Ranger GX-35",
+    "cls": "infantry",
+    "move": 4,
+    "moveType": "foot",
+    "atkG": 35,
+    "atkA": 25,
+    "def": 16,
+    "rngG": 1,
+    "rngA": 1
+  },
+  "HOPLITE": {
+    "name": "Hoplite GX-25",
+    "cls": "infantry",
+    "move": 2,
+    "moveType": "foot",
+    "atkG": 25,
+    "atkA": 15,
+    "def": 26,
+    "rngG": 1,
+    "rngA": 1,
+    "capture": true
+  },
+  "MORTAR": {
+    "name": "Mortar GX-40",
+    "cls": "infantry",
+    "move": 3,
+    "moveType": "foot",
+    "atkG": 40,
+    "atkA": 0,
+    "def": 12,
+    "rngG": 3,
+    "rngA": 0,
+    "moveOrFire": true
+  },
+  "CHEETAH": {
+    "name": "Cheetah AC-8",
+    "cls": "tank",
+    "move": 8,
+    "moveType": "wheels",
+    "atkG": 50,
+    "atkA": 0,
+    "def": 30,
+    "rngG": 1,
+    "rngA": 0
+  },
+  "RHINO": {
+    "name": "Rhino AT-85",
+    "cls": "tank",
+    "move": 3,
+    "moveType": "treads",
+    "atkG": 85,
+    "atkA": 0,
+    "def": 45,
+    "rngG": 1,
+    "rngA": 0
+  },
+  "MAMMOTH": {
+    "name": "Mammoth HMB-5",
+    "cls": "tank",
+    "move": 3,
+    "moveType": "treads",
+    "atkG": 80,
+    "atkA": 0,
+    "def": 65,
+    "rngG": 1,
+    "rngA": 0
+  },
+  "BUFFALO": {
+    "name": "Buffalo NC-5",
+    "cls": "transport",
+    "move": 5,
+    "moveType": "treads",
+    "atkG": 25,
+    "atkA": 15,
+    "def": 35,
+    "rngG": 1,
+    "rngA": 1,
+    "cargo": 1,
+    "cargoTypes": [
+      "CHARLIE",
+      "KILROY",
+      "RANGER",
+      "HOPLITE",
+      "MORTAR"
+    ]
+  },
+  "CORSAIR": {
+    "name": "Corsair AX-80",
+    "cls": "air",
+    "move": 8,
+    "moveType": "air",
+    "atkG": 80,
+    "atkA": 30,
+    "def": 40,
+    "rngG": 1,
+    "rngA": 1
+  },
+  "TALON": {
+    "name": "Talon MB-9",
+    "cls": "buggy",
+    "move": 9,
+    "moveType": "wheels",
+    "atkG": 35,
+    "atkA": 20,
+    "def": 15,
+    "rngG": 1,
+    "rngA": 1,
+    "moveAfterAttack": true
+  }
+}

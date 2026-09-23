@@ -1,0 +1,186 @@
+{
+  "name": "THE LONG CAUSEWAY",
+  "pack": "AI-made: Broken Ground",
+  "campaignId": "broken-ground",
+  "mission": 4,
+  "author": "AI-made by Codex",
+  "source": "levels/broken-ground/04-the-long-causeway.json",
+  "description": "Valley seams interrupt the difficult ground. Bridges carry the vehicle routes, while Pelicans can move cargo to legal landing hexes beyond a crowded crossing.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "terrain-dependent routes",
+    "line",
+    "mixed forces"
+  ],
+  "design": {
+    "theme": "rough",
+    "layout": 4,
+    "formation": "line",
+    "road": "direct"
+  },
+  "turnLimit": 65,
+  "grid": [
+    "...........v......vv..............",
+    "...................v..............",
+    ".......ww..B.-......v.............",
+    ".....wMMww..-v--....v.hhhhhhhh....",
+    "....wwMMMww--v..--..hhhhhhhhhhh...",
+    "....wwwMwF-w-.v...--hhhhhhhhhhh...",
+    "....wwwwwwww-.v....-F-hhhhhhhhh...",
+    "....wwwwwww--vv...hh-v-hhhhhh.....",
+    ".....wwwwww-.v....hh.v--..........",
+    "......-www-.-v.......=------......",
+    "......------=.......v-.-www-......",
+    "..........--v.hh....v.-wwwwww.....",
+    ".....hhhhhh-v-hh...vv--wwwwwww....",
+    "...hhhhhhhhh-F-....v.-wwwwwwww....",
+    "...hhhhhhhhhhh--...v.-w-FwMwww....",
+    "...hhhhhhhhhhh..--..v--wwMMMww....",
+    "....hhhhhhhh.v....--v-..wwMMw.....",
+    ".............v......-.B..ww.......",
+    "..............v...................",
+    "..............vv......v..........."
+  ],
+  "buildings": [
+    {
+      "col": 11,
+      "row": 2,
+      "owner": 0
+    },
+    {
+      "col": 22,
+      "row": 17,
+      "owner": 1
+    },
+    {
+      "col": 9,
+      "row": 5,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET",
+        "LENET"
+      ]
+    },
+    {
+      "col": 24,
+      "row": 14,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET",
+        "LENET"
+      ]
+    },
+    {
+      "col": 13,
+      "row": 13,
+      "owner": -1,
+      "stored": [
+        "PELICAN",
+        "ATLAS",
+        "TITAN",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 20,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "PELICAN",
+        "ATLAS",
+        "TITAN",
+        "TITAN"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 11,
+      "y": 3
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 12,
+      "y": 3
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 11,
+      "y": 4
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 12,
+      "y": 4
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 10,
+      "y": 3
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 10,
+      "y": 4
+    },
+    {
+      "t": "PELICAN",
+      "o": 0,
+      "x": 13,
+      "y": 2
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 22,
+      "y": 16
+    },
+    {
+      "t": "KILROY",
+      "o": 1,
+      "x": 21,
+      "y": 16
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 22,
+      "y": 15
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 21,
+      "y": 15
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 23,
+      "y": 16
+    },
+    {
+      "t": "TITAN",
+      "o": 1,
+      "x": 23,
+      "y": 15
+    },
+    {
+      "t": "PELICAN",
+      "o": 1,
+      "x": 20,
+      "y": 17
+    }
+  ]
+}

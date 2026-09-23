@@ -195,7 +195,7 @@ Ready reserves can deploy immediately; the capturer must wait. Deployment
 uses adjacent legal exits or compatible transports. There is no production
 or resource economy. The TG-16 FAQ independently describes loaded-carrier repair.
 
-Per the user's corrected original-game recollection (2026-09-20), CPU factory deployment
+Per the user's corrected original-game recollection (2026-09-20), Classic CPU factory deployment
 scans adjacent hexes clockwise from upper-left and chooses the first legal destination
 for each ready reserve. A friendly compatible transport with cargo space counts
 as an available destination at its place in that scan, including a used carrier
@@ -205,6 +205,13 @@ up, upper-right, lower-right, down and lower-left. This follows the user's
 recollection; an original execution trace remains outstanding.
 The Atlas ground-deployment threshold still applies.
 
+The separately selected Tactical, Sequence, Simulation and Apex opponents
+(2026-09-23) evaluate legal reserve exits strategically. They do not inherit
+Classic's stock-unit thresholds or scan preference. All retain the same
+deployment, movement, combat, transfer and victory rules; their capability-based
+planning and exact combat probability helper are described in
+[AI_OPPONENTS.md](AI_OPPONENTS.md).
+
 **Bases are prison camps, not repair factories.** Units may stand on them;
 ground units receive +35 defense. Infantry capture of the enemy base wins.
 The earlier remake extension that stored units in bases has been removed.
@@ -212,6 +219,15 @@ Explicit inventories already present in custom maps or historical saves remain
 readable/deployable so this correction does not erase saved units.
 
 ## Victory and limits
+
+**Optional compensated opening (2026-09-23):** a deliberate remake extension
+lets players negotiate bonus squads for taking the second turn, before any
+actions. Bonuses use ordinary unit/action rules once fielded. The agreed first
+player acts first in each round; the round advances only after the other side's
+turn. Saved games and AI copies retain that order; old saves default to Union
+first. This does not change campaign source data or the timeout winner below.
+See [the adopted protocol](PRODUCT.md#compensation-offers-before-play-2026-09-23)
+for acceptance, fixed placement and unsupported-map handling.
 
 Enemy-base capture wins. Elimination counts owned reserves but excludes Trigger
 mines everywhere and, for PCE, Atlas still in storage. A deployed Atlas counts.

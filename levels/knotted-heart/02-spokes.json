@@ -1,0 +1,174 @@
+{
+  "name": "SPOKES",
+  "pack": "AI-made: The Knotted Heart",
+  "campaignId": "knotted-heart",
+  "mission": 2,
+  "author": "AI-made by Codex",
+  "source": "levels/knotted-heart/02-spokes.json",
+  "description": "Radial passages meet at a small hub. A central force can change fronts rapidly, but several entrances lead into it and the spacious rim remains available.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 55 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "dense center / open flanks",
+    "spread",
+    "mixed forces"
+  ],
+  "design": {
+    "theme": "center",
+    "layout": 2,
+    "formation": "spread",
+    "road": "fork"
+  },
+  "turnLimit": 55,
+  "grid": [
+    ".....h........................",
+    "..............................",
+    "..............................",
+    ".........MMMMMMMMMMMMhh.......",
+    ".......---MMMMMMMMMMMh........",
+    "..hh..-MM-.MMMMMMMMhhMM.h.....",
+    "......-MMM-FMMMMMFh.hMM-....hh",
+    "..h...-MMMMM--MM.M-MMMM-.....h",
+    ".....h-MMMMM.-M----MMMM-..h...",
+    "..B-.---h-h--.--.h--.-.-.-...h",
+    "h...-.-.-.--h.--.--h-h---.-B..",
+    "...h..-MMMM----M-.MMMMM-h.....",
+    "h.....-MMMM-M.MM--MMMMM-...h..",
+    "hh....-MMh.hFMMMMMF-MMM-......",
+    ".....h.MMhhMMMMMMMM.-MM-..hh..",
+    "........hMMMMMMMMMMM---.......",
+    ".......hhMMMMMMMMMMMM.........",
+    "..............................",
+    "..............................",
+    "........................h....."
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 9,
+      "owner": 0
+    },
+    {
+      "col": 27,
+      "row": 10,
+      "owner": 1
+    },
+    {
+      "col": 11,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "POLAR",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 18,
+      "row": 13,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "POLAR",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 12,
+      "row": 13,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "HADRIAN",
+        "HADRIAN",
+        "LENET"
+      ]
+    },
+    {
+      "col": 17,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "HADRIAN",
+        "HADRIAN",
+        "LENET"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 3
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 6
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 6,
+      "y": 8
+    },
+    {
+      "t": "POLAR",
+      "o": 0,
+      "x": 4,
+      "y": 11
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 5,
+      "y": 13
+    },
+    {
+      "t": "RABBIT",
+      "o": 0,
+      "x": 6,
+      "y": 15
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 25,
+      "y": 16
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 24,
+      "y": 13
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 23,
+      "y": 11
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 25,
+      "y": 8
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 24,
+      "y": 6
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 23,
+      "y": 4
+    }
+  ]
+}

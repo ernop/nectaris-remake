@@ -1,0 +1,126 @@
+{
+  "name": "THE CROSS AND THE FIELD",
+  "pack": "AI-made: The Knotted Heart",
+  "campaignId": "knotted-heart",
+  "mission": 1,
+  "author": "AI-made by Codex",
+  "source": "levels/knotted-heart/01-the-cross-and-the-field.json",
+  "description": "A compact mountain knot has a cross-shaped interior route. The center is short and restrictive; the open outer field lets units maneuver around its arms.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 45 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "dense center / open flanks",
+    "line",
+    "few units"
+  ],
+  "design": {
+    "theme": "center",
+    "layout": 1,
+    "formation": "line",
+    "road": "direct"
+  },
+  "turnLimit": 45,
+  "grid": [
+    ".................hh.......",
+    ".......h...........h......",
+    "..........................",
+    "......MMMMMM--MMMMMM......",
+    "...h..MMMMMMF-MMMMMM..h...",
+    "......MMMMMM.-MMMMMM......",
+    "......MMMMMM.-MMMMMM.h...h",
+    "......MMMMMMh-MMMMMM......",
+    "..B-.-M-M-M-h-M-M-M-.-....",
+    "....-.-M-M-M-h-M-M-M-.-B..",
+    "......MMMMMM-hMMMMMM......",
+    "h...h.MMMMMM-.MMMMMM......",
+    "......MMMMMM-.MMMMMM......",
+    "...h..MMMMMM-FMMMMMM..h...",
+    "......MMMMMM--MMMMMM......",
+    "..........................",
+    "......h...........h.......",
+    ".......hh................."
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 8,
+      "owner": 0
+    },
+    {
+      "col": 23,
+      "row": 9,
+      "owner": 1
+    },
+    {
+      "col": 12,
+      "row": 4,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET",
+        "LENET"
+      ]
+    },
+    {
+      "col": 13,
+      "row": 13,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET",
+        "LENET"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 1,
+      "y": 7
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 2,
+      "y": 7
+    },
+    {
+      "t": "RABBIT",
+      "o": 0,
+      "x": 3,
+      "y": 7
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 22,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 24,
+      "y": 10
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 23,
+      "y": 10
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 22,
+      "y": 10
+    }
+  ]
+}

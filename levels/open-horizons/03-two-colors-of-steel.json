@@ -1,0 +1,138 @@
+{
+  "name": "TWO COLORS OF STEEL",
+  "pack": "AI-made: Open Horizons",
+  "campaignId": "open-horizons",
+  "mission": 3,
+  "author": "AI-made by Codex",
+  "source": "levels/open-horizons/03-two-colors-of-steel.json",
+  "description": "Only Charlie and Bison exist here. A diagonal chain of islands makes positioning and mutual support the entire problem.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 50 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "open maneuver",
+    "line",
+    "limited roster"
+  ],
+  "design": {
+    "theme": "open",
+    "layout": 3,
+    "formation": "line",
+    "road": "none"
+  },
+  "turnLimit": 50,
+  "grid": [
+    "............................",
+    "............................",
+    "............................",
+    "..B...MM-...................",
+    "......MMF...................",
+    "......MM.....MM.............",
+    "..........M..MM.............",
+    ".......hhhww.MM...hh........",
+    "......hhhhww.....hhhh.......",
+    ".......hhhh.....wwhhhh......",
+    "........hh...MM.wwhhh.......",
+    ".............MM..M..........",
+    ".............MM.....MM......",
+    "...................FMM......",
+    "...................-MM...B..",
+    "............................",
+    "............................",
+    "............................"
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 3,
+      "owner": 0
+    },
+    {
+      "col": 25,
+      "row": 14,
+      "owner": 1
+    },
+    {
+      "col": 8,
+      "row": 4,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "BISON",
+        "BISON"
+      ]
+    },
+    {
+      "col": 19,
+      "row": 13,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "BISON",
+        "BISON"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 1,
+      "y": 2
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 2,
+      "y": 2
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 3,
+      "y": 2
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 1,
+      "y": 3
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 3,
+      "y": 3
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 26,
+      "y": 15
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 25,
+      "y": 15
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 24,
+      "y": 15
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 26,
+      "y": 14
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 24,
+      "y": 14
+    }
+  ]
+}

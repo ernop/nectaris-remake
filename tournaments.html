@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nectaris · AI tournament lab</title><link rel="stylesheet" href="css/tournaments.css?v=20260923-search-2"></head>
+<body>
+<header><a href="index.html">← Play Nectaris</a><span>NECTARIS / RESEARCH LAB</span><h1>AI tournaments</h1>
+<p>Run both sides of every matchup. Measure the results. Watch any game.</p></header>
+<main>
+<p id="lab-error" role="alert" hidden></p>
+<section class="setup" aria-labelledby="setup-title"><h2 id="setup-title">Set up a tournament</h2>
+<form id="lab-form">
+<div class="config-grid">
+<fieldset><legend>Opponents</legend><div id="lab-opponents"></div><label><input type="checkbox" id="lab-self"> Include same-AI self-play</label></fieldset>
+<fieldset><legend>Boards</legend><label>Collection <select id="lab-collection"></select></label>
+<div class="board-tools"><button type="button" id="lab-all">Select collection</button><button type="button" id="lab-none">Clear selection</button></div>
+<select id="lab-boards" multiple size="7" aria-label="Tournament boards"></select><p id="lab-board-count"></p></fieldset>
+<fieldset><legend>Length &amp; resources</legend>
+<label>Paired cycles <input id="lab-cycles" type="number" min="1" max="100000" value="1" required></label>
+<label>Round cap <input id="lab-rounds" type="number" min="0" max="1000" value="0" required></label>
+<small>0 uses each board’s limit. An earlier lab cutoff is recorded as a draw.</small>
+<label>Seed <input id="lab-seed" type="number" min="0" max="4294967295" value="42" required></label>
+<label>Parallel workers <input id="lab-workers" type="number" min="1" max="16" value="2" required></label>
+<label>Elo K <input id="lab-k" type="number" min="1" max="100" value="24" required></label>
+</fieldset></div>
+<div class="launch"><strong id="lab-estimate"></strong><button class="primary" id="lab-start">Start tournament</button></div>
+<p class="note">No animation or artificial delays. Search opponents still need computation; Apex costs more than Classic. Games and ratings save on this browser. Keep this tab open while running.</p>
+</form></section>
+<section aria-labelledby="runs-title"><div class="section-bar"><h2 id="runs-title">Runs</h2><label>Saved tournament <select id="lab-runs"><option value="">No tournaments yet</option></select></label></div>
+<label>Open a recorded game <input id="replay-import" type="file" accept=".json,application/json"></label>
+<div id="lab-run" hidden>
+<div class="run-bar"><strong id="lab-status" role="status"></strong><button id="lab-pause">Pause after active games</button><button id="lab-resume">Resume</button><button id="lab-stop">Stop now</button></div>
+<progress id="lab-progress" value="0" max="1"></progress><p id="lab-live"></p><p id="lab-settings"></p>
+<div class="table-scroll"><table><thead><tr><th>Opponent</th><th>Elo</th><th>Games</th><th>W / D / L</th><th>Score</th><th>Union / Xenon</th><th>Think / game</th></tr></thead><tbody id="lab-ratings"></tbody></table></div>
+<p class="note">Elo starts at 1500 in each run and updates in scheduled order, independent of worker speed. It is relative to this pool, boards, seed and round cap; it is not a human rating. Self-play does not change Elo. Errors are excluded. Small samples are provisional.</p>
+<details><summary>Head-to-head results</summary><div class="table-scroll"><table><thead><tr><th>Matchup</th><th>Games</th><th>First AI’s W / D / L</th><th>Score</th></tr></thead><tbody id="lab-pairs"></tbody></table></div></details>
+<div class="archive-tools"><button id="lab-export">Export results CSV</button><button id="lab-archive">Export full archive</button><button id="lab-delete">Delete this run</button><span id="lab-storage"></span></div>
+<h3>Past games</h3><div class="table-scroll"><table><thead><tr><th>#</th><th>Board</th><th>Union</th><th>Xenon</th><th>Result</th><th>Rounds</th><th>Time</th><th>Replay</th></tr></thead><tbody id="lab-games"></tbody></table></div>
+<div class="pages"><button id="lab-prev">Previous 25</button><span id="lab-page"></span><button id="lab-next">Next 25</button></div>
+</div></section>
+<section id="lab-viewer" hidden aria-labelledby="replay-title"><div class="section-bar"><h2 id="replay-title">Replay</h2><button id="replay-download">Download game JSON</button></div>
+<p id="replay-detail"></p><div class="replay-controls"><button id="replay-first">|◀</button><button id="replay-back">Previous action</button><button id="replay-play">Play</button><button id="replay-forward">Next action</button><button id="replay-last">▶|</button>
+<label>Speed <select id="replay-speed"><option value="500">2 actions/sec</option><option value="100" selected>10 actions/sec</option><option value="16">60 actions/sec</option></select></label></div>
+<input id="replay-seek" aria-label="Replay position" type="range" min="0" max="1" value="0"><p id="replay-position" role="status"></p>
+<canvas id="replay-canvas" aria-label="Recorded battlefield"></canvas><p id="replay-hover"></p></section>
+</main>
+<script src="js/hex.js"></script><script src="js/data-terrain.js"></script><script src="js/data-units.js"></script>
+<script src="js/combat.js?v=20260923-search-2"></script><script src="js/engine.js?v=20260922-factory-actions"></script><script src="js/ai.js?v=20260923-search-2"></script>
+<script src="js/ai-model.js?v=20260923-search-2"></script><script src="js/ai-search.js?v=20260923-search-2"></script><script src="js/ai-tournament.js?v=20260923-search-2"></script>
+<script src="js/data-maps.js"></script><script src="js/data-advanced-maps.js"></script><script src="js/data-expansion-maps.js"></script><script src="js/data-basenectaris-maps.js"></script><script src="js/data-ai-maps.js"></script>
+<script src="js/data-unit-art.js"></script><script src="js/data-unit-art-legacy.js"></script><script src="js/unit-icon-sets.js"></script><script src="js/legacy-terrain.js"></script><script src="js/render.js?v=20260923-board-layout"></script>
+<script src="js/tournament-store.js?v=20260923-search-2"></script><script src="js/tournament-ui.js?v=20260923-search-2"></script>
+</body></html>
