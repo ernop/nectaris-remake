@@ -1,7 +1,7 @@
 /* Search worker: only sanitized public state crosses this boundary. */
 "use strict";
 importScripts.apply(self, ["hex.js", "data-terrain.js", "data-units.js", "combat.js", "engine.js", "ai-model.js", "ai-search.js"].map(function (file) {
-  return file + "?v=20260923-search-2";
+  return file + "?v=20260923-search-3";
 }));
 var searchContext = null;
 self.onmessage = function (event) {

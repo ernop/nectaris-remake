@@ -272,7 +272,7 @@ var AI_SEARCH = (function () {
     }
     if(async&&typeof Worker!=="undefined"){
       try{
-        worker=new Worker("js/ai-worker.js?v=20260923-search-2");
+        worker=new Worker("js/ai-worker.js?v=20260923-search-3");
         worker.onmessage=function(e){
           if(ended||e.data.sequence!==sequence)return;
           if(e.data.error){error=new Error(e.data.error);pending=false;return;}

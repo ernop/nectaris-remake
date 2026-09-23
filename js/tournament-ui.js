@@ -3,9 +3,10 @@
   var $=function(id){return document.getElementById(id);},T=AI_TOURNAMENT,store,run=null,pool=[],pending=new Map(),assigned=new Set(),saving=false,page=0,lease=null,operation=Promise.resolve();
   function serialize(fn){operation=operation.then(fn,fn);return operation;}
   $("lab-start").disabled=true;
-  var rows=[],chosen=new Set(["normal:0"]),replayData=null,replayGame=null,renderer=null,replayAt=0,playTimer=null;
+  var rows=[],chosen=new Set(["normal:0"]),replayData=null,replayGame=null,renderer=null,replayAt=0,playTimer=null,downloadUrl=null;
   var groups=[{id:"normal",name:"Normal campaign",maps:CAMPAIGN},{id:"advanced",name:"Advanced campaign",maps:ADVANCED_CAMPAIGN},
     {id:"frontiers",name:"Lunar Frontiers",maps:EXPANSION_LEVELS},{id:"base",name:"Base Nectaris",maps:BASE_NECTARIS_LEVELS},{id:"ai",name:"AI-made",maps:AI_MADE_LEVELS}];
+  ENVIRONMENT_CAMPAIGNS.forEach(function(c){groups.push({id:"terrain:"+c.id,name:c.name,maps:c.levels});});
   try{var custom=JSON.parse(localStorage.getItem("nectaris-custom-levels")||"[]");if(Array.isArray(custom)&&custom.length)groups.push({id:"custom",name:"Custom boards",maps:custom});}catch(e){}
   groups.forEach(function(group){group.maps.forEach(function(map,i){rows.push({key:group.id+":"+i,group:group.id,map:map});});});
   function error(e){$("lab-error").hidden=false;$("lab-error").textContent=e.message||String(e);}
@@ -16,11 +17,12 @@
   function duration(ms){return ms<1000?Math.round(ms)+" ms":ms<60000?(ms/1000).toFixed(1)+" s":(ms/60000).toFixed(1)+" min";}
   function config(){return T.normalize({opponents:Array.from(document.querySelectorAll("#lab-opponents input:checked")).map(function(e){return e.value;}),
     maps:rows.filter(function(r){return chosen.has(r.key);}).map(function(r){return r.map;}),cycles:Number($("lab-cycles").value),
-    maxRounds:Number($("lab-rounds").value),seed:Number($("lab-seed").value),workers:Number($("lab-workers").value),k:Number($("lab-k").value),selfPlay:$("lab-self").checked});}
+    maxRounds:Number($("lab-rounds").value),seed:Number($("lab-seed").value),workers:Number($("lab-workers").value),work:$("lab-work").value,k:Number($("lab-k").value),selfPlay:$("lab-self").checked});}
   function estimate(){try{var c=config();$("lab-estimate").textContent=c.total.toLocaleString()+" games · "+c.pairs.length+" matchups × "+c.maps.length+" boards × "+c.cycles+" cycles × both sides";}
     catch(e){$("lab-estimate").textContent=e.message;}$("lab-board-count").textContent=chosen.size+" boards selected across collections";}
   function boards(){var group=$("lab-collection").value,select=$("lab-boards");select.replaceChildren();rows.filter(function(r){return r.group===group;}).forEach(function(r){
-    option(select,r.key,r.map.name+" · "+r.map.grid[0].length+"×"+r.map.grid.length+" · "+r.map.units.length+" units");select.lastChild.selected=chosen.has(r.key);
+    var total=r.map.units.length+(r.map.buildings||[]).reduce(function(n,b){return n+(b.stored||[]).length;},0);
+    option(select,r.key,r.map.name+" · "+r.map.grid[0].length+"×"+r.map.grid.length+" · "+total+" units");select.lastChild.selected=chosen.has(r.key);
   });estimate();}
   AI_SEARCH.modes.forEach(function(m){var l=document.createElement("label"),i=document.createElement("input"),text=document.createElement("div"),note=document.createElement("span");
     i.type="checkbox";i.value=m.id;i.checked=true;text.textContent=m.label;note.textContent=m.description;text.appendChild(note);l.append(i,text);$("lab-opponents").appendChild(l);});
@@ -44,7 +46,7 @@
     $("lab-pause").disabled=run.status!=="running";$("lab-stop").disabled=!active();
     $("lab-resume").disabled=active()||count>=total||run.version!==T.version;
     $("lab-start").disabled=active()||saving;$("lab-runs").disabled=active()||saving;$("lab-delete").disabled=active()||saving;
-    $("lab-settings").textContent="v"+run.version+" · seed "+run.config.seed+" · "+run.config.maps.length+" boards · "+run.config.workers+" workers · K "+run.config.k+" · "+(run.config.maxRounds?run.config.maxRounds+"-round lab cap":"original map limits")+" · "+duration(run.elapsed||0)+" recorded compute time";
+    $("lab-settings").textContent="v"+run.version+" · seed "+run.config.seed+" · "+run.config.maps.length+" boards · "+run.config.workers+" workers · "+(run.config.work||"standard")+" search · K "+run.config.k+" · "+(run.config.maxRounds?run.config.maxRounds+"-round lab cap":"original map limits")+" · "+duration(run.elapsed||0)+" recorded compute time";
     $("lab-live").textContent=pool.filter(function(w){return w.job!==null;}).map(function(w){return "Game "+(w.job+1)+(w.progress?": round "+w.progress.turn+", "+(w.progress.side?"Xenon":"Union"):" starting…");}).join(" · ")||"No active games";
     var tbody=$("lab-ratings");tbody.replaceChildren();Object.values(run.ratings).sort(function(a,b){return b.elo-a.elo;}).forEach(function(r){
       var tr=document.createElement("tr");[label(r.id),r.elo.toFixed(1),r.games,r.wins+" / "+r.draws+" / "+r.losses,r.games?(100*(r.wins+r.draws/2)/r.games).toFixed(1)+"%":"—",r.union+" / "+r.xenon,r.games?duration(r.ms/r.games):"—"].forEach(function(v){cell(tr,v);});tbody.appendChild(tr);
@@ -74,7 +76,8 @@
     if(saving)return;saving=true;
     try{
       while(pending.has(run.completed)){
-        var result=pending.get(run.completed),next=JSON.parse(JSON.stringify(run));
+        var result=pending.get(run.completed),next=Object.assign({},run,{
+          ratings:JSON.parse(JSON.stringify(run.ratings)),pairs:JSON.parse(JSON.stringify(run.pairs))});
         T.rate(next.ratings,result,next.config.k);next.completed++;next.elapsed+=(result.ms||0);if(result.error)next.errors++;
         if(!result.error){var ids=result.players.slice().sort(),key=ids.join("|"),p=next.pairs[key]||(next.pairs[key]={a:ids[0],b:ids[1],games:0,wins:0,draws:0,losses:0});
           p.games++;if(result.winner===null)p.draws++;else if(result.players[result.winner]===p.a)p.wins++;else p.losses++;
@@ -100,7 +103,7 @@
   async function launch(){
     clearError();await acquire();pending.clear();assigned.clear();run.status="running";await store.save(run);
     for(var i=0;i<run.config.workers;i++){
-      var worker=new Worker("js/tournament-worker.js?v=20260923-search-2"),slot={worker:worker,job:null,progress:null};pool.push(slot);
+      var worker=new Worker("js/tournament-worker.js?v=20260923-search-3"),slot={worker:worker,job:null,progress:null};pool.push(slot);
       (function(s){worker.onmessage=function(event){var data=event.data;
         if(data.type==="progress"){s.progress=data.progress;render();return;}
         if(data.type!=="result"||data.result.index!==s.job)return;
@@ -126,7 +129,11 @@
   $("lab-delete").onclick=async function(){if(active()||saving||!confirm("Delete this tournament and all its saved replays?"))return;
     try{await acquire();await store.remove(run.id);release();run=null;await refreshRuns();var list=await store.list();if(list.length){run=list[list.length-1];if(active())run.status="interrupted";page=0;}render();await games();}
     catch(e){release();error(e);}};
-  function download(blob,name){var url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;a.click();setTimeout(function(){URL.revokeObjectURL(url);},10000);}
+  function download(blob,name){
+    if(downloadUrl)URL.revokeObjectURL(downloadUrl);downloadUrl=URL.createObjectURL(blob);
+    var a=document.createElement("a");a.href=downloadUrl;a.download=name;a.textContent="Download "+name;
+    var host=$("lab-download");host.hidden=false;host.replaceChildren("Export ready. If your download did not start, ",a);a.click();
+  }
   async function exportRun(archive){
     if(!run)return;var selected=JSON.parse(JSON.stringify(run)),name="nectaris-"+selected.id+(archive?".ndjson":".csv"),stream=null,chunks=[];
     try{

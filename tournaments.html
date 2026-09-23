@@ -1,11 +1,12 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Nectaris · AI tournament lab</title><link rel="stylesheet" href="css/tournaments.css?v=20260923-search-2"></head>
+<title>Nectaris · AI tournament lab</title><link rel="stylesheet" href="css/tournaments.css?v=20260923-search-3"></head>
 <body>
 <header><a href="index.html">← Play Nectaris</a><span>NECTARIS / RESEARCH LAB</span><h1>AI tournaments</h1>
 <p>Run both sides of every matchup. Measure the results. Watch any game.</p></header>
 <main>
 <p id="lab-error" role="alert" hidden></p>
+<p id="lab-download" role="status" hidden></p>
 <section class="setup" aria-labelledby="setup-title"><h2 id="setup-title">Set up a tournament</h2>
 <form id="lab-form">
 <div class="config-grid">
@@ -19,6 +20,7 @@
 <small>0 uses each board’s limit. An earlier lab cutoff is recorded as a draw.</small>
 <label>Seed <input id="lab-seed" type="number" min="0" max="4294967295" value="42" required></label>
 <label>Parallel workers <input id="lab-workers" type="number" min="1" max="16" value="2" required></label>
+<label>Search work <select id="lab-work"><option value="fast">Fast</option><option value="standard" selected>Standard</option><option value="deep">Deep</option></select></label>
 <label>Elo K <input id="lab-k" type="number" min="1" max="100" value="24" required></label>
 </fieldset></div>
 <div class="launch"><strong id="lab-estimate"></strong><button class="primary" id="lab-start">Start tournament</button></div>
@@ -43,9 +45,10 @@
 <canvas id="replay-canvas" aria-label="Recorded battlefield"></canvas><p id="replay-hover"></p></section>
 </main>
 <script src="js/hex.js"></script><script src="js/data-terrain.js"></script><script src="js/data-units.js"></script>
-<script src="js/combat.js?v=20260923-search-2"></script><script src="js/engine.js?v=20260922-factory-actions"></script><script src="js/ai.js?v=20260923-search-2"></script>
-<script src="js/ai-model.js?v=20260923-search-2"></script><script src="js/ai-search.js?v=20260923-search-2"></script><script src="js/ai-tournament.js?v=20260923-search-2"></script>
+<script src="js/combat.js?v=20260923-search-3"></script><script src="js/engine.js?v=20260922-factory-actions"></script><script src="js/ai.js?v=20260923-search-3"></script>
+<script src="js/ai-model.js?v=20260923-search-3"></script><script src="js/ai-search.js?v=20260923-search-3"></script><script src="js/ai-tournament.js?v=20260923-search-3"></script>
 <script src="js/data-maps.js"></script><script src="js/data-advanced-maps.js"></script><script src="js/data-expansion-maps.js"></script><script src="js/data-basenectaris-maps.js"></script><script src="js/data-ai-maps.js"></script>
+<script src="js/data-environment-campaigns.js?v=20260923-terrain-campaigns"></script>
 <script src="js/data-unit-art.js"></script><script src="js/data-unit-art-legacy.js"></script><script src="js/unit-icon-sets.js"></script><script src="js/legacy-terrain.js"></script><script src="js/render.js?v=20260923-board-layout"></script>
-<script src="js/tournament-store.js?v=20260923-search-2"></script><script src="js/tournament-ui.js?v=20260923-search-2"></script>
+<script src="js/tournament-store.js?v=20260923-search-3"></script><script src="js/tournament-ui.js?v=20260923-search-3"></script>
 </body></html>

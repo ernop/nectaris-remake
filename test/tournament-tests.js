@@ -8,7 +8,7 @@ module.exports=function(ok){
     ok(a.seed===b.seed&&a.map===b.map&&a.players[0]===b.players[1]&&a.players[1]===b.players[0],"paired fixtures swap factions and preserve board/seed "+i);
   }
   ok(T.fixture(config,0).seed!==T.fixture(config,40).seed,"cycles use distinct reproducible seeds");
-  var invalid=[{opponents:[]},{opponents:["bogus"]},{maps:[]},{cycles:0},{cycles:1.1},{workers:17},{seed:-1},{maxRounds:-1},{k:0}];
+  var invalid=[{opponents:[]},{opponents:["bogus"]},{maps:[]},{cycles:0},{cycles:1.1},{workers:17},{seed:-1},{maxRounds:-1},{k:0},{work:"invalid"}];
   invalid.forEach(function(v){var threw=false;try{T.normalize(Object.assign({opponents:["classic"],maps:[tiny]},v));}catch(e){threw=true;}ok(threw,"invalid tournament setting is rejected: "+JSON.stringify(v));});
   var elo=T.standings(["classic","tactical"]),r={players:["classic","tactical"],winner:0,thinkingMs:[1,2]};T.rate(elo,r,32);
   ok(elo.classic.elo===1516&&elo.tactical.elo===1484,"equal Elo win changes ratings by K/2 symmetrically");

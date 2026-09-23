@@ -99,7 +99,13 @@ Open **Tournaments** from a map, or **AI tournament lab** from the mission menu.
 The separate page does not alter player profiles or unfinished human matches.
 
 Choose opponents, multiple boards across collections, paired cycles, random
-seed, round cap, parallel workers and Elo K. One selected opponent automatically
+seed, round cap, parallel workers, search work and Elo K. **Standard** uses
+the ordinary in-game budgets. **Fast** halves sampling/branch budgets and uses
+depth 2; **Deep** doubles them and uses depth 4, subject to the planner's minimum
+budgets. Classic and Tactical are unchanged. Search work is recorded with the
+experiment, and ratings from different budgets should not be mixed. Dense
+armies can still make Apex take tens of seconds per turn; parallelism and
+removing animation do not eliminate its search cost. One selected opponent automatically
 self-plays. With several opponents, use the optional same-AI checkbox to add
 those pairings. A cycle schedules every selected matchup on every selected
 board in both faction assignments, using the same seed for the pair. The
@@ -161,7 +167,7 @@ node tools/ai-research/run.cjs --opponents=classic,tactical,beam,monte-carlo,ape
 node tools/ai-research/run.cjs --out=/tmp/nectaris-league --resume
 ```
 
-Use `--boards=all`, `--rounds=10`, `--seed=123`, `--k=24` and `--self-play`
+Use `--boards=all`, `--rounds=10`, `--seed=123`, `--work=fast`, `--k=24` and `--self-play`
 as needed. `--config=experiment.json` accepts the full configuration with
 embedded map definitions and optional custom `types`; `maps` is an array of
 map objects. Use `--help` for all options. Board indices are listed explicitly;
@@ -190,9 +196,34 @@ covered all 71 boards then in the library, both sides, without errors. Six
 one-round Apex self-play games covered NECTOR, ROTCEN and TWISTED FJORDS.
 Single-worker and four-worker schedules produced identical results and Elo.
 These are scoped tests, not a proof over every possible custom roster.
+After the new terrain campaigns arrived, the lab's expanded 119-board catalog
+also completed a 238-game, two-round smoke run without errors. Fast and Deep
+search budgets each completed their paired smoke tests. A real child process
+was killed after its first durable game checkpoint, then resumed to complete
+all 80 fixtures exactly once. A second resume preserved Elo, and a mismatched
+source hash was rejected. Run that integration check with
+`node test/tournament-runner-tests.cjs`; CI runs it alongside the main suite.
 
 Browser checks exercised all five policies in a 20-game short tournament,
 pause/resume, saved results, replay seeking, and ordinary animated/fast AI play.
 The opponent selection survived Save & Menu / Continue. Dated tournament
-summaries and source hashes are recorded in the validation JSON alongside the
-runner; raw stress-test archives are intentionally not shipped with the game.
+summaries and source hashes are recorded in
+[tournament-validation-2026-09-23.json](tools/ai-research/tournament-validation-2026-09-23.json);
+raw stress-test archives are intentionally not shipped with the game.
+
+The final 60-game round robin used REVOLT, ICARUS and CYRANO, one paired cycle,
+seed 42, original turn limits, four workers and K=24. Each policy played 24 games:
+
+| Policy | Wins / losses | Final Elo within this run |
+| --- | --- | --- |
+| Apex | 16 / 8 | 1554 |
+| Simulation | 14 / 10 | 1521 |
+| Sequence | 12 / 12 | 1502 |
+| Classic | 10 / 14 | 1464 |
+| Tactical | 8 / 16 | 1459 |
+
+No game in that comparison drew or failed. This supports Apex as the current
+default, while showing that the simple Tactical policy is not uniformly stronger
+than Classic. Its 1,000-game two-board result went the other way. Both are
+evidence for keeping board selection, seeds and opponent pool attached to every
+rating, and for testing more than one small sample before making strength claims.

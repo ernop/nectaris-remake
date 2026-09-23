@@ -14,6 +14,4 @@ jobs:
       - name: Rules, search, replays and all-map self-play
         run: node test/run-tests.js
       - name: Parallel tournament and checkpoint recovery
-        run: |
-          node tools/ai-research/run.cjs --opponents=classic,tactical --boards=0 --cycles=1 --rounds=3 --workers=2 --out=/tmp/nectaris-ci
-          node tools/ai-research/run.cjs --out=/tmp/nectaris-ci --resume
+        run: node test/tournament-runner-tests.cjs

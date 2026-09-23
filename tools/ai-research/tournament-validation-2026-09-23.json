@@ -1,0 +1,1729 @@
+{
+  "date": "2026-09-23",
+  "notes": [
+    "Local integration working-tree measurements; source hashes identify the tested engine and algorithms.",
+    "Timings include concurrent development/test CPU load and are not controlled benchmarks.",
+    "Elo is per-run, starting at 1500 with K=24. The 60-game pool is small and map-specific.",
+    "The 1,000-game sample covers only REVOLT and ICARUS; no human-strength calibration."
+  ],
+  "strength": {
+    "version": "2026-09-23.2",
+    "sourceHash": "f0a5568fc6761e8d7edfa9d45deaee32804d28e13e503243a305af2446bca6b2",
+    "node": "v22.22.1",
+    "created": "2026-09-23T19:15:02.980Z",
+    "status": "complete",
+    "completed": 60,
+    "errors": 0,
+    "config": {
+      "cycles": 1,
+      "seed": 42,
+      "maxRounds": 0,
+      "k": 24,
+      "selfPlay": false,
+      "workers": 4,
+      "opponents": [
+        "classic",
+        "tactical",
+        "beam",
+        "monte-carlo",
+        "apex"
+      ],
+      "maps": [
+        "REVOLT",
+        "ICARUS",
+        "CYRANO"
+      ],
+      "pairs": [
+        [
+          "classic",
+          "tactical"
+        ],
+        [
+          "classic",
+          "beam"
+        ],
+        [
+          "classic",
+          "monte-carlo"
+        ],
+        [
+          "classic",
+          "apex"
+        ],
+        [
+          "tactical",
+          "beam"
+        ],
+        [
+          "tactical",
+          "monte-carlo"
+        ],
+        [
+          "tactical",
+          "apex"
+        ],
+        [
+          "beam",
+          "monte-carlo"
+        ],
+        [
+          "beam",
+          "apex"
+        ],
+        [
+          "monte-carlo",
+          "apex"
+        ]
+      ],
+      "total": 60
+    },
+    "ratings": {
+      "classic": {
+        "id": "classic",
+        "elo": 1463.5425242718497,
+        "games": 24,
+        "wins": 10,
+        "draws": 0,
+        "losses": 14,
+        "union": 12,
+        "xenon": 12,
+        "ms": 106
+      },
+      "tactical": {
+        "id": "tactical",
+        "elo": 1459.1778623056698,
+        "games": 24,
+        "wins": 8,
+        "draws": 0,
+        "losses": 16,
+        "union": 12,
+        "xenon": 12,
+        "ms": 4532
+      },
+      "beam": {
+        "id": "beam",
+        "elo": 1502.4013162189915,
+        "games": 24,
+        "wins": 12,
+        "draws": 0,
+        "losses": 12,
+        "union": 12,
+        "xenon": 12,
+        "ms": 109058
+      },
+      "monte-carlo": {
+        "id": "monte-carlo",
+        "elo": 1521.029561733554,
+        "games": 24,
+        "wins": 14,
+        "draws": 0,
+        "losses": 10,
+        "union": 12,
+        "xenon": 12,
+        "ms": 293376
+      },
+      "apex": {
+        "id": "apex",
+        "elo": 1553.848735469935,
+        "games": 24,
+        "wins": 16,
+        "draws": 0,
+        "losses": 8,
+        "union": 12,
+        "xenon": 12,
+        "ms": 1281636
+      }
+    },
+    "results": [
+      {
+        "version": "2026-09-23.2",
+        "index": 0,
+        "players": [
+          "classic",
+          "tactical"
+        ],
+        "map": "REVOLT",
+        "mapIndex": 0,
+        "seed": 114069157,
+        "winner": 0,
+        "reason": "elimination",
+        "rounds": 4,
+        "halfTurns": 7,
+        "ms": 45,
+        "thinkingMs": [
+          12,
+          33
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 1,
+        "players": [
+          "tactical",
+          "classic"
+        ],
+        "map": "REVOLT",
+        "mapIndex": 0,
+        "seed": 114069157,
+        "winner": 0,
+        "reason": "base",
+        "rounds": 6,
+        "halfTurns": 11,
+        "ms": 85,
+        "thinkingMs": [
+          80,
+          5
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 2,
+        "players": [
+          "classic",
+          "beam"
+        ],
+        "map": "REVOLT",
+        "mapIndex": 0,
+        "seed": 1740158889,
+        "winner": 0,
+        "reason": "elimination",
+        "rounds": 12,
+        "halfTurns": 23,
+        "ms": 970,
+        "thinkingMs": [
+          13,
+          957
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 3,
+        "players": [
+          "beam",
+          "classic"
+        ],
+        "map": "REVOLT",
+        "mapIndex": 0,
+        "seed": 1740158889,
+        "winner": 0,
+        "reason": "base",
+        "rounds": 5,
+        "halfTurns": 9,
+        "ms": 807,
+        "thinkingMs": [
+          803,
+          4
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 4,
+        "players": [
+          "classic",
+          "monte-carlo"
+        ],
+        "map": "REVOLT",
+        "mapIndex": 0,
+        "seed": 2286010920,
+        "winner": 1,
+        "reason": "base",
+        "rounds": 10,
+        "halfTurns": 20,
+        "ms": 2296,
+        "thinkingMs": [
+          4,
+          2292
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 5,
+        "players": [
+          "monte-carlo",
+          "classic"
+        ],
+        "map": "REVOLT",
+        "mapIndex": 0,
+        "seed": 2286010920,
+        "winner": 0,
+        "reason": "elimination",
+        "rounds": 4,
+        "halfTurns": 7,
+        "ms": 2144,
+        "thinkingMs": [
+          2143,
+          0
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 6,
+        "players": [
+          "classic",
+          "apex"
+        ],
+        "map": "REVOLT",
+        "mapIndex": 0,
+        "seed": 4136100097,
+        "winner": 0,
+        "reason": "elimination",
+        "rounds": 10,
+        "halfTurns": 19,
+        "ms": 4097,
+        "thinkingMs": [
+          6,
+          4090
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 7,
+        "players": [
+          "apex",
+          "classic"
+        ],
+        "map": "REVOLT",
+        "mapIndex": 0,
+        "seed": 4136100097,
+        "winner": 0,
+        "reason": "elimination",
+        "rounds": 4,
+        "halfTurns": 7,
+        "ms": 5366,
+        "thinkingMs": [
+          5365,
+          1
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 8,
+        "players": [
+          "tactical",
+          "beam"
+        ],
+        "map": "REVOLT",
+        "mapIndex": 0,
+        "seed": 2978513856,
+        "winner": 1,
+        "reason": "turnlimit",
+        "rounds": 50,
+        "halfTurns": 100,
+        "ms": 4098,
+        "thinkingMs": [
+          213,
+          3884
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 9,
+        "players": [
+          "beam",
+          "tactical"
+        ],
+        "map": "REVOLT",
+        "mapIndex": 0,
+        "seed": 2978513856,
+        "winner": 0,
+        "reason": "elimination",
+        "rounds": 5,
+        "halfTurns": 9,
+        "ms": 655,
+        "thinkingMs": [
+          642,
+          13
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 10,
+        "players": [
+          "tactical",
+          "monte-carlo"
+        ],
+        "map": "REVOLT",
+        "mapIndex": 0,
+        "seed": 3704641542,
+        "winner": 1,
+        "reason": "turnlimit",
+        "rounds": 50,
+        "halfTurns": 100,
+        "ms": 19252,
+        "thinkingMs": [
+          253,
+          18999
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 11,
+        "players": [
+          "monte-carlo",
+          "tactical"
+        ],
+        "map": "REVOLT",
+        "mapIndex": 0,
+        "seed": 3704641542,
+        "winner": 0,
+        "reason": "elimination",
+        "rounds": 4,
+        "halfTurns": 7,
+        "ms": 1611,
+        "thinkingMs": [
+          1600,
+          10
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 12,
+        "players": [
+          "tactical",
+          "apex"
+        ],
+        "map": "REVOLT",
+        "mapIndex": 0,
+        "seed": 1960625491,
+        "winner": 1,
+        "reason": "turnlimit",
+        "rounds": 50,
+        "halfTurns": 100,
+        "ms": 35144,
+        "thinkingMs": [
+          220,
+          34924
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 13,
+        "players": [
+          "apex",
+          "tactical"
+        ],
+        "map": "REVOLT",
+        "mapIndex": 0,
+        "seed": 1960625491,
+        "winner": 0,
+        "reason": "base",
+        "rounds": 3,
+        "halfTurns": 5,
+        "ms": 3950,
+        "thinkingMs": [
+          3942,
+          8
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 14,
+        "players": [
+          "beam",
+          "monte-carlo"
+        ],
+        "map": "REVOLT",
+        "mapIndex": 0,
+        "seed": 2263683078,
+        "winner": 1,
+        "reason": "elimination",
+        "rounds": 33,
+        "halfTurns": 66,
+        "ms": 6496,
+        "thinkingMs": [
+          2678,
+          3817
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 15,
+        "players": [
+          "monte-carlo",
+          "beam"
+        ],
+        "map": "REVOLT",
+        "mapIndex": 0,
+        "seed": 2263683078,
+        "winner": 0,
+        "reason": "elimination",
+        "rounds": 18,
+        "halfTurns": 35,
+        "ms": 6503,
+        "thinkingMs": [
+          5617,
+          886
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 16,
+        "players": [
+          "beam",
+          "apex"
+        ],
+        "map": "REVOLT",
+        "mapIndex": 0,
+        "seed": 3201177709,
+        "winner": 1,
+        "reason": "base",
+        "rounds": 16,
+        "halfTurns": 32,
+        "ms": 7857,
+        "thinkingMs": [
+          1479,
+          6378
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 17,
+        "players": [
+          "apex",
+          "beam"
+        ],
+        "map": "REVOLT",
+        "mapIndex": 0,
+        "seed": 3201177709,
+        "winner": 1,
+        "reason": "turnlimit",
+        "rounds": 50,
+        "halfTurns": 100,
+        "ms": 28311,
+        "thinkingMs": [
+          27483,
+          827
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 18,
+        "players": [
+          "monte-carlo",
+          "apex"
+        ],
+        "map": "REVOLT",
+        "mapIndex": 0,
+        "seed": 3727500033,
+        "winner": 1,
+        "reason": "base",
+        "rounds": 10,
+        "halfTurns": 20,
+        "ms": 8075,
+        "thinkingMs": [
+          2406,
+          5669
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 19,
+        "players": [
+          "apex",
+          "monte-carlo"
+        ],
+        "map": "REVOLT",
+        "mapIndex": 0,
+        "seed": 3727500033,
+        "winner": 0,
+        "reason": "elimination",
+        "rounds": 6,
+        "halfTurns": 11,
+        "ms": 7350,
+        "thinkingMs": [
+          6242,
+          1108
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 20,
+        "players": [
+          "classic",
+          "tactical"
+        ],
+        "map": "ICARUS",
+        "mapIndex": 1,
+        "seed": 364031516,
+        "winner": 0,
+        "reason": "elimination",
+        "rounds": 5,
+        "halfTurns": 9,
+        "ms": 35,
+        "thinkingMs": [
+          4,
+          31
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 21,
+        "players": [
+          "tactical",
+          "classic"
+        ],
+        "map": "ICARUS",
+        "mapIndex": 1,
+        "seed": 364031516,
+        "winner": 0,
+        "reason": "elimination",
+        "rounds": 5,
+        "halfTurns": 9,
+        "ms": 53,
+        "thinkingMs": [
+          51,
+          2
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 22,
+        "players": [
+          "classic",
+          "beam"
+        ],
+        "map": "ICARUS",
+        "mapIndex": 1,
+        "seed": 235524191,
+        "winner": 0,
+        "reason": "base",
+        "rounds": 4,
+        "halfTurns": 7,
+        "ms": 519,
+        "thinkingMs": [
+          4,
+          515
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 23,
+        "players": [
+          "beam",
+          "classic"
+        ],
+        "map": "ICARUS",
+        "mapIndex": 1,
+        "seed": 235524191,
+        "winner": 0,
+        "reason": "elimination",
+        "rounds": 5,
+        "halfTurns": 9,
+        "ms": 1606,
+        "thinkingMs": [
+          1604,
+          2
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 24,
+        "players": [
+          "classic",
+          "monte-carlo"
+        ],
+        "map": "ICARUS",
+        "mapIndex": 1,
+        "seed": 496459833,
+        "winner": 0,
+        "reason": "base",
+        "rounds": 5,
+        "halfTurns": 9,
+        "ms": 2102,
+        "thinkingMs": [
+          6,
+          2096
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 25,
+        "players": [
+          "monte-carlo",
+          "classic"
+        ],
+        "map": "ICARUS",
+        "mapIndex": 1,
+        "seed": 496459833,
+        "winner": 0,
+        "reason": "base",
+        "rounds": 5,
+        "halfTurns": 9,
+        "ms": 4530,
+        "thinkingMs": [
+          4529,
+          1
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 26,
+        "players": [
+          "classic",
+          "apex"
+        ],
+        "map": "ICARUS",
+        "mapIndex": 1,
+        "seed": 2982696329,
+        "winner": 0,
+        "reason": "base",
+        "rounds": 5,
+        "halfTurns": 9,
+        "ms": 6099,
+        "thinkingMs": [
+          5,
+          6094
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 27,
+        "players": [
+          "apex",
+          "classic"
+        ],
+        "map": "ICARUS",
+        "mapIndex": 1,
+        "seed": 2982696329,
+        "winner": 0,
+        "reason": "elimination",
+        "rounds": 4,
+        "halfTurns": 7,
+        "ms": 15226,
+        "thinkingMs": [
+          15225,
+          1
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 28,
+        "players": [
+          "tactical",
+          "beam"
+        ],
+        "map": "ICARUS",
+        "mapIndex": 1,
+        "seed": 1864970282,
+        "winner": 1,
+        "reason": "turnlimit",
+        "rounds": 50,
+        "halfTurns": 100,
+        "ms": 10842,
+        "thinkingMs": [
+          603,
+          10237
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 29,
+        "players": [
+          "beam",
+          "tactical"
+        ],
+        "map": "ICARUS",
+        "mapIndex": 1,
+        "seed": 1864970282,
+        "winner": 1,
+        "reason": "turnlimit",
+        "rounds": 50,
+        "halfTurns": 100,
+        "ms": 21674,
+        "thinkingMs": [
+          21234,
+          438
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 30,
+        "players": [
+          "tactical",
+          "monte-carlo"
+        ],
+        "map": "ICARUS",
+        "mapIndex": 1,
+        "seed": 3572065656,
+        "winner": 1,
+        "reason": "turnlimit",
+        "rounds": 50,
+        "halfTurns": 100,
+        "ms": 28953,
+        "thinkingMs": [
+          511,
+          28442
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 31,
+        "players": [
+          "monte-carlo",
+          "tactical"
+        ],
+        "map": "ICARUS",
+        "mapIndex": 1,
+        "seed": 3572065656,
+        "winner": 0,
+        "reason": "base",
+        "rounds": 17,
+        "halfTurns": 33,
+        "ms": 21185,
+        "thinkingMs": [
+          21041,
+          143
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 32,
+        "players": [
+          "tactical",
+          "apex"
+        ],
+        "map": "ICARUS",
+        "mapIndex": 1,
+        "seed": 1465144192,
+        "winner": 1,
+        "reason": "turnlimit",
+        "rounds": 50,
+        "halfTurns": 100,
+        "ms": 92210,
+        "thinkingMs": [
+          381,
+          91827
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 33,
+        "players": [
+          "apex",
+          "tactical"
+        ],
+        "map": "ICARUS",
+        "mapIndex": 1,
+        "seed": 1465144192,
+        "winner": 1,
+        "reason": "turnlimit",
+        "rounds": 50,
+        "halfTurns": 100,
+        "ms": 234741,
+        "thinkingMs": [
+          234321,
+          418
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 34,
+        "players": [
+          "beam",
+          "monte-carlo"
+        ],
+        "map": "ICARUS",
+        "mapIndex": 1,
+        "seed": 4161535291,
+        "winner": 0,
+        "reason": "base",
+        "rounds": 11,
+        "halfTurns": 21,
+        "ms": 11304,
+        "thinkingMs": [
+          3850,
+          7454
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 35,
+        "players": [
+          "monte-carlo",
+          "beam"
+        ],
+        "map": "ICARUS",
+        "mapIndex": 1,
+        "seed": 4161535291,
+        "winner": 1,
+        "reason": "base",
+        "rounds": 10,
+        "halfTurns": 20,
+        "ms": 13589,
+        "thinkingMs": [
+          11336,
+          2252
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 36,
+        "players": [
+          "beam",
+          "apex"
+        ],
+        "map": "ICARUS",
+        "mapIndex": 1,
+        "seed": 201314839,
+        "winner": 1,
+        "reason": "turnlimit",
+        "rounds": 50,
+        "halfTurns": 100,
+        "ms": 119969,
+        "thinkingMs": [
+          19469,
+          100499
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 37,
+        "players": [
+          "apex",
+          "beam"
+        ],
+        "map": "ICARUS",
+        "mapIndex": 1,
+        "seed": 201314839,
+        "winner": 0,
+        "reason": "base",
+        "rounds": 8,
+        "halfTurns": 15,
+        "ms": 38223,
+        "thinkingMs": [
+          36390,
+          1833
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 38,
+        "players": [
+          "monte-carlo",
+          "apex"
+        ],
+        "map": "ICARUS",
+        "mapIndex": 1,
+        "seed": 3852004223,
+        "winner": 1,
+        "reason": "turnlimit",
+        "rounds": 50,
+        "halfTurns": 100,
+        "ms": 165818,
+        "thinkingMs": [
+          51241,
+          114577
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 39,
+        "players": [
+          "apex",
+          "monte-carlo"
+        ],
+        "map": "ICARUS",
+        "mapIndex": 1,
+        "seed": 3852004223,
+        "winner": 1,
+        "reason": "turnlimit",
+        "rounds": 50,
+        "halfTurns": 100,
+        "ms": 270472,
+        "thinkingMs": [
+          229445,
+          41025
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 40,
+        "players": [
+          "classic",
+          "tactical"
+        ],
+        "map": "CYRANO",
+        "mapIndex": 2,
+        "seed": 3873169960,
+        "winner": 0,
+        "reason": "elimination",
+        "rounds": 4,
+        "halfTurns": 7,
+        "ms": 41,
+        "thinkingMs": [
+          6,
+          35
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 41,
+        "players": [
+          "tactical",
+          "classic"
+        ],
+        "map": "CYRANO",
+        "mapIndex": 2,
+        "seed": 3873169960,
+        "winner": 0,
+        "reason": "base",
+        "rounds": 11,
+        "halfTurns": 21,
+        "ms": 136,
+        "thinkingMs": [
+          130,
+          6
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 42,
+        "players": [
+          "classic",
+          "beam"
+        ],
+        "map": "CYRANO",
+        "mapIndex": 2,
+        "seed": 1405322584,
+        "winner": 1,
+        "reason": "elimination",
+        "rounds": 5,
+        "halfTurns": 10,
+        "ms": 710,
+        "thinkingMs": [
+          2,
+          708
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 43,
+        "players": [
+          "beam",
+          "classic"
+        ],
+        "map": "CYRANO",
+        "mapIndex": 2,
+        "seed": 1405322584,
+        "winner": 1,
+        "reason": "elimination",
+        "rounds": 21,
+        "halfTurns": 42,
+        "ms": 1938,
+        "thinkingMs": [
+          1929,
+          8
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 44,
+        "players": [
+          "classic",
+          "monte-carlo"
+        ],
+        "map": "CYRANO",
+        "mapIndex": 2,
+        "seed": 717220940,
+        "winner": 0,
+        "reason": "elimination",
+        "rounds": 6,
+        "halfTurns": 11,
+        "ms": 1625,
+        "thinkingMs": [
+          5,
+          1620
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 45,
+        "players": [
+          "monte-carlo",
+          "classic"
+        ],
+        "map": "CYRANO",
+        "mapIndex": 2,
+        "seed": 717220940,
+        "winner": 0,
+        "reason": "base",
+        "rounds": 15,
+        "halfTurns": 29,
+        "ms": 4660,
+        "thinkingMs": [
+          4655,
+          3
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 46,
+        "players": [
+          "classic",
+          "apex"
+        ],
+        "map": "CYRANO",
+        "mapIndex": 2,
+        "seed": 943762512,
+        "winner": 1,
+        "reason": "elimination",
+        "rounds": 4,
+        "halfTurns": 8,
+        "ms": 6827,
+        "thinkingMs": [
+          3,
+          6824
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 47,
+        "players": [
+          "apex",
+          "classic"
+        ],
+        "map": "CYRANO",
+        "mapIndex": 2,
+        "seed": 943762512,
+        "winner": 0,
+        "reason": "base",
+        "rounds": 6,
+        "halfTurns": 11,
+        "ms": 13835,
+        "thinkingMs": [
+          13831,
+          3
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 48,
+        "players": [
+          "tactical",
+          "beam"
+        ],
+        "map": "CYRANO",
+        "mapIndex": 2,
+        "seed": 1576564294,
+        "winner": 1,
+        "reason": "base",
+        "rounds": 15,
+        "halfTurns": 30,
+        "ms": 3501,
+        "thinkingMs": [
+          117,
+          3384
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 49,
+        "players": [
+          "beam",
+          "tactical"
+        ],
+        "map": "CYRANO",
+        "mapIndex": 2,
+        "seed": 1576564294,
+        "winner": 1,
+        "reason": "elimination",
+        "rounds": 20,
+        "halfTurns": 40,
+        "ms": 3973,
+        "thinkingMs": [
+          3795,
+          177
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 50,
+        "players": [
+          "tactical",
+          "monte-carlo"
+        ],
+        "map": "CYRANO",
+        "mapIndex": 2,
+        "seed": 14388155,
+        "winner": 1,
+        "reason": "base",
+        "rounds": 8,
+        "halfTurns": 16,
+        "ms": 6124,
+        "thinkingMs": [
+          78,
+          6046
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 51,
+        "players": [
+          "monte-carlo",
+          "tactical"
+        ],
+        "map": "CYRANO",
+        "mapIndex": 2,
+        "seed": 14388155,
+        "winner": 1,
+        "reason": "base",
+        "rounds": 13,
+        "halfTurns": 26,
+        "ms": 8714,
+        "thinkingMs": [
+          8600,
+          114
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 52,
+        "players": [
+          "tactical",
+          "apex"
+        ],
+        "map": "CYRANO",
+        "mapIndex": 2,
+        "seed": 2858327899,
+        "winner": 1,
+        "reason": "turnlimit",
+        "rounds": 50,
+        "halfTurns": 100,
+        "ms": 120645,
+        "thinkingMs": [
+          380,
+          120264
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 53,
+        "players": [
+          "apex",
+          "tactical"
+        ],
+        "map": "CYRANO",
+        "mapIndex": 2,
+        "seed": 2858327899,
+        "winner": 1,
+        "reason": "base",
+        "rounds": 12,
+        "halfTurns": 24,
+        "ms": 31024,
+        "thinkingMs": [
+          30929,
+          95
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 54,
+        "players": [
+          "beam",
+          "monte-carlo"
+        ],
+        "map": "CYRANO",
+        "mapIndex": 2,
+        "seed": 3476184915,
+        "winner": 1,
+        "reason": "base",
+        "rounds": 12,
+        "halfTurns": 24,
+        "ms": 14190,
+        "thinkingMs": [
+          3469,
+          10721
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 55,
+        "players": [
+          "monte-carlo",
+          "beam"
+        ],
+        "map": "CYRANO",
+        "mapIndex": 2,
+        "seed": 3476184915,
+        "winner": 1,
+        "reason": "turnlimit",
+        "rounds": 50,
+        "halfTurns": 100,
+        "ms": 46671,
+        "thinkingMs": [
+          35418,
+          11251
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 56,
+        "players": [
+          "beam",
+          "apex"
+        ],
+        "map": "CYRANO",
+        "mapIndex": 2,
+        "seed": 3066076377,
+        "winner": 1,
+        "reason": "turnlimit",
+        "rounds": 50,
+        "halfTurns": 100,
+        "ms": 92559,
+        "thinkingMs": [
+          7606,
+          84953
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 57,
+        "players": [
+          "apex",
+          "beam"
+        ],
+        "map": "CYRANO",
+        "mapIndex": 2,
+        "seed": 3066076377,
+        "winner": 1,
+        "reason": "elimination",
+        "rounds": 21,
+        "halfTurns": 42,
+        "ms": 37295,
+        "thinkingMs": [
+          33528,
+          3766
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 58,
+        "players": [
+          "monte-carlo",
+          "apex"
+        ],
+        "map": "CYRANO",
+        "mapIndex": 2,
+        "seed": 593679808,
+        "winner": 1,
+        "reason": "base",
+        "rounds": 15,
+        "halfTurns": 30,
+        "ms": 44036,
+        "thinkingMs": [
+          10408,
+          33628
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 59,
+        "players": [
+          "apex",
+          "monte-carlo"
+        ],
+        "map": "CYRANO",
+        "mapIndex": 2,
+        "seed": 593679808,
+        "winner": 1,
+        "reason": "base",
+        "rounds": 18,
+        "halfTurns": 36,
+        "ms": 45971,
+        "thinkingMs": [
+          35208,
+          10762
+        ]
+      }
+    ]
+  },
+  "stress": {
+    "version": "2026-09-23.2",
+    "sourceHash": "ee6d5996e9ab442aad253bf09d1b28ee98d58c90b0e51f11c1e083e869905c51",
+    "node": "v22.22.1",
+    "created": "2026-09-23T19:09:02.746Z",
+    "status": "complete",
+    "completed": 1000,
+    "errors": 0,
+    "config": {
+      "cycles": 250,
+      "seed": 42,
+      "maxRounds": 0,
+      "k": 24,
+      "selfPlay": false,
+      "workers": 4,
+      "opponents": [
+        "classic",
+        "tactical"
+      ],
+      "maps": [
+        "REVOLT",
+        "ICARUS"
+      ],
+      "pairs": [
+        [
+          "classic",
+          "tactical"
+        ]
+      ],
+      "total": 1000
+    },
+    "ratings": {
+      "classic": {
+        "id": "classic",
+        "elo": 1491.4510800053313,
+        "games": 1000,
+        "wins": 462,
+        "draws": 0,
+        "losses": 538,
+        "union": 500,
+        "xenon": 500,
+        "ms": 2780
+      },
+      "tactical": {
+        "id": "tactical",
+        "elo": 1508.5489199946687,
+        "games": 1000,
+        "wins": 538,
+        "draws": 0,
+        "losses": 462,
+        "union": 500,
+        "xenon": 500,
+        "ms": 33843
+      }
+    }
+  },
+  "replaysVerified": 1000,
+  "allBoardSmoke": {
+    "version": "2026-09-23.2",
+    "sourceHash": "ee6d5996e9ab442aad253bf09d1b28ee98d58c90b0e51f11c1e083e869905c51",
+    "node": "v22.22.1",
+    "created": "2026-09-23T19:08:41.179Z",
+    "status": "complete",
+    "completed": 142,
+    "errors": 0,
+    "config": {
+      "cycles": 1,
+      "seed": 42,
+      "maxRounds": 3,
+      "k": 24,
+      "selfPlay": false,
+      "workers": 4,
+      "opponents": [
+        "classic",
+        "tactical"
+      ],
+      "maps": [
+        "REVOLT",
+        "ICARUS",
+        "CYRANO",
+        "RAMSEY",
+        "NEWTON",
+        "SENECA",
+        "SABINE",
+        "ARATUS",
+        "GALOIS",
+        "DARWIN",
+        "PASCAL",
+        "HALLEY",
+        "BORMAN",
+        "APPOLO",
+        "KAISER",
+        "NECTOR",
+        "TLOVER",
+        "SURACI",
+        "ONARYC",
+        "YESMAR",
+        "NOTWEN",
+        "ACENES",
+        "ENIBAS",
+        "SUTARA",
+        "SIOLAG",
+        "NIWRAD",
+        "LACSAP",
+        "YELLAH",
+        "NAMROB",
+        "OLOPPA",
+        "RESIAK",
+        "ROTCEN",
+        "BRIDGEHEAD",
+        "HIGH GROUND",
+        "AIRLIFT",
+        "FACTORY RACE",
+        "LONG REACH",
+        "ENCIRCLEMENT",
+        "SCRAPYARD",
+        "SKYHOOK",
+        "CONVOY",
+        "CITADEL",
+        "CROSSWINDS",
+        "GRAND LUNAR",
+        "HIPPARCHUS",
+        "ARZACHEL",
+        "THEOPHILUS",
+        "POSIDONIUS",
+        "ARISTARCHUS",
+        "GASSENDI",
+        "CLAVIUS",
+        "PLATO",
+        "GRIMALDI",
+        "TYCHO",
+        "COPERNICUS",
+        "ENDYMION",
+        "TWISTED FJORDS",
+        "SHATTERED FJORDS",
+        "FRACTURED FJORDS",
+        "HONEYCOMB FJORDS",
+        "ARSENAL FJORDS",
+        "NEEDLE FJORDS",
+        "LABYRINTH FJORDS",
+        "MIRROR FJORDS",
+        "LACED FJORDS",
+        "TURNING FJORDS",
+        "SWITCHBACK FJORDS",
+        "DELTA CROSSINGS",
+        "CALDERA CIRCUIT",
+        "FAULTLINE STEPS",
+        "POCKET SIEGE"
+      ],
+      "pairs": [
+        [
+          "classic",
+          "tactical"
+        ]
+      ],
+      "total": 142
+    },
+    "ratings": {
+      "classic": {
+        "id": "classic",
+        "elo": 1499.9007409558715,
+        "games": 142,
+        "wins": 0,
+        "draws": 141,
+        "losses": 1,
+        "union": 71,
+        "xenon": 71,
+        "ms": 1352
+      },
+      "tactical": {
+        "id": "tactical",
+        "elo": 1500.0992590441285,
+        "games": 142,
+        "wins": 1,
+        "draws": 141,
+        "losses": 0,
+        "union": 71,
+        "xenon": 71,
+        "ms": 29178
+      }
+    }
+  },
+  "largeBoardSmoke": {
+    "version": "2026-09-23.2",
+    "sourceHash": "05dce92d65d6df845cd5676b4650dd774523d025c81a3701307138f08a9c63bc",
+    "node": "v22.22.1",
+    "created": "2026-09-23T19:09:55.136Z",
+    "status": "complete",
+    "completed": 6,
+    "errors": 0,
+    "config": {
+      "cycles": 1,
+      "seed": 42,
+      "maxRounds": 1,
+      "k": 24,
+      "selfPlay": true,
+      "workers": 2,
+      "opponents": [
+        "apex"
+      ],
+      "maps": [
+        "NECTOR",
+        "ROTCEN",
+        "TWISTED FJORDS"
+      ],
+      "pairs": [
+        [
+          "apex",
+          "apex"
+        ]
+      ],
+      "total": 6
+    },
+    "ratings": {
+      "apex": {
+        "id": "apex",
+        "elo": 1500,
+        "games": 12,
+        "wins": 0,
+        "draws": 12,
+        "losses": 0,
+        "union": 6,
+        "xenon": 6,
+        "ms": 193049
+      }
+    },
+    "results": [
+      {
+        "version": "2026-09-23.2",
+        "index": 0,
+        "players": [
+          "apex",
+          "apex"
+        ],
+        "map": "NECTOR",
+        "mapIndex": 0,
+        "seed": 114069157,
+        "winner": null,
+        "reason": "round-cap",
+        "rounds": 1,
+        "halfTurns": 2,
+        "ms": 96068,
+        "thinkingMs": [
+          45170,
+          50898
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 1,
+        "players": [
+          "apex",
+          "apex"
+        ],
+        "map": "NECTOR",
+        "mapIndex": 0,
+        "seed": 114069157,
+        "winner": null,
+        "reason": "round-cap",
+        "rounds": 1,
+        "halfTurns": 2,
+        "ms": 96525,
+        "thinkingMs": [
+          45038,
+          51487
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 2,
+        "players": [
+          "apex",
+          "apex"
+        ],
+        "map": "ROTCEN",
+        "mapIndex": 1,
+        "seed": 364031516,
+        "winner": null,
+        "reason": "round-cap",
+        "rounds": 1,
+        "halfTurns": 2,
+        "ms": 27,
+        "thinkingMs": [
+          9,
+          18
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 3,
+        "players": [
+          "apex",
+          "apex"
+        ],
+        "map": "ROTCEN",
+        "mapIndex": 1,
+        "seed": 364031516,
+        "winner": null,
+        "reason": "round-cap",
+        "rounds": 1,
+        "halfTurns": 2,
+        "ms": 26,
+        "thinkingMs": [
+          9,
+          17
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 4,
+        "players": [
+          "apex",
+          "apex"
+        ],
+        "map": "TWISTED FJORDS",
+        "mapIndex": 2,
+        "seed": 3873169960,
+        "winner": null,
+        "reason": "round-cap",
+        "rounds": 1,
+        "halfTurns": 2,
+        "ms": 204,
+        "thinkingMs": [
+          103,
+          101
+        ]
+      },
+      {
+        "version": "2026-09-23.2",
+        "index": 5,
+        "players": [
+          "apex",
+          "apex"
+        ],
+        "map": "TWISTED FJORDS",
+        "mapIndex": 2,
+        "seed": 3873169960,
+        "winner": null,
+        "reason": "round-cap",
+        "rounds": 1,
+        "halfTurns": 2,
+        "ms": 199,
+        "thinkingMs": [
+          100,
+          99
+        ]
+      }
+    ]
+  },
+  "workerCountParity": {
+    "games": 8,
+    "workers": [
+      1,
+      4
+    ],
+    "sameResultsAndRatings": true
+  },
+  "expandedLibrarySmoke": {
+    "completed": 238,
+    "errors": 0,
+    "boards": 119,
+    "maxRounds": 2,
+    "sourceHash": "738639953419be19c7a79765e966bcf9319df890af48cab474f3970aac7730de"
+  },
+  "searchBudgetSmoke": {
+    "fast": {
+      "games": 2,
+      "errors": 0
+    },
+    "deep": {
+      "games": 2,
+      "errors": 0
+    }
+  },
+  "correctnessSuite": {
+    "command": "node test/run-tests.js",
+    "checks": 147261,
+    "failures": 0
+  },
+  "processRecovery": {
+    "command": "node test/tournament-runner-tests.cjs",
+    "completed": 80,
+    "checks": [
+      "kill and resume",
+      "orphan game recovery",
+      "completed Elo idempotency",
+      "changed-code rejection"
+    ]
+  }
+}

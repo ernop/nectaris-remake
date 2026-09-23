@@ -10,7 +10,7 @@ var AI_TOURNAMENT = (function () {
   var VERSION="2026-09-23.2";
   function integer(v,min,max,label){if(!Number.isInteger(v)||v<min||v>max)throw new Error(label+" must be an integer from "+min+" to "+max+".");return v;}
   function normalize(input){
-    var c=Object.assign({cycles:1,seed:42,maxRounds:0,k:24,selfPlay:false,workers:2},input);
+    var c=Object.assign({cycles:1,seed:42,maxRounds:0,k:24,selfPlay:false,workers:2,work:"standard"},input);
     c.opponents=Array.from(new Set(c.opponents||[]));
     if(!c.opponents.length||c.opponents.some(function(id){return !search.modes.some(function(m){return m.id===id;});}))throw new Error("Select at least one known opponent.");
     if(c.opponents.length===1)c.selfPlay=true;
@@ -18,6 +18,7 @@ var AI_TOURNAMENT = (function () {
     c.maps.forEach(function(m){if(!m||!Array.isArray(m.grid)||!m.grid.length||!Array.isArray(m.units))throw new Error("Invalid board definition.");});
     integer(c.cycles,1,100000,"Cycles");integer(c.seed,0,4294967295,"Seed");
     integer(c.maxRounds,0,1000,"Round cap");integer(c.k,1,100,"Elo K");integer(c.workers,1,16,"Workers");
+    if(["fast","standard","deep"].indexOf(c.work)<0)throw new Error("Search work must be fast, standard or deep.");
     c.pairs=[];
     c.opponents.forEach(function(a,i){c.opponents.slice(c.selfPlay?i:i+1).forEach(function(b){c.pairs.push([a,b]);});});
     c.total=c.cycles*c.maps.length*c.pairs.length*2;
@@ -33,7 +34,16 @@ var AI_TOURNAMENT = (function () {
     var side=index%2,n=Math.floor(index/2),pair=n%c.pairs.length;
     n=Math.floor(n/c.pairs.length);var map=n%c.maps.length,cycle=Math.floor(n/c.maps.length),ids=c.pairs[pair];
     return {index:index,cycle:cycle,mapIndex:map,seed:seedFor(c.seed,cycle,map,pair),
-      players:side?[ids[1],ids[0]]:ids.slice(),map:c.maps[map],maxRounds:c.maxRounds};
+      players:side?[ids[1],ids[0]]:ids.slice(),map:c.maps[map],maxRounds:c.maxRounds,work:c.work};
+  }
+  function searchOptions(id,work){
+    if(!work||work==="standard"||id==="classic"||id==="tactical")return undefined;
+    var base=search.get(id),factor=work==="fast"?0.5:2,options={};
+    ["width","branches","iterations","horizon","verification"].forEach(function(key){
+      if(base[key])options[key]=Math.max(key==="verification"?2:4,Math.round(base[key]*factor));
+    });
+    if(base.depth)options.depth=work==="fast"?2:4;
+    return options;
   }
   function standings(ids){var out={};ids.forEach(function(id){out[id]={id:id,elo:1500,games:0,wins:0,draws:0,losses:0,union:0,xenon:0,ms:0};});return out;}
   function rate(table,result,k){
@@ -74,7 +84,7 @@ var AI_TOURNAMENT = (function () {
     var started=Date.now(),thinking=[0,0],turns=0;
     while(game.winner===null){
       var side=game.currentPlayer,t=Date.now();
-      ai.playTurn(game,side,{id:spec.players[side]});thinking[side]+=Date.now()-t;turns++;
+      ai.playTurn(game,side,{id:spec.players[side],search:searchOptions(spec.players[side],spec.work)});thinking[side]+=Date.now()-t;turns++;
       if(onProgress)onProgress({turn:game.turn,side:side,halfTurns:turns,units:game.units.length});
       if(game.winner!==null)break;
       // A laboratory cutoff is a draw, distinct from the actual map's Xenon
@@ -84,7 +94,7 @@ var AI_TOURNAMENT = (function () {
       if(turns>2*game.turnLimit+2)throw new Error("Tournament game exceeded the engine turn budget.");
     }
     return {version:VERSION,index:spec.index,players:spec.players,map:spec.map.name,mapIndex:spec.mapIndex,
-      seed:spec.seed,winner:game.winner,reason:game.winner===null?"round-cap":game.winReason,
+      seed:spec.seed,work:spec.work||"standard",winner:game.winner,reason:game.winner===null?"round-cap":game.winReason,
       rounds:Math.min(game.turn,game.turnLimit),halfTurns:turns,ms:Date.now()-started,thinkingMs:thinking,
       initial:initial,commands:commands,final:game.snapshot()};
   }
