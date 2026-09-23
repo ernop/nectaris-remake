@@ -79,12 +79,12 @@ select, input[type="url"] {
 .section-note { color: var(--ui-secondary); font-size: 13px; line-height: 1.5; }
 .level-group .section-note { margin: 5px 0 0; }
 .group-progress { flex-shrink: 0; color: var(--ui-secondary); font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; }
-.level-library { --level-tracks: 3.5ch minmax(max-content, 1fr) 7ch repeat(3, 7ch) minmax(max-content, 16ch) 36px;
+.level-library { --level-tracks: 3.5ch minmax(max-content, 1fr) 6ch repeat(3, 6ch) minmax(max-content, 12ch) 32px;
   display: grid; grid-template-columns: var(--level-tracks);
-  gap: 3px 10px; overflow-x: auto; font-size: 12px; scrollbar-width: thin; scrollbar-color: #8b7850 #211d16; }
+  gap: 3px 6px; overflow-x: auto; font-size: 12px; scrollbar-width: thin; scrollbar-color: #8b7850 #211d16; }
 .level-columns, .level-card { display: grid; grid-template-columns: subgrid; grid-column: span 8; white-space: nowrap; }
 .level-columns { align-items: center; padding: 6px 0; border: 1px solid transparent; color: var(--ui-secondary); }
-.level-columns-second { display: none; }
+.level-columns-2, .level-columns-3 { display: none; }
 .level-card { align-items: stretch; padding: 0; background: #211d16;
   border: 1px solid #685b40; border-radius: 4px; }
 .level-card.cleared { border-color: #d4af43; }
@@ -129,9 +129,13 @@ select, input[type="url"] {
 #custom-level-tools a { color: var(--ui-secondary); }
 .menu-footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #393326; color: var(--ui-secondary); font-size: 12px; line-height: 1.7; }
 .menu-footer a { color: var(--ui-secondary); }
-@media (min-width: 1400px) {
+@media (min-width: 920px) {
   .level-library { grid-template-columns: var(--level-tracks) var(--level-tracks); }
-  .level-columns-second { display: grid; }
+  .level-columns-2 { display: grid; }
+}
+@media (min-width: 1360px) {
+  .level-library { grid-template-columns: var(--level-tracks) var(--level-tracks) var(--level-tracks); }
+  .level-columns-3 { display: grid; }
 }
 @media (max-width: 620px) {
   #menu-screen { padding: 24px 16px 40px; }

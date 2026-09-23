@@ -277,7 +277,9 @@ Column headings can supply the faction labels without repeating them in every en
 Each individual listing in a comparison list must occupy one text line. Never
 stack a name, metadata, numbers or result on multiple lines inside that entry;
 stacking breaks comparability even when every card has the same height. Multiple
-complete listings may sit side by side in columns when there is room. This is
+complete listings may sit side by side in columns when there is room. The latest
+user preference is **three levels across per row** on wide screens, with two or
+one on narrower screens. This supersedes the two-column desktop maximum; it is
 not a requirement for only one listing across the entire page.
 
 Keep corresponding fields aligned down each column. In the mission library,

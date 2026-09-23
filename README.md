@@ -94,8 +94,8 @@ The mission library uses the same layout for campaigns, expansion packs and
 custom levels. Collection links jump between groups; each header shows your
 progress. Each dense entry keeps its number/name, dimensions, Union/Xenon/
 Neutral totals and any result on one line. Totals align vertically beneath their
-column headings. Wide screens show entries side by side; narrow lists scroll
-horizontally instead of wrapping. **Click the entry to play**; the separate `?`
+column headings. Wide screens show three levels per row, reducing to two or one
+on narrower screens. Lists scroll horizontally when needed instead of wrapping. **Click the entry to play**; the separate `?`
 opens details. Returning to the library keeps your scroll position.
 
 Hover or focus the small **?** beside a level or collection for its briefing,

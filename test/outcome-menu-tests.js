@@ -74,9 +74,10 @@ module.exports = function (ok) {
   ok(get("level-groups").children.length===6 && get("level-groups-nav").children.length===6,
     "one shared collection structure covers campaigns, packs and custom levels with jump navigation");
   ["mission-list","advanced-mission-list","ai-made-list","expansion-list","basenec-list","custom-list"].forEach(function(id){
-    var card=cards(id)[0], columns=find(get(id),"level-columns");
-    ok(columns && columns.children.slice(3,6).map(function(c){return c.textContent;}).join("/") === "Union/Xenon/Neutral",
-      id+": column headings identify the three aligned numeric totals");
+    var card=cards(id)[0], columns=all(get(id),"level-columns");
+    ok(columns.length===3 && columns.every(function(header){
+      return header.children.slice(3,6).map(function(c){return c.textContent;}).join("/") === "Union/Xenon/Neutral";
+    }), id+": all three listing columns identify their aligned numeric totals");
     ok(card.tagName==="article" && find(card,"level-card-heading") && find(card,"level-card-meta") &&
       find(card,"level-card-forces") && find(card,"mission-record") && find(card,"level-play") && find(card,"level-help"),
       id+": shared entry contains name, size, army totals, result, a large Play target and separate help");

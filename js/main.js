@@ -378,9 +378,9 @@
   function renderLevelCards(host, group) {
     var L = CARD_LABELS[lang()];
     if (group.levels.length) {
-      [false, true].forEach(function (second) {
+      [1, 2, 3].forEach(function (column) {
         var columns = menuText("div", "level-columns", "");
-        if (second) columns.classList.add("level-columns-second");
+        columns.classList.add("level-columns-" + column);
         columns.appendChild(menuText("span", "level-number", "#"));
         columns.appendChild(menuText("span", "", L.mission));
         columns.appendChild(menuText("span", "level-card-meta", L.size));

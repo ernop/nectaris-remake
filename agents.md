@@ -170,7 +170,8 @@ Facts we need across sessions:
   All campaigns, packs and custom maps share dense, internally single-line entries:
   name, number, size, normal-size Union/Xenon/Neutral totals in that order, and any
   result. Align the numeric totals vertically in shared right-aligned columns.
-  Multiple complete entries may sit side by side; never stack or wrap fields
+  Aim for three complete entries across per row on wide screens (two or one
+  on narrower screens); never stack or wrap fields
   inside one listing. Scroll horizontally when needed, without truncating text. The main
   entry is a large click-to-play target; omit turn limits and the tiny Play button.
   Details open only from small edge `?` controls (intentional hover, focus or
