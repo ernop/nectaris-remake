@@ -488,6 +488,44 @@ Later moves may be undone only back to that postbattle state, never across the
 battle. Turn changes and match completion also clear history. Undo is disabled
 during combat/AI processing. There is no redo or way to reroll a battle.
 
+## Mission library and deliberate help controls (2026-09-23)
+
+The user rejected aggressive, whole-card mouseovers and requested a consistent
+structure across every campaign and level group, with extra detail behind a
+subtle edge `?` control. This supersedes the earlier AI-made-only hover layout.
+
+The implemented content layout is:
+
+| Location | Visible content |
+| --- | --- |
+| Collection header | Category, title, one-line introduction, number of levels won and a small help button |
+| Every level card | Number, name, map dimensions, turn limit, initial Union/Xenon squad totals, personal result and explicit Play button |
+| Level help | Briefing, design/special notes, tags, author/terrain attribution, source link and last-match detail, where supplied |
+| Collection help | Making-of context, provenance and links to the detailed collection record |
+
+These visible fields are the implementation's compact starting point, rather
+than an explicit user selection from the proposed content alternatives. Normal,
+advanced, AI-made, Lunar Frontiers, Base Nectaris and custom levels all use the
+same group/card renderer. Preserve campaign numbering and saved result keys.
+Count solo victories once per level for group progress; keep legacy campaign
+clearance and separate hotseat result records. Initial armies still include
+owned reserves and exclude neutral inventories.
+
+Cards themselves never open mouseovers or launch a match. Play is the launch
+action. Hovering the small help button deliberately opens its panel after a
+short delay; keyboard focus opens it immediately. Click/tap pins it, and a
+second click, outside click or Escape dismisses it. Keep the panel reachable
+while moving to its text or links, constrain it to the viewport, and close it
+when scrolling or resizing. Only one panel may be open. It must not change the
+card's height or show missing metadata as `undefined`.
+
+Use responsive columns and collection jump links. Keep profile selection,
+Continue, history, hotseat, briefing language and custom imports accessible.
+Remember the menu's scroll position when starting a match and restore it after
+rebuilding the list on return. Language/profile changes must preserve entered
+import URLs and handlers. Custom text is plain text; source links use safe web
+URLs (or local files when running the app from disk).
+
 ## Heavier tanks (2026-09-05)
 
 The six tracked tank sprites now use deeper hulls, tread shoes, engine grilles,

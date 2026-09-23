@@ -31,6 +31,7 @@ retuned. These themes do not authorize extra features or unsourced rule changes.
 | Item | Status and record |
 | --- | --- |
 | Remake stock unit roster | Implemented: 23 types, two native 32×32 facings. Map icons scale with zoom; panel/review icons remain native. [Unit record](art/units/README.md). |
+| Mission library | Implemented shared layout for all collections. Whole-card hovers are superseded by small edge help controls; the compact content selection is recorded as an implementation choice. [Content and interactions](PRODUCT.md#mission-library-and-deliberate-help-controls-2026-09-23). |
 | Legacy terrain and borders | Implemented: flattened geometry, connected relief, continuous mountain runs and a rounded board frame. The user requested better borders; the frame shape was an implementation choice, not an explicitly selected user preference. [Border requirements](PRODUCT.md#connected-terrain-and-board-borders-2026-09-23). |
 | Remake production terrain/buildings and flattened geometry | Planned, still pending. The art review fixture is not production completion. Classic/neon retain their existing vector rendering and projection. [Art status](ART_DIRECTION.md#implementation-status-and-remaining-checks). |
 | Fifteen numerical ground-unit concepts | Experimental proposals, not additions to the playable roster. Numerical coverage is not evidence of balance; artwork is a separate review pack. [Study, assumptions and playtesting needs](tools/design-space/README.md). |

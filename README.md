@@ -90,6 +90,17 @@ profile. Storage problems display an error instead of claiming progress is saved
 
 ## Controls
 
+The mission library uses the same layout for campaigns, expansion packs and
+custom levels. Collection links jump between groups; each header shows your
+progress. Cards show the level's number/name, dimensions, turn budget, army
+totals and your result. **Play** starts a match. Returning to the library keeps
+your scroll position.
+
+Hover or focus the small **?** beside a level or collection for its briefing,
+design notes, credits and sources. Click/tap **?** to keep it open; click again,
+click outside or press Escape to close it. Moving across a card does not open
+anything. Panels close when the page scrolls or resizes.
+
 - **Details** toggles the left inspector, initially closed; your choice is
   remembered. Unit details, factory information and combat forecasts remain
   available there. The top bar always stays on one line; settings scroll sideways

@@ -92,13 +92,11 @@
 
   function appendLevelRecord(host, map, options) {
     var record = PROFILES.levelRecord(activeProfile, map, options);
-    if (!record.latest) return;
     var status = document.createElement("div");
     status.className = "mission-record";
-    status.textContent = record.wins + "W / " + record.losses + "L" +
-      (record.hotseat ? " · " + record.hotseat + " hotseat" : "") +
-      " · Last: " + PROFILES.outcomeLabel(record.latest);
-    status.title = PROFILES.reasonLabel(record.latest.reason);
+    status.textContent = record.latest ? PROFILES.outcomeLabel(record.latest) + " · " +
+      record.wins + "W / " + record.losses + "L" + (record.hotseat ? " · " + record.hotseat + " hotseat" : "") :
+      (levelWasWon(map, options) ? "Cleared" : "Not played");
     host.appendChild(status);
   }
 
@@ -116,6 +114,7 @@
 
   var currentUI = null;
   var currentOptions = {};
+  var menuScrollTop = 0;
 
   function startGame(mapDef, opts, saved) {
     opts = opts || {};
@@ -137,6 +136,7 @@
     if (currentUI) currentUI.destroy();
     currentUI = null;
     currentOptions = opts;
+    if (!$("menu-screen").classList.contains("hidden")) menuScrollTop = window.scrollY || 0;
     $("menu-screen").classList.add("hidden");
     $("game-screen").classList.remove("hidden");
     $("gameover-panel").classList.add("hidden");
@@ -187,6 +187,7 @@
     $("game-screen").classList.add("hidden");
     $("menu-screen").classList.remove("hidden");
     buildMenu();
+    window.scrollTo(0, menuScrollTop);
     if (!activeProfile && !$("profile-dialog").open) openProfileForm();
   }
 
@@ -205,11 +206,15 @@
 
   var CARD_LABELS = {
     en: {
-      special: "Special: ", source: "Terrain source", turns: " turns",
+      source: "Level source ↗", collectionSource: "Collection notes ↗", turns: " turns", play: "Play",
+      briefing: "Briefing", design: "Design notes", author: "Made by", sourceFile: "Terrain file",
+      lastMatch: "Last match", collection: "About this collection", noNotes: "No briefing supplied by the author.",
       union: "UNION", xenon: "XENON",
     },
     ja: {
-      special: "特徴: ", source: "地形の出典", turns: "ターン",
+      source: "出典 ↗", collectionSource: "コレクションの詳細 ↗", turns: "ターン", play: "開始",
+      briefing: "作戦概要", design: "設計の特徴", author: "作者", sourceFile: "地形ファイル",
+      lastMatch: "前回の結果", collection: "このコレクションについて", noNotes: "作戦概要はありません。",
       union: "連合軍", xenon: "ガイチ軍",
     },
   };
@@ -235,107 +240,214 @@
       labels.xenon + "</span><strong>" + counts[1] + "</strong></span>";
   }
 
-  function renderLevelCards(host, levels, onPick, pack) {
+  var menuHelpTimer = null, activeMenuHelp = null;
+  function clearMenuHelpTimer() {
+    if (menuHelpTimer !== null) clearTimeout(menuHelpTimer);
+    menuHelpTimer = null;
+  }
+  function closeMenuHelp() {
+    clearMenuHelpTimer();
+    if (!activeMenuHelp) return;
+    activeMenuHelp.panel.classList.add("hidden");
+    activeMenuHelp.button.setAttribute("aria-expanded", "false");
+    activeMenuHelp.pinned = false;
+    activeMenuHelp = null;
+  }
+  function menuText(tag, className, value) {
+    var node = document.createElement(tag);
+    node.className = className || "";
+    node.textContent = value;
+    return node;
+  }
+  function addHelpText(panel, label, value) {
+    if (!value) return;
+    panel.appendChild(menuText("h4", "", label));
+    panel.appendChild(menuText("p", "", value));
+  }
+  function addHelpSource(panel, source, label) {
+    if (!source) return;
+    try {
+      var url = new URL(source, document.baseURI);
+      if (url.protocol !== "https:" && url.protocol !== "http:" &&
+          !(url.protocol === "file:" && location.protocol === "file:")) return;
+    } catch (error) { return; }
+    var link = menuText("a", "level-source", label);
+    link.href = source; link.target = "_blank"; link.rel = "noopener";
+    panel.appendChild(link);
+  }
+  function createMenuHelp(id, name, fill) {
+    var wrap = document.createElement("div");
+    wrap.className = "level-help-wrap";
+    var button = menuText("button", "level-help", "?");
+    button.type = "button";
+    button.setAttribute("aria-label", "About " + name);
+    button.setAttribute("aria-expanded", "false");
+    button.setAttribute("aria-controls", id);
+    var panel = document.createElement("div");
+    panel.id = id; panel.className = "level-briefing hidden";
+    panel.setAttribute("role", "region");
+    panel.setAttribute("aria-label", name + " details");
+    panel.appendChild(menuText("h3", "briefing-title", name));
+    fill(panel);
+    wrap.appendChild(button); wrap.appendChild(panel);
+    var state = {wrap:wrap, button:button, panel:panel, pinned:false};
+    function show() {
+      if (activeMenuHelp !== state) closeMenuHelp();
+      else clearMenuHelpTimer();
+      activeMenuHelp = state;
+      panel.classList.remove("hidden");
+      button.setAttribute("aria-expanded", "true");
+      var rect = button.getBoundingClientRect();
+      panel.style.left = Math.max(12, Math.min(rect.right - panel.offsetWidth,
+        window.innerWidth - panel.offsetWidth - 12)) + "px";
+      var top = rect.bottom + 6;
+      if (top + panel.offsetHeight > window.innerHeight - 12) top = rect.top - panel.offsetHeight - 6;
+      panel.style.top = Math.max(12, top) + "px";
+    }
+    // Only the small help button opens details; the card never owns a hover.
+    button.onmouseenter = function () {
+      clearMenuHelpTimer(); menuHelpTimer = setTimeout(show, 180);
+    };
+    button.onfocus = show;
+    button.onclick = function () {
+      if (activeMenuHelp === state && state.pinned) closeMenuHelp();
+      else { show(); state.pinned = true; }
+    };
+    wrap.onmouseenter = clearMenuHelpTimer;
+    wrap.onmouseleave = function () {
+      clearMenuHelpTimer();
+      if (state.pinned || wrap.contains(document.activeElement)) return;
+      menuHelpTimer = setTimeout(function () {
+        if (activeMenuHelp === state) closeMenuHelp();
+      }, 140);
+    };
+    wrap.addEventListener("focusout", function (event) {
+      if (!wrap.contains(event.relatedTarget) && activeMenuHelp === state) closeMenuHelp();
+    });
+    return wrap;
+  }
+  function levelOptions(group, index) {
+    var options = {};
+    if (group.pack) options[group.pack] = index + (group.offset || 0);
+    return options;
+  }
+  function levelWasWon(level, options) {
+    return PROFILES.levelRecord(activeProfile, level, options).wins > 0 ||
+      !!(activeProfile && options.campaignIndex !== undefined &&
+        activeProfile.cleared.indexOf(options.campaignIndex) >= 0);
+  }
+  function levelGroups() {
+    return [
+      {id:"ai-made", list:"ai-made-list", title:"AI-made", kind:"Original scenarios",
+        intro:"Branching fjords, narrow passes and new routes to explore.",
+        levels:AI_MADE_LEVELS, pack:"aiMadeIndex",
+        notes:"Original battlefields made to the project owner's specifications. Each part keeps its own layout, starting forces and factory inventories. Later maps explore different route structures rather than replacing earlier levels.",
+        source:"PRODUCT.md#ai-made-fjord-levels-2026-09-22"},
+      {id:"normal", list:"mission-list", title:"Normal campaign", kind:"Original campaign",
+        intro:"Sixteen original battles from the PC Engine campaign.",
+        levels:CAMPAIGN, pack:"campaignIndex",
+        notes:"Original normal-campaign layouts, deployments and factory inventories, extracted from Hudson's official 1997 Windows remake. English unit names follow the TurboGrafx-16 release. The imported battlefields are preserved without retuning.",
+        source:"LEVEL_SOURCES.md#included-campaign-official-hudson-normal-campaign"},
+      {id:"advanced", list:"advanced-mission-list", title:"Advanced campaign", kind:"Original campaign",
+        intro:"Return to the original battlefields with advanced deployments and reserves.",
+        levels:ADVANCED_CAMPAIGN, pack:"campaignIndex", offset:CAMPAIGN.length,
+        notes:"Missions 17–32 preserve the official advanced deployments and factory inventories. They remain separate from the normal campaign and keep their original campaign numbering.",
+        source:"LEVEL_SOURCES.md#included-advanced-campaign-2026-09-20"},
+      {id:"expansion", list:"expansion-list", title:"Lunar Frontiers", kind:"Original expansion",
+        intro:"Twelve original scenarios, each built around a different tactical idea.",
+        levels:EXPANSION_LEVELS, pack:"expansionIndex",
+        notes:"Original maps by Nectaris Remake contributors. Each level's notes explain its design focus and link to the source data; these layouts do not reproduce the original campaign or community archive maps.",
+        source:"LEVEL_SOURCES.md#included-online-expansion-lunar-frontiers"},
+      {id:"basenec", list:"basenec-list", title:lang() === "ja" ? "ベース・ネクタリス地形" : "Base Nectaris", kind:"Terrain pack",
+        intro:"Community terrain, with new forces and briefings for this remake.",
+        levels:BASE_NECTARIS_LEVELS, pack:"baseNecIndex",
+        notes:"Terrain by Crescent (BASE NECTARIS), from the unit-free Windows map files whose download page permits placing units and reposting the result. Rosters, deployments and briefings are this project's. Other archive scenarios and commentary are not part of this import.",
+        source:"LEVEL_SOURCES.md#included-pack-base-nectaris-terrain-added-2026-09-01"},
+      {id:"custom", list:"custom-list", title:"Custom levels", kind:"Your collection",
+        intro:"Battlefields you create or import, saved in this browser.", levels:getCustomLevels(),
+        notes:"Create a map in the editor, import a JSON file, or install a level from a URL. Custom maps can include their own units and rules data. Briefings and attribution appear here when provided by their author.",
+        source:"LEVEL_SOURCES.md#installing-levels-from-the-web"}
+    ];
+  }
+  function renderLevelCards(host, group) {
     var L = CARD_LABELS[lang()];
-    host.innerHTML = "";
-    levels.forEach(function (lv, i) {
+    group.levels.forEach(function (lv, i) {
+      var options = levelOptions(group, i), name = tr(lv, "name");
       var card = document.createElement("article");
-      card.className = "level-card";
-      var heading = document.createElement("div");
-      heading.className = "level-card-heading";
-      heading.textContent = String(i + 1).padStart(2, "0") + " · " + tr(lv, "name");
-      var meta = document.createElement("div");
-      meta.className = "level-card-meta";
-      meta.textContent = lv.grid[0].length + "×" + lv.grid.length + " · " +
-        lv.turnLimit + L.turns;
-      var forces = document.createElement("div");
-      forces.className = "level-card-forces";
-      forces.innerHTML = forceCountHtml(lv, L, "level-force");
-      var description = document.createElement("p");
-      description.textContent = tr(lv, "description");
-      var special = document.createElement("p");
-      special.className = "level-special";
-      special.textContent = L.special + tr(lv, "special");
-      var footer = document.createElement("div");
-      footer.className = "level-card-footer";
-      var tags = document.createElement("span");
-      tags.textContent = (tr(lv, "tags") || []).join(" · ");
-      var source = document.createElement("a");
-      source.href = lv.source;
-      source.target = "_blank";
-      source.rel = "noopener";
-      source.textContent = L.source;
-      source.onclick = function (event) { event.stopPropagation(); };
-      footer.appendChild(tags);
-      footer.appendChild(source);
+      card.className = "level-card" + (levelWasWon(lv, options) ? " cleared" : "");
+      var heading = document.createElement("div"); heading.className = "level-card-top";
+      var title = menuText("h3", "level-card-heading", name);
+      title.id = group.id + "-level-" + i;
+      card.setAttribute("aria-labelledby", title.id);
+      heading.appendChild(menuText("span", "level-number", String(i + 1 + (group.offset || 0)).padStart(2, "0")));
+      heading.appendChild(title);
+      heading.appendChild(createMenuHelp(title.id + "-details", name, function (panel) {
+        addHelpText(panel, L.briefing, tr(lv, "description") || tr(lv, "blurb"));
+        addHelpText(panel, L.design, tr(lv, "special"));
+        var tags = tr(lv, "tags");
+        if (tags && tags.length) panel.appendChild(menuText("p", "level-tags", tags.join(" · ")));
+        addHelpText(panel, L.author, tr(lv, "author"));
+        if (lv.sourceFile) addHelpText(panel, L.sourceFile, lv.sourceFile);
+        var record = PROFILES.levelRecord(activeProfile, lv, options);
+        if (record.latest) addHelpText(panel, L.lastMatch, PROFILES.outcomeLabel(record.latest) +
+          " · " + PROFILES.reasonLabel(record.latest.reason) + " · Turn " + record.latest.turn);
+        if (!tr(lv, "description") && !tr(lv, "blurb") && !tr(lv, "special"))
+          panel.appendChild(menuText("p", "", L.noNotes));
+        addHelpSource(panel, lv.source || group.source, lv.source ? L.source : L.collectionSource);
+      }));
       card.appendChild(heading);
-      card.appendChild(meta);
-      card.appendChild(forces);
-      card.appendChild(description);
-      card.appendChild(special);
-      card.appendChild(footer);
-      var recordOptions = {}; recordOptions[pack] = i;
-      appendLevelRecord(card, lv, recordOptions);
-      card.onclick = function () { onPick(lv, i); };
-      host.appendChild(card);
+      card.appendChild(menuText("div", "level-card-meta", lv.grid[0].length + " × " + lv.grid.length +
+        " hexes · " + (lv.turnLimit || 50) + L.turns));
+      var forces = document.createElement("div"); forces.className = "level-card-forces";
+      forces.innerHTML = forceCountHtml(lv, L, "level-force"); card.appendChild(forces);
+      var footer = document.createElement("div"); footer.className = "level-card-actions";
+      appendLevelRecord(footer, lv, options);
+      var play = menuText("button", "level-play", L.play);
+      play.type = "button"; play.setAttribute("aria-label", L.play + " " + name);
+      play.onclick = function () {
+        closeMenuHelp(); options.hotseat = $("chk-hotseat").checked; startGame(lv, options);
+      };
+      footer.appendChild(play); card.appendChild(footer); host.appendChild(card);
     });
   }
-
   function buildMenu() {
+    closeMenuHelp();
     var sel = $("lang-select");
     sel.value = lang();
-    sel.onchange = function () {
-      localStorage.setItem(LANG_KEY, sel.value);
-      buildMenu();
-    };
+    sel.onchange = function () { localStorage.setItem(LANG_KEY, sel.value); buildMenu(); };
     try { renderProfile(); } catch (error) { reportSaveError(error); }
-    var cleared = activeProfile ? activeProfile.cleared : [];
-    var labels = CARD_LABELS[lang()];
-    var list = $("mission-list");
-    list.innerHTML = "";
-    var advancedList = $("advanced-mission-list");
-    advancedList.innerHTML = "";
-    ORIGINAL_CAMPAIGN.forEach(function (m, i) {
-      var div = document.createElement("div");
-      div.className = "mission" + (cleared.indexOf(i) >= 0 ? " cleared" : "");
-      div.innerHTML = "<span class='mnum'>" + String(i + 1).padStart(2, "0") + "</span>" +
-        "<span class='mname'>" + m.name + "</span>" +
-        "<span class='mission-forces'>" +
-        forceCountHtml(m, labels, "mission-force") + "</span>" +
-        (cleared.indexOf(i) >= 0 ? "<span class='mstar'>★</span>" : "");
-      div.title = m.blurb || "";
-      div.onclick = function () {
-        startGame(m, { campaignIndex: i, hotseat: $("chk-hotseat").checked });
-      };
-      appendLevelRecord(div, m, {campaignIndex: i});
-      (i < CAMPAIGN.length ? list : advancedList).appendChild(div);
+    // Detach import controls before replacing their collection, preserving events and entered URLs.
+    var customTools = $("custom-level-tools");
+    customTools.remove();
+    var host = $("level-groups"), nav = $("level-groups-nav");
+    host.replaceChildren(); nav.replaceChildren();
+    levelGroups().forEach(function (group) {
+      var section = document.createElement("section");
+      section.className = "level-group"; section.id = group.id + "-section";
+      section.setAttribute("aria-labelledby", group.id + "-heading");
+      var heading = document.createElement("header"); heading.className = "level-group-header";
+      var intro = document.createElement("div"); intro.className = "level-group-intro";
+      intro.appendChild(menuText("p", "level-group-kind", group.kind));
+      var title = menuText("h2", "", group.title); title.id = group.id + "-heading";
+      intro.appendChild(title); intro.appendChild(menuText("p", "section-note", group.intro));
+      heading.appendChild(intro);
+      var won = group.levels.filter(function (lv,i) { return levelWasWon(lv, levelOptions(group,i)); }).length;
+      heading.appendChild(menuText("span", "group-progress", group.levels.length ? won + " / " + group.levels.length + " won" : "No levels yet"));
+      heading.appendChild(createMenuHelp(group.id + "-details", group.title, function (panel) {
+        addHelpText(panel, CARD_LABELS[lang()].collection, group.notes);
+        addHelpSource(panel, group.source, CARD_LABELS[lang()].collectionSource);
+      }));
+      section.appendChild(heading);
+      var list = document.createElement("div"); list.id = group.list; list.className = "level-library";
+      renderLevelCards(list, group); section.appendChild(list);
+      if (!group.levels.length) list.appendChild(menuText("p", "empty-levels", "No levels yet. Create a battlefield or import one below."));
+      if (group.id === "custom") section.appendChild(customTools);
+      host.appendChild(section);
+      var jump = menuText("a", "", group.title);
+      jump.href = "#" + section.id;
+      jump.appendChild(menuText("span", "", String(group.levels.length)));
+      nav.appendChild(jump);
     });
-
-    renderLevelCards($("expansion-list"), EXPANSION_LEVELS, function (lv, i) {
-      startGame(lv, { expansionIndex: i, hotseat: $("chk-hotseat").checked });
-    }, "expansionIndex");
-    renderLevelCards($("basenec-list"), BASE_NECTARIS_LEVELS, function (lv, i) {
-      startGame(lv, { baseNecIndex: i, hotseat: $("chk-hotseat").checked });
-    }, "baseNecIndex");
-    renderLevelCards($("ai-made-list"), AI_MADE_LEVELS, function (lv, i) {
-      startGame(lv, { aiMadeIndex: i, hotseat: $("chk-hotseat").checked });
-    }, "aiMadeIndex");
-
-    var clist = $("custom-list");
-    clist.innerHTML = "";
-    var customs = getCustomLevels();
-    customs.forEach(function (lv) {
-      var div = document.createElement("div");
-      div.className = "mission";
-      div.innerHTML = "<span class='mname'>" + lv.name + "</span>" +
-        "<span class='mission-forces'>" +
-        forceCountHtml(lv, labels, "mission-force") + "</span>" +
-        "<span class='mstar'>✎</span>";
-      div.onclick = function () { startGame(lv, { hotseat: $("chk-hotseat").checked }); };
-      appendLevelRecord(div, lv, {});
-      clist.appendChild(div);
-    });
-    if (!customs.length) clist.innerHTML = "<em>None yet — build one in the editor, or import JSON below.</em>";
   }
 
   function importLevelFile(file) {
@@ -397,6 +509,17 @@
   }
 
   window.addEventListener("DOMContentLoaded", function () {
+    window.addEventListener("scroll", closeMenuHelp);
+    window.addEventListener("resize", closeMenuHelp);
+    document.addEventListener("pointerdown", function (event) {
+      if (activeMenuHelp && !activeMenuHelp.wrap.contains(event.target)) closeMenuHelp();
+    });
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && activeMenuHelp) {
+        activeMenuHelp.button.focus();
+        closeMenuHelp(); event.stopPropagation();
+      }
+    });
     try { profiles = new PROFILES.Store(localStorage); activeProfile = profiles.active(); }
     catch (error) { reportSaveError(error); }
     $("profile-form").onsubmit = function (event) {

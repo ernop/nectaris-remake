@@ -150,3 +150,11 @@ Facts we need across sessions:
   `COMBAT.forecast` uses 100,000 independent simulation seeds and must never
   read or advance the match RNG. `js/combat-view.js` renders the joint casualty
   heatmap. See `PRODUCT.md`, `test/combat-ui-tests.js`, and `test/forecast-tests.js`.
+
+- **Level menu (2026-09-23):** restore its scroll position after leaving a level.
+  All campaigns, packs and custom maps share one collection/card layout: name,
+  number, size, turn budget, force totals, result and an explicit Play button.
+  Details open only from small edge `?` controls (intentional hover, focus or
+  click/tap), never whole-card mouseovers. Keep briefings, making-of notes and
+  provenance there; preserve numbering, result keys and import controls.
+  See `PRODUCT.md` for the full content and dismissal behavior.

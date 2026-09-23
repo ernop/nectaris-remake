@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nectaris — hex tactics remake</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='24,16 20,23 12,23 8,16 12,9 20,9' fill='%23ffd94a'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/nectaris.css?v=20260922-combined">
+<link rel="stylesheet" href="css/nectaris.css?v=20260923-library">
 </head>
 <body>
 <div id="save-error" class="hidden" role="alert"></div>
@@ -27,21 +27,24 @@
 <!-- ============ Mission menu ============ -->
 <div id="menu-screen">
   <header class="menu-header">
-    <h1>NECTARIS</h1>
-    <p class="subtitle">A JavaScript remake of the classic lunar hex-tactics game.
-    Original code, selectable art; command your forces with ZOC, support &amp; surround fire,
-    experience, terrain, factories, transports.</p>
+    <p class="menu-brand">NECTARIS <span>LUNAR TACTICS</span></p>
+    <h1>Mission library</h1>
+    <p class="subtitle">Choose a battlefield. Every campaign is open from the start.</p>
   </header>
 
   <section class="profile-panel" aria-labelledby="profile-heading">
+    <div class="profile-summary">
+    <div>
     <p class="profile-eyebrow">PLAYER PROFILE</p>
     <h2 id="profile-heading">Choose your player profile</h2>
+    <p id="profile-record"></p>
+    </div>
     <div class="profile-actions">
       <label for="profile-select">Switch profile</label>
       <select id="profile-select"></select>
       <button id="profile-new">New profile</button>
     </div>
-    <p id="profile-record"></p>
+    </div>
     <p class="section-note">Saved automatically in this browser. Use the same address when you return.</p>
     <div id="continue-match" class="hidden">
       <div><strong>Unfinished match</strong><p id="continue-detail"></p></div>
@@ -55,38 +58,20 @@
     </details>
   </section>
 
-  <section class="menu-section" id="ai-made-section">
-    <h2>AI-made</h2>
-    <p class="section-note">Original battlefields made to your specifications.</p>
-    <div id="ai-made-list" class="level-library"></div>
-  </section>
+  <div class="library-toolbar">
+    <label><input type="checkbox" id="chk-hotseat"> Two players (hotseat)</label>
+    <label>Briefing language / 表示言語
+      <select id="lang-select">
+        <option value="en">English</option>
+        <option value="ja">日本語</option>
+      </select>
+    </label>
+    <span>Briefings &amp; making-of notes: <span class="help-key">?</span></span>
+  </div>
+  <nav id="level-groups-nav" aria-label="Level collections"></nav>
+  <div id="level-groups"></div>
 
-  <section class="menu-section">
-    <h2>Campaign · Normal</h2>
-    <div id="mission-list" class="mission-grid"></div>
-  </section>
-
-  <section class="menu-section">
-    <h2>Campaign · Advanced</h2>
-    <p class="section-note">Missions 17–32: the original battlefields with their advanced deployments and reserves.</p>
-    <div id="advanced-mission-list" class="mission-grid"></div>
-  </section>
-
-  <section class="menu-section">
-    <h2>Online expansion · Lunar Frontiers</h2>
-    <p class="section-note">Twelve original web-edition scenarios. Every card names its design focus and links to its source data.</p>
-    <div id="expansion-list" class="level-library"></div>
-  </section>
-
-  <section class="menu-section">
-    <h2 id="basenec-heading">Terrain pack · Base Nectaris</h2>
-    <p class="section-note" id="basenec-note">Twelve scenarios laid out on the unit-free terrain files published by BASE NECTARIS for the Windows edition, whose download page permits placing units on them and reposting the result. Terrain by Crescent; rosters, deployments and briefings are this project's.</p>
-    <div id="basenec-list" class="level-library"></div>
-  </section>
-
-  <section class="menu-section">
-    <h2>Custom levels</h2>
-    <div id="custom-list" class="mission-grid"></div>
+  <div id="custom-level-tools">
     <div class="menu-controls">
       <label class="filebtn">Import level JSON<input type="file" id="file-import" accept=".json"></label>
       <a class="btn-like" href="editor.html">Open level editor</a>
@@ -97,18 +82,7 @@
       <span id="online-import-status" role="status"></span>
     </div>
     <p class="section-note">Raw GitHub and Gist URLs work. See <a href="LEVEL_SOURCES.md">level sources and archive notes</a>.</p>
-  </section>
-
-  <section class="menu-section menu-options">
-    <label><input type="checkbox" id="chk-hotseat"> Two players (hotseat)</label>
-    <label>Briefing language / 表示言語
-      <select id="lang-select">
-        <option value="en">English</option>
-        <option value="ja">日本語</option>
-      </select>
-    </label>
-    <span>All campaign maps are available from the start.</span>
-  </section>
+  </div>
 
   <footer class="menu-footer">
     Controls: click a unit to move · Attack aims from its current hex · after moving, attack or End; no shot ends automatically · Undo last in the top bar reverses moves since the last battle or turn boundary · Details toggles the inspector · right-click or Esc clears selection · wheel zooms · left-drag pans at any zoom · E ends the side's turn.
@@ -223,6 +197,6 @@
 <script src="js/combat-view.js?v=20260922-unit-actions-2"></script>
 <script src="js/ui.js?v=20260922-combined"></script>
 <script src="js/profiles.js?v=20260922-fjords"></script>
-<script src="js/main.js?v=20260922-fjords"></script>
+<script src="js/main.js?v=20260923-library"></script>
 </body>
 </html>
