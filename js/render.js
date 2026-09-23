@@ -1292,6 +1292,18 @@ var RENDER = (function () {
         for(var col=bounds.minCol;col<=bounds.maxCol;col++)this.drawTerrainHex(col,row);
       this.drawRoadNetwork(bounds);
       if(this._activeTerrainRaster)this._activeTerrainRaster.paint(this.ctx);
+      if(legacyMap())LEGACY_TILES.drawBoardBorder(this.ctx,{
+        columns:g.width,rows:g.height,scale:this.zoom,
+        left:this.originX-24*this.zoom,top:this.originY-16*this.zoom,
+        screenWidth:this.canvas.width,screenHeight:this.canvas.height
+      },function(c,r){
+        // Padding is scenery, never a reflected building or a false road exit.
+        var id=g.terrainAt(c,r).id;
+        if(id==="base"||id==="factory"||id==="road")id="plain";
+        else if(id==="bridge")id="valley";
+        var neighbors=HEX.neighbors(c,r).map(function(n){return g.inBounds(n.col,n.row)?g.terrainAt(n.col,n.row).id:null;});
+        return LEGACY_TILES.tile(id,neighbors,(c*3+r*7)%8,-1);
+      });
     } finally {
       this._activeTerrainRaster=null;
       this.ctx.restore();this.ctx=ctx;this.canvas=canvas;

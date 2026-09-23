@@ -62,11 +62,8 @@ module.exports = function(ok) {
     raster={};
     renderer.drawTerrainLayer({minCol:0,maxCol:width-1,minRow:0,maxRow:height-1});
     var visible=Object.keys(raster).filter(function(p){return raster[p]!=="#181510";});
-    ok(visible.length>0&&visible.every(function(p){var v=T.palette.indexOf(raster[p]);return v===13||v===14;}),
-      width+"x"+height+" mountain board has no outer slope, ground strip or tapered corners");
-    ok(visible.every(function(p){var xy=p.split(",").map(Number);
-      return renderer.pixelToHex(xy[0]+.5,xy[1]+.5)!==null;
-    }),"mountain art ends at the actual board boundary on "+width+"x"+height);
+    ok(visible.length>0&&visible.every(function(p){var v=T.palette.indexOf(raster[p]);return v===13||v===14||raster[p]==="#55463f";}),
+      width+"x"+height+" mountain board reaches its frame without an outer slope or ground strip");
     ok(H.neighbors(0,0).filter(function(n){return !g.inBounds(n.col,n.row);}).every(function(n){
       var p=renderer.hexCenter(n.col,n.row);return renderer.pixelToHex(p.x,p.y)===null;
     }),"plateau continuation adds no selectable hexes on "+width+"x"+height);

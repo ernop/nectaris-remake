@@ -62,6 +62,12 @@ bitmap assets. The reference captures remain local and gitignored.
 
 The set selects production 48×32 flattened hexes with 32×32 center pitch and
 16-pixel odd-column stagger. Roads, hills, mountains and valley banks use
-neighbor-dependent variants. Terrain scales with integer raster boundaries;
-units always retain their native 32×32 display. Picking, highlights, map bounds,
-panning and editor painting use the same geometry. Classic/neon are unaffected.
+neighbor-dependent variants. Terrain and unit art scale with the map using
+integer raster boundaries. The board uses a thin, rounded rectangular frame.
+The small gaps outside the outer hexes carry reflected edge terrain, without
+duplicating buildings or extending roads. This decorative margin does not add
+selectable cells or alter movement. Interior hexes keep their exact geometry and
+terrain pixels. The border is clipped to the viewport and included in the shared
+terrain cache.
+Picking, highlights, map bounds, panning and editor painting use the same hex
+geometry. Classic/neon are unaffected.

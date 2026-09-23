@@ -236,6 +236,63 @@ var LEGACY_TERRAIN = (function () {
       ctx.fillStyle=run[3];ctx.fillRect(x,y,Math.round(left+(run[0]+run[2])*scale)-x,Math.round(top+(run[1]+1)*scale)-y);
     });
   }
-  return {tile:tile,draw:draw,Frame:Frame,palette:palette,offsets:offsets};
+  function drawBoardBorder(ctx, layout, tileAt) {
+    var columns=layout.columns,rows=layout.rows,scale=layout.scale;
+    var width=columns*32+16,height=rows*32+(columns>1?16:0),radius=8;
+    var left=layout.left,top=layout.top,tiles=new Map();
+    var minX=Math.max(0,Math.floor(-left/scale)-1),maxX=Math.min(width,Math.ceil((layout.screenWidth-left)/scale)+1);
+    var minY=Math.max(0,Math.floor(-top/scale)-1),maxY=Math.min(height,Math.ceil((layout.screenHeight-top)/scale)+1);
+    function inHex(x,y,c,r) {
+      var dx=Math.abs(x+.5-24-c*32),dy=Math.abs(y+.5-16-r*32-(c&1)*16);
+      return c>=0&&c<columns&&r>=0&&r<rows&&dy<=16&&dx+dy<=24;
+    }
+    function colorAt(x,y) {
+      var qx=Math.max(radius-x-.5,0,x+.5-(width-radius));
+      var qy=Math.max(radius-y-.5,0,y+.5-(height-radius));
+      var edge=radius-Math.hypot(qx,qy);
+      if(edge<0)return null;
+      if(edge<1)return "#55463f";
+      var col=Math.round((x+.5-24)/32),row;
+      for(var c=col-1;c<=col+1;c++) {
+        row=Math.round((y+.5-16-(c&1)*16)/32);
+        if(inHex(x,y,c,row))return null;
+      }
+      // Bleed only the edge's terrain into the rectangular margin. Reflect
+      // texture inward so it continues naturally without stretched stripes.
+      col=Math.max(0,Math.min(columns-1,col));
+      row=Math.max(0,Math.min(rows-1,Math.round((y+.5-16-(col&1)*16)/32)));
+      var sx=x-col*32,sy=y-row*32-(col&1)*16;
+      if(sy<0)sy=-sy-1;else if(sy>31)sy=63-sy;
+      sy=Math.max(0,Math.min(31,sy));
+      var inset=Math.ceil(Math.abs(sy+.5-16)-.5),last=47-inset;
+      if(sx<inset)sx=2*inset-sx-1;else if(sx>last)sx=2*last-sx+1;
+      sx=Math.max(inset,Math.min(last,sx));
+      var key=col+","+row,data=tiles.get(key);
+      if(!data){data=tileAt(col,row);tiles.set(key,data);}
+      return palette[data.pixels[sy*48+sx]];
+    }
+    function strip(y,x0,x1) {
+      var start=x0,color=null;
+      for(var x=x0;x<=x1;x++) {
+        var next=x<x1?colorAt(x,y):null;
+        if(next===color)continue;
+        if(color) {
+          var px=Math.round(left+start*scale),py=Math.round(top+y*scale);
+          ctx.fillStyle=color;ctx.fillRect(px,py,Math.round(left+x*scale)-px,Math.round(top+(y+1)*scale)-py);
+        }
+        start=x;color=next;
+      }
+    }
+    // Only the outer 16 native pixels contain gaps. Work follows the visible
+    // perimeter and is baked into the existing terrain cache, including pans.
+    for(var y=minY;y<maxY;y++) {
+      if(y<16||y>=height-16)strip(y,minX,maxX);
+      else {
+        strip(y,minX,Math.min(16,maxX));
+        strip(y,Math.max(width-16,minX),maxX);
+      }
+    }
+  }
+  return {tile:tile,draw:draw,drawBoardBorder:drawBoardBorder,Frame:Frame,palette:palette,offsets:offsets};
 })();
 if(typeof module!=="undefined")module.exports=LEGACY_TERRAIN;

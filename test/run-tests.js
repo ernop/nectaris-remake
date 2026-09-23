@@ -336,6 +336,7 @@ require("./unit-art-tests.js")(ok);
 require("./icon-set-tests.js")(ok);
 require("./legacy-terrain-tests.js")(ok);
 require("./mountain-terrain-tests.js")(ok);
+require("./board-border-tests.js")(ok);
 
 section("attacker palette and faction colours");
 RENDER.setStyle("pixel");
