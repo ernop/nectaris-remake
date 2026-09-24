@@ -1,0 +1,1741 @@
+{
+  "generatedBy": "opus55/build.js",
+  "stockUnits": 23,
+  "maxStrength": 8,
+  "census": [
+    {
+      "name": "Campaign (normal)",
+      "maps": 16,
+      "hexes": 6750,
+      "share": {
+        "plain": 36.5,
+        "road": 11,
+        "waste": 13.2,
+        "hill": 9.3,
+        "mountain": 26.6,
+        "valley": 1.8,
+        "bridge": 0.1,
+        "factory": 0.9,
+        "base": 0.5
+      },
+      "closedToTreads": 28.4,
+      "closedToWheels": 41.6,
+      "present": {
+        "combatAir": 12,
+        "pelican": 7,
+        "mule": 10,
+        "heavy": 13,
+        "artillery": 12
+      }
+    },
+    {
+      "name": "Campaign (advanced)",
+      "maps": 16,
+      "hexes": 6750,
+      "share": {
+        "plain": 36.5,
+        "road": 11,
+        "waste": 13.2,
+        "hill": 9.3,
+        "mountain": 26.6,
+        "valley": 1.8,
+        "bridge": 0.1,
+        "factory": 0.9,
+        "base": 0.5
+      },
+      "closedToTreads": 28.4,
+      "closedToWheels": 41.6,
+      "present": {
+        "combatAir": 9,
+        "pelican": 13,
+        "mule": 13,
+        "heavy": 14,
+        "artillery": 16
+      }
+    },
+    {
+      "name": "Base Nectaris",
+      "maps": 12,
+      "hexes": 3344,
+      "share": {
+        "plain": 58.9,
+        "road": 7.9,
+        "waste": 4.5,
+        "hill": 16.4,
+        "mountain": 9.1,
+        "valley": 1.6,
+        "bridge": 0.1,
+        "factory": 0.9,
+        "base": 0.7
+      },
+      "closedToTreads": 10.7,
+      "closedToWheels": 15.2,
+      "present": {
+        "combatAir": 4,
+        "pelican": 0,
+        "mule": 1,
+        "heavy": 11,
+        "artillery": 12
+      }
+    },
+    {
+      "name": "Lunar Frontiers",
+      "maps": 12,
+      "hexes": 1728,
+      "share": {
+        "plain": 70.1,
+        "road": 9.4,
+        "waste": 4.9,
+        "hill": 4.6,
+        "mountain": 4.1,
+        "valley": 4.2,
+        "bridge": 0.8,
+        "factory": 0.6,
+        "base": 1.4
+      },
+      "closedToTreads": 8.2,
+      "closedToWheels": 13.1,
+      "present": {
+        "combatAir": 5,
+        "pelican": 3,
+        "mule": 3,
+        "heavy": 5,
+        "artillery": 8
+      }
+    },
+    {
+      "name": "AI-made",
+      "maps": 15,
+      "hexes": 18494,
+      "share": {
+        "plain": 17.1,
+        "road": 15.2,
+        "waste": 2.8,
+        "hill": 8.2,
+        "mountain": 55,
+        "valley": 0.2,
+        "bridge": 0,
+        "factory": 1.3,
+        "base": 0.2
+      },
+      "closedToTreads": 55.2,
+      "closedToWheels": 58,
+      "present": {
+        "combatAir": 0,
+        "pelican": 11,
+        "mule": 15,
+        "heavy": 15,
+        "artillery": 15
+      }
+    },
+    {
+      "name": "Environment campaigns",
+      "maps": 48,
+      "hexes": 35400,
+      "share": {
+        "plain": 60.6,
+        "road": 9.3,
+        "waste": 6.9,
+        "hill": 10.2,
+        "mountain": 11.5,
+        "valley": 0.5,
+        "bridge": 0,
+        "factory": 0.6,
+        "base": 0.3
+      },
+      "closedToTreads": 12.1,
+      "closedToWheels": 18.9,
+      "present": {
+        "combatAir": 0,
+        "pelican": 12,
+        "mule": 20,
+        "heavy": 36,
+        "artillery": 37
+      }
+    }
+  ],
+  "dominance": [],
+  "units": {
+    "YETI": {
+      "engine": {
+        "name": "Yeti WK-5",
+        "cls": "tank",
+        "sprite": "KILROY",
+        "move": 4,
+        "moveType": "foot",
+        "rngG": 1,
+        "rngA": 1,
+        "atkG": 55,
+        "atkA": 20,
+        "def": 35
+      },
+      "reach": {
+        "road": 4,
+        "plain": 4,
+        "hill": 4,
+        "waste": 2,
+        "mountain": 2
+      },
+      "gap": {
+        "rule": "No stock foot unit has ground attack of 50 or more, or defense of 20 or more.",
+        "contradictions": []
+      },
+      "claims": [
+        {
+          "attacker": "BISON",
+          "defender": "YETI",
+          "defenderTerrain": "mountain",
+          "attackerTerrain": "plain",
+          "expect": "defender",
+          "note": "A Bison cannot dislodge it from a mountain.",
+          "result": {
+            "kills": 1.01,
+            "loses": 2.53,
+            "counter": true,
+            "distance": 1
+          }
+        },
+        {
+          "attacker": "BISON",
+          "defender": "KILROY",
+          "defenderTerrain": "mountain",
+          "attackerTerrain": "plain",
+          "expect": "attacker",
+          "note": "The best stock mountain defender loses the same fight.",
+          "result": {
+            "kills": 2.17,
+            "loses": 1.9,
+            "counter": true,
+            "distance": 1
+          }
+        },
+        {
+          "attacker": "GIANT",
+          "defender": "YETI",
+          "defenderTerrain": "mountain",
+          "attackerTerrain": "plain",
+          "expect": "attacker",
+          "note": "The Giant remains its answer.",
+          "result": {
+            "kills": 1.9,
+            "loses": 0.77,
+            "counter": true,
+            "distance": 1
+          }
+        },
+        {
+          "attacker": "YETI",
+          "defender": "KILROY",
+          "defenderTerrain": "mountain",
+          "attackerTerrain": "mountain",
+          "expect": "attacker",
+          "note": "It wins mountain infantry fights.",
+          "result": {
+            "kills": 2.32,
+            "loses": 0.91,
+            "counter": true,
+            "distance": 1
+          }
+        }
+      ],
+      "comparisons": [],
+      "sprite": {
+        "right": {
+          "visibleBounds": [
+            4,
+            5,
+            24,
+            22
+          ],
+          "opaquePixels": 333,
+          "paletteEntries": 13
+        },
+        "left": {
+          "visibleBounds": [
+            4,
+            5,
+            24,
+            22
+          ],
+          "opaquePixels": 333,
+          "paletteEntries": 13
+        }
+      }
+    },
+    "MEERKAT": {
+      "engine": {
+        "name": "Meerkat IR-4",
+        "cls": "antiair",
+        "sprite": "CHARLIE",
+        "move": 3,
+        "moveType": "foot",
+        "rngG": 1,
+        "rngA": 1,
+        "atkG": 10,
+        "atkA": 60,
+        "def": 10
+      },
+      "reach": {
+        "road": 3,
+        "plain": 3,
+        "hill": 3,
+        "waste": 1,
+        "mountain": 1
+      },
+      "gap": {
+        "rule": "No stock foot unit has air attack above 10.",
+        "contradictions": []
+      },
+      "claims": [
+        {
+          "attacker": "EAGLE",
+          "defender": "MEERKAT",
+          "defenderTerrain": "mountain",
+          "attackerTerrain": "plain",
+          "expect": "defender",
+          "note": "An Eagle loses the exchange.",
+          "result": {
+            "kills": 3.07,
+            "loses": 3.57,
+            "counter": true,
+            "distance": 1
+          }
+        },
+        {
+          "attacker": "EAGLE",
+          "defender": "CHARLIE",
+          "defenderTerrain": "mountain",
+          "attackerTerrain": "plain",
+          "expect": "attacker",
+          "note": "Stock mountain infantry against the same Eagle.",
+          "result": {
+            "kills": 3.26,
+            "loses": 0.6,
+            "counter": true,
+            "distance": 1
+          }
+        },
+        {
+          "attacker": "HUNTER",
+          "defender": "MEERKAT",
+          "defenderTerrain": "mountain",
+          "attackerTerrain": "plain",
+          "expect": "attacker",
+          "note": "The Hunter still wins.",
+          "result": {
+            "kills": 3.07,
+            "loses": 2.53,
+            "counter": true,
+            "distance": 1
+          }
+        },
+        {
+          "attacker": "BISON",
+          "defender": "MEERKAT",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "attacker",
+          "note": "Tanks crush it in the open.",
+          "result": {
+            "kills": 3.57,
+            "loses": 0.34,
+            "counter": true,
+            "distance": 1
+          }
+        }
+      ],
+      "comparisons": [],
+      "sprite": {
+        "right": {
+          "visibleBounds": [
+            8,
+            8,
+            16,
+            17
+          ],
+          "opaquePixels": 160,
+          "paletteEntries": 13
+        },
+        "left": {
+          "visibleBounds": [
+            8,
+            8,
+            16,
+            17
+          ],
+          "opaquePixels": 161,
+          "paletteEntries": 13
+        }
+      }
+    },
+    "HOWLER": {
+      "engine": {
+        "name": "Howler IM-8",
+        "cls": "artillery",
+        "sprite": "KILROY",
+        "move": 3,
+        "moveType": "foot",
+        "rngG": 3,
+        "rngA": 0,
+        "atkG": 45,
+        "atkA": 0,
+        "def": 10,
+        "moveOrFire": true
+      },
+      "reach": {
+        "road": 3,
+        "plain": 3,
+        "hill": 3,
+        "waste": 1,
+        "mountain": 1
+      },
+      "gap": {
+        "rule": "No stock foot unit has an indirect band (range above 1).",
+        "contradictions": []
+      },
+      "claims": [
+        {
+          "attacker": "HOWLER",
+          "defender": "KILROY",
+          "defenderTerrain": "mountain",
+          "attackerTerrain": "mountain",
+          "expect": "noCounter",
+          "note": "Shells mountain infantry with no return fire.",
+          "result": {
+            "kills": 1.9,
+            "loses": 0,
+            "counter": false,
+            "distance": 2
+          }
+        },
+        {
+          "attacker": "HOWLER",
+          "defender": "YETI",
+          "defenderTerrain": "mountain",
+          "attackerTerrain": "mountain",
+          "expect": "noCounter",
+          "note": "Also the answer to an entrenched Yeti.",
+          "result": {
+            "kills": 1.01,
+            "loses": 0,
+            "counter": false,
+            "distance": 2
+          }
+        },
+        {
+          "attacker": "KILROY",
+          "defender": "HOWLER",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "noCounter",
+          "note": "Defenseless when reached.",
+          "result": {
+            "kills": 2.93,
+            "loses": 0,
+            "counter": false,
+            "distance": 1
+          }
+        }
+      ],
+      "comparisons": [],
+      "sprite": {
+        "right": {
+          "visibleBounds": [
+            5,
+            9,
+            22,
+            16
+          ],
+          "opaquePixels": 228,
+          "paletteEntries": 13
+        },
+        "left": {
+          "visibleBounds": [
+            5,
+            9,
+            22,
+            16
+          ],
+          "opaquePixels": 228,
+          "paletteEntries": 13
+        }
+      }
+    },
+    "GECKO": {
+      "engine": {
+        "name": "Gecko IL-3",
+        "cls": "infantry",
+        "sprite": "CHARLIE",
+        "move": 5,
+        "moveType": "foot",
+        "rngG": 1,
+        "rngA": 1,
+        "atkG": 40,
+        "atkA": 10,
+        "def": 10,
+        "moveAfterAttack": true
+      },
+      "reach": {
+        "road": 5,
+        "plain": 5,
+        "hill": 5,
+        "waste": 2,
+        "mountain": 2
+      },
+      "gap": {
+        "rule": "No stock foot unit may move after attacking.",
+        "contradictions": []
+      },
+      "claims": [
+        {
+          "attacker": "GECKO",
+          "defender": "HADRIAN",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "noCounter",
+          "note": "Artillery cannot fire back at an adjacent raider.",
+          "result": {
+            "kills": 2.17,
+            "loses": 0,
+            "counter": false,
+            "distance": 1
+          }
+        },
+        {
+          "attacker": "GECKO",
+          "defender": "CHARLIE",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "attacker",
+          "note": "Beats stock infantry.",
+          "result": {
+            "kills": 3.07,
+            "loses": 0.77,
+            "counter": true,
+            "distance": 1
+          }
+        },
+        {
+          "attacker": "BISON",
+          "defender": "GECKO",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "attacker",
+          "note": "Loses to tanks in the open.",
+          "result": {
+            "kills": 3.57,
+            "loses": 1.9,
+            "counter": true,
+            "distance": 1
+          }
+        }
+      ],
+      "comparisons": [],
+      "sprite": {
+        "right": {
+          "visibleBounds": [
+            7,
+            10,
+            18,
+            15
+          ],
+          "opaquePixels": 196,
+          "paletteEntries": 11
+        },
+        "left": {
+          "visibleBounds": [
+            7,
+            10,
+            18,
+            15
+          ],
+          "opaquePixels": 196,
+          "paletteEntries": 11
+        }
+      }
+    },
+    "WOMBAT": {
+      "engine": {
+        "name": "Wombat AP-6",
+        "cls": "transport",
+        "sprite": "MULE",
+        "move": 6,
+        "moveType": "treads",
+        "rngG": 1,
+        "rngA": 1,
+        "atkG": 20,
+        "atkA": 10,
+        "def": 50,
+        "cargo": 1,
+        "cargoTypes": [
+          "CHARLIE",
+          "KILROY",
+          "MEERKAT",
+          "HOWLER",
+          "GECKO"
+        ]
+      },
+      "reach": {
+        "road": 6,
+        "plain": 6,
+        "hill": 3,
+        "waste": 2,
+        "mountain": null
+      },
+      "gap": {
+        "rule": "No stock ground carrier has defense above 10 or runs on tracks.",
+        "contradictions": []
+      },
+      "claims": [
+        {
+          "attacker": "BISON",
+          "defender": "MULE",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "attacker",
+          "note": "A Bison against a loaded Mule.",
+          "result": {
+            "kills": 3.57,
+            "loses": 0.34,
+            "counter": true,
+            "distance": 1
+          }
+        },
+        {
+          "attacker": "BISON",
+          "defender": "WOMBAT",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "attacker",
+          "note": "The same Bison removes about half as much.",
+          "result": {
+            "kills": 1.9,
+            "loses": 1.01,
+            "counter": true,
+            "distance": 1
+          }
+        },
+        {
+          "attacker": "KILROY",
+          "defender": "WOMBAT",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "even",
+          "note": "A Kilroy attacking it trades about evenly.",
+          "result": {
+            "kills": 1.58,
+            "loses": 1.46,
+            "counter": true,
+            "distance": 1
+          }
+        }
+      ],
+      "comparisons": [
+        {
+          "kills": "BISON>WOMBAT",
+          "of": "BISON>MULE",
+          "text": "about half as much",
+          "ratio": [
+            0.4,
+            0.6
+          ],
+          "value": 0.53
+        }
+      ],
+      "sprite": {
+        "right": {
+          "visibleBounds": [
+            3,
+            6,
+            26,
+            19
+          ],
+          "opaquePixels": 397,
+          "paletteEntries": 11
+        },
+        "left": {
+          "visibleBounds": [
+            3,
+            6,
+            26,
+            19
+          ],
+          "opaquePixels": 397,
+          "paletteEntries": 12
+        }
+      }
+    },
+    "STORK": {
+      "engine": {
+        "name": "Stork HT-2",
+        "cls": "transport",
+        "sprite": "PELICAN",
+        "move": 8,
+        "moveType": "air",
+        "rngG": 1,
+        "rngA": 1,
+        "atkG": 30,
+        "atkA": 10,
+        "def": 30,
+        "cargo": 1,
+        "cargoTypes": [
+          "CHARLIE",
+          "KILROY",
+          "MEERKAT",
+          "HOWLER",
+          "GECKO"
+        ]
+      },
+      "reach": {
+        "road": 8,
+        "plain": 8,
+        "hill": 8,
+        "waste": 8,
+        "mountain": 8
+      },
+      "gap": {
+        "rule": "No stock air carrier has any attack or defense above 10.",
+        "contradictions": []
+      },
+      "claims": [
+        {
+          "attacker": "SEEKER",
+          "defender": "PELICAN",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "noCounter",
+          "note": "A Seeker against a loaded Pelican.",
+          "result": {
+            "kills": 4.76,
+            "loses": 0,
+            "counter": false,
+            "distance": 1
+          }
+        },
+        {
+          "attacker": "SEEKER",
+          "defender": "STORK",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "attacker",
+          "note": "The same Seeker kills less and takes return fire.",
+          "result": {
+            "kills": 3.85,
+            "loses": 1.68,
+            "counter": true,
+            "distance": 1
+          }
+        },
+        {
+          "attacker": "KILROY",
+          "defender": "STORK",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "defender",
+          "note": "Infantry cannot contest its landing.",
+          "result": {
+            "kills": 0.6,
+            "loses": 2.17,
+            "counter": true,
+            "distance": 1
+          }
+        },
+        {
+          "attacker": "STORK",
+          "defender": "CHARLIE",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "attacker",
+          "note": "The door gun clears a landing zone.",
+          "result": {
+            "kills": 2.32,
+            "loses": 0.6,
+            "counter": true,
+            "distance": 1
+          }
+        }
+      ],
+      "comparisons": [
+        {
+          "kills": "SEEKER>STORK",
+          "of": "SEEKER>PELICAN",
+          "text": "kills less",
+          "ratio": [
+            0,
+            0.95
+          ],
+          "value": 0.81
+        }
+      ],
+      "sprite": {
+        "right": {
+          "visibleBounds": [
+            2,
+            6,
+            28,
+            21
+          ],
+          "opaquePixels": 399,
+          "paletteEntries": 13
+        },
+        "left": {
+          "visibleBounds": [
+            2,
+            6,
+            28,
+            21
+          ],
+          "opaquePixels": 399,
+          "paletteEntries": 13
+        }
+      }
+    },
+    "CAMEL": {
+      "engine": {
+        "name": "Camel HX-8",
+        "cls": "transport",
+        "sprite": "MULE",
+        "move": 8,
+        "moveType": "wheels",
+        "rngG": 0,
+        "rngA": 0,
+        "atkG": 0,
+        "atkA": 0,
+        "def": 20,
+        "cargo": 1,
+        "cargoTypes": [
+          "GIANT",
+          "POLAR",
+          "GRIZZLY",
+          "HADRIAN",
+          "OCTOPUS",
+          "ATLAS",
+          "TRIGGER",
+          "SNAPPER"
+        ]
+      },
+      "reach": {
+        "road": 8,
+        "plain": 4,
+        "hill": 2,
+        "waste": null,
+        "mountain": null
+      },
+      "gap": {
+        "rule": "No stock ground carrier accepts the Giant, Polar or Grizzly.",
+        "contradictions": []
+      },
+      "claims": [
+        {
+          "attacker": "HAWKEYE",
+          "defender": "PELICAN",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "noCounter",
+          "note": "Today’s only heavy lift against a Hawkeye.",
+          "result": {
+            "kills": 5.95,
+            "loses": 0,
+            "counter": false,
+            "distance": 2
+          }
+        },
+        {
+          "attacker": "HAWKEYE",
+          "defender": "CAMEL",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "cannot",
+          "note": "Anti-air cannot target it.",
+          "result": null
+        },
+        {
+          "attacker": "BISON",
+          "defender": "CAMEL",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "noCounter",
+          "note": "Unarmed against tanks.",
+          "result": {
+            "kills": 3.13,
+            "loses": 0,
+            "counter": false,
+            "distance": 1
+          }
+        }
+      ],
+      "comparisons": [],
+      "sprite": {
+        "right": {
+          "visibleBounds": [
+            2,
+            7,
+            28,
+            18
+          ],
+          "opaquePixels": 320,
+          "paletteEntries": 13
+        },
+        "left": {
+          "visibleBounds": [
+            2,
+            7,
+            28,
+            18
+          ],
+          "opaquePixels": 321,
+          "paletteEntries": 13
+        }
+      }
+    },
+    "WASP": {
+      "engine": {
+        "name": "Wasp AH-4",
+        "cls": "air",
+        "sprite": "EAGLE",
+        "move": 7,
+        "moveType": "air",
+        "rngG": 1,
+        "rngA": 1,
+        "atkG": 55,
+        "atkA": 20,
+        "def": 25,
+        "moveAfterAttack": true
+      },
+      "reach": {
+        "road": 7,
+        "plain": 7,
+        "hill": 7,
+        "waste": 7,
+        "mountain": 7
+      },
+      "gap": {
+        "rule": "No stock air unit may move after attacking.",
+        "contradictions": []
+      },
+      "claims": [
+        {
+          "attacker": "WASP",
+          "defender": "BISON",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "noCounter",
+          "note": "Tanks cannot answer it.",
+          "result": {
+            "kills": 2.53,
+            "loses": 0,
+            "counter": false,
+            "distance": 1
+          }
+        },
+        {
+          "attacker": "WASP",
+          "defender": "HADRIAN",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "noCounter",
+          "note": "Nor can artillery.",
+          "result": {
+            "kills": 3.07,
+            "loses": 0,
+            "counter": false,
+            "distance": 1
+          }
+        },
+        {
+          "attacker": "WASP",
+          "defender": "SEEKER",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "defender",
+          "note": "Attacking anti-air loses.",
+          "result": {
+            "kills": 3.07,
+            "loses": 4.02,
+            "counter": true,
+            "distance": 1
+          }
+        },
+        {
+          "attacker": "SEEKER",
+          "defender": "WASP",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "attacker",
+          "note": "Anti-air wins on its own turn.",
+          "result": {
+            "kills": 4.02,
+            "loses": 3.07,
+            "counter": true,
+            "distance": 1
+          }
+        }
+      ],
+      "comparisons": [],
+      "sprite": {
+        "right": {
+          "visibleBounds": [
+            2,
+            8,
+            28,
+            18
+          ],
+          "opaquePixels": 297,
+          "paletteEntries": 14
+        },
+        "left": {
+          "visibleBounds": [
+            2,
+            8,
+            28,
+            18
+          ],
+          "opaquePixels": 297,
+          "paletteEntries": 14
+        }
+      }
+    },
+    "VULTURE": {
+      "engine": {
+        "name": "Vulture XM-3",
+        "cls": "air",
+        "sprite": "HUNTER",
+        "move": 9,
+        "moveType": "air",
+        "rngG": 3,
+        "rngA": 0,
+        "atkG": 45,
+        "atkA": 0,
+        "def": 25
+      },
+      "reach": {
+        "road": 9,
+        "plain": 9,
+        "hill": 9,
+        "waste": 9,
+        "mountain": 9
+      },
+      "gap": {
+        "rule": "No stock air unit has an indirect ground band.",
+        "contradictions": []
+      },
+      "claims": [
+        {
+          "attacker": "VULTURE",
+          "defender": "SEEKER",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "noCounter",
+          "note": "Strikes anti-air without a counter.",
+          "result": {
+            "kills": 2.47,
+            "loses": 0,
+            "counter": false,
+            "distance": 2
+          }
+        },
+        {
+          "attacker": "VULTURE",
+          "defender": "HAWKEYE",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "noCounter",
+          "note": "Including the Hawkeye.",
+          "result": {
+            "kills": 2.47,
+            "loses": 0,
+            "counter": false,
+            "distance": 2
+          }
+        },
+        {
+          "attacker": "FALCON",
+          "defender": "VULTURE",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "noCounter",
+          "note": "Fighters kill it.",
+          "result": {
+            "kills": 5.36,
+            "loses": 0,
+            "counter": false,
+            "distance": 1
+          }
+        }
+      ],
+      "comparisons": [],
+      "sprite": {
+        "right": {
+          "visibleBounds": [
+            2,
+            4,
+            28,
+            26
+          ],
+          "opaquePixels": 333,
+          "paletteEntries": 12
+        },
+        "left": {
+          "visibleBounds": [
+            2,
+            4,
+            28,
+            26
+          ],
+          "opaquePixels": 333,
+          "paletteEntries": 12
+        }
+      }
+    },
+    "SHRIKE": {
+      "engine": {
+        "name": "Shrike XF-6",
+        "cls": "air",
+        "sprite": "FALCON",
+        "move": 10,
+        "moveType": "air",
+        "rngG": 0,
+        "rngA": 3,
+        "atkG": 0,
+        "atkA": 60,
+        "def": 20
+      },
+      "reach": {
+        "road": 10,
+        "plain": 10,
+        "hill": 10,
+        "waste": 10,
+        "mountain": 10
+      },
+      "gap": {
+        "rule": "No stock air unit has an indirect air band.",
+        "contradictions": []
+      },
+      "claims": [
+        {
+          "attacker": "FALCON",
+          "defender": "HUNTER",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "defender",
+          "note": "The stock fighter loses to a Hunter.",
+          "result": {
+            "kills": 3.85,
+            "loses": 4.11,
+            "counter": true,
+            "distance": 1
+          }
+        },
+        {
+          "attacker": "SHRIKE",
+          "defender": "HUNTER",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "noCounter",
+          "note": "The Shrike takes nothing back.",
+          "result": {
+            "kills": 2.53,
+            "loses": 0,
+            "counter": false,
+            "distance": 2
+          }
+        },
+        {
+          "attacker": "FALCON",
+          "defender": "SHRIKE",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "noCounter",
+          "note": "A Falcon that reaches it wins.",
+          "result": {
+            "kills": 5.68,
+            "loses": 0,
+            "counter": false,
+            "distance": 1
+          }
+        }
+      ],
+      "comparisons": [],
+      "sprite": {
+        "right": {
+          "visibleBounds": [
+            3,
+            4,
+            26,
+            24
+          ],
+          "opaquePixels": 321,
+          "paletteEntries": 12
+        },
+        "left": {
+          "visibleBounds": [
+            3,
+            4,
+            26,
+            24
+          ],
+          "opaquePixels": 321,
+          "paletteEntries": 12
+        }
+      }
+    },
+    "MANTIS": {
+      "engine": {
+        "name": "Mantis SM-5",
+        "cls": "antiair",
+        "sprite": "HAWKEYE",
+        "move": 5,
+        "moveType": "treads",
+        "rngG": 0,
+        "rngA": 3,
+        "atkG": 0,
+        "atkA": 60,
+        "def": 30
+      },
+      "reach": {
+        "road": 5,
+        "plain": 5,
+        "hill": 2,
+        "waste": 1,
+        "mountain": null
+      },
+      "gap": {
+        "rule": "No stock unit has an indirect air band without move-or-fire.",
+        "contradictions": []
+      },
+      "claims": [
+        {
+          "attacker": "EAGLE",
+          "defender": "SEEKER",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "even",
+          "note": "Stock anti-air trades evenly with an Eagle.",
+          "result": {
+            "kills": 3.85,
+            "loses": 3.85,
+            "counter": true,
+            "distance": 1
+          }
+        },
+        {
+          "attacker": "MANTIS",
+          "defender": "EAGLE",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "noCounter",
+          "note": "The Mantis fires first and takes nothing back.",
+          "result": {
+            "kills": 3.57,
+            "loses": 0,
+            "counter": false,
+            "distance": 2
+          }
+        },
+        {
+          "attacker": "EAGLE",
+          "defender": "MANTIS",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "noCounter",
+          "note": "An Eagle that reaches it is unanswered.",
+          "result": {
+            "kills": 3.85,
+            "loses": 0,
+            "counter": false,
+            "distance": 1
+          }
+        },
+        {
+          "attacker": "BISON",
+          "defender": "MANTIS",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "noCounter",
+          "note": "Defenseless against ground attack.",
+          "result": {
+            "kills": 2.84,
+            "loses": 0,
+            "counter": false,
+            "distance": 1
+          }
+        }
+      ],
+      "comparisons": [],
+      "sprite": {
+        "right": {
+          "visibleBounds": [
+            3,
+            3,
+            26,
+            22
+          ],
+          "opaquePixels": 379,
+          "paletteEntries": 14
+        },
+        "left": {
+          "visibleBounds": [
+            3,
+            3,
+            26,
+            22
+          ],
+          "opaquePixels": 379,
+          "paletteEntries": 14
+        }
+      }
+    },
+    "SNAPPER": {
+      "engine": {
+        "name": "Snapper PB-1",
+        "cls": "tank",
+        "sprite": "TRIGGER",
+        "move": 0,
+        "moveType": "treads",
+        "rngG": 1,
+        "rngA": 1,
+        "atkG": 60,
+        "atkA": 30,
+        "def": 60,
+        "placeByTransport": true
+      },
+      "reach": {
+        "road": 0,
+        "plain": 0,
+        "hill": 0,
+        "waste": 0,
+        "mountain": 0
+      },
+      "gap": {
+        "rule": "No stock stationary unit has a direct-fire band.",
+        "contradictions": []
+      },
+      "claims": [
+        {
+          "attacker": "BISON",
+          "defender": "SNAPPER",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "defender",
+          "note": "A medium tank loses the attack.",
+          "result": {
+            "kills": 1.46,
+            "loses": 2.84,
+            "counter": true,
+            "distance": 1
+          }
+        },
+        {
+          "attacker": "GRIZZLY",
+          "defender": "SNAPPER",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "defender",
+          "note": "So does a Grizzly.",
+          "result": {
+            "kills": 2.08,
+            "loses": 2.32,
+            "counter": true,
+            "distance": 1
+          }
+        },
+        {
+          "attacker": "GIANT",
+          "defender": "SNAPPER",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "attacker",
+          "note": "The Giant cracks it.",
+          "result": {
+            "kills": 2.53,
+            "loses": 0.77,
+            "counter": true,
+            "distance": 1
+          }
+        },
+        {
+          "attacker": "HADRIAN",
+          "defender": "SNAPPER",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "noCounter",
+          "note": "Artillery is the safe answer.",
+          "result": {
+            "kills": 1.35,
+            "loses": 0,
+            "counter": false,
+            "distance": 2
+          }
+        }
+      ],
+      "comparisons": [],
+      "sprite": {
+        "right": {
+          "visibleBounds": [
+            2,
+            7,
+            28,
+            18
+          ],
+          "opaquePixels": 355,
+          "paletteEntries": 11
+        },
+        "left": {
+          "visibleBounds": [
+            2,
+            7,
+            28,
+            18
+          ],
+          "opaquePixels": 355,
+          "paletteEntries": 11
+        }
+      }
+    },
+    "PIKE": {
+      "engine": {
+        "name": "Pike TD-8",
+        "cls": "tank",
+        "sprite": "POLAR",
+        "move": 5,
+        "moveType": "treads",
+        "rngG": 1,
+        "rngA": 0,
+        "atkG": 80,
+        "atkA": 0,
+        "def": 50,
+        "moveOrFire": true
+      },
+      "reach": {
+        "road": 5,
+        "plain": 5,
+        "hill": 2,
+        "waste": 1,
+        "mountain": null
+      },
+      "gap": {
+        "rule": "No stock unit combines a direct-fire band with move-or-fire.",
+        "contradictions": []
+      },
+      "claims": [
+        {
+          "attacker": "GRIZZLY",
+          "defender": "PIKE",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "defender",
+          "note": "A Grizzly attacking it loses.",
+          "result": {
+            "kills": 2.53,
+            "loses": 3.07,
+            "counter": true,
+            "distance": 1
+          }
+        },
+        {
+          "attacker": "TITAN",
+          "defender": "PIKE",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "defender",
+          "note": "So does a Titan.",
+          "result": {
+            "kills": 2.32,
+            "loses": 3.07,
+            "counter": true,
+            "distance": 1
+          }
+        },
+        {
+          "attacker": "GIANT",
+          "defender": "PIKE",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "attacker",
+          "note": "The Giant wins.",
+          "result": {
+            "kills": 3.42,
+            "loses": 1.01,
+            "counter": true,
+            "distance": 1
+          }
+        },
+        {
+          "attacker": "HADRIAN",
+          "defender": "PIKE",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "noCounter",
+          "note": "Artillery is the safe answer.",
+          "result": {
+            "kills": 1.68,
+            "loses": 0,
+            "counter": false,
+            "distance": 2
+          }
+        }
+      ],
+      "comparisons": [],
+      "sprite": {
+        "right": {
+          "visibleBounds": [
+            2,
+            7,
+            28,
+            18
+          ],
+          "opaquePixels": 362,
+          "paletteEntries": 11
+        },
+        "left": {
+          "visibleBounds": [
+            2,
+            7,
+            28,
+            18
+          ],
+          "opaquePixels": 362,
+          "paletteEntries": 11
+        }
+      }
+    },
+    "HOUND": {
+      "engine": {
+        "name": "Hound AC-2",
+        "cls": "buggy",
+        "sprite": "RABBIT",
+        "move": 10,
+        "moveType": "wheels",
+        "rngG": 1,
+        "rngA": 1,
+        "atkG": 40,
+        "atkA": 20,
+        "def": 30
+      },
+      "reach": {
+        "road": 10,
+        "plain": 5,
+        "hill": 2,
+        "waste": null,
+        "mountain": null
+      },
+      "gap": {
+        "rule": "No stock wheeled unit has ground attack above 10.",
+        "contradictions": []
+      },
+      "claims": [
+        {
+          "attacker": "HOUND",
+          "defender": "CHARLIE",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "attacker",
+          "note": "Catches infantry.",
+          "result": {
+            "kills": 3.07,
+            "loses": 0.5,
+            "counter": true,
+            "distance": 1
+          }
+        },
+        {
+          "attacker": "HOUND",
+          "defender": "HADRIAN",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "noCounter",
+          "note": "Catches artillery.",
+          "result": {
+            "kills": 2.17,
+            "loses": 0,
+            "counter": false,
+            "distance": 1
+          }
+        },
+        {
+          "attacker": "RABBIT",
+          "defender": "HOUND",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "attacker",
+          "note": "Loses to the Rabbit.",
+          "result": {
+            "kills": 3.85,
+            "loses": 2.53,
+            "counter": true,
+            "distance": 1
+          }
+        },
+        {
+          "attacker": "BISON",
+          "defender": "HOUND",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "attacker",
+          "note": "Loses to tanks.",
+          "result": {
+            "kills": 2.84,
+            "loses": 1.9,
+            "counter": true,
+            "distance": 1
+          }
+        }
+      ],
+      "comparisons": [],
+      "sprite": {
+        "right": {
+          "visibleBounds": [
+            4,
+            9,
+            24,
+            16
+          ],
+          "opaquePixels": 306,
+          "paletteEntries": 13
+        },
+        "left": {
+          "visibleBounds": [
+            4,
+            9,
+            24,
+            16
+          ],
+          "opaquePixels": 306,
+          "paletteEntries": 13
+        }
+      }
+    },
+    "SQUID": {
+      "engine": {
+        "name": "Squid RT-7",
+        "cls": "artillery",
+        "sprite": "OCTOPUS",
+        "move": 7,
+        "moveType": "wheels",
+        "rngG": 4,
+        "rngA": 0,
+        "atkG": 55,
+        "atkA": 0,
+        "def": 15,
+        "moveOrFire": true
+      },
+      "reach": {
+        "road": 7,
+        "plain": 3,
+        "hill": 1,
+        "waste": null,
+        "mountain": null
+      },
+      "gap": {
+        "rule": "No stock wheeled unit has an indirect band, and no stock unit whose ground band reaches 3 or more moves more than 4.",
+        "contradictions": []
+      },
+      "claims": [
+        {
+          "attacker": "SQUID",
+          "defender": "HADRIAN",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "noCounter",
+          "note": "Salvo against artillery.",
+          "result": {
+            "kills": 3.07,
+            "loses": 0,
+            "counter": false,
+            "distance": 2
+          }
+        },
+        {
+          "attacker": "SQUID",
+          "defender": "BISON",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "noCounter",
+          "note": "Salvo against tanks.",
+          "result": {
+            "kills": 2.53,
+            "loses": 0,
+            "counter": false,
+            "distance": 2
+          }
+        },
+        {
+          "attacker": "HOUND",
+          "defender": "SQUID",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "noCounter",
+          "note": "Defenseless when reached.",
+          "result": {
+            "kills": 2.84,
+            "loses": 0,
+            "counter": false,
+            "distance": 1
+          }
+        },
+        {
+          "attacker": "OCTOPUS",
+          "defender": "SQUID",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "noCounter",
+          "note": "An Octopus salvo on it.",
+          "result": {
+            "kills": 4.02,
+            "loses": 0,
+            "counter": false,
+            "distance": 2
+          }
+        },
+        {
+          "attacker": "SQUID",
+          "defender": "OCTOPUS",
+          "defenderTerrain": "plain",
+          "attackerTerrain": "plain",
+          "expect": "noCounter",
+          "note": "Its salvo on an Octopus removes less: it loses a counter-battery duel.",
+          "result": {
+            "kills": 3.07,
+            "loses": 0,
+            "counter": false,
+            "distance": 2
+          }
+        }
+      ],
+      "comparisons": [
+        {
+          "kills": "SQUID>OCTOPUS",
+          "of": "OCTOPUS>SQUID",
+          "text": "removes less",
+          "ratio": [
+            0,
+            0.95
+          ],
+          "value": 0.76
+        }
+      ],
+      "sprite": {
+        "right": {
+          "visibleBounds": [
+            2,
+            4,
+            28,
+            21
+          ],
+          "opaquePixels": 394,
+          "paletteEntries": 15
+        },
+        "left": {
+          "visibleBounds": [
+            2,
+            4,
+            28,
+            21
+          ],
+          "opaquePixels": 393,
+          "paletteEntries": 15
+        }
+      }
+    }
+  }
+}

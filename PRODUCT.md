@@ -900,6 +900,36 @@ boundary-sampling statistical extremes:
   14. `CORSAIR` (Corsair AX-80, air, move 8 air, 80/30, def 40, heavy anti-tank attack gunship)
   15. `TALON` (Talon MB-9, buggy, move 9 wheels, 35/20, def 15, high-speed wheeled recon buggy)
 
+## Claude Opus 5.5 gap-filling units study (2026-09-23)
+
+Proposal pack in `opus55/` for the outline item "design 15 gap-filling units",
+produced by a Claude Opus 5.5 session. It does not change the playable roster,
+maps, renderer or AI; nothing outside that folder is generated.
+
+- **Design rule:** each unit fills one empty cell of the stock rule matrix (chassis,
+  firing band, turn rule, carrier role) with at most one special rule, using only
+  engine fields that exist today. Each gap is a test over `js/data-units.js`; the
+  build fails if any stock unit contradicts it.
+- **Units:** foot units for ground that tracks cannot enter (Yeti walker, Meerkat
+  anti-air team, Howler mortar team, Gecko raiders); carriers (Wombat armored
+  carrier, Stork assault helicopter, Camel heavy transporter); air rules (Wasp attack
+  helicopter, Vulture stand-off drone, Shrike missile interceptor); ground rule
+  combinations (Mantis mobile SAM, Snapper pillbox, Pike tank destroyer, Hound
+  armored car, Squid rocket truck).
+- **Source and outputs:** `units.js` holds the prose, definitions, gap tests and
+  exchange claims; `build.js` writes the icons, sheets, `custom-units.json`,
+  `analysis.json`, `README.md` and the self-contained `index.html`, and refuses to
+  write them if an exchange claim, prose comparison, gap test or the dominance screen
+  fails. `verify.js` also checks the engine rules each unit relies on, classic and
+  apex CPU games with all fifteen, the review's statements about
+  `tools/design-space`, and that the files on disk match a fresh build.
+- **Open items if a unit enters play:** in-game art stays the stock placeholder named
+  by each unit's `sprite` field; `threatenedBase` in `js/ai.js` reacts only to a
+  Pelican, so a Stork airlift toward a base does not trigger base defense; the CPU
+  can deploy a Snapper where it blocks one of its own factory exits; apex turn time
+  grows with unit count (one apex turn on the 42-unit verify map took 143 s, and
+  126 s with stock units of the same chassis, measured once).
+
 
 ## Three terrain campaigns (2026-09-23)
 

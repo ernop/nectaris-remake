@@ -191,12 +191,12 @@ function statCells(u) {
   const reach = terrains.map(t => '<div><b>' + esc(reachOf(u, t)) + '</b><span>' + terrainName[t] + '</span></div>').join('');
   return '<td><img src="icons/' + u.id + '-union-right.png" width="64" height="64" alt="' + esc(u.name) + '"></td>'
     + '<td><a class="name" href="#' + u.id + '">' + esc(u.name.split(' ')[0]) + '</a><span class="code">' + esc(u.name.split(' ').slice(1).join(' ')) + '</span><span class="role">' + esc(u.role) + '</span></td>'
-    + '<td><b class="num">' + u.move + '</b><span class="sub">' + chassis(u.moveType) + '</span></td>'
-    + '<td>' + g + '</td><td>' + a + '</td>'
-    + '<td><b class="num">' + u.def + '</b></td>'
-    + '<td><div class="reach">' + reach + '</div></td>'
-    + '<td>' + rulesOf(u).map(r => '<span class="rules">' + esc(r) + '</span>').join('') + '</td>'
-    + '<td><p class="blurb">' + esc(u.blurb) + '</p></td>';
+    + '<td data-label="Move"><b class="num">' + u.move + '</b><span class="sub">' + chassis(u.moveType) + '</span></td>'
+    + '<td data-label="Ground">' + g + '</td><td data-label="Air">' + a + '</td>'
+    + '<td data-label="Defense"><b class="num">' + u.def + '</b></td>'
+    + '<td data-label="Reach"><div class="reach">' + reach + '</div></td>'
+    + '<td data-label="Rules">' + rulesOf(u).map(r => '<span class="rules">' + esc(r) + '</span>').join('') + '</td>'
+    + '<td data-label="What it is"><p class="blurb">' + esc(u.blurb) + '</p></td>';
 }
 
 function dossier(u) {
@@ -285,6 +285,16 @@ const html = `<!doctype html>
   .bigstats b { font-size: 2rem; display: block; }
   .bigstats span { font-size: 1rem; font-weight: 800; color: #000; display: block; }
   .sheet { width: 100%; height: auto; image-rendering: pixelated; image-rendering: crisp-edges; border: 2px solid #000; background: #fff; }
+  @media (max-width: 860px) {
+    .table-wrap { overflow: visible; border: 0; }
+    table { min-width: 0; }
+    thead { display: none; }
+    table, tbody, tr, td { display: block; width: 100%; }
+    tr { border: 2px solid #000; margin: 0 0 0.85rem; }
+    td { border-top: 0; }
+    td[data-label]::before { content: attr(data-label); display: block; color: #000; font-weight: 800; font-size: 1rem; margin-bottom: 0.12rem; }
+    tr.group { border: 0; margin: 0.4rem 0 0; }
+  }
   footer { margin-top: 1.5rem; }
   footer p { font-weight: 500; }
 </style>
