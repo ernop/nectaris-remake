@@ -15,9 +15,26 @@
   function cell(row,text){var td=document.createElement("td");td.textContent=text;row.appendChild(td);return td;}
   function option(select,value,text){var o=document.createElement("option");o.value=value;o.textContent=text;select.appendChild(o);}
   function duration(ms){return ms<1000?Math.round(ms)+" ms":ms<60000?(ms/1000).toFixed(1)+" s":(ms/60000).toFixed(1)+" min";}
+  function openingLabel(g){
+    if(g.error)return "Opening not verified";
+    if(g.skipped)return g.reason==="opening-unavailable"?"Offers unavailable":"Offers · no deal";
+    if(g.balance)return "Offers · "+(g.firstPlayer?"Xenon":"Union")+" first · "+g.balance.label;
+    return "Normal · Union first"+(g.requestedOpening==="offers"?" (fallback)":"");
+  }
+  function openingSettings(){
+    var mode=document.querySelector('input[name="lab-opening"]:checked').value;
+    $("lab-no-deal-label").hidden=mode!=="offers";$("lab-offers-note").hidden=mode!=="offers";
+    try{localStorage.setItem("nectaris-tournament-opening",mode);localStorage.setItem("nectaris-tournament-no-deal",$("lab-no-deal").value);}catch(e){}
+  }
+  try{
+    if(localStorage.getItem("nectaris-tournament-opening")==="offers")document.querySelector('input[name="lab-opening"][value="offers"]').checked=true;
+    if(localStorage.getItem("nectaris-tournament-no-deal")==="original")$("lab-no-deal").value="original";
+  }catch(e){}
+  openingSettings();
   function config(){return T.normalize({opponents:Array.from(document.querySelectorAll("#lab-opponents input:checked")).map(function(e){return e.value;}),
     maps:rows.filter(function(r){return chosen.has(r.key);}).map(function(r){return r.map;}),cycles:Number($("lab-cycles").value),
-    maxRounds:Number($("lab-rounds").value),seed:Number($("lab-seed").value),workers:Number($("lab-workers").value),work:$("lab-work").value,k:Number($("lab-k").value),selfPlay:$("lab-self").checked});}
+    maxRounds:Number($("lab-rounds").value),seed:Number($("lab-seed").value),workers:Number($("lab-workers").value),work:$("lab-work").value,k:Number($("lab-k").value),selfPlay:$("lab-self").checked,
+    opening:document.querySelector('input[name="lab-opening"]:checked').value,noDeal:$("lab-no-deal").value});}
   function estimate(){try{var c=config();$("lab-estimate").textContent=c.total.toLocaleString()+" games · "+c.pairs.length+" matchups × "+c.maps.length+" boards × "+c.cycles+" cycles × both sides";}
     catch(e){$("lab-estimate").textContent=e.message;}$("lab-board-count").textContent=chosen.size+" boards selected across collections";}
   function boards(){var group=$("lab-collection").value,select=$("lab-boards");select.replaceChildren();rows.filter(function(r){return r.group===group;}).forEach(function(r){
@@ -28,7 +45,7 @@
     i.type="checkbox";i.value=m.id;i.checked=true;text.textContent=m.label;note.textContent=m.description;text.appendChild(note);l.append(i,text);$("lab-opponents").appendChild(l);});
   groups.forEach(function(g){option($("lab-collection"),g.id,g.name);});boards();
   $("lab-workers").value=Math.min(4,Math.max(1,(navigator.hardwareConcurrency||4)-1));
-  $("lab-form").oninput=estimate;$("lab-collection").onchange=boards;
+  $("lab-form").oninput=function(){openingSettings();estimate();};$("lab-collection").onchange=boards;
   $("lab-boards").onchange=function(){Array.from(this.options).forEach(function(o){if(o.selected)chosen.add(o.value);else chosen.delete(o.value);});estimate();};
   $("lab-all").onclick=function(){rows.filter(function(r){return r.group===$("lab-collection").value;}).forEach(function(r){chosen.add(r.key);});boards();};
   $("lab-none").onclick=function(){chosen.clear();boards();};
@@ -41,12 +58,12 @@
   function render(){
     $("lab-run").hidden=!run;if(!run)return;
     var count=run.completed,total=run.config.total;
-    $("lab-status").textContent=run.status+" · "+count.toLocaleString()+" / "+total.toLocaleString()+" games"+(run.errors?" · "+run.errors+" errors":"");
+    $("lab-status").textContent=run.status+" · "+count.toLocaleString()+" / "+total.toLocaleString()+" games"+(run.errors?" · "+run.errors+" errors":"")+(run.skipped?" · "+run.skipped+" skipped":"");
     $("lab-progress").max=total;$("lab-progress").value=count;
     $("lab-pause").disabled=run.status!=="running";$("lab-stop").disabled=!active();
     $("lab-resume").disabled=active()||count>=total||run.version!==T.version;
     $("lab-start").disabled=active()||saving;$("lab-runs").disabled=active()||saving;$("lab-delete").disabled=active()||saving;
-    $("lab-settings").textContent="v"+run.version+" · seed "+run.config.seed+" · "+run.config.maps.length+" boards · "+run.config.workers+" workers · "+(run.config.work||"standard")+" search · K "+run.config.k+" · "+(run.config.maxRounds?run.config.maxRounds+"-round lab cap":"original map limits")+" · "+duration(run.elapsed||0)+" recorded compute time";
+    $("lab-settings").textContent="v"+run.version+" · "+(run.config.opening==="offers"?"Offer for first / "+(run.config.noDeal==="original"?"normal fallback":"skip no deal"):"Normal opening")+" · seed "+run.config.seed+" · "+run.config.maps.length+" boards · "+run.config.workers+" workers · "+(run.config.work||"standard")+" search · K "+run.config.k+" · "+(run.config.maxRounds?run.config.maxRounds+"-round lab cap":"original map limits")+" · "+duration(run.elapsed||0)+" recorded compute time";
     $("lab-live").textContent=pool.filter(function(w){return w.job!==null;}).map(function(w){return "Game "+(w.job+1)+(w.progress?": round "+w.progress.turn+", "+(w.progress.side?"Xenon":"Union"):" starting…");}).join(" · ")||"No active games";
     var tbody=$("lab-ratings");tbody.replaceChildren();Object.values(run.ratings).sort(function(a,b){return b.elo-a.elo;}).forEach(function(r){
       var tr=document.createElement("tr");[label(r.id),r.elo.toFixed(1),r.games,r.wins+" / "+r.draws+" / "+r.losses,r.games?(100*(r.wins+r.draws/2)/r.games).toFixed(1)+"%":"—",r.union+" / "+r.xenon,r.games?duration(r.ms/r.games):"—"].forEach(function(v){cell(tr,v);});tbody.appendChild(tr);
@@ -57,8 +74,8 @@
   }
   async function games(){if(!run)return;var id=run.id,start=page*25,list=await store.games(id,start,25);if(!run||run.id!==id)return;
     var tbody=$("lab-games");tbody.replaceChildren();list.forEach(function(g){var tr=document.createElement("tr");
-      [g.index+1,g.map,label(g.players[0]),label(g.players[1]),g.error?"Error: "+g.error:g.winner===null?"Draw · "+g.reason:(g.winner?"Xenon":"Union")+" · "+g.reason,g.rounds||"—",duration(g.ms||0)].forEach(function(v){cell(tr,v);});
-      var td=cell(tr,""),button=document.createElement("button");button.textContent="Watch";button.disabled=!!g.error;button.onclick=function(){openReplay(g).catch(error);};td.appendChild(button);tbody.appendChild(tr);
+      [g.index+1,g.map,label(g.players[0]),label(g.players[1]),openingLabel(g),g.error?"Error: "+g.error:g.skipped?"Skipped · "+g.reason:g.winner===null?"Draw · "+g.reason:(g.winner?"Xenon":"Union")+" · "+g.reason,g.rounds||"—",duration(g.ms||0)].forEach(function(v){cell(tr,v);});
+      var td=cell(tr,""),button=document.createElement("button");button.textContent=g.skipped?"Inspect":"Watch";button.disabled=!!g.error;button.onclick=function(){openReplay(g).catch(error);};td.appendChild(button);tbody.appendChild(tr);
     });$("lab-page").textContent=run.completed?start+1+"–"+Math.min(start+25,run.completed)+" of "+run.completed:"No finished games";
     $("lab-prev").disabled=page===0;$("lab-next").disabled=(page+1)*25>=run.completed;
   }
@@ -79,7 +96,8 @@
         var result=pending.get(run.completed),next=Object.assign({},run,{
           ratings:JSON.parse(JSON.stringify(run.ratings)),pairs:JSON.parse(JSON.stringify(run.pairs))});
         T.rate(next.ratings,result,next.config.k);next.completed++;next.elapsed+=(result.ms||0);if(result.error)next.errors++;
-        if(!result.error){var ids=result.players.slice().sort(),key=ids.join("|"),p=next.pairs[key]||(next.pairs[key]={a:ids[0],b:ids[1],games:0,wins:0,draws:0,losses:0});
+        if(result.skipped)next.skipped=(next.skipped||0)+1;
+        if(!result.error&&!result.skipped){var ids=result.players.slice().sort(),key=ids.join("|"),p=next.pairs[key]||(next.pairs[key]={a:ids[0],b:ids[1],games:0,wins:0,draws:0,losses:0});
           p.games++;if(result.winner===null)p.draws++;else if(result.players[result.winner]===p.a)p.wins++;else p.losses++;
         }
         if(next.completed===next.config.total)next.status="complete";
@@ -103,7 +121,7 @@
   async function launch(){
     clearError();await acquire();pending.clear();assigned.clear();run.status="running";await store.save(run);
     for(var i=0;i<run.config.workers;i++){
-      var worker=new Worker("js/tournament-worker.js?v=20260923-search-3"),slot={worker:worker,job:null,progress:null};pool.push(slot);
+      var worker=new Worker("js/tournament-worker.js?v=20260925-openings"),slot={worker:worker,job:null,progress:null};pool.push(slot);
       (function(s){worker.onmessage=function(event){var data=event.data;
         if(data.type==="progress"){s.progress=data.progress;render();return;}
         if(data.type!=="result"||data.result.index!==s.job)return;
@@ -143,9 +161,10 @@
       if(!stream&&archive&&selected.completed>2000)throw new Error("For archives over 2,000 games, use a browser with streaming file saves (Chrome/Edge), or the Node tournament runner. CSV export and individual replays remain available.");
       async function write(s){if(stream)await stream.write(s);else chunks.push(s);}
       var quote=function(s){return '"'+String(s).replace(/"/g,'""')+'"';};
-      await write(archive?JSON.stringify({type:"run",run:selected})+"\n":"game,board,union,xenon,seed,winner,reason,rounds,ms,error\n");
+      await write(archive?JSON.stringify({type:"run",run:selected})+"\n":"game,board,union,xenon,seed,winner,reason,rounds,ms,error,opening,first_player,bonus,union_switch,xenon_switch\n");
       for(var offset=0;offset<selected.completed;offset+=100){var batch=await store.games(selected.id,offset,Math.min(100,selected.completed-offset));
-        for(var g of batch)await write(archive?JSON.stringify({type:"game",game:g})+"\n":[g.index+1,g.map,g.players[0],g.players[1],g.seed,g.winner===null?"draw":g.players[g.winner],g.reason,g.rounds,g.ms,g.error||""].map(quote).join(",")+"\n");
+        for(var g of batch)await write(archive?JSON.stringify({type:"game",game:g})+"\n":[g.index+1,g.map,g.players[0],g.players[1],g.seed,g.error?"error":g.skipped?"skipped":g.winner===null?"draw":g.players[g.winner],g.reason,g.rounds,g.ms,g.error||"",openingLabel(g),g.skipped||g.error?"":g.firstPlayer===1?"Xenon":"Union",g.balance?g.balance.label:"",
+          g.negotiation&&g.negotiation.thresholds?String(g.negotiation.thresholds[0]):"",g.negotiation&&g.negotiation.thresholds?String(g.negotiation.thresholds[1]):""].map(quote).join(",")+"\n");
       }
       if(stream)await stream.close();else download(new Blob(chunks,{type:archive?"application/x-ndjson":"text/csv"}),name);
     }catch(e){if(stream)await stream.abort();if(e.name!=="AbortError")error(e);}
@@ -166,7 +185,9 @@
   }
   async function openReplay(game){stopPlayback();replayData=game;replayAt=0;replayGame=ENGINE.Game.restore(game.initial);renderer=new RENDER.Renderer($("replay-canvas"),replayGame);
     $("lab-viewer").hidden=false;$("replay-title").textContent="Game "+(game.index+1)+" · "+game.map;
-    $("replay-detail").textContent=label(game.players[0])+" (Union) vs "+label(game.players[1])+" (Xenon) · seed "+game.seed+" · "+game.reason+(game.version!==T.version?" · recorded with older engine/search version "+game.version:"");
+    $("replay-detail").textContent=label(game.players[0])+" (Union) vs "+label(game.players[1])+" (Xenon) · seed "+game.seed+" · "+game.reason+" · "+openingLabel(game)+
+      (game.negotiation&&game.negotiation.thresholds?" · Switch points (Union / Xenon): "+game.negotiation.thresholds.map(function(t){return t===null?"none":t;}).join(" / "):"")+
+      (game.negotiation&&game.negotiation.message?" · "+game.negotiation.message:"")+(game.version!==T.version?" · recorded with older engine/search version "+game.version:"");
     $("replay-seek").max=game.commands.length;drawReplay();$("lab-viewer").scrollIntoView({behavior:"smooth",block:"start"});
   }
   $("replay-seek").oninput=function(){stopPlayback();seek(Number(this.value));};

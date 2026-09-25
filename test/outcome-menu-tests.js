@@ -40,7 +40,14 @@ module.exports = function (ok) {
   function find(node,cls){return all(node,cls)[0];}
   function flushTimers(){var pending=Array.from(timers.values());timers.clear();pending.forEach(function(fn){fn();});}
   function cards(id){return all(get(id),"level-card");}
+  var openingInputs=["auto","original","offers"].map(function(value){return {value:value,checked:value==="auto"};});
+  function selectOpening(value){
+    openingInputs.forEach(function(input){input.checked=input.value===value;});
+    get("opening-select").onchange({target:openingInputs.find(function(input){return input.checked;})});
+  }
   var context = {document:{getElementById:get,createElement:element,baseURI:"http://nectaris.localhost/",activeElement:null,
+      querySelector:function(selector){var value=selector.match(/\[value="([^"]+)"\]/);
+        return openingInputs.find(function(input){return value?input.value===value[1]:input.checked;});},
       addEventListener:function(name,fn){documentListeners[name]=fn;}},
     localStorage:storage,PROFILES:PROFILES,AI_SEARCH:require("../js/ai-search.js"),URL:URL,
     setTimeout:function(fn){timers.set(++timerId,fn);return timerId;},clearTimeout:function(id){timers.delete(id);},
@@ -205,11 +212,11 @@ module.exports = function (ok) {
   get("continue-button").onclick();
   ok(liveSetup===previousSetup && liveUI.aiStarted && liveUI.game.firstPlayer===1 &&
     liveUI.game.balance.label==="1 × Charlie", "continuing an agreed match preserves its opening without renegotiation");
-  liveUI.options.onMenu();get("opening-select").value="original";get("opening-select").onchange();
+  liveUI.options.onMenu();selectOpening("original");
   find(cards("ai-made-list")[9],"level-play").onclick();
   ok(liveSetup===previousSetup && !liveUI.game.balance && liveUI.game.firstPlayer===0,
     "Original opening bypasses offers even on a custom battle");
-  liveUI.options.onMenu();get("opening-select").value="offers";get("opening-select").onchange();
+  liveUI.options.onMenu();selectOpening("offers");
   find(cards("mission-list")[0],"level-play").onclick();
   ok(liveSetup!==previousSetup && liveSetup.game.map.name===campaign[0].name,
     "explicit Compensation offers is available on an imported campaign without editing its source map");
@@ -218,7 +225,7 @@ module.exports = function (ok) {
     "the original-opening fallback starts a regular match with no compensation metadata");
   liveUI.options.onMenu();
   // Exercise real start/save/continue/next wiring, without changing browser storage.
-  get("opening-select").value="original";
+  selectOpening("original");
   get("lang-select").onchange();get("chk-hotseat").checked=false;
   find(cards("open-horizons-list")[0],"level-play").onclick();
   var saved=store.active().savedMatch;

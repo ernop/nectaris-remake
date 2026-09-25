@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nectaris — hex tactics remake</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='24,16 20,23 12,23 8,16 12,9 20,9' fill='%23ffd94a'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/nectaris.css?v=20260923-balance-offers-auto-layout">
+<link rel="stylesheet" href="css/nectaris.css?v=20260925-openings">
 </head>
 <body>
 <div id="save-error" class="hidden" role="alert"></div>
@@ -58,15 +58,18 @@
     </details>
   </section>
 
+  <section id="opening-settings" class="opening-settings" aria-labelledby="opening-heading">
+    <div class="opening-heading"><h2 id="opening-heading">How should the match open?</h2><a class="btn-like" href="tournaments.html#setup-title">Configure a bot tournament →</a></div>
+    <fieldset id="opening-select">
+      <legend>Opening system for your next level</legend>
+      <label class="opening-option"><input type="radio" name="opening" value="original"><span><strong>Use normal opening</strong><small>Union moves first. Keep the map’s original armies.</small></span></label>
+      <label class="opening-option"><input type="radio" name="opening" value="offers"><span><strong>Use offer for first</strong><small>Answer a few questions to find the bonus you would accept for going second.</small></span></label>
+      <label class="opening-default"><input type="radio" name="opening" value="auto" checked> Use map defaults: normal for imported campaigns, offers elsewhere</label>
+    </fieldset>
+    <p>Choose an opening, then click a level below. In offers, review the agreement before starting. Continuing a saved match keeps its existing opening.</p>
+  </section>
   <div class="library-toolbar">
     <label><input type="checkbox" id="chk-hotseat"> Two players (hotseat)</label>
-    <label>Opening
-      <select id="opening-select" aria-label="Opening rules">
-        <option value="auto">Offers for custom battles</option>
-        <option value="offers">Compensation offers</option>
-        <option value="original">Original opening</option>
-      </select>
-    </label>
     <label>Briefing language / 表示言語
       <select id="lang-select">
         <option value="en">English</option>
@@ -102,7 +105,7 @@
 <section id="balance-screen" class="hidden" aria-labelledby="balance-title">
   <header id="balance-header" class="balance-header">
     <button id="balance-back">◄ Mission library</button>
-    <strong id="balance-title">Choose who moves second</strong>
+    <strong id="balance-title">Offer for first · find your switch point</strong>
     <span id="balance-map-name"></span>
   </header>
   <div id="balance-body" class="balance-body">
@@ -125,7 +128,8 @@
         <p class="profile-eyebrow">FIRST MOVE OR REINFORCEMENTS</p>
         <h2 id="balance-turn"></h2>
         <p id="balance-message" role="status"></p>
-        <p id="balance-rules">Choose a package to go second. Earlier offers remain available. Both decline: add an offer. Both accept: random tie-break. Neither accepts the last offer: return to setup.</p>
+        <p id="balance-rules">Yes narrows toward a smaller offer; No tries a larger menu. Earlier packages remain available. Each player answers privately. The lower switch point sets the deal; matching switch points use a random tie-break.</p>
+        <p id="balance-progress"></p>
       </div>
       <div id="balance-offers" role="group" aria-label="Offer sequence"></div>
       <div class="balance-choice">
@@ -133,10 +137,13 @@
         <div id="balance-placement-list"></div>
         <p id="balance-choice-note">Full strength · No experience · Ready on your first turn.</p>
         <div class="balance-buttons">
-          <button id="balance-accept" class="primary">Take second with this package</button>
-          <button id="balance-pass">Prefer first — decline</button>
+          <p id="balance-question"></p>
+          <button id="balance-accept" class="primary">Yes — I’d go second for this</button>
+          <button id="balance-pass">No — none of these is enough</button>
+          <button id="balance-back-answer">Change previous answer</button>
           <button id="balance-start" class="primary hidden">Start match</button>
-          <button id="balance-original" class="hidden">Play original opening</button>
+          <button id="balance-restart" class="hidden">Start the questions again</button>
+          <button id="balance-original" class="hidden">Use normal opening</button>
         </div>
       </div>
     </aside>
@@ -259,7 +266,7 @@
 <script src="js/data-units.js?v=20260920-cpu-tactics"></script>
 <script src="js/combat.js?v=20260923-search-3"></script>
 <script src="js/engine.js?v=20260923-balance-offers"></script>
-<script src="js/balance.js?v=20260923-balance-offers"></script>
+<script src="js/balance.js?v=20260925-openings"></script>
 <script src="js/ai.js?v=20260923-search-3"></script>
 <script src="js/ai-model.js?v=20260923-search-3"></script>
 <script src="js/ai-search.js?v=20260923-search-3"></script>
@@ -275,11 +282,11 @@
 <script src="js/legacy-terrain.js?v=20260923-board-frame"></script>
 <script src="js/render.js?v=20260923-auto-layout"></script>
 <script src="js/unit-view.js?v=20260922-factory-actions"></script>
-<script src="js/balance-ui.js?v=20260923-balance-offers"></script>
+<script src="js/balance-ui.js?v=20260925-openings"></script>
 <script src="js/music.js?v=20260920-battle-forecast"></script>
 <script src="js/combat-view.js?v=20260922-unit-actions-2"></script>
 <script src="js/ui.js?v=20260923-auto-layout"></script>
 <script src="js/profiles.js?v=20260923-terrain-campaigns"></script>
-<script src="js/main.js?v=20260923-ai-made-labels"></script>
+<script src="js/main.js?v=20260925-openings"></script>
 </body>
 </html>

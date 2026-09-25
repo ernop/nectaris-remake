@@ -8,7 +8,7 @@ module.exports=function(ok){
     ok(a.seed===b.seed&&a.map===b.map&&a.players[0]===b.players[1]&&a.players[1]===b.players[0],"paired fixtures swap factions and preserve board/seed "+i);
   }
   ok(T.fixture(config,0).seed!==T.fixture(config,40).seed,"cycles use distinct reproducible seeds");
-  var invalid=[{opponents:[]},{opponents:["bogus"]},{maps:[]},{cycles:0},{cycles:1.1},{workers:17},{seed:-1},{maxRounds:-1},{k:0},{work:"invalid"}];
+  var invalid=[{opponents:[]},{opponents:["bogus"]},{maps:[]},{cycles:0},{cycles:1.1},{workers:17},{seed:-1},{maxRounds:-1},{k:0},{work:"invalid"},{opening:"auto"},{noDeal:"force"}];
   invalid.forEach(function(v){var threw=false;try{T.normalize(Object.assign({opponents:["classic"],maps:[tiny]},v));}catch(e){threw=true;}ok(threw,"invalid tournament setting is rejected: "+JSON.stringify(v));});
   var elo=T.standings(["classic","tactical"]),r={players:["classic","tactical"],winner:0,thinkingMs:[1,2]};T.rate(elo,r,32);
   ok(elo.classic.elo===1516&&elo.tactical.elo===1484,"equal Elo win changes ratings by K/2 symmetrically");
@@ -16,6 +16,8 @@ module.exports=function(ok){
   ok(elo.classic.elo<1516&&elo.classic.elo+elo.tactical.elo===3000,"draw regresses unequal Elo without creating rating points");
   var before=JSON.stringify(elo);T.rate(elo,{players:["classic","tactical"],error:"failed"},32);
   ok(JSON.stringify(elo)===before,"failed games are not rated or counted as losses");
+  T.rate(elo,{players:["classic","tactical"],winner:null,skipped:true},32);
+  ok(JSON.stringify(elo)===before,"no-deal games are skipped without being rated as draws");
   var same=T.standings(["classic"]);T.rate(same,{players:["classic","classic"],winner:0},32);
   ok(same.classic.elo===1500&&same.classic.wins===1&&same.classic.losses===1,"same-algorithm self-play tracks both seats without changing Elo");
   config=T.normalize({opponents:["classic","tactical"],maps:[maps[0]],cycles:1,maxRounds:3});
@@ -30,6 +32,35 @@ module.exports=function(ok){
   }
   var unexpected=false;try{T.command(restored,["constructor",[]]);}catch(e){unexpected=true;}
   ok(unexpected,"replay accepts only the explicit engine-command allowlist");
+  var offerMap={name:"Opening test",grid:Array(7).fill("............."),turnLimit:20,
+    buildings:[{col:0,row:3,kind:"base",owner:0},{col:12,row:3,kind:"base",owner:1}],
+    units:[{t:"BISON",o:0,x:1,y:3},{t:"BISON",o:1,x:11,y:3}]};
+  offerMap.grid[3]="B...........B";
+  var offerConfig=T.normalize({opponents:["classic"],maps:[offerMap],opening:"offers",maxRounds:1,seed:0});
+  var offerSpec=T.fixture(offerConfig,0),offered=T.playSync(offerSpec),again=T.playSync(offerSpec);
+  ok(offerSpec.opening==="offers"&&offered.balance&&offered.negotiation.thresholds.length===2,"offer fixtures run the same guided protocol and record the deal");
+  ok(offered.firstPlayer===1&&offered.halfTurns===2&&offered.reason==="round-cap","a reversed opening gives both bots one full turn before the lab cap");
+  // Unit IDs are process-global, so compare equivalent command/state IDs.
+  function canonical(result){var offset=result.initial.units[0].id;
+    return JSON.stringify({initial:result.initial,commands:result.commands,final:result.final},function(key,value){
+      if(key==="field")return value.map(function(id){return id-offset;});
+      return ["id","unit","carriedBy","a","d"].indexOf(key)>=0&&typeof value==="number"?value-offset:value;
+    });
+  }
+  ok(canonical(offered)===canonical(again),"offer negotiation and combat repeat with the same fixture seed, independent of process-global IDs");
+  ok(JSON.stringify(T.replay(offered).snapshot())===JSON.stringify(offered.final),"compensated replay starts with the bonus and reproduces its final state");
+  ok(offered.initial.rngState===new E.Game(offerMap,{seed:offerSpec.seed}).snapshot().rngState,"tournament opening tie-break leaves combat RNG unchanged");
+  var blocked={name:"Blocked opening",grid:["BMMM","MMMM","MMMB"],turnLimit:3,
+    buildings:[{col:0,row:0,owner:0},{col:3,row:2,owner:1}],units:[{t:"CHARLIE",o:0,x:0,y:0},{t:"CHARLIE",o:1,x:3,y:2}]};
+  var blockedConfig=T.normalize({opponents:["classic"],maps:[blocked],opening:"offers",maxRounds:1}),blockedSpec=T.fixture(blockedConfig,0);
+  var skipped=T.playSync(blockedSpec),fallback=T.playSync(Object.assign({},blockedSpec,{noDeal:"original"}));
+  ok(skipped.skipped&&skipped.reason==="opening-unavailable"&&skipped.commands.length===0,"unplaceable offers produce a saved skip without playing a silent fallback");
+  ok(!fallback.skipped&&fallback.opening==="original"&&fallback.requestedOpening==="offers"&&fallback.negotiation.status==="unavailable"&&fallback.halfTurns===2,
+    "explicit normal fallback plays and records its original failed negotiation");
+  var expensive=JSON.parse(JSON.stringify(offerMap));expensive.buildings.forEach(function(base){base.stored=Array(200).fill("POLAR");});
+  var noDeal=T.playSync(T.fixture(T.normalize({opponents:["classic"],maps:[expensive],opening:"offers",maxRounds:1}),0));
+  ok(noDeal.skipped&&noDeal.reason==="opening-no-deal"&&noDeal.negotiation.thresholds.every(function(t){return t===null;})&&noDeal.commands.length===0,
+    "bots that reject even the largest available menu produce an explicit no-deal result");
   // Regression: unsearched neutral priors used to win in negative positions,
   // causing the expensive AI to pass while it still had valuable actions.
   var losing=new E.Game({name:"Outnumbered",grid:[".......","B.....B","......."],buildings:[{col:0,row:1,owner:0},{col:6,row:1,owner:1}],

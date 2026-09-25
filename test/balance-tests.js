@@ -31,6 +31,11 @@ module.exports=function(ok){
       var choice=B.cpuChoice(p,step,1);
       ok(choice===null || Number.isInteger(choice)&&choice>=0&&choice<=step,map.name+": CPU chooses only available packages");
     }
+    [0,1].forEach(function(side){
+      var survey=B.cpuSurvey(p,side),high=survey.high;
+      ok((high===p.offers.length || B.cpuChoice(p,high,side)!==null) &&
+        (survey.low===-1 || B.cpuChoice(p,survey.low,side)===null),map.name+": bot switch point agrees with its own role evaluation");
+    });
     ok(JSON.stringify(g.snapshot())===before && JSON.stringify(map)===source,map.name+": previews and CPU bidding leave state, source map and combat RNG untouched");
   });
   var g=new E.Game(maps[9],{seed:51}),p=B.plan(g);
@@ -42,6 +47,69 @@ module.exports=function(ok){
   ok(B.resolve(p,6,[2,3],function(){return 0;}).offer===2 &&
     B.resolve(p,6,[2,3],function(){return 0.99;}).offer===3,"both-accept tie preserves the selected winner's own package");
   ok(fails(function(){B.resolve(p,1,[3,null]);})&&fails(function(){B.resolve(p,NaN,[null,null]);}),"future and invalid offers cannot be accepted");
+  function survey(threshold){
+    var s=B.begin(p),step;
+    while((step=B.question(s))!==null)B.answer(p,s,step>=threshold?step:null);
+    return s;
+  }
+  var surveys=[];
+  for(var threshold=0;threshold<=p.offers.length;threshold++){
+    var s=survey(threshold);surveys.push(s);
+    ok(s.high===threshold&&s.low===threshold-1&&s.answers.length<=6,
+      "guided questions find exact switch boundary in at most six answers: "+threshold);
+  }
+  var validSettlements=true;
+  surveys.forEach(function(left,i){surveys.forEach(function(right,j){
+    var result=B.settle(p,[left,right],function(){return 0;});
+    if(i===32&&j===32){if(result.status!=="no-deal")validSettlements=false;return;}
+    if(result.offer!==Math.min(i,j)||result.secondPlayer!==(i<=j?0:1)||result.tied!==(i===j))validSettlements=false;
+  });});
+  ok(validSettlements,"every pair of switch points settles at the first acceptable menu, with no forced deal");
+  ok(B.settle(p,[surveys[3],surveys[3]],function(){return .9;}).secondPlayer===1,"equal switch points use the independent random tie-break");
+  var revised=B.begin(p);B.answer(p,revised,null);B.back(revised);
+  ok(revised.answers.length===0&&B.question(revised)===15,"change previous answer restores the preceding bracket");
+  B.answer(p,revised,null);B.answer(p,revised,2);
+  ok(revised.low===-1&&revised.high===2,"accepting an earlier retained package revises its previous rejection");
+  B.answer(p,revised,null);B.answer(p,revised,null);
+  ok(B.question(revised)===null&&revised.choice===2,"revised answers still converge to a consistent boundary");
+  ok(fails(function(){B.settle(p,[B.begin(p),surveys[3]]);})&&fails(function(){B.answer(p,B.begin(p),31);}),
+    "unfinished surveys and answers outside the current menu cannot form an agreement");
+  var draft=JSON.stringify(g.snapshot()),bot=B.cpuSurvey(p,1);
+  ok(B.question(bot)===null&&JSON.stringify(g.snapshot())===draft,"CPU locks its full survey without changing map or combat randomness");
+  var guidedGame=new E.Game(maps[9]),guidedPlan=B.plan(guidedGame),guidedResult=B.settle(guidedPlan,[surveys[2],surveys[8]]);
+  B.apply(guidedGame,guidedPlan,guidedResult);
+  ok(JSON.stringify(E.Game.restore(guidedGame.snapshot()).balance)===JSON.stringify(guidedGame.balance)&&guidedGame.balance.version===2,
+    "switch points and private answer record survive the started match's save and restore");
+
+  // Exercise the controller's real transitions without canvas rendering.
+  var oldBalance=global.BALANCE,oldDocument=global.document;
+  try{
+    global.BALANCE=B;global.document={getElementById:function(){return {children:[]};}};
+    var Setup=require("../js/balance-ui.js").Setup;
+    function controller(hotseat){
+      var ui=Object.create(Setup.prototype);ui.plan=p;ui.options={hotseat:hotseat};ui.render=function(){};ui.focus=function(){};
+      ui.handoff=function(player){this.phase="handoff";this.handedTo=player;};ui.restart();return ui;
+    }
+    var solo=controller(false),locked=JSON.stringify(solo.surveys[1]);
+    solo.submit(solo.step);
+    ok(solo.phase==="vote"&&solo.step<15&&JSON.stringify(solo.surveys[1])===locked,"solo acceptance narrows the question while CPU answers remain committed");
+    while(solo.phase==="vote")solo.submit(null);
+    ok(solo.phase==="agreed"&&solo.result.thresholds.length===2,"solo agreement waits for the player's completed switch point");
+    var hotseat=controller(true);
+    ok(hotseat.phase==="handoff"&&hotseat.handedTo===0,"hotseat begins behind a private handoff");
+    hotseat.phase="vote";hotseat.submit(0);
+    ok(hotseat.phase==="handoff"&&hotseat.handedTo===1&&hotseat.responder===1&&!hotseat.result,"first player's completed answers stay hidden until the second player finishes");
+    hotseat.phase="vote";
+    while(hotseat.phase==="vote")hotseat.submit(null);
+    ok(hotseat.phase==="agreed"&&hotseat.result.secondPlayer===0&&hotseat.result.offer===0,"hotseat settles after both independent surveys");
+    hotseat.restart();hotseat.phase="vote";
+    while(hotseat.phase==="vote")hotseat.submit(null);
+    hotseat.phase="vote";while(hotseat.phase==="vote")hotseat.submit(null);
+    ok(hotseat.phase==="no-deal","two complete refusals reach the explicit no-deal screen");
+  }finally{
+    if(oldBalance===undefined)delete global.BALANCE;else global.BALANCE=oldBalance;
+    if(oldDocument===undefined)delete global.document;else global.document=oldDocument;
+  }
   var initial=g.units.length,rng=g.rng.getState(),expected=B.placements(p,0,2),mapBefore=JSON.stringify(g.map);
   B.apply(g,p,a);
   ok(g.currentPlayer===1&&g.firstPlayer===1&&g.units.length===initial+1,"acceptance adds exactly the chosen package and starts the opposite army");

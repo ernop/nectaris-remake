@@ -1,6 +1,6 @@
 # Project guidance and decision index
 
-Audited 2026-09-23. This is a map of the records, not a second specification.
+Audited 2026-09-23; opening-system records updated 2026-09-25. This is a map of the records, not a second specification.
 Use the owning document below for details. A newer, explicit user correction
 supersedes an older decision; update its record rather than leaving conflicting
 instructions for the next session.
@@ -30,7 +30,7 @@ retuned. These themes do not authorize extra features or unsourced rule changes.
 
 | Item | Status and record |
 | --- | --- |
-| Second-player compensation offers | Implemented by the user's 2026-09-23 request: 32 cumulative mixed packages, fixed visible sites near each base, private responses, solo/hotseat support and saved initiative. Original campaign play remains the default there; accepted offers are not a measured balance guarantee. [Protocol and scope](PRODUCT.md#compensation-offers-before-play-2026-09-23). |
+| Second-player compensation offers | Updated from the user's 2026-09-25 request: prominent Normal / Offer for first choices in the level picker and linked tournament setup; guided private switch-point questions, 32 cumulative menus, fixed previewable sites, explicit no-deal policies and saved/replayed initiative. Bot tournaments use the same heuristic protocol with separate ratings; accepted offers are not measured equal odds. [Protocol and scope](PRODUCT.md#compensation-offers-before-play-2026-09-23). |
 | Board orientation and control docking | Implemented from the user's 2026-09-23 space-saving request: Auto / Normal / Sideways board views, Auto / Top / Left control placement (both default to Auto and choose the larger board fit), upright units and labels, a Fit button and persisted preferences. Left mode also docks unit commands and the legend, preserving full board height. [Layout behavior](PRODUCT.md#board-orientation-and-control-docking-2026-09-23). |
 | Unit activation completion | Implemented from the user's 2026-09-23 original-game correction: leaving a started activation forfeits its remaining attack or buggy retreat; returning to the unit later cannot reopen it. Saves and Undo retain the correct action state. [Action rules](MECHANICS.md#units-and-actions), [controls](PRODUCT.md#shift-target-inspection-and-combat-controls-updated-2026-09-21). |
 | Firing-area borders | User-requested visual trial implemented: outer and inner contours replace per-hex firing outlines; awaiting user assessment. [Trial scope](PRODUCT.md#firing-area-border-trial-2026-09-23). |

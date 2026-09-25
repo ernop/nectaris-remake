@@ -99,12 +99,52 @@ var BALANCE = (function () {
     }
     var count=Math.min(6,sites[0].length,sites[1].length);
     sites=sites.map(function(list){return list.slice(0,count);});
-    if (!count) return {error:"There are no suitable empty reinforcement hexes near both bases. Choose Original opening or edit this map’s starting positions."};
+    if (!count) return {error:"There are no suitable empty reinforcement hexes near both bases. Choose Use normal opening or edit this map’s starting positions."};
     var offers=PACKAGES.filter(function(ids){return ids.length<=count;}).map(function(ids,index){return {id:index,units:ids.slice(),label:label(ids)};});
     return {version:1,sites:sites,homes:homes.map(function(b){return {col:b.col,row:b.row};}),offers:offers,
       symmetric:!!mirror,game:game};
   }
   function validChoice(p, step, choice) { return Number.isInteger(choice) && choice>=0 && choice<=step && !!p.offers[choice]; }
+  // Search the first acceptable cumulative MENU, not an assumed ordering of
+  // unit values. Every question includes packages 0..step, so a player can
+  // retain infantry even when the newest package contains tanks.
+  function begin(p) {
+    if(p.error || !p.offers.length)throw new Error(p.error || "No compensation packages.");
+    return {low:-1,high:p.offers.length,choice:null,answers:[]};
+  }
+  function question(s) {return s.high-s.low<=1 ? null : Math.floor((s.low+s.high)/2);}
+  function answer(p,s,choice) {
+    var step=question(s);
+    if(step===null || (choice!==null && !validChoice(p,step,choice)))throw new Error("Invalid switch-point answer.");
+    s.answers.push({step:step,choice:choice,low:s.low,high:s.high,previous:s.choice});
+    if(choice===null)s.low=step;
+    else {
+      // Selecting a previously rejected package revises that refusal. Keep
+      // earlier choices available without pretending the answers are consistent.
+      if(choice<=s.low)s.low=-1;
+      s.high=choice;s.choice=choice;
+    }
+    return question(s);
+  }
+  function back(s) {
+    var last=s.answers.pop();if(!last)return;
+    s.low=last.low;s.high=last.high;s.choice=last.previous;
+  }
+  function cpuSurvey(p,player) {
+    var s=begin(p),step;
+    while((step=question(s))!==null)answer(p,s,cpuChoice(p,step,player));
+    return s;
+  }
+  function settle(p,surveys,random) {
+    if(!Array.isArray(surveys)||surveys.length!==2||surveys.some(function(s){return question(s)!==null;}))
+      throw new Error("Both players must finish finding their switch points.");
+    var thresholds=surveys.map(function(s){return s.high<p.offers.length?s.high:null;});
+    var step=Math.min.apply(null,surveys.map(function(s){return s.high;}));
+    var result=step===p.offers.length ? {status:"no-deal"} : resolve(p,step,surveys.map(function(s){return s.high===step?s.choice:null;}),random);
+    result.version=2;result.thresholds=thresholds;
+    result.answers=surveys.map(function(s){return s.answers.map(function(a){return {step:a.step,choice:a.choice};});});
+    return result;
+  }
   function resolve(p, step, responses, random) {
     if (!Number.isInteger(step) || !p.offers[step] || !Array.isArray(responses) || responses.length!==2 ||
         responses.some(function(c){return c!==null && !validChoice(p,step,c);})) throw new Error("Invalid compensation responses.");
@@ -126,17 +166,19 @@ var BALANCE = (function () {
       if (!passable(game,at) || game.unitAt(at.col,at.row) || game.buildingAt(at.col,at.row)) throw new Error("A reinforcement hex is no longer available.");
     });
     game.firstPlayer=result.firstPlayer;game.currentPlayer=result.firstPlayer;
-    game.balance={version:1,firstPlayer:result.firstPlayer,secondPlayer:result.secondPlayer,offer:result.offer,
+    game.balance={version:result.version||1,firstPlayer:result.firstPlayer,secondPlayer:result.secondPlayer,offer:result.offer,
       step:result.step,tied:result.tied,label:p.offers[result.offer].label,placements:units};
+    if(result.thresholds)game.balance.thresholds=result.thresholds.slice();
+    if(result.answers)game.balance.answers=JSON.parse(JSON.stringify(result.answers));
     units.forEach(function(at){game.units.push(engine.makeUnit(at.typeId,result.secondPlayer,at.col,at.row,8,0));});
     return game.balance;
   }
   // Opening-role heuristic, not a proven price list or win-probability model.
-  // It evaluates the best retained package for BOTH possible recipients before
+  // It evaluates each retained package for BOTH possible recipients before
   // seeing the human's response. It never reads the match random stream.
   function value(type) {return (type.atkG+type.atkA+type.def)/3+type.move+(type.capture?30:0);}
   function cpuChoice(p,step,player) {
-    var g=p.game, best=[{choice:0,value:0},{choice:0,value:0}], material=[0,0];
+    var g=p.game, values=[[0],[0]], material=[0,0];
     g.units.forEach(function(u){material[u.player]+=value(u.type)*u.strength/8;});
     Object.values(g.buildings).forEach(function(b){if(b.owner>=0)b.stored.forEach(function(u){material[b.owner]+=value(u.type)*u.strength/8;});});
     for(var side=0;side<2;side++) for(var i=1;i<=step;i++) {
@@ -152,14 +194,21 @@ var BALANCE = (function () {
         }
         return sum+worth/(1+travel*0.025);
       },0);
-      if(v>best[side].value)best[side]={choice:i,value:v};
+      values[side][i]=v;
     }
     var contested=Object.values(g.buildings).filter(function(b){return b.owner<0 && Math.abs(distance(b,p.homes[0])-distance(b,p.homes[1]))<=2;})
       .reduce(function(sum,b){return sum+b.stored.length;},0);
     var initiative=12+0.16*Math.min(material[0],material[1])+Math.min(80,contested*3);
-    return best[player].value+best[1-player].value>=2*initiative ? best[player].choice : null;
+    // Compare the SAME package under each possible recipient. Otherwise a
+    // newly unlocked enemy bonus could make us accept an earlier package we
+    // still reject when that package is the menu boundary.
+    var choice=null;
+    for(var i=0;i<=step;i++)if(values[player][i]+values[1-player][i]>=2*initiative &&
+      (choice===null || values[player][i]>values[player][choice]))choice=i;
+    return choice;
   }
   return {plan:plan,label:label,placements:placements,resolve:resolve,apply:apply,cpuChoice:cpuChoice,
+    begin:begin,question:question,answer:answer,back:back,cpuSurvey:cpuSurvey,settle:settle,
     packages:PACKAGES,MAX_DISTANCE:MAX_DISTANCE};
 })();
 if(typeof module!=="undefined")module.exports=BALANCE;

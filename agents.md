@@ -144,14 +144,19 @@ Facts we need across sessions:
   actions and complete AI turns; unfinished AI turns resume from their start.
   Tests in `test/profiles-tests.js` run through the main suite. See `PRODUCT.md`.
 
-- **Compensation offers (2026-09-23):** implemented by user request, with 32
-  cumulative mixed packages and fixed numbered, previewable ground sites near
-  each base. Keep earlier choices, private simultaneous responses, random
-  both-accept tie-breaks and explicit no-deal handling. `firstPlayer` must survive
-  saves and AI copies; rounds advance after both sides act. Imported campaigns
-  default to original play, other battlefields to offers. Preserve separate
-  compensated results and original map data. The CPU bidding heuristic is not
-  evidence of balance. See PRODUCT's compensation record and `test/balance-tests.js`.
+- **Compensation offers (updated 2026-09-25):** prominent Normal / Offer for
+  first choices above the level picker link to bot tournament setup. The retained
+  map-default choice uses original play for imported campaigns and offers elsewhere.
+  Guided private questions narrow each player's first acceptable cumulative menu
+  of up to 32 mixed packages; earlier choices stay available. Lower switch point
+  gets second with its accepted bonus; ties are random, no-deal is explicit.
+  Fixed numbered sites near each base remain previewable. `firstPlayer` survives
+  saves and AI copies; rounds advance after both sides. Tournament protocol
+  2026-09-25.1 shares the guided search, uses separate deterministic tie randomness,
+  records openings in replays and excludes skipped offers from ratings. Explicit
+  normal fallback is configurable. All bots still share an opening heuristic,
+  not measured balance. Preserve separate compensated results and original map
+  data. See PRODUCT's compensation record and `test/balance-tests.js`.
 
 - **Unit labels and factory hovers (updated 2026-09-23):** use `UNIT_VIEW` for short
   unit names and accompanying icons. Omit serial/model designations in the UI.

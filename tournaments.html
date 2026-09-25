@@ -1,14 +1,23 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Nectaris · AI tournament lab</title><link rel="stylesheet" href="css/tournaments.css?v=20260923-search-3"></head>
+<title>Nectaris · AI tournament lab</title><link rel="stylesheet" href="css/tournaments.css?v=20260925-openings"></head>
 <body>
-<header><a href="index.html">← Play Nectaris</a><span>NECTARIS / RESEARCH LAB</span><h1>AI tournaments</h1>
+<header><a href="index.html#opening-settings">← Campaigns, levels &amp; opening setup</a><span>NECTARIS / RESEARCH LAB</span><h1>AI tournaments</h1>
 <p>Run both sides of every matchup. Measure the results. Watch any game.</p></header>
 <main>
 <p id="lab-error" role="alert" hidden></p>
 <p id="lab-download" role="status" hidden></p>
 <section class="setup" aria-labelledby="setup-title"><h2 id="setup-title">Set up a tournament</h2>
 <form id="lab-form">
+<fieldset class="opening-settings"><legend>Opening system</legend>
+<div class="opening-options">
+<label><input type="radio" name="lab-opening" value="original" checked><span><strong>Use normal opening</strong><small>Union moves first with the original armies.</small></span></label>
+<label><input type="radio" name="lab-opening" value="offers"><span><strong>Use offer for first</strong><small>Bots find their switch points, then agree on who goes second and the bonus.</small></span></label>
+</div>
+<p id="lab-opening-note" class="note">This applies to every selected board. Opening settings are saved with each tournament.</p>
+<label id="lab-no-deal-label" hidden>If offers are unavailable or neither bot accepts <select id="lab-no-deal"><option value="skip">Skip the game; no rating change</option><option value="original">Play with the normal opening</option></select></label>
+<p id="lab-offers-note" class="note" hidden>All bots currently use the same opening heuristic, independently of their playing algorithm. A deal reflects that heuristic’s preferences; it does not establish equal winning chances. Replays record both switch points, the bonus and who starts.</p>
+</fieldset>
 <div class="config-grid">
 <fieldset><legend>Opponents</legend><div id="lab-opponents"></div><label><input type="checkbox" id="lab-self"> Include same-AI self-play</label></fieldset>
 <fieldset><legend>Boards</legend><label>Collection <select id="lab-collection"></select></label>
@@ -32,10 +41,10 @@
 <div class="run-bar"><strong id="lab-status" role="status"></strong><button id="lab-pause">Pause after active games</button><button id="lab-resume">Resume</button><button id="lab-stop">Stop now</button></div>
 <progress id="lab-progress" value="0" max="1"></progress><p id="lab-live"></p><p id="lab-settings"></p>
 <div class="table-scroll"><table><thead><tr><th>Opponent</th><th>Elo</th><th>Games</th><th>W / D / L</th><th>Score</th><th>Union / Xenon</th><th>Think / game</th></tr></thead><tbody id="lab-ratings"></tbody></table></div>
-<p class="note">Elo starts at 1500 in each run and updates in scheduled order, independent of worker speed. It is relative to this pool, boards, seed and round cap; it is not a human rating. Self-play does not change Elo. Errors are excluded. Small samples are provisional.</p>
+<p class="note">Elo starts at 1500 in each run and updates in scheduled order, independent of worker speed. It is relative to this pool, boards, opening, seed and round cap; it is not a human rating. Self-play does not change Elo. Errors and skipped games are excluded. Small samples are provisional.</p>
 <details><summary>Head-to-head results</summary><div class="table-scroll"><table><thead><tr><th>Matchup</th><th>Games</th><th>First AI’s W / D / L</th><th>Score</th></tr></thead><tbody id="lab-pairs"></tbody></table></div></details>
 <div class="archive-tools"><button id="lab-export">Export results CSV</button><button id="lab-archive">Export full archive</button><button id="lab-delete">Delete this run</button><span id="lab-storage"></span></div>
-<h3>Past games</h3><div class="table-scroll"><table><thead><tr><th>#</th><th>Board</th><th>Union</th><th>Xenon</th><th>Result</th><th>Rounds</th><th>Time</th><th>Replay</th></tr></thead><tbody id="lab-games"></tbody></table></div>
+<h3>Past games</h3><div class="table-scroll"><table><thead><tr><th>#</th><th>Board</th><th>Union</th><th>Xenon</th><th>Opening</th><th>Result</th><th>Rounds</th><th>Time</th><th>Replay</th></tr></thead><tbody id="lab-games"></tbody></table></div>
 <div class="pages"><button id="lab-prev">Previous 25</button><span id="lab-page"></span><button id="lab-next">Next 25</button></div>
 </div></section>
 <section id="lab-viewer" hidden aria-labelledby="replay-title"><div class="section-bar"><h2 id="replay-title">Replay</h2><button id="replay-download">Download game JSON</button></div>
@@ -46,9 +55,9 @@
 </main>
 <script src="js/hex.js"></script><script src="js/data-terrain.js"></script><script src="js/data-units.js"></script>
 <script src="js/combat.js?v=20260923-search-3"></script><script src="js/engine.js?v=20260922-factory-actions"></script><script src="js/ai.js?v=20260923-search-3"></script>
-<script src="js/ai-model.js?v=20260923-search-3"></script><script src="js/ai-search.js?v=20260923-search-3"></script><script src="js/ai-tournament.js?v=20260923-search-3"></script>
+<script src="js/balance.js?v=20260925-openings"></script><script src="js/ai-model.js?v=20260923-search-3"></script><script src="js/ai-search.js?v=20260923-search-3"></script><script src="js/ai-tournament.js?v=20260925-openings"></script>
 <script src="js/data-maps.js"></script><script src="js/data-advanced-maps.js"></script><script src="js/data-expansion-maps.js"></script><script src="js/data-basenectaris-maps.js"></script><script src="js/data-ai-maps.js"></script>
 <script src="js/data-environment-campaigns.js?v=20260923-terrain-campaigns"></script>
 <script src="js/data-unit-art.js"></script><script src="js/data-unit-art-legacy.js"></script><script src="js/unit-icon-sets.js"></script><script src="js/legacy-terrain.js"></script><script src="js/render.js?v=20260923-board-layout"></script>
-<script src="js/tournament-store.js?v=20260923-search-3"></script><script src="js/tournament-ui.js?v=20260923-search-3"></script>
+<script src="js/tournament-store.js?v=20260923-search-3"></script><script src="js/tournament-ui.js?v=20260925-openings"></script>
 </body></html>

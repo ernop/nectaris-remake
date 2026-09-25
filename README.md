@@ -69,7 +69,7 @@ independent progress and a Next mission button.
 Tiny forces, restricted rosters and awkward heavy-armor positions are mixed
 with larger battles. No Hunters, Falcons or Eagles appear; Pelicans remain.
 
-Select **Opening → Original opening** to play the exact authored roster puzzles;
+Select **Use normal opening** to play the exact authored roster puzzles;
 compensation offers can add extra units. Read the [mission catalog](ENVIRONMENT_CAMPAIGNS.md)
 or use each map's **?** briefing in the game.
 
@@ -119,34 +119,43 @@ profile. Storage problems display an error instead of claiming progress is saved
 
 ## Choosing the opening
 
-**Opening → Offers for custom battles** is the default: original/custom and
-expansion battlefields negotiate compensation; the normal and advanced imported
-campaigns use their original opening. Choose **Compensation offers** to use it
-on any eligible map, or **Original opening** to skip it everywhere.
+Above the level list, **How should the match open?** offers two explicit choices:
+**Use normal opening** (Union first, original armies) and **Use offer for first**
+(guided second-player compensation). Choose one, then click a level. The retained
+**Use map defaults** setting uses normal play on imported normal/advanced
+campaigns and offers elsewhere. Your choice persists; **Continue match** keeps
+the saved opening.
 
-Before either army moves, inspect the whole map and both bases. Up to **32
-offers**, from no bonus through four Polars plus two Charlies, unlock in order.
-Each earlier package stays selectable, so two Charlies never become unavailable
-when a Polar is offered. Future packages can be previewed before they unlock.
-Numbered hexes, unit icons and column/row coordinates show exactly where the
-bonus would appear near each base. The positions stay fixed throughout setup;
-**Union base / Xenon base**, zoom and Ctrl+left-drag let you inspect them.
+In the guided setup, inspect the battlefield and fixed numbered bonus sites,
+then answer **“Would you accept X to go second?”** You can select any earlier
+package in the current menu. **Yes** tests a smaller menu; **No** means none of
+that menu’s packages is enough, so it tries a larger one. Normally this finds
+your switch point in at most six questions. **Change previous answer** lets you
+correct an answer. Mixed packages are alternatives, not universal unit prices.
 
-Accept a package to go second or decline to prefer first. Both decline: unlock
-the next offer. One accepts: that army goes second with its chosen package.
-Both accept: a random tie-break chooses which army goes second with its own
-selection. Hotseat uses private pass-the-device responses; in solo the CPU
-commits independently. Review the agreement, then **Start match**. Bonuses are
-full strength, zero experience and ready on their owner's first turn. Solo
-always keeps you as Union. The existing timeout victory for Xenon still applies.
+Both players answer privately. Solo locks the bot’s answers in advance; hotseat
+uses a pass-the-device screen. Once both switch points are known, the lower one
+sets the compensation and its accepting player goes second. Matching switch
+points use a random tie-break. Review both boundaries, the first player and the
+exact bonus, then **Start match**; you can restart the questions before playing.
+Bonuses are full strength, zero experience and ready on their owner’s first turn.
+Solo keeps you as Union; the map’s timeout victory for Xenon still applies.
 
-Offers need legal ground hexes near both bases. Small sites shorten the list;
-unsuitable maps (including AIRLIFT) offer the original-opening fallback. If both
-players decline the final offer, return to the library or explicitly choose the
-original opening. Negotiation itself is not saved; cancelling or reloading it
-preserves your previous match. Once started, the agreement and turn order save
-with the game, and compensated results have separate level records. The CPU
-uses an opening heuristic; accepted terms are not a measured balance guarantee.
+Up to 32 packages range from no bonus to four Polars plus two Charlies. Numbered
+hexes and coordinates show exactly where they arrive near each base. **Union
+base / Xenon base**, zoom, Ctrl+left-drag and hover inspection help you assess
+them. Small sites shorten the list; unsuitable maps (including AIRLIFT) explain
+why offers are unavailable and allow normal play. If neither player accepts any
+package, retry or explicitly use normal play. Cancelling/reloading negotiation
+preserves your previous saved match. Started agreements and turn order are saved;
+compensated results have separate records. The bot uses a heuristic, so the
+switch point reflects preferences rather than proven equal winning chances.
+
+**Configure a bot tournament →** in the same panel opens the linked setup screen.
+Choose normal opening or offers there too. Bots negotiate automatically. You can
+skip unavailable/no-deal games (no rating change), or explicitly allow a normal
+opening fallback. Each tournament stores its settings, and results/replays identify
+the actual opening. See [tournament usage](AI_OPPONENTS.md#browser-tournaments).
 
 Map authors can supply `balanceSpawns`, an array containing Union's and Xenon's
 ordered `{col, row}` arrays, using zero-based coordinates. Supply up to six

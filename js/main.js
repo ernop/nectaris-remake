@@ -123,7 +123,8 @@
   var menuScrollTop = 0;
 
   function openingMode(options) {
-    var mode=options.opening || ($("opening-select") && $("opening-select").value) || "auto";
+    var selected=document.querySelector('input[name="opening"]:checked');
+    var mode=options.opening || (selected && selected.value) || "auto";
     return mode==="auto" ? (options.campaignIndex===undefined ? "offers" : "original") : mode;
   }
 
@@ -593,10 +594,12 @@
   }
 
   window.addEventListener("DOMContentLoaded", function () {
-    var openingSelect=$("opening-select");
-    try {openingSelect.value=localStorage.getItem("nectaris-opening") || "auto";} catch(e) {openingSelect.value="auto";}
-    openingSelect.onchange=function(){
-      try {localStorage.setItem("nectaris-opening",openingSelect.value);} catch(e) { /* optional preference */ }
+    var openingSelect=$("opening-select"),opening="auto";
+    try {opening=localStorage.getItem("nectaris-opening") || "auto";} catch(e) { /* optional preference */ }
+    if(["original","offers","auto"].indexOf(opening)<0)opening="auto";
+    document.querySelector('input[name="opening"][value="'+opening+'"]').checked=true;
+    openingSelect.onchange=function(event){
+      try {localStorage.setItem("nectaris-opening",event.target.value);} catch(e) { /* optional preference */ }
       buildMenu();
     };
     window.addEventListener("scroll", closeMenuHelp);

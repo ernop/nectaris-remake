@@ -465,12 +465,20 @@ part is added.
 
 ## Compensation offers before play (2026-09-23)
 
+Updated 2026-09-25 from the user’s request for visible opening choices, a linked
+bot tournament setup and guided questions that find the changeover point.
+Implemented; this supersedes the original one-step-at-a-time acceptance UI.
+
 The user approved implementing the automatic second-player compensation
 proposal with a longer list and predefined, visible locations near each base.
 `js/balance.js` supplies 32 mixed ground-unit packages, starting at zero and
 ending at four Polars plus two Charlies. Their ordering expands the available
-menu; it does not assert universal unit prices. Every unlocked package remains
-available. A player may preview the entire finite schedule before answering.
+menu; it does not assert universal unit prices. Every question includes the
+cumulative menu through its numbered package,
+with earlier packages still selectable. A player may preview the entire finite
+schedule before answering. The binary search of these nested menus is an
+implementation choice; individual mixed packages are not assumed to have
+universally increasing value.
 
 The setup shows the unplayed battlefield, both conditional bonuses, fixed
 numbered hexes and exact one-based column/row coordinates. Zoom, base focus,
@@ -485,30 +493,63 @@ planner gets corresponding sites. Map authors can instead declare validated
 out packages that cannot fit. No suitable sites means an explained fallback,
 not a silently relocated bonus.
 
-At each step both players lock private acceptance or refusal. One acceptance
-assigns that player second with their selected package; two acceptances use a
-random tie-break, retaining the selected recipient's own choice. Two refusals
-unlock another offer. Final refusal returns to setup, with an explicit original
-opening option. Hotseat obscures the previous answer during device handoff.
-Solo commits the CPU response before the human answers, without consuming
-combat randomness. Its material/capture-opportunity heuristic is an initial
-negotiation policy, not a solved position evaluator or guarantee of equal odds.
-The agreement remains reviewable until Start match; no army acts before then.
+Each player privately answers “Would you accept this package to go second?”
+They may choose any earlier package in the current menu. Yes brackets downward;
+No rejects the whole current menu and brackets upward. Search ends at adjacent
+rejected/accepted menu boundaries (or no acceptable package). There are at most
+six questions for consistent answers across the 32-package schedule; accepting
+an earlier package can shorten the search. Change previous answer restores the
+prior question. Accepting a previously rejected package revises that rejection
+and rechecks the lower boundary. The final screen permits starting over.
 
-Menu defaults to offers on custom/original and expansion battlefields and
-original play on the 32 imported campaign missions. Explicit Offers and Original
-choices override that default and persist. Imported map data stays unchanged.
+Both players finish before any result is revealed. The lower switch point sets
+the deal: that player goes second with the package they accepted, and the other
+gets first, as preferred at that menu. Matching switch points use a random
+tie-break. If both refuse the entire menu, there is no forced deal: retry, return
+to the library, or explicitly choose the normal opening. Hotseat hides the first
+player’s completed survey during device handoff; solo precommits the CPU’s full
+survey before the human answers. Its material/capture-opportunity heuristic is
+an initial negotiation policy, not a solved position evaluator. It evaluates the
+same package for both possible recipients so its accepted package still meets
+its criterion when tested as a smaller menu. Neither surveying
+nor tie-breaking reads or advances combat randomness. The final screen shows
+both switch points and the exact bonus; no army acts before Start match.
+
+A prominent **How should the match open?** panel above the campaign/level lists
+has **Use normal opening** and **Use offer for first**, plus the retained map-default
+choice (original on the 32 imported campaign missions, offers elsewhere). The
+choice persists and applies to new levels; Continue keeps the saved agreement.
+The panel links directly to tournament setup, which links back to it. Tournament
+opening preferences are independent of human-match preferences, and each run
+freezes its own opening and no-deal policy. Imported map data stays unchanged.
 Human/CPU factions remain Union/Xenon; only initiative changes. A round ends
 after both factions act, including Xenon-first matches. Existing timeout
 victory for Xenon is stated during negotiation and remains unchanged.
 
 Cancelling setup preserves the previous saved match. Negotiation drafts are
 not persisted. Started matches save the chosen package, exact placements and
-first-player identity; Continue does not renegotiate, while replay does.
+first-player identity, both switch points and the question history; Continue
+does not renegotiate, while playing a level again does. Older saved agreements
+remain valid.
 Compensated results use separate level keys and never award original campaign
 completion stars. Match history and the game toolbar identify the accepted
 compensation. Balance needs playtesting across maps, player skill and opening
 choices; the feature implements negotiation, not an established 50/50 outcome.
+
+Tournament protocol 2026-09-25.1 runs the same guided search automatically for
+both bots. All playing algorithms currently share the same opening heuristic;
+the setup explicitly says so. Normal opening remains the tournament default.
+Unplaceable offers and no-deal results either skip the fixture with no Elo/WDL
+update (default), or play normally only when that fallback was selected at setup.
+Every saved result records the requested/effective opening, switch points,
+negotiation history, exact bonus and first player. The replay starts from the
+compensated state. CSV and archive exports identify openings and skipped games;
+ratings stay within each configured run. Round caps wait for both armies even
+when Xenon starts. Browser workers and the disk runner share the protocol.
+
+Validation: all switch boundaries and pairs, private controller transitions,
+no-deal and unavailable-map fallbacks, RNG isolation, save/replay preservation,
+and reversed-order tournament round caps have regression coverage.
 
 ## Official normal campaign (2026-09-03)
 

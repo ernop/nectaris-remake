@@ -2,10 +2,13 @@
 
 Researched 2026-09-23 in response to the user's report that the first player
 often has a large advantage, particularly on symmetric maps with equal armies.
-**Status updated 2026-09-23:** the user subsequently requested implementation
+**Status updated 2026-09-25:** the user subsequently requested implementation
 of the automated offers, a longer list and predefined visible locations near
 each base. The implemented 32-package cumulative menu and acceptance rules are
 recorded in [PRODUCT](PRODUCT.md#compensation-offers-before-play-2026-09-23).
+The September 25 correction adds visible opening choices, linked tournament
+setup and private guided switch-point searches, superseding the ascending-step
+interaction described in the initial implementation.
 Other alternatives below remain research and proposals. The size of the
 reported advantage and the balance achieved by negotiation have not been
 measured. Imported campaign data retains its recorded fidelity requirements;

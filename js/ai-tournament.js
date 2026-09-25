@@ -7,10 +7,11 @@ var AI_TOURNAMENT = (function () {
   var ai=typeof module!=="undefined"?require("./ai.js"):AI;
   var search=typeof module!=="undefined"?require("./ai-search.js"):AI_SEARCH;
   var model=typeof module!=="undefined"?require("./ai-model.js"):AI_MODEL;
-  var VERSION="2026-09-23.2";
+  var balance=typeof module!=="undefined"?require("./balance.js"):BALANCE;
+  var VERSION="2026-09-25.1";
   function integer(v,min,max,label){if(!Number.isInteger(v)||v<min||v>max)throw new Error(label+" must be an integer from "+min+" to "+max+".");return v;}
   function normalize(input){
-    var c=Object.assign({cycles:1,seed:42,maxRounds:0,k:24,selfPlay:false,workers:2,work:"standard"},input);
+    var c=Object.assign({cycles:1,seed:42,maxRounds:0,k:24,selfPlay:false,workers:2,work:"standard",opening:"original",noDeal:"skip"},input);
     c.opponents=Array.from(new Set(c.opponents||[]));
     if(!c.opponents.length||c.opponents.some(function(id){return !search.modes.some(function(m){return m.id===id;});}))throw new Error("Select at least one known opponent.");
     if(c.opponents.length===1)c.selfPlay=true;
@@ -19,6 +20,8 @@ var AI_TOURNAMENT = (function () {
     integer(c.cycles,1,100000,"Cycles");integer(c.seed,0,4294967295,"Seed");
     integer(c.maxRounds,0,1000,"Round cap");integer(c.k,1,100,"Elo K");integer(c.workers,1,16,"Workers");
     if(["fast","standard","deep"].indexOf(c.work)<0)throw new Error("Search work must be fast, standard or deep.");
+    if(["original","offers"].indexOf(c.opening)<0)throw new Error("Choose normal opening or offer for first.");
+    if(["skip","original"].indexOf(c.noDeal)<0)throw new Error("Choose skip or normal opening for unavailable offers.");
     c.pairs=[];
     c.opponents.forEach(function(a,i){c.opponents.slice(c.selfPlay?i:i+1).forEach(function(b){c.pairs.push([a,b]);});});
     c.total=c.cycles*c.maps.length*c.pairs.length*2;
@@ -34,7 +37,7 @@ var AI_TOURNAMENT = (function () {
     var side=index%2,n=Math.floor(index/2),pair=n%c.pairs.length;
     n=Math.floor(n/c.pairs.length);var map=n%c.maps.length,cycle=Math.floor(n/c.maps.length),ids=c.pairs[pair];
     return {index:index,cycle:cycle,mapIndex:map,seed:seedFor(c.seed,cycle,map,pair),
-      players:side?[ids[1],ids[0]]:ids.slice(),map:c.maps[map],maxRounds:c.maxRounds,work:c.work};
+      players:side?[ids[1],ids[0]]:ids.slice(),map:c.maps[map],maxRounds:c.maxRounds,work:c.work,opening:c.opening,noDeal:c.noDeal};
   }
   function searchOptions(id,work){
     if(!work||work==="standard"||id==="classic"||id==="tactical")return undefined;
@@ -47,7 +50,7 @@ var AI_TOURNAMENT = (function () {
   }
   function standings(ids){var out={};ids.forEach(function(id){out[id]={id:id,elo:1500,games:0,wins:0,draws:0,losses:0,union:0,xenon:0,ms:0};});return out;}
   function rate(table,result,k){
-    if(result.error)return;
+    if(result.error||result.skipped)return;
     var a=table[result.players[0]],b=table[result.players[1]],score=result.winner===null?0.5:result.winner===0?1:0;
     if(a!==b){var expected=1/(1+Math.pow(10,(b.elo-a.elo)/400)),change=k*(score-expected);a.elo+=change;b.elo-=change;}
     [a,b].forEach(function(row,side){
@@ -80,22 +83,35 @@ var AI_TOURNAMENT = (function () {
   }
   function* play(spec,onProgress){
     if(spec.map.customUnits)mergeUnitTypes(spec.map.customUnits);
-    var game=new engine.Game(spec.map,{seed:spec.seed}),initial=game.snapshot(),commands=record(game);
-    var started=Date.now(),thinking=[0,0],turns=0;
-    while(game.winner===null){
+    var game=new engine.Game(spec.map,{seed:spec.seed}),started=Date.now(),thinking=[0,0],turns=0;
+    var negotiation=null,skipped=false,opening=spec.opening||"original";
+    if(opening==="offers"){
+      var plan=balance.plan(game);
+      // Domain-separated tie-break: paired fixtures reproduce it without
+      // inspecting or advancing either game's combat RNG.
+      negotiation=plan.error ? {status:"unavailable",message:plan.error} :
+        balance.settle(plan,[balance.cpuSurvey(plan,0),balance.cpuSurvey(plan,1)],function(){return seedFor(spec.seed,0,0,0)/4294967296;});
+      if(negotiation.status==="agreed")balance.apply(game,plan,negotiation);
+      else if(spec.noDeal==="original")opening="original";
+      else skipped=true;
+    }
+    var initial=game.snapshot(),commands=record(game);
+    while(!skipped&&game.winner===null){
       var side=game.currentPlayer,t=Date.now();
       ai.playTurn(game,side,{id:spec.players[side],search:searchOptions(spec.players[side],spec.work)});thinking[side]+=Date.now()-t;turns++;
       if(onProgress)onProgress({turn:game.turn,side:side,halfTurns:turns,units:game.units.length});
       if(game.winner!==null)break;
       // A laboratory cutoff is a draw, distinct from the actual map's Xenon
       // timeout victory. Never silently edit the scenario's rules or budget.
-      if(spec.maxRounds&&game.turn>=spec.maxRounds&&side===1&&game.turn<game.turnLimit)break;
+      if(spec.maxRounds&&game.turn>=spec.maxRounds&&side!==game.firstPlayer&&game.turn<game.turnLimit)break;
       game.endTurn();yield;
       if(turns>2*game.turnLimit+2)throw new Error("Tournament game exceeded the engine turn budget.");
     }
     return {version:VERSION,index:spec.index,players:spec.players,map:spec.map.name,mapIndex:spec.mapIndex,
-      seed:spec.seed,work:spec.work||"standard",winner:game.winner,reason:game.winner===null?"round-cap":game.winReason,
-      rounds:Math.min(game.turn,game.turnLimit),halfTurns:turns,ms:Date.now()-started,thinkingMs:thinking,
+      seed:spec.seed,work:spec.work||"standard",opening:opening,requestedOpening:spec.opening||"original",negotiation:negotiation,
+      balance:game.balance||null,firstPlayer:game.firstPlayer,skipped:skipped,
+      winner:game.winner,reason:skipped?"opening-"+negotiation.status:game.winner===null?"round-cap":game.winReason,
+      rounds:skipped?0:Math.min(game.turn,game.turnLimit),halfTurns:turns,ms:Date.now()-started,thinkingMs:thinking,
       initial:initial,commands:commands,final:game.snapshot()};
   }
   function playSync(spec,onProgress){var it=play(spec,onProgress),step;do{step=it.next();}while(!step.done);return step.value;}

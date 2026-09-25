@@ -96,7 +96,24 @@ algorithm changes on held-out maps and fresh seeds as well as regression cases.
 ## Browser tournaments
 
 Open **Tournaments** from a map, or **AI tournament lab** from the mission menu.
-The separate page does not alter player profiles or unfinished human matches.
+The prominent opening panel above the campaign/level picker also links to this
+setup, with a return link back. The separate page does not alter player profiles
+or unfinished human matches.
+
+Choose **Use normal opening** (default) or **Use offer for first** for all selected
+boards. Offers run the same private switch-point search as human setup; all bots
+currently share a material/capture-opportunity opening heuristic regardless of
+playing algorithm. This is not measured equal-odds compensation. Unavailable
+placements or no deal skip the fixture with no rating change unless you explicitly
+choose **Play with the normal opening** as the fallback. These preferences persist
+separately from the human opening choice, and every run freezes its own settings.
+
+Protocol **2026-09-25.1** records requested/effective opening, both switch points,
+question history, bonus placements and first player. Results, CSV exports and
+replays identify the opening; replay starts after compensation is placed. The
+tie-break is seeded separately from combat. A lab cap waits for both armies,
+including Xenon-first matches. Prior-version replays remain viewable, but their
+runs cannot resume under the changed protocol.
 
 Choose opponents, multiple boards across collections, paired cycles, random
 seed, round cap, parallel workers, search work and Elo K. **Standard** uses
@@ -152,14 +169,20 @@ ratingB -= change
 
 Score is 1 for a win, 0 for a loss and 0.5 for a draw. Updates follow fixture
 index, so changing worker count cannot change Elo order. Same-algorithm games
-record both seats without changing Elo; errors do not change ratings or W/D/L.
+record both seats without changing Elo; errors and skipped no-deal/unavailable
+fixtures do not change ratings or W/D/L.
 Ratings belong to that algorithm version, pool, board distribution and cap.
 They are not calibrated to chess, Go, human players or other experiments.
 Small samples and correlated scenarios should not be treated as precise ranks.
 
 ## Large disk runs
 
-Node 22 or newer; no package installation:
+Node 22 or newer; no package installation. Use `--opening=offers` for guided
+bot offers or `--opening=original` (default) for normal play. `--no-deal=skip`
+(default) skips unavailable/refused offers; `--no-deal=original` explicitly
+permits the normal fallback. The source hash includes the compensation code.
+These fields also work in `--config` JSON:
+
 
 ```sh
 node tools/ai-research/run.cjs --list
