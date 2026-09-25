@@ -48,24 +48,7 @@ module.exports = function (ok) {
           });
           ok(zooms.auto >= Math.max(zooms.normal, zooms.sideways) / 1.02,
             look.join("/") + " auto chooses the larger usable board for " + size + " in " + view);
-          var ui = Object.create(UI.GameUI.prototype);
-          ui.renderer = renderer; ui.controlsPosition = "auto";
-          [0, 340].forEach(function (sidebar) {
-            ["top", "left"].forEach(function (current) {
-              ui.controlsDock = current;
-              var camera = [renderer.zoom, renderer.originX, renderer.originY, renderer.sideways].join();
-              var chosen = ui.bestControlsPosition(view[0], view[1], sidebar, 48, 184);
-              var top = renderer.fitForViewport(view[0] - sidebar, view[1] - 48).zoom;
-              var left = renderer.fitForViewport(view[0] - sidebar - 184, view[1]).zoom;
-              ok((chosen === "left" ? left : top) >= Math.max(left, top) / 1.02,
-                "Auto controls maximize board size with " + sidebar + "px inspector in " + view);
-              ok(camera === [renderer.zoom, renderer.originX, renderer.originY, renderer.sideways].join(),
-                "comparing layouts never mutates the camera");
-              ui.controlsDock = chosen;
-              ok(ui.bestControlsPosition(view[0], view[1], sidebar, 48, 184) === chosen,
-                "repeated layout observations keep the same dock");
-            });
-          });
+
         });
       });
     });
@@ -78,19 +61,6 @@ module.exports = function (ok) {
     var canvas = {width: 1200, height: 700, getContext: function () { return ctx; }};
     var renderer = new R.Renderer(canvas, {width: 15, height: 20});
     renderer.orientation = "sideways"; renderer.fitToMap();
-    var ui = Object.create(UI.GameUI.prototype);
-    ui.renderer = renderer; ui.controlsPosition = "auto";
-    ok(ui.bestControlsPosition(1280, 720, 0, 48, 184) === "left",
-      "wide window automatically docks left for a sideways tall board");
-    renderer.orientation = "normal";
-    ok(ui.bestControlsPosition(720, 1280, 0, 48, 184) === "top",
-      "portrait window automatically puts controls on top for a tall board");
-    ["top", "left"].forEach(function (dock) {
-      ui.controlsPosition = dock;
-      ok(ui.bestControlsPosition(1280, 720, 0, 48, 184) === dock,
-        "explicit " + dock + " placement overrides Auto");
-    });
-    renderer.orientation = "sideways";
     var before = renderer.hexCenter(5, 8), x = renderer.originX, y = renderer.originY;
     var outsideBounds = renderer.visibleTileBounds();
     renderer.withBoardView(function () {

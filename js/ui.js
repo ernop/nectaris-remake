@@ -14,6 +14,7 @@
 
 var UI = (function () {
   var unitView = typeof module !== "undefined" ? require("./unit-view.js") : UNIT_VIEW;
+  var movement = typeof module !== "undefined" ? require("./move-animation.js") : MOVE_ANIMATION;
   var battleReport = typeof module !== "undefined" ? require("./battle-report.js") : BATTLE_REPORT;
   var opponents = typeof module !== "undefined" ? require("./ai-search.js") : AI_SEARCH;
 
@@ -50,13 +51,10 @@ var UI = (function () {
     this.opponent = opponents.get(this.options.opponent || "apex").id;
     this.renderer = new RENDER.Renderer(canvas, game);
     this.renderer.orientation = "auto";
-    this.controlsPosition = "auto";
+    this.controlsPosition = "left";
     try {
       var orientation = localStorage.getItem("nectaris-board-orientation");
       if (["auto", "normal", "sideways"].indexOf(orientation) >= 0) this.renderer.orientation = orientation;
-      // The new default supersedes the first release's manual-only placement.
-      var position = localStorage.getItem("nectaris-controls-position-v2");
-      if (["auto", "top", "left"].indexOf(position) >= 0) this.controlsPosition = position;
     } catch (e) { /* optional view preferences */ }
     this.mode = "idle"; // idle | command | unitSelected (movement) | moved (aim) | unload | factory | deployPick | battle | aiTurn | over
     this.selected = null;
@@ -117,16 +115,16 @@ var UI = (function () {
       this._layoutObserver.observe(canvas.parentElement);
     }
 
+    $("btn-battle-map").onclick = function () {
+      var stage = $("battle-stage"), hidden = stage.classList.contains("hidden");
+      stage.classList[hidden ? "remove" : "add"]("hidden");
+      this.textContent = hidden ? "Show map" : "Show battle";
+    };
     $("btn-details").onclick = function () { self.setDetailsOpen(!self.detailsOpen); };
     $("board-orientation").onchange = function () {
       self.renderer.orientation = this.value;
       try { localStorage.setItem("nectaris-board-orientation", this.value); } catch (e) { /* optional preference */ }
       self.fitBoard();
-    };
-    $("controls-position").onchange = function () {
-      self.controlsPosition = this.value;
-      try { localStorage.setItem("nectaris-controls-position-v2", this.value); } catch (e) { /* optional preference */ }
-      self.resize();
     };
     $("btn-fit").onclick = function () { self.fitBoard(); };
     $("btn-details-close").onclick = function () {
@@ -299,10 +297,8 @@ var UI = (function () {
     var width = canvas.clientWidth, height = canvas.clientHeight;
     if (!width || !height) {
       if (!wrap) return;
-      var dock = $("war-dock");
-      var dockH = dock && !dock.classList.contains("hidden") ? (dock.offsetHeight || 0) : 0;
       width = wrap.clientWidth;
-      height = wrap.clientHeight - (this._actionRailHeight || 0) - dockH;
+      height = wrap.clientHeight;
     }
     canvas.width = Math.max(1, width);
     canvas.height = Math.max(1, height);
@@ -317,40 +313,17 @@ var UI = (function () {
     this.syncBitmap(true);
   };
 
-  GameUI.prototype.bestControlsPosition = function (width, height, sidebarWidth, topHeight, leftWidth) {
-    if (this.controlsPosition !== "auto") return this.controlsPosition;
-    var top = this.renderer.fitForViewport(width - sidebarWidth, height - topHeight).zoom;
-    var left = this.renderer.fitForViewport(width - sidebarWidth - leftWidth, height).zoom;
-    // Keep the current dock for near-ties, so small resizes cannot flip it
-    // back and forth. Do not include transient selection/action-rail height.
-    if (this.controlsDock === "left") return top > left * 1.02 ? "top" : "left";
-    return left > top * 1.02 ? "left" : "top";
-  };
-
   GameUI.prototype.refreshViewControls = function () {
-    var screen = $("game-screen"), dock = this.controlsPosition;
-    if (dock === "auto") {
-      var style = getComputedStyle(screen);
-      dock = this.bestControlsPosition(screen.clientWidth, screen.clientHeight, $("sidebar").offsetWidth,
-        parseFloat(style.getPropertyValue("--controls-top-height")),
-        parseFloat(style.getPropertyValue("--controls-left-width")));
-    }
-    this.controlsDock = dock;
-    screen.classList[dock === "left" ? "add" : "remove"]("controls-left");
-    $("controls-position").value = this.controlsPosition;
-    $("controls-position").title = this.controlsPosition === "auto" ?
-      "Auto: controls on the " + dock + " for the largest board" : "Choose automatic, top or left controls";
+    this.controlsDock = "left";
+    $("game-screen").classList.add("controls-left");
     $("board-orientation").value = this.renderer.orientation;
-    var parent = $(dock === "left" ? "dock-unit-controls" : "canvas-wrap");
+    var parent = $("dock-unit-controls");
     ["range-legend", "action-menu"].forEach(function (id) {
       var el = $(id);
       if (el.parentElement !== parent) parent.appendChild(el);
     });
-    if (dock === "left") {
-      this._actionRailHeight = 0;
-      $("map-action-rail").classList.add("hidden");
-      $("map-action-rail").style.height = "0px";
-    }
+    this._actionRailHeight = 0;
+    $("map-action-rail").classList.add("hidden");
   };
 
   GameUI.prototype.fitBoard = function () {
@@ -368,18 +341,7 @@ var UI = (function () {
     this.detailsOpen = !!open;
     this.refreshDetailsPanel();
     try { localStorage.setItem("nectaris-details-open", open ? "on" : "off"); } catch (e) { /* optional preference */ }
-    this.resize();
-  };
-
-  GameUI.prototype.setActionRail = function (height) {
-    if ((this._actionRailHeight || 0) === height) return;
-    this._actionRailHeight = height;
-    var rail = $("map-action-rail");
-    rail.classList[height ? "remove" : "add"]("hidden");
-    rail.style.height = height + "px";
-    // Preserve the camera: opening controls must not move a destination
-    // under the pointer or change the unit's apparent position.
-    this.syncBitmap(false);
+    this.draw();
   };
 
   GameUI.prototype.draw = function () {
@@ -391,7 +353,6 @@ var UI = (function () {
       self._drawPending = false;
       if (self.destroyed) return;
       self.renderer.selected = self.selected;
-      self.positionActionMenu();
       self.positionFactoryPanel();
       self.renderer.draw();
       self.updateHoverInfo();
@@ -418,6 +379,10 @@ var UI = (function () {
     window.removeEventListener("blur", h.blur);
     cancelAnimationFrame(this._drawFrame);
     cancelAnimationFrame(this._battleAnimationFrame);
+    if (this._movement) this._movement.cancel();
+    this.closeWarDock();
+    this.hideBattleScreen();
+    clearTimeout(this._battleHoldTimer);
     clearTimeout(this._toastT);
     clearTimeout(this._aiTimer);
     if (this._aiTurn && this._aiTurn.destroy) this._aiTurn.destroy();
@@ -459,10 +424,8 @@ var UI = (function () {
     $("war-scene").innerHTML = scene || "";
     $("war-math").innerHTML = math || "";
     unitView.paint(dock);
-    var opened = dock.classList.contains("hidden");
     dock.classList.remove("hidden");
-    if (opened) this.syncBitmap(false);
-    else this.draw();
+    this.draw();
   };
 
   GameUI.prototype.closeWarDock = function () {
@@ -471,7 +434,30 @@ var UI = (function () {
     dock.classList.add("hidden");
     $("war-scene").innerHTML = "";
     $("war-math").innerHTML = "";
-    this.syncBitmap(false);
+    this.hideBattleScreen();
+  };
+
+  GameUI.prototype.showBattleScreen = function (html) {
+    var stage = $("battle-stage");
+    stage.innerHTML = html; unitView.paint(stage);
+    stage.classList.remove("hidden");
+    $("btn-battle-map").classList.remove("hidden");
+    $("btn-battle-map").textContent = "Show map";
+  };
+
+  GameUI.prototype.hideBattleScreen = function () {
+    $("battle-stage").classList.add("hidden");
+    $("btn-battle-map").classList.add("hidden");
+  };
+
+  GameUI.prototype.animateMovement = function (unit, path, done) {
+    if (this._movement) this._movement.cancel();
+    var self = this;
+    this._movement = movement.play(this.renderer, unit, path, {
+      draw: function () { self.draw(); },
+      done: function () { self._movement = null; if (!self.destroyed && done) done(); },
+    });
+    return this._movement.duration;
   };
 
   GameUI.prototype.frameAction = function (cells) {
@@ -526,6 +512,7 @@ var UI = (function () {
     this.renderer.flashUnits[event.defender.id] = "#ffffff";
     var parts = battleReport.previewHtml(event.attacker, event.defender, event.preview);
     this.openWarDock(parts.scene, parts.math);
+    this.showBattleScreen(parts.screen);
     this.frameAction([
       {col: event.attacker.col, row: event.attacker.row},
       {col: event.defender.col, row: event.defender.row},
@@ -540,6 +527,7 @@ var UI = (function () {
     var parts = battleReport.resultParts(event.attacker, event.defender, event.result, event.attackerBefore, event.defenderBefore);
     battleReport.record(this.warLedger, event.attacker.player, parts.assessed);
     this.openWarDock(parts.scene, parts.math + battleReport.ledgerHtml(this.warLedger));
+    this.showBattleScreen(parts.screen);
     this.frameAction([
       {col: event.attacker.col, row: event.attacker.row},
       {col: event.defender.col, row: event.defender.row},
@@ -560,8 +548,8 @@ var UI = (function () {
       throw new Error("Battle result casualties exceed the pre-battle squad count");
     }
     var largestLoss = Math.max(attackerLosses, defenderLosses);
-    var duration = Math.max(1000, Math.min(2000, largestLoss * 320));
-    var start = null;
+    var duration = Math.max(1600, Math.min(2600, largestLoss * 360));
+    var start = null, lastCounts = "";
     this.renderer.battleGhosts = [event.attacker, event.defender];
 
     function casualtyState(before, losses, progress, unit, seed) {
@@ -598,6 +586,15 @@ var UI = (function () {
         event.attacker, event.defender, event.attackerBefore, event.defenderBefore,
         attackerCurrent, defenderCurrent);
       unitView.paint(detail);
+      var counts = attackerCurrent + ":" + defenderCurrent;
+      if (counts !== lastCounts) {
+        lastCounts = counts;
+        var stage = $("battle-stage");
+        stage.innerHTML = battleReport.screenHtml(event.attacker, event.defender, result.preview,
+          event.attackerBefore, event.defenderBefore, attackerCurrent, defenderCurrent,
+          result.attackerExpBefore, result.defenderExpBefore);
+        unitView.paint(stage);
+      }
       self.draw();
 
       if (progress < 1) {
@@ -609,11 +606,11 @@ var UI = (function () {
       self.renderer.explosions = [];
       self.renderer.attackingUnitId = null;
       self.draw();
-      if (onComplete) onComplete();
+      if (onComplete) self._battleHoldTimer = setTimeout(function () { if (!self.destroyed) onComplete(); }, 900);
     }
 
     this._battleAnimationFrame = requestAnimationFrame(frame);
-    return duration;
+    return duration + 900;
   };
 
   function unitInfoHtml(game, unit) {
@@ -741,11 +738,6 @@ var UI = (function () {
       var p = r.hexCenter(other.col, other.row);
       return { x: p.x - radius, y: p.y - radius, width: radius * 2, height: radius * 2 };
     });
-    var menu = $("action-menu");
-    if (this.controlsDock !== "left" && !menu.classList.contains("hidden")) obstacles.push({
-      x: parseFloat(menu.style.left), y: parseFloat(menu.style.top),
-      width: menu.offsetWidth, height: menu.offsetHeight,
-    });
     var pos = hoverPosition(r.hexCenter(hex.col, hex.row), radius,
       card.offsetWidth, card.offsetHeight, this.canvas.width, this.canvas.height, obstacles);
     if (!pos) { card.classList.add("hidden"); return; }
@@ -770,42 +762,6 @@ var UI = (function () {
   };
 
   /* --- action menu ------------------------------------------------------ */
-
-  // Keep commands close to the unit without covering another unit or a
-  // selectable destination. Crowded views can borrow a strip below the map.
-  GameUI.prototype.positionActionMenu = function () {
-    var menu = $("action-menu");
-    if (this.controlsDock === "left") { this.setActionRail(0); return; }
-    if ((!this.selected && !this.deployPending) || menu.classList.contains("hidden")) return;
-    var r = this.renderer, anchor = this.deployPending ? this.deployPending.building : this.selected;
-    var center = r.hexCenter(anchor.col, anchor.row), radius = Math.max(18, r.hexSize * r.zoom);
-    var obstacles = [], blocked = {};
-    this.game.units.forEach(function (unit) {
-      if (!unit.carriedBy && !unit.inFactory) blocked[HEX.key(unit.col, unit.row)] = true;
-    });
-    if (this.mode === "unitSelected" || this.mode === "deployPick" || this.mode === "unload") {
-      Object.keys(r.highlights || {}).forEach(function (key) { blocked[key] = true; });
-    }
-    Object.keys(blocked).forEach(function (key) {
-      var hex = key.split(","), p = r.hexCenter(+hex[0], +hex[1]);
-      obstacles.push({ x: p.x - radius, y: p.y - radius, width: radius * 2, height: radius * 2 });
-    });
-    var pos = hoverPosition(center, radius, menu.offsetWidth, menu.offsetHeight,
-      this.canvas.width, this.canvas.parentElement.clientHeight, obstacles);
-    if (pos && !obstacles.some(function (rect) {
-      return pos.x < rect.x + rect.width && pos.x + menu.offsetWidth > rect.x &&
-        pos.y < rect.y + rect.height && pos.y + menu.offsetHeight > rect.y;
-    })) {
-      this.setActionRail(0);
-      menu.style.left = Math.round(pos.x) + "px";
-      menu.style.top = Math.round(pos.y) + "px";
-      return;
-    }
-    this.setActionRail(menu.offsetHeight + 10);
-    menu.style.left = Math.round(Math.max(8, Math.min(this.canvas.width - menu.offsetWidth - 8,
-      center.x - menu.offsetWidth / 2))) + "px";
-    menu.style.top = (this.canvas.height + 5) + "px";
-  };
 
   GameUI.prototype.hideCombatPreview = function () {
     $("combat-inspector").classList.add("hidden");
@@ -864,7 +820,6 @@ var UI = (function () {
       if (!unit.shifted) actionButton(menu, "Cancel", function () {
         if (unit.type.move) self.selectUnit(unit); else self.deselect();
       });
-      actionButton(menu, "End", function () { self.commitUnit(unit); });
     }
     var targetList = $("attack-targets");
     targetList.innerHTML = "";
@@ -879,11 +834,10 @@ var UI = (function () {
     targetList.classList.remove("hidden");
     this.showTransportActions(unit, menu);
     $("action-status").textContent = unit.moved ? "Choose a passenger to unload." :
-      this.pickTargets.length ? "Click a red target to attack, or End this unit." : "No targets in range.";
+      this.pickTargets.length ? "Click a red target to attack. Click away or press Esc to skip the shot." : "No targets in range.";
     $("action-status").classList.remove("hidden");
     this.showUnitInfo(unit);
-    menu.classList.remove("hidden");
-    this.positionActionMenu();
+    menu.classList[menu.children.length ? "remove" : "add"]("hidden");
     this.draw();
   };
 
@@ -919,7 +873,6 @@ var UI = (function () {
 
   GameUI.prototype.closeActionMenu = function () {
     $("action-menu").classList.add("hidden");
-    this.setActionRail(0);
     $("transport-actions").classList.add("hidden");
     $("attack-targets").classList.add("hidden");
     $("action-status").classList.add("hidden");
@@ -1016,7 +969,6 @@ var UI = (function () {
     actionButton(menu, "Back to factory", function () { self.cancelDeployment(true); });
     actionButton(menu, "Cancel", function () { self.cancelDeployment(false); });
     menu.classList.remove("hidden");
-    this.positionActionMenu();
     this.draw();
   };
 
@@ -1048,12 +1000,14 @@ var UI = (function () {
     var parts = battleReport.resultParts(attacker, defender, result, attackerBefore, defenderBefore);
     battleReport.record(this.warLedger, attacker.player, parts.assessed);
     this.openWarDock(parts.scene, parts.math + battleReport.ledgerHtml(this.warLedger));
+    this.showBattleScreen(parts.screen);
     this.clearUndo(); // Combat is an irreversible boundary, including during animation.
     this.refreshStatus();
     this.animateBattleResult({ attacker: attacker, defender: defender,
       attackerBefore: attackerBefore, defenderBefore: defenderBefore, result: result,
     }, $("war-scene"), function () {
       self.busy = false;
+      self.hideBattleScreen();
       self.renderer.attackingUnitId = null;
       self.renderer.flashUnits = {};
       done(result);
@@ -1134,9 +1088,7 @@ var UI = (function () {
     var self = this, menu = $("action-menu");
     menu.innerHTML = "";
     actionButton(menu, "Close", function () { self.deselect(); });
-    actionButton(menu, "End", function () { self.commitUnit(unit); });
     menu.classList.remove("hidden");
-    this.positionActionMenu();
     this.showUnitInfo(unit);
     this.draw();
   };
@@ -1168,10 +1120,8 @@ var UI = (function () {
       attack.title = unit.attacked ? "Already attacked this turn" : canAttack ? "Attack from this hex" : "No targets in range";
     }
     actionButton(menu, "Cancel", function () { self.deselect(); });
-    actionButton(menu, "End", function () { self.commitUnit(unit); });
     this.showTransportActions(unit, menu);
     menu.classList.remove("hidden");
-    this.positionActionMenu();
     var canMove = Object.keys(this.range).some(function (key) { return self.range[key].cost > 0 && self.range[key].canStop; });
     $("action-status").textContent = (canMove ? "Choose a blue destination." : "No legal move.") +
       (unit.attacked ? " Attack complete. " + unit.movePointsLeft + " Shift points left." :
@@ -1223,20 +1173,25 @@ var UI = (function () {
     var rec = this.range && this.range[HEX.key(col, row)];
     if (!rec || !rec.canStop) return false;
     var before = this.game.snapshot();
-    this.game.moveUnit(unit, col, row, this.range);
-    var events = this.game.finishMovement(unit);
+    var moved = this.game.moveUnit(unit, col, row, this.range);
+    var events = this.game.finishMovement(unit), self = this;
     this.recordUndo(before, unitView.name(unit) + " move");
     this.clearSelection();
-    this.refreshStatus();
-    this.showMoveEffects(events);
-    this.checkGameOver();
-    if (this.game.winner === null && !unit.inFactory && !unit.carriedBy &&
-        (this.previewTargets(unit).length || unit.cargo.some(function (cargo) {
-          return this.hasUnloadDestination(unit, cargo);
-        }, this))) {
-      this.selected = unit;
-      this.openActionMenu(unit);
-    }
+    this.busy = true;
+    this.refreshStatus(); // Save the committed destination, never a visual intermediate hex.
+    this.animateMovement(unit, moved.path, function () {
+      self.busy = false;
+      self.refreshStatus();
+      self.showMoveEffects(events);
+      self.checkGameOver();
+      if (self.game.winner === null && !unit.inFactory && !unit.carriedBy &&
+          (self.previewTargets(unit).length || unit.cargo.some(function (cargo) {
+            return self.hasUnloadDestination(unit, cargo);
+          }))) {
+        self.selected = unit;
+        self.openActionMenu(unit);
+      }
+    });
     return true;
   };
 
@@ -1310,7 +1265,6 @@ var UI = (function () {
     $("action-status").classList.remove("hidden");
     menu.classList.remove("hidden");
     this.showUnitInfo(transport);
-    this.positionActionMenu();
     this.draw();
   };
 
@@ -1437,6 +1391,7 @@ var UI = (function () {
   };
 
   GameUI.prototype.onHexClick = function (col, row) {
+    if (this.busy) return;
     this.cancelEndTurn();
     this.closeWarDock();
     var g = this.game;
@@ -1512,7 +1467,7 @@ var UI = (function () {
         this.quickAttack(this.selected, unit);
         return;
       }
-      if (unit === this.selected) { this.mode = "moved"; this.openActionMenu(unit); return; }
+      if (unit === this.selected) { this.tryMove(unit, col, row); return; }
       if (this.range && this.range[HEX.key(col, row)] && this.range[HEX.key(col, row)].load &&
           this.tryMove(this.selected, col, row)) return;
       if (unit && unit.player === g.currentPlayer) { this.deselect(); this.selectUnit(unit); return; }
@@ -1552,6 +1507,7 @@ var UI = (function () {
     this._aiTurn = null;
     this.selected = null;
     this.hideWatchPanel();
+    this.hideBattleScreen();
     if (this.game.winner === null) this.game.endTurn();
     this.busy = false;
     this.mode = this.game.winner === null ? "idle" : "over";
@@ -1598,7 +1554,15 @@ var UI = (function () {
       this.renderer.flashUnits[event.unit.id] = "#bfe95c";
       this.showUnitInfo(event.unit);
       this.showWatchMove(event);
-      delay = event.t === "deploy" ? 900 : 800;
+      this.hideBattleScreen();
+      var path = event.path || [event.from || {col: event.building.col, row: event.building.row}, event.to];
+      this.frameAction(path);
+      var moving = this;
+      this.animateMovement(event.unit, path, function () {
+        moving._aiTimer = setTimeout(function () { moving.runNextAIEvent(); }, 250);
+      });
+      this.refreshStatus(); this.draw();
+      return;
     } else if (event.t === "battle-preview") {
       this.selected = event.attacker;
       this.showUnitInfo(event.attacker);
@@ -1689,6 +1653,7 @@ var UI = (function () {
     this.mode = "aiTurn";
     this.busy = true;
     this.closeWarDock();
+    this.hideBattleScreen();
     this.refreshOpponent();
     this.clearUndo();
     $("status-player").textContent = RENDER.PLAYER_COLORS[g.currentPlayer].name + " (thinking…)";

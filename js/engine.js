@@ -481,6 +481,13 @@ var ENGINE = (function () {
     var rec = range[HEX.key(col, row)];
     if (!rec || !rec.canStop) throw new Error("Illegal move");
     if (!rec.load && !this.canStopAtBuilding(unit, col, row)) throw new Error("Cannot stop on an unowned factory");
+    // Preserve the exact route selected by the live legality search for display.
+    var path = [], step = rec;
+    while (step) {
+      path.push({col: step.col, row: step.row});
+      step = step.prev === null ? null : range[step.prev];
+    }
+    path.reverse();
     var transport = rec.load ? this.unitAt(col, row) : null;
     if (rec.load && !this.canLoad(transport, unit, false)) throw new Error("Cannot board this transport");
     if (unit.type.moveOrFire && rec.cost > 0) unit.attackSpent = true; // SP guns/Hawkeye: move OR fire
@@ -493,7 +500,7 @@ var ENGINE = (function () {
       unit.moved = true;
       unit.movePointsLeft = 0;
       this.log.push({ t: "load", unit: unit.id, into: transport.id });
-      return { loaded: true };
+      return { loaded: true, path: path };
     }
     unit.col = col; unit.row = row;
     // ZOC ends this move, but a buggy can use its unspent allowance after
@@ -501,7 +508,7 @@ var ENGINE = (function () {
     // Terrain that drains movement already charged the full budget above.
     if (rec.stop && (!unit.type.moveAfterAttack || unit.attacked)) unit.movePointsLeft = 0;
     this.log.push({ t: "move", unit: unit.id, col: col, row: row });
-    return { loaded: false };
+    return { loaded: false, path: path };
   };
 
   /* Commit the movement phase without consuming a legal follow-up shot.

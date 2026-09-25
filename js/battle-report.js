@@ -119,8 +119,8 @@ var BATTLE_REPORT = (function () {
     if (!report.enabled) {
       return "<p class='war-math-line'><span class='war-math-label'>" + title + "</span> No counterattack. Losses <strong>0</strong>.</p>";
     }
-    return "<p class='war-math-line'><span class='war-math-label'>" + title + "</span> " +
-      "<strong>" + report.losses + "</strong> machines · average <strong>" + report.expected.toFixed(2) + "</strong>" +
+    return "<p class='war-math-line'><span class='war-math-label'>" + title + "</span> destroyed <strong>" +
+      report.losses + "</strong> · average <strong>" + report.expected.toFixed(2) + "</strong>" +
       " · exactly " + report.losses + " on <strong>" + report.exact + "</strong> of 100" +
       " · " + report.losses + " or more on <strong>" + report.tail + "</strong> of 100" +
       " · " + report.verdict +
@@ -136,16 +136,55 @@ var BATTLE_REPORT = (function () {
       shotHtml("Counter", snap.assessed.counter, snap.dExp, snap.dBefore, snap.aBefore, snap.apD, snap.daA);
   }
 
+  // Original-style opposing formations, recreated with the selected remake art.
+  // Stats always describe the pre-battle squads; only casualties animate.
+  function screenHtml(attacker, defender, preview, aBefore, dBefore, aNow, dNow, aExp, dExp) {
+    function head(unit, now, exp, role) {
+      return "<div class='battle-combatant'><span class='war-faction war-faction-" + unit.player + "'>" +
+        faction(unit.player) + " · " + role + "</span><h3>" + esc(unitView.name(unit)) + "</h3>" +
+        "<div class='battle-count'><strong>" + now + "</strong><span>machines</span></div>" +
+        "<div class='battle-exp'>EXP " + exp + " / " + combat.MAX_EXP + "</div></div>";
+    }
+    function formation(unit, before, now, side) {
+      var html = "<div class='battle-formation battle-formation-" + side + "' aria-label='" +
+        faction(unit.player) + ": " + now + " machines remaining'>";
+      for (var i = 0; i < before; i++) {
+        var icon = Object.assign({}, unit, {strength: 8, exp: 0});
+        html += "<span class='battle-machine" + (i >= now ? " battle-casualty" : "") + "'>" +
+          (i < now ? unitView.iconHtml(icon) : "<span aria-hidden='true'>✹</span>") + "</span>";
+      }
+      return html + "</div>";
+    }
+    function stats(unit, side, terrain, strength, canFire) {
+      return "<div class='battle-stats'><dl><div><dt>Attack</dt><dd>" + (canFire ? side.ap * strength : "—") +
+        "</dd></div><div><dt>Defense</dt><dd>" + side.da * strength + "</dd></div>" +
+        "<div><dt>Terrain</dt><dd>+" + side.modifiers.terrain + "%</dd></div></dl>" +
+        "<p>" + esc(terrain) + " · " + side.ap + " attack / " + side.da + " defense per machine</p>" +
+        (side.modifiers.surrounded ? "<p>Surrounded</p>" : "") +
+        (!canFire ? "<p>No counterattack</p>" : "") + "</div>";
+    }
+    return "<div class='battle-screen'><div class='battle-heading'>" +
+      head(attacker, aNow, aExp === undefined ? attacker.exp : aExp, "attacking") +
+      head(defender, dNow, dExp === undefined ? defender.exp : dExp, "defending") +
+      "</div><div class='battle-field'>" + formation(attacker, aBefore, aNow, "left") +
+      "<span class='battle-crossfire' aria-hidden='true'>↔</span>" + formation(defender, dBefore, dNow, "right") +
+      "</div><div class='battle-stat-panels'>" + stats(attacker, preview.attacker, preview.attackerTerrain, aBefore, true) +
+      stats(defender, preview.defender, preview.defenderTerrain, dBefore, preview.counter) +
+      "</div><p class='battle-outcome'>" + (dBefore - dNow) + " destroyed · " + (aBefore - aNow) +
+      " lost</p></div>";
+  }
+
   function present(snap) {
     var attacker = shown(snap.aType, snap.aPlayer, snap.aAfter, snap.aExp);
     var defender = shown(snap.dType, snap.dPlayer, snap.dAfter, snap.dExp);
-    return {scene: sceneHtml(attacker, defender, snap.aBefore, snap.dBefore, snap.aAfter, snap.dAfter), math: mathFrom(snap)};
+    return {scene: sceneHtml(attacker, defender, snap.aBefore, snap.dBefore, snap.aAfter, snap.dAfter), math: mathFrom(snap),
+      screen: screenHtml(attacker, defender, snap.assessed.preview, snap.aBefore, snap.dBefore, snap.aAfter, snap.dAfter, snap.aExp, snap.dExp)};
   }
 
   function resultParts(attacker, defender, result, attackerBefore, defenderBefore) {
     var snap = snapshot(attacker, defender, result, attackerBefore, defenderBefore);
     var view = present(snap);
-    return {assessed: snap.assessed, snapshot: snap, scene: view.scene, math: view.math};
+    return {assessed: snap.assessed, snapshot: snap, scene: view.scene, math: view.math, screen: view.screen};
   }
 
   function previewHtml(attacker, defender, preview) {
@@ -163,7 +202,8 @@ var BATTLE_REPORT = (function () {
       (preview.counter ? " · counter attack <strong>" + preview.defender.ap + "</strong> vs defense <strong>" + preview.attacker.da + "</strong>" :
         " · no counterattack") +
       "<br>The match draws its roll when the attack resolves. The result names that table row and whether the casualties beat this average.</p>";
-    return {scene: scene, math: math};
+    return {scene: scene, math: math, screen: screenHtml(attacker, defender, preview,
+      attacker.strength, defender.strength, attacker.strength, defender.strength)};
   }
 
   function ledgerHtml(ledger) {
@@ -183,7 +223,7 @@ var BATTLE_REPORT = (function () {
   }
 
   return {faction: faction, emptyLedger: emptyLedger, cloneLedger: cloneLedger, assess: assess,
-    snapshot: snapshot, record: record, sceneHtml: sceneHtml, present: present, resultParts: resultParts,
+    snapshot: snapshot, record: record, sceneHtml: sceneHtml, screenHtml: screenHtml, present: present, resultParts: resultParts,
     previewHtml: previewHtml, ledgerHtml: ledgerHtml, noteHtml: noteHtml};
 })();
 if (typeof module !== "undefined") module.exports = BATTLE_REPORT;

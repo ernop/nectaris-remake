@@ -3,7 +3,7 @@
   var $=function(id){return document.getElementById(id);},T=AI_TOURNAMENT,store,run=null,pool=[],pending=new Map(),assigned=new Set(),saving=false,page=0,lease=null,operation=Promise.resolve();
   function serialize(fn){operation=operation.then(fn,fn);return operation;}
   $("lab-start").disabled=true;
-  var rows=[],chosen=new Set(["normal:0"]),replayData=null,replayGame=null,renderer=null,replayAt=0,playTimer=null,downloadUrl=null,historyRun=null,historyRequest=0,sessionStart=0,sessionBase=0,replayToken=0,replayDrag=null,replayNeedsFit=false,replayPhase="done",replayFollow=true,replayFocus=[],replaySpec=null,actionRecord=null;
+  var rows=[],chosen=new Set(["normal:0"]),replayData=null,replayGame=null,renderer=null,replayAt=0,playTimer=null,downloadUrl=null,historyRun=null,historyRequest=0,sessionStart=0,sessionBase=0,replayToken=0,replayDrag=null,replayNeedsFit=false,replayPhase="done",replayFollow=true,replayFocus=[],replaySpec=null,actionRecord=null,replayMotion=null;
   var groups=[{id:"normal",name:"Normal campaign",maps:CAMPAIGN},{id:"advanced",name:"Advanced campaign",maps:ADVANCED_CAMPAIGN},
     {id:"frontiers",name:"Lunar Frontiers",maps:EXPANSION_LEVELS},{id:"base",name:"Base Nectaris",maps:BASE_NECTARIS_LEVELS},{id:"ai",name:"AI-made",maps:AI_MADE_LEVELS}];
   ENVIRONMENT_CAMPAIGNS.forEach(function(c){groups.push({id:"terrain:"+c.id,name:c.name,maps:c.levels});});
@@ -222,11 +222,17 @@
   }catch(e){error(e);}};
   $("lab-export").onclick=function(){exportRun(false);};$("lab-archive").onclick=function(){exportRun(true);};
 
-  function stopPlayback(){if(playTimer)clearTimeout(playTimer);playTimer=null;$("replay-play").textContent="Play";}
+  function stopPlayback(){if(replayMotion){replayMotion.cancel();replayMotion=null;}if(playTimer)clearTimeout(playTimer);playTimer=null;$("replay-play").textContent="Play";}
   function setFollow(on){replayFollow=!!on;var button=$("replay-follow");button.setAttribute("aria-pressed",replayFollow?"true":"false");button.textContent=replayFollow?"Following":"Follow action";}
   function clearMarks(){if(!renderer)return;renderer.flashUnits={};renderer.attackingUnitId=null;renderer.highlights=null;renderer.selected=null;renderer.strengthOverrides={};renderer.battleGhosts=[];renderer.explosions=[];}
   function focusCells(cells){replayFocus=cells||[];if(replayFollow&&replayFocus.length)renderer.frameHexes(replayFocus);}
-  function showDock(parts){$("replay-scene").innerHTML=parts.scene||"";$("replay-math").innerHTML=parts.math||"";UNIT_VIEW.paint($("replay-war"));$("replay-war").hidden=!parts.scene&&!parts.math;}
+  function battleView(parts){
+    var stage=$("replay-battle-stage"),button=$("replay-battle-toggle");
+    stage.hidden=!parts.screen;button.hidden=!parts.screen;
+    if(parts.screen){stage.innerHTML=parts.screen;UNIT_VIEW.paint(stage);button.textContent="Show map";}
+  }
+  $("replay-battle-toggle").onclick=function(){var stage=$("replay-battle-stage");stage.hidden=!stage.hidden;this.textContent=stage.hidden?"Show battle":"Show map";};
+  function showDock(parts){battleView(parts);$("replay-scene").innerHTML=parts.scene||"";$("replay-math").innerHTML=parts.math||"";UNIT_VIEW.paint($("replay-war"));$("replay-war").hidden=!parts.scene&&!parts.math;}
   function showLedger(){var row=actionRecord&&actionRecord[replayAt];$("replay-ledger").innerHTML=BATTLE_REPORT.ledgerHtml(row?row.ledger:BATTLE_REPORT.emptyLedger());}
   function updateScale(){var n=replayData?replayData.commands.length:0;$("replay-seek-end").textContent=String(n);$("replay-seek-mid").textContent=String(Math.round(n/2));}
   function settle(game,entry){
@@ -280,20 +286,29 @@
     if(row&&row.battle){showDock(BATTLE_REPORT.present(row.battle));focusCells([{col:row.battle.aCol,row:row.battle.aRow},{col:row.battle.dCol,row:row.battle.dRow}]);}
     else if(row&&row.caption){showDock(BATTLE_REPORT.noteHtml(row.caption));focusCells(row.cells);}
     else if(!actionRecord&&replayAt)showDock(BATTLE_REPORT.noteHtml("Reading battles…"));
-    else{$("replay-war").hidden=true;replayFocus=[];}
+    else{$("replay-war").hidden=true;battleView({});replayFocus=[];}
     drawReplay();
   }
-  function commit(){
+  function commit(onDone){
     var entry=replayData.commands[replayAt],kind=entry[0],spec=replaySpec,live=null;
     if(kind==="attack"){var args=T.decode(replayGame,entry),a=args[0],d=args[1],as=a.strength,ds=d.strength;
       live=BATTLE_REPORT.snapshot(a,d,T.command(replayGame,entry),as,ds);}
-    else T.command(replayGame,entry);
+    else {
+      var args=T.decode(replayGame,entry),result=T.command(replayGame,entry),unit=null,path=null;
+      if(kind==="moveUnit"){unit=args[0];path=result.path;}
+      else if(kind==="deployFromFactory"||kind==="unload"){unit=args[1];path=[{col:args[0].col,row:args[0].row},{col:args[2],row:args[3]}];}
+      else if(kind==="loadFromFactory"){unit=args[1];path=[{col:args[0].col,row:args[0].row},{col:args[2].col,row:args[2].row}];}
+      if(unit&&path){
+        focusCells(path);
+        replayMotion=MOVE_ANIMATION.play(renderer,unit,path,{stepMs:Math.max(65,Math.min(200,Number($("replay-speed").value)/3)),draw:drawReplay,done:function(){replayMotion=null;if(onDone)onDone(kind);}});
+      }
+    }
     replayAt++;replayPhase="done";replaySpec=null;clearMarks();showLedger();
     var row=actionRecord&&actionRecord[replayAt],snap=(row&&row.battle)||live;
     if(snap){showDock(BATTLE_REPORT.present(snap));focusCells([{col:snap.aCol,row:snap.aRow},{col:snap.dCol,row:snap.dRow}]);}
     else if(row&&row.caption){showDock(BATTLE_REPORT.noteHtml(row.caption));focusCells(row.cells||(spec&&spec.cells)||[]);}
     else if(spec&&spec.done)showDock(BATTLE_REPORT.noteHtml(spec.done));
-    drawReplay();return kind;
+    drawReplay();if(!replayMotion&&onDone)onDone(kind);return kind;
   }
   function beatDelay(kind){var step=Number($("replay-speed").value);return kind==="attack"&&$("replay-hold").checked?Math.max(step,2400):step;}
   function drawReplay(){
@@ -305,7 +320,7 @@
       if(replayFollow&&replayFocus.length)renderer.frameHexes(replayFocus);else renderer.fitToMap();
       replayNeedsFit=false;
     }
-    renderer.draw();$("replay-seek").value=replayPhase==="intent"?replayAt:replayAt;
+    renderer.draw();$("replay-seek").value=replayAt;
     var currentTurn=(replayData.turns||[]).filter(function(t){return t.at<=replayAt;}).pop();if(currentTurn)$("replay-turn").value=String(currentTurn.at);
     var phase=replayPhase==="intent"?"Selecting "+(replayAt+1):"Action "+replayAt;
     var last=replayPhase==="intent"?(replaySpec&&(replaySpec.select||replaySpec.done)||replayData.commands[replayAt][0]):replayAt?replayData.commands[replayAt-1][0]:"initial position";
@@ -380,8 +395,16 @@
   $("replay-prev-battle").onclick=function(){jumpBattle(-1);};$("replay-next-battle").onclick=function(){jumpBattle(1);};
   $("replay-follow").onclick=function(){setFollow(!replayFollow);if(replayFollow&&replayFocus.length){renderer.frameHexes(replayFocus);drawReplay();}};
   $("replay-play").onclick=function(){if(playTimer){stopPlayback();return;}if(replayPhase!=="intent"&&replayAt===replayData.commands.length)seek(0);
-    function tick(){if(replayPhase==="intent"){var kind=commit();if(replayAt===replayData.commands.length){stopPlayback();return;}playTimer=setTimeout(tick,beatDelay(kind));return;}
-      if(replayAt===replayData.commands.length){stopPlayback();return;}showIntent();playTimer=setTimeout(tick,beatDelay("select"));}
+    function tick(){try{
+      if(replayPhase==="intent"){
+        commit(function(kind){
+          if(replayAt===replayData.commands.length){stopPlayback();return;}
+          playTimer=setTimeout(tick,beatDelay(kind));
+        });return;
+      }
+      if(replayAt===replayData.commands.length){stopPlayback();return;}
+      showIntent();playTimer=setTimeout(tick,beatDelay("select"));
+    }catch(e){stopPlayback();error(e);}}
     $("replay-play").textContent="Pause";tick();
   };
   $("replay-download").onclick=function(){if(replayData)download(new Blob([JSON.stringify(replayData)],{type:"application/json"}),"nectaris-game-"+(replayData.index+1)+".json");};

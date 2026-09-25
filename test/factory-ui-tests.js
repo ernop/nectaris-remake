@@ -42,6 +42,7 @@ module.exports = function (ok) {
       units: [{ t: type || "CHARLIE", o: 0, x: 1, y: 1 }, { t: "POLAR", o: 1, x: 7, y: 2 }],
     }, { seed: 7 });
     var ui = Object.create(UI.GameUI.prototype);
+    ui.animateMovement = function (unit, path, done) { if (done) done(); return 0; };
     ui.game = game; ui.mode = "idle"; ui.canvas = {style:{}};
     ui.renderer = { pixelToHex: function (col, row) { return { col: col, row: row }; } };
     // Factory behavior uses no canvas; action layout is covered by combat-ui-tests.

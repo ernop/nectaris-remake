@@ -194,14 +194,8 @@ the page or list scrolls or resizes.
   Auto picks the orientation that fits the board largest. Units and labels stay
   upright; clicking, wheel zoom and Ctrl+left-drag follow the displayed board.
   **Fit** restores the whole board after zooming or panning.
-- **Controls: Auto / Top / Left** defaults to Auto: it chooses whichever
-  placement fits the board largest, adjusting when the window or map changes.
-  Top and Left are manual overrides. Left mode gives the board the full window
-  height and also puts unit commands and the range legend in
-  that column, so selection takes no board height. Top mode keeps one compact
-  row with scrolling settings and nearby unit commands, using a temporary
-  bottom strip only when no clear space fits. Both view choices are remembered
-  across maps and reloads; changing layout automatically refits the board.
+- Controls, unit actions, reports and replay metadata stay in a fixed left panel.
+  That panel scrolls independently; changing details never resizes the board.
 - Hover a unit for a compact stats card beside its hex. Factory hovers show
   each reserve separately with its icon and experience stars. Unit names use
   short names such as Pelican, without model numbers, and always have an icon.
@@ -232,7 +226,7 @@ the page or list scrolls or resizes.
   based on 100,000 independent simulations. The forecast never uses the match's
   actual random state. Click the red target to attack; there is no automatic
   approach to a distant enemy.
-- After a move, attack a red target or choose **End**. If no attack is available,
+- After a move, attack a red target; there is no per-unit **End** choice. If no attack is available,
   the unit ends immediately and you can choose the next unit. Switching to another
   unit or clearing selection ends a started activation: you cannot return later
   that turn to attack or use a buggy's remaining retreat. Selecting a unit without
@@ -241,9 +235,9 @@ the page or list scrolls or resizes.
   hexes after moving. Click orange to disembark; right-click, Esc or Cancel
   dismisses the choices while keeping the carrier's move. Reselect the carrier
   to reopen them. Before moving, its orange Unload control offers unloading first.
-- The paired **Undo / Redo** buttons in the top bar reverse and restore noncombat actions in
+- The paired **Undo / Redo** buttons in the left panel reverse and restore noncombat actions in
   order: movement, factory deployment/capture/storage, boarding and unloading.
-  A move plus **End** is one undo step. Both histories survive saving and reopening.
+  A move plus implicit completion is one undo step. Both histories survive saving and reopening.
   Battles, turn changes and match completion clear it; combat can never be undone
   or replayed. A new action clears redo. Ctrl/Cmd+Z undoes; Ctrl/Cmd+Shift+Z or Ctrl/Cmd+Y redoes.
 - Right-click backs out of menus or undoes the last move when nothing is selected
@@ -265,7 +259,7 @@ the page or list scrolls or resizes.
   hexes: an unoccupied deployable terrain hex, or an adjacent friendly Mule or
   Pelican with an empty cargo slot. The remaining roster reopens after deployment
   only while another reserve has a legal exit or carrier; otherwise it closes;
-  Back to factory and Cancel stay in the bottom action strip. Capturing infantry goes inside the factory
+  Back to factory and Cancel stay in the left action panel. Capturing infantry goes inside the factory
   and leaves the map; it can deploy again from the next turn. Stop a damaged
   unit on your own factory to store and repair it under the same delay.
   Factories accept aircraft and loaded transports too. Bases permit parking
@@ -276,9 +270,12 @@ the page or list scrolls or resizes.
   appear with their icons in the transport's hover card. Unavailable Unload buttons stay visible with the reason, even
   when Details is closed.
 - **Watch AI: On** shows each Xenon selection, then the move or attack. Battle
-  results sit under the map: machines destroyed and lost, the roll the match
+  results sit in the fixed left panel: machines destroyed and lost, the roll the match
   drew, and whether that result was above, near, or below the average. The
-  same dock is used for your own attacks. Turn Watch AI off for immediate
+  same report is used for your own attacks. A dedicated battle view shows opposing
+  formations, counts, experience, attack/defense and terrain stats. Show map /
+  Show battle switches views without changing the board. Units traverse each
+  hex of their legal movement route in live play and replays. Turn Watch AI off for immediate
   AI turns. Fit board restores the whole map after the view follows a fight.
 - The factory panel shows each stored unit's map icon with experience stars,
   damage when present, and a full-row deployment button.
@@ -295,7 +292,7 @@ the page or list scrolls or resizes.
 - The hover inspector shows BASE → SUPPORT → TERRAIN → FINAL attack and defense
   for both sides, plus surround, experience, damage arithmetic and outcome rates.
 - Every campaign and expansion map is available immediately. Use the map
-  selector in the top bar to move directly between them.
+  selector in the left panel to move directly between them.
 - Mission choices list Union, Xenon and Neutral squad totals in that order,
   including fielded units and the reserves stored under each side's ownership.
   Labels and numbers use the same size, saturated faction colors and strong contrast.

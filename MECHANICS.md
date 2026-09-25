@@ -14,10 +14,11 @@ imported campaign to compensate for rule corrections.
 ## Units and actions
 
 Clicking a mobile unit immediately shows movement destinations and legal attacks
-from its current position. A move commits its movement phase: attack or End if
-there is a shot, otherwise finish automatically. Top-bar undo/redo reverse and restore noncombat
-actions up to the last battle or turn boundary. This is an intentional modern
-control-flow change; the underlying movement/attack restrictions are preserved.
+from its current position. Per the user’s 2026-09-25 original-game correction,
+a move flows directly into unused legal attacks, otherwise the unit finishes
+automatically. There is no per-unit End choice. Left-panel undo/redo reverse
+and restore noncombat actions up to the last battle or turn boundary. Movement
+animation is visual only; the action commits once with unchanged rules and RNG.
 Atlas aims immediately and stationary units never offer movement.
 See `PRODUCT.md` and the historical booklet review in `MANUAL_AUDIT.md`.
 

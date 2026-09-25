@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>Board playback regression checks</title>
+<style>body{margin:0;background:#111;color:#fff;font:14px system-ui}header{padding:8px}button{font:inherit}#results{margin:4px;max-height:150px;overflow:auto}iframe{width:100%;height:720px;border:0}</style></head>
+<body><header><button id="run">Run board playback checks</button> <strong id="status">Ready</strong><ol id="results"></ol></header>
+<iframe id="match" src="../index.html" title="Test battlefield"></iframe>
+<script>
+"use strict";
+var frame=document.getElementById("match"),ui,checks=0;
+function check(condition,message){if(!condition)throw new Error(message);checks++;var li=document.createElement("li");li.textContent="PASS: "+message;document.getElementById("results").appendChild(li);}
+function wait(ms){return new Promise(function(resolve){setTimeout(resolve,ms);});}
+function bounds(el){var r=el.getBoundingClientRect();return [r.x,r.y,r.width,r.height].join();}
+function setup(){
+  var w=frame.contentWindow,d=w.document;
+  if(ui)ui.destroy();
+  var dialog=d.getElementById("profile-dialog");if(dialog.open)dialog.close();
+  d.getElementById("menu-screen").classList.add("hidden");d.getElementById("game-screen").classList.remove("hidden");
+  var game=new w.ENGINE.Game({name:"Playback test",grid:Array(7).fill("............"),units:[
+    {t:"BISON",o:0,x:0,y:3},{t:"POLAR",o:1,x:3,y:3},{t:"HADRIAN",o:0,x:0,y:0},
+    {t:"CHARLIE",o:0,x:0,y:6},{t:"PELICAN",o:0,x:2,y:6},{t:"BISON",o:1,x:11,y:6}]},{seed:7});
+  d.getElementById("map-title").textContent="PLAYBACK TEST";
+  ui=new w.UI.GameUI(d.getElementById("game-canvas"),game,{hotseat:true});return {w:w,d:d,g:game};
+}
+document.getElementById("run").onclick=async function(){
+  this.disabled=true;checks=0;document.getElementById("results").innerHTML="";document.getElementById("status").textContent="Running…";
+  try{
+    var x=setup(),d=x.d,w=x.w,g=x.g;await wait(50);
+    var canvas=d.getElementById("game-canvas"),baseline=bounds(canvas),camera=[ui.renderer.zoom,ui.renderer.originX,ui.renderer.originY].join();
+    ui.openWarDock("<p>Short report</p>","<p>One statistic</p>");await wait(20);
+    check(bounds(canvas)===baseline,"opening a report does not resize or move the board");
+    ui.openWarDock("<p>Long report</p>",Array(100).fill("<p>Battle statistics</p>").join(""));ui.setDetailsOpen(true);await wait(30);
+    check(bounds(canvas)===baseline&&[ui.renderer.zoom,ui.renderer.originX,ui.renderer.originY].join()===camera,"growing metadata and opening details preserve board bounds and camera");
+    ui.setDetailsOpen(false);ui.closeWarDock();
+    var unit=g.units[0];ui.selectUnit(unit);ui.tryMove(unit,2,3);
+    check(ui.busy&&ui.renderer.motion&&unit.col===2,"movement locks commands while the engine has committed the destination");
+    var save=JSON.stringify(ui.snapshotForSave()),rng=g.rng.getState(),visited=new Set();
+    while(ui.busy){if(ui.renderer.motion)visited.add(ui.renderer.motion.from.col+","+ui.renderer.motion.from.row);await wait(15);}
+    check(visited.has("0,3")&&visited.size>=2,"movement visibly traverses intermediate hexes ("+Array.from(visited).join(" → ")+")");
+    check(JSON.stringify(ui.snapshotForSave())===save&&g.rng.getState()===rng,"animation leaves the committed save and RNG untouched");
+    check(ui.mode==="moved"&&ui.pickTargets.length===1&&!Array.from(d.querySelectorAll("#action-menu button")).some(function(b){return b.textContent==="End";}),"a move flows directly into available attacks without an End choice");
+    ui.onHexClick(3,3);await wait(30);
+    check(!d.getElementById("battle-stage").classList.contains("hidden")&&d.getElementById("battle-stage").textContent.includes("Terrain"),"combat opens the opposing formations and battle stats");
+    check(bounds(canvas)===baseline,"battle screen and casualty readout preserve the board viewport");
+    while(ui.busy)await wait(50);
+    check(d.getElementById("battle-stage").classList.contains("hidden")&&bounds(canvas)===baseline,"battle completes and returns to the same map viewport");
+    var gun=g.units.find(function(u){return u.typeId==="HADRIAN";});ui.selectUnit(gun);ui.tryMove(gun,1,0);
+    while(ui.busy)await wait(15);
+    check(gun.moved&&ui.mode==="idle"&&!ui.selected,"move-or-fire unit finishes automatically after moving");
+    var still=g.units.find(function(u){return u.typeId==="CHARLIE";});ui.selectUnit(still);ui.onHexClick(still.col,still.row);
+    while(ui.busy)await wait(15);
+    check(still.moved&&ui.mode==="idle"&&!ui.renderer.motion,"staying on the current hex completes once without leaving an animation active");
+    document.getElementById("status").textContent=checks+" checks passed";
+  }catch(error){document.getElementById("status").textContent="FAIL: "+error.message;console.error(error);}
+  this.disabled=false;
+};
+</script></body></html>

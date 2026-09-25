@@ -38,99 +38,74 @@ storage limits, generic-unit scope and validation record.
 
 ## Battle review (2026-09-25)
 
-The user asked to see a side select a unit, then its move or attack, then the
-result without a panel covering the fight, and to see whether that result was
-the roll they should have expected. The same readout is used in a match and in
-the tournament replay.
+The latest user correction restores an original-style battle screen: opposing
+formations, machine counts, experience, attack/defense totals and terrain bonus.
+It uses the existing selected unit art in a code-authored scene; no original
+battle artwork is imported. The local Bison/Munks capture is a layout reference.
+Stats describe the pre-battle squads, with the per-machine values shown too.
+Live matches animate casualties and hold the result briefly before returning
+to the map. Replay selection previews the fight and the next action shows its
+recorded result. **Show map / Show battle** switches views without changing the
+map's viewport or camera. This supersedes the earlier dock-only presentation.
 
-The map keeps the battle: the attacker is drawn in the attack colors, the
-target is ringed, and casualties still tick on the hexes. Under the map, not
-over it, the dock states **N destroyed, M lost**, names who attacked whom, and
-shows the arithmetic for the coefficient the match actually drew. Each shot
-gives the table row (its weight out of 100), how often that roll or a higher
-one occurs, the average casualties from the same 100-row table, how often this
-exact loss and this loss-or-more occur, and whether the casualties are above,
-near, or below that average (within half a machine counts as near). A disabled
-counter says there was no roll. Attack and counter are separate draws.
+The fixed left panel retains **N destroyed, M lost**, who attacked whom and the
+arithmetic for the coefficient actually drawn. Each shot reports its share of
+the published 100-row damage table, this-roll-or-higher share, mean casualties,
+exact-loss and loss-or-more shares. Within half a machine counts as near the
+average. A disabled counter has no roll. Attack and counter remain separate draws.
+The per-side ledger and opening decisions also remain in the left panel.
 
-Replay playback has two beats per command: the selection, with the unit and
-its destination or target marked, then the committed action. **Next** and
-**Previous** step those beats. **Previous battle** and **Next battle** jump to
-an attack's selection. **Hold battles** keeps a result on screen for at least
-2.4 seconds. **Following** frames the acted hexes; Fit board, wheel zoom, and
-Ctrl+drag leave the camera where you put it until Following is turned on
-again. The scrubber is labeled at 0, the midpoint, and the last action, and
-the status line shows the current action.
+Replay steps selection then action. Previous/next battle jump to an attack's
+selection; Hold battles keeps results visible for at least 2.4 seconds.
+Following frames the acted hexes; Fit, wheel zoom and Ctrl+drag leave the camera
+where the player puts it until Following is reenabled. The scrubber shows 0,
+midpoint and final command. Seeking or closing cancels visual movement safely.
 
-A ledger under that readout totals, for each side, attacks, machines destroyed,
-machines lost, and attack and counter gaps against the table average. A plus
-is more machines destroyed than those fights average. It is the running
-difference between the war that happened and the war the table expected. The
-match keeps the same ledger for the current game and shows it with each battle.
-Watch AI frames each Xenon selection the same way; Fit board restores the
-whole map. Turning Watch AI off still skips the beats.
+## Optional inspector and full map height (updated 2026-09-25)
 
-## Optional inspector and full map height (updated 2026-09-23)
-
-The left inspector starts closed. **Details** in the control area toggles it, and
-its close button returns the space to the map. Remember the choice across
-matches and reloads. Selection and hovering never force it open. Hover cards
-remain available on the map; the Details button highlights when a combat
-forecast is ready to inspect. **Undo / Redo** stay accessible as an adjacent pair in the control area.
-
-When controls are at the top, the bar stays one compact fixed-height row, including when button labels or counts
-change. Match information and settings scroll horizontally when necessary;
-Details, Undo, Redo and End Turn stay together at the right. Never wrap controls onto
-a second row or truncate information to fit.
-
-Attack, End, Cancel and transport commands sit beside the selected unit
-(2026-09-22 correction). Flip to an open side at viewport edges and avoid units
-and selectable destinations. Keep one row; scroll long command lists horizontally.
-Only use a temporary strip below the map when nearby controls cannot fit, aligned
-with the unit horizontally. Keep the camera stable and reclaim the strip when
-it closes; refit for window and inspector size changes. With controls on the
-left, put unit commands and the range legend in that column instead; selection
-must not create a bottom strip or consume any board height.
+All match controls, contextual commands, status, optional Details, forecasts,
+battle reports and replay metadata occupy a fixed-width left panel with its
+own vertical scroll. The board owns the remaining width and full window height.
+Opening, closing or growing metadata must never resize, refit or move the board.
+This user correction supersedes top/bottom bars, nearby unit-command popups,
+temporary action rails and automatic control-position switching.
+Details still starts closed and remembers its preference. Hover cards remain
+available by map hexes. Undo / Redo stay paired; End Turn remains the side-wide
+command and is distinct from the removed per-unit End choice.
 
 ## Board orientation and control docking (2026-09-23)
 
-Implemented from the user's request to rotate tall boards for wide monitors,
-move the control area to the left on demand, and reduce wasted screen space.
-This supersedes the requirement that match controls always occupy the top row.
+Updated by the user's 2026-09-25 fixed-left-panel correction above. The previous
+Auto / Top / Left control-placement selector is removed; stored old preferences
+no longer move the controls. Panel contents may scroll without changing its width.
 
-**Board: Auto / Normal / Sideways** selects the view. Auto is the game default:
-compare both orientations against the available canvas and use a clockwise
-quarter turn when it allows a larger full-board fit. Normal and Sideways are
-explicit overrides. Rotation affects presentation only, keeping logical cells,
-rules, saved games and movement costs unchanged. Unit sprites, strength and
-reserve counts, hover cards and controls stay upright. Terrain and its border,
-roads, movement highlights and firing contours rotate together. Click targets,
-wheel zoom around the cursor and Ctrl+left-drag use the displayed orientation.
-The editor retains its existing normal orientation.
+**Board: Auto / Normal / Sideways** remains available and persisted. Auto
+compares both orientations against the fixed board viewport and uses a clockwise
+quarter turn when that fits better. Normal and Sideways are explicit overrides.
+Units, counts and labels stay upright; terrain, highlights and hit testing rotate
+together. This is presentation only and the editor retains normal orientation.
+**Fit** restores the complete board. Window, explicit orientation, art or style
+changes may refit; metadata and selection changes may not. Keep the 8-pixel fit
+margin, up to 4× zoom, Ctrl+left-drag pan and cursor-anchored wheel zoom.
 
-**Controls: Auto / Top / Left** now defaults to Auto, following the user's
-2026-09-23 request to flip the layout automatically when needed. Compare the
-full-board fit with top controls and with a compact 184-pixel left column,
-including the selected board orientation and any open inspector. Choose the
-larger fit; keep the current position when the alternative gains at most 2%,
-so tiny resizes do not make the controls jump back and forth. The new Auto
-default replaces the initial manual-only placement preference; subsequent
-explicit Top / Left overrides remain saved. Left placement leaves the entire
-right section at full window height.
-Keep view controls and Details / Undo / Redo / End Turn accessible; settings
-scroll vertically in a short window. Left mode also docks contextual unit
-commands and the range legend. Details remains optional. Top mode retains its
-single-row scrolling settings and nearby unit commands.
+## Movement presentation and automatic attacks (2026-09-25)
 
-Remember orientation and control position across maps and browser reloads.
-**Fit** restores the complete board after zooming or panning. Refit when the
-window, controls, inspector, art set or visual style changes. Auto reevaluates
-orientation and control placement only on those fits, never merely because a
-unit is selected, a temporary action strip opens, or the player pans. Use the
-actual board bounds and an 8-pixel fit margin; small maps
-may enlarge to the existing 4× wheel-zoom limit instead of stopping at 1.6×.
-The exact column width, margin, clockwise direction and 2% Auto tie tolerance
-are implementation choices, not separately requested product constraints.
+The user corrected the interaction: moving flows straight into legal attack
+targets if an unused attack exists. Otherwise the unit finishes automatically.
+There is no per-unit **End** button anywhere on the map or in the action panel.
+Choosing the current hex commits staying in place under the same attack/finish rule.
+Clicking away/Escape may decline a pending shot; ordinary activation, buggy
+retreat, move-or-fire, transport and Undo rules remain unchanged.
+
+Human moves, watched AI moves and replays show the unit traversing every hex of
+the engine's live legal route. Render-only motion never changes authoritative
+coordinates, RNG or saves: the action commits once, then the display catches up.
+Commands stay locked during human movement; watched AI/replay playback waits
+for movement to finish. Slow frames cannot skip intermediate hexes. Boarding
+and storage can draw the moving unit even after it leaves the engine's field list.
+Fast, unwatched AI and tournament computation retain their immediate execution.
+`test/board-playback.html` checks real-browser board bounds, camera stability,
+move-to-attack, auto-completion, save/RNG preservation and battle presentation.
 
 ## Enemy movement and firing range inspection (updated 2026-09-22)
 
@@ -682,7 +657,7 @@ forbidden. Apply this equally to Pelican, Mule and custom transports.
 End Turn warns only about legal actions returned by the engine's live-state
 availability queries. A nearby popup lists the specific units and reserves;
 its Keep playing and End turn anyway buttons perform cancellation/confirmation
-inside that popup. The top-bar button never changes into a confirmation.
+inside that popup. The side-wide End Turn button never changes into a confirmation.
 Reserve deployment is described separately because deployment spends the unit's
 turn. Escape or a map click cancels the warning; a changed board requires fresh
 confirmation. Blocked, stale and spent units are excluded by the same predicates
@@ -739,7 +714,7 @@ has no movement/attack, and Pelican cannot attack. This 2026-09-21 speed-flow
 correction supersedes the earlier separate Shift-selection step.
 
 A destination click commits the movement immediately. With a legal shot, show
-red targets and **End**. Without a legal shot, end the unit automatically and
+red targets directly, with no per-unit **End** choice. Without a legal shot, end the unit automatically and
 return to the map. Shift-or-fire units therefore end immediately after moving.
 Surviving buggies immediately show their remaining movement after attacking.
 Enemy clicks outside the legal attack targets still inspect; never add automatic move-and-attack.
@@ -751,8 +726,8 @@ ends a started activation; its unused attack cannot be saved for later in the
 same player turn. Leaving a buggy after combat also forfeits its remaining
 retreat. Merely selecting/cancelling a unit before it acts spends nothing, and
 clicking the active unit again keeps its current choices. This supersedes the
-earlier permission to reselect a moved unit and fire later. End and implicit
-deselection remain part of the move's Undo step. Saves preserve the finished
+earlier permission to reselect a moved unit and fire later. Implicit
+deselection remains part of the move's Undo step. Saves preserve the finished
 state; a saved or undone activation that is still open can continue only until
 the player leaves it. The separately recorded passenger-transfer allowance
 still governs unloading.
@@ -775,9 +750,8 @@ PRNG correlation remains unverified. They must never read, reveal, advance or de
 seeds from the match RNG. Hovering and cancelling must leave combat state and
 the future real result unchanged. Cache projections for the current activation.
 
-Keep unit controls clear of attack/destination hexes, using a temporary strip
-below the map only if no on-map position fits. Reposition on pan, zoom and resize.
-After a committed move there is no Cancel confirmation; **End** finishes without attacking.
+Keep unit controls in the fixed left panel, clear of attack/destination hexes.
+After a committed move there is no Cancel confirmation or per-unit **End** button.
 Escape clears selection and ends a started activation. Right-click backs out of the active menu, closes the
 End Turn confirmation, or undoes a just-committed move. With no selection it
 undoes the last noncombat action. This also works over popup controls, without
@@ -788,7 +762,7 @@ resolving.
 ### Undo and redo history (2026-09-23)
 
 **Undo** reverses noncombat actions across units, with no fixed step limit.
-Movement (including subsequent End), boarding, unloading, deployment, storage,
+Movement (including implicit completion), boarding, unloading, deployment, storage,
 repair and factory capture restore the entire previous board and action state.
 **Redo** restores undone actions in order. Both buttons always appear as a linked
 pair; available actions have full opacity and unavailable ones are disabled and

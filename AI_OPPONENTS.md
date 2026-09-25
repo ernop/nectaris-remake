@@ -173,10 +173,13 @@ summaries. Only Watch loads a complete replay. IndexedDB v2 migrates v1 data
 without removing games. Replays open with the board filling the window and offer
 true fullscreen, Fit, zoom, Ctrl+left-drag pan, unit hovers, turn jumps, action
 steps, scrubber and playback speed. Each step can stop on the selection, then
-on the committed action. Battles show, under the map, who attacked whom,
+on the committed action. Moves animate the exact legal hex route. A fixed left
+panel shows who attacked whom,
 machines destroyed and lost, the match's damage-table roll, and whether those
 casualties were above, near, or below the table average. A ledger sums each
-side's gap from that average. Previous/next battle, hold and follow are
+side's gap from that average. An original-style battle view shows opposing
+formations, counts, experience, attack/defense and terrain stats. Map/battle
+toggles and changing reports never resize the board. Previous/next battle, hold and follow are
 included. Wheel zoom, Fit and Ctrl+drag leave the camera until Following is
 turned on again. Back to tournament leaves a running job alone.
 A compact checkpoint every 128 commands makes arbitrary seeking require at most

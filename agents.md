@@ -40,14 +40,12 @@ Facts we need across sessions:
   pan; Ctrl-click never issues a unit command. Never recenter merely because
   the map is smaller than the viewport. Show grab while Ctrl is held and
   grabbing during panning; use a crosshair for normal map actions.
-- **Board layout (2026-09-23):** game view offers Auto / Normal / Sideways
-  orientation and Auto / Top / Left controls, persisted across matches and reloads.
-  Both default to Auto, jointly choosing the larger full-board fit on map,
-  window, inspector or art changes. Keep the dock stable for near-ties and
-  during selection/panning. Fit resets the camera. Left mode
-  docks unit commands and the range legend too, preserving full board height
-  even during selection. Keep units, counts and popups upright; rotate terrain,
-  highlights and hit testing consistently. See PRODUCT's board-layout record.
+- **Board layout (updated 2026-09-25):** Auto / Normal / Sideways orientation
+  remains persisted. All controls, metadata, Details, forecasts and battle
+  reports now live in a fixed left panel in matches and replays. It scrolls
+  independently: changing its content must never resize/refit the board.
+  This supersedes Auto / Top / Left control placement, on-map action menus
+  and temporary bottom rails. Fit resets the camera. See PRODUCT.
 - **Deploy target:** none selected in the records. It is a static folder; any
   static web host works. Record the target and deployment procedure when chosen.
 - **Public home:** [ernop/nectaris-remake](https://github.com/ernop/nectaris-remake),
@@ -184,8 +182,8 @@ Facts we need across sessions:
   again reopens it. Use the engine's unloadTargets, including transfer, passenger,
   occupancy and terrain restrictions. Apply this to Pelican, Mule and custom carriers.
 
-- **Battle review (2026-09-25):** matches and tournament replays share a dock
-  under the map. It shows who attacked whom, machines destroyed and lost, the
+- **Battle review (2026-09-25):** matches and tournament replays share a fixed left
+  report panel and original-style opposing battle formations with stats. It shows who attacked whom, machines destroyed and lost, the
   match's actual table roll, and whether those casualties were above, near, or
   below the 100-row average. Replay steps selection, then the action. A ledger
   sums each side's attacks and its gap from the average. See PRODUCT.
@@ -195,30 +193,25 @@ Facts we need across sessions:
   The requested firing-border trial outlines only the outer area and inner
   blind spots, replacing per-hex firing outlines; see `PRODUCT.md`.
   Click a red target to fire directly; Attack can still isolate aiming.
-  Atlas aims immediately. After moving, attack or End
-  if a shot exists; otherwise finish automatically. **Unit activation correction
+  Atlas aims immediately. After moving, target an unused legal attack
+  directly; otherwise finish automatically. No per-unit End button. Moves animate
+  every hex in the legal route without changing saves, RNG or engine outcomes. **Unit activation correction
   (2026-09-23):** switching away or clearing selection after moving forfeits the
   unused attack; returning later in the player turn never reopens it. Leaving
   a buggy's post-attack retreat likewise ends its activation. Cancelling a ready,
   unacted selection spends nothing. This supersedes the old permission to
   reselect moved units and attack later; keep save/reload and Undo consistent.
   See `PRODUCT.md` and `MECHANICS.md`. This supersedes the separate
-  Shift-selection/confirmation flow. Top-bar **Undo / Redo** always appear as a
+  Shift-selection/confirmation flow. Left-panel **Undo / Redo** always appear as a
   linked pair, enabled at full opacity. They restore whole noncombat states,
   including factory/cargo changes, and both histories survive saves. New actions
   clear redo. Right-click cancels menus or undoes a just-completed/idle move.
   Battle, turn and match-end boundaries clear history; never undo/redo combat.
   Buggies retain their remaining movement only after attacking. Keep action
   controls clear of target hexes. The left inspector is optional (Details,
-  initially closed); commands sit beside the selected unit, clear of other units
-  and selectable destinations in Top mode. A temporary bottom rail is only a fallback when
-  no nearby space fits (2026-09-22 correction). Enemy inspection shows both orange
-  movement fill and separate ground/air firing outlines from the current hex,
-  including indirect blind spots. The top bar never wraps: keep its
-  height fixed and let settings scroll beside the persistent Details/Undo/Redo/End
-  Turn controls (2026-09-22). The 2026-09-23 Left mode supersedes top-only
-  placement and keeps unit commands in the left dock, with no bottom rail.
-  Never restore permanent empty chrome or
+  initially closed); commands and changing readouts stay in the fixed left panel.
+  Enemy inspection retains orange movement and ground/air firing contours.
+  Never restore automatic layout changes from metadata or
   automatic move-and-attack shortcuts. `PRODUCT.md` records the current flow;
   `MANUAL_AUDIT.md` is the historical booklet review.
   `COMBAT.forecast` uses 100,000 independent simulation seeds and must never

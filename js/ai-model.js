@@ -497,7 +497,7 @@ var AI_MODEL = (function () {
       var from={col:u.col,row:u.row}, moved=game.moveUnit(u,action.to[0],action.to[1]);
       // Commit capture/storage immediately, just as the human movement flow.
       var effects=!moved.loaded&&game.entersBuilding(u,u.col,u.row)?game.finishUnit(u):[];
-      yield {t:"move",unit:u,from:from,to:{col:u.col,row:u.row},reason:moved.loaded?"load":action.target?"attack":"advance",effects:effects};
+      yield {t:"move",unit:u,from:from,to:{col:u.col,row:u.row},reason:moved.loaded?"load":action.target?"attack":"advance",effects:effects,path:moved.path};
       if(moved.loaded||u.inFactory||game.winner!==null)return;
     }
     if(action.cargo&&!action.before)yield unload();
@@ -511,8 +511,8 @@ var AI_MODEL = (function () {
       ctx.analysis.delete(game);
       var step=retreat(game,u,ctx);
       if(step){
-        var before={col:u.col,row:u.row};game.moveUnit(u,step.col,step.row);
-        yield {t:"move",unit:u,from:before,to:{col:u.col,row:u.row},reason:"post-attack",effects:game.finishUnit(u)};
+        var before={col:u.col,row:u.row},retreated=game.moveUnit(u,step.col,step.row);
+        yield {t:"move",unit:u,from:before,to:{col:u.col,row:u.row},reason:"post-attack",effects:game.finishUnit(u),path:retreated.path};
       }
     }
     if(!u.moved && !u.carriedBy && !u.inFactory){

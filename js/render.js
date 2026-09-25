@@ -146,6 +146,7 @@ var RENDER = (function () {
     this.attackingUnitId = null; // drawn in theme.attackColors (deep red) while its attack resolves
     this.strengthOverrides = {};
     this.battleGhosts = [];
+    this.motion = null;
     this.explosions = [];
   }
 
@@ -1138,9 +1139,18 @@ var RENDER = (function () {
     ctx.closePath();
   }
 
+  Renderer.prototype.unitCenter = function (unit) {
+    var motion = this.motion;
+    if (!motion || motion.unit.id !== unit.id) return this.hexCenter(unit.col, unit.row);
+    var from = this.hexCenter(motion.from.col, motion.from.row);
+    var to = this.hexCenter(motion.to.col, motion.to.row);
+    return {x: from.x + (to.x - from.x) * motion.fraction,
+      y: from.y + (to.y - from.y) * motion.fraction};
+  };
+
   Renderer.prototype.drawUnit = function (unit) {
     var ctx = this.ctx;
-    var ctr = this.hexCenter(unit.col, unit.row);
+    var ctr = this.unitCenter(unit);
     var s = this.hexSize * this.zoom;
     var reach=2*s+16;
     if(ctr.x+reach<0 || ctr.y+reach<0 || ctr.x-reach>this.canvas.width || ctr.y-reach>this.canvas.height)return;
@@ -1512,10 +1522,11 @@ var RENDER = (function () {
     var list = [];
     for (i = 0; i < g.units.length; i++) {
       u = g.units[i];
-      if (!u.carriedBy && !u.inFactory) list.push(u);
+      if (!u.carriedBy && !u.inFactory && (!this.motion || u.id !== this.motion.unit.id)) list.push(u);
     }
     list.sort(function (a, b) { return (a.type.moveType === "air" ? 1 : 0) - (b.type.moveType === "air" ? 1 : 0); });
     for (i = 0; i < list.length; i++) this.drawUnit(list[i]);
+    if (this.motion) this.drawUnit(this.motion.unit);
     for (i = 0; i < this.battleGhosts.length; i++) {
       if (g.units.indexOf(this.battleGhosts[i]) < 0 &&
           this.strengthOverrides[this.battleGhosts[i].id] > 0) {
@@ -1528,7 +1539,7 @@ var RENDER = (function () {
     this.withBoardView(function () {
       // selected ring
       if (this.selected) {
-        var sc = this.hexCenter(this.selected.col, this.selected.row);
+        var sc = this.unitCenter(this.selected);
         pathHex(ctx, sc.x, sc.y, this.hexSize * this.zoom);
         ctx.strokeStyle = theme.chrome.select; ctx.lineWidth = 2.5;
         ctx.stroke();

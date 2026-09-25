@@ -165,8 +165,8 @@ var AI = (function () {
         if (!destination || !destination.load) continue;
         if (!wantsTransport(game, passenger, carrier, false, range)) continue;
         var from = { col: passenger.col, row: passenger.row };
-        game.moveUnit(passenger, carrier.col, carrier.row, range);
-        return { t: "move", unit: passenger, from: from,
+        var boarded = game.moveUnit(passenger, carrier.col, carrier.row, range);
+        return { t: "move", unit: passenger, from: from, path: boarded.path,
           to: { col: carrier.col, row: carrier.row }, reason: "load", effects: [] };
       }
     }
@@ -474,12 +474,12 @@ var AI = (function () {
             { t: "wait", unit: unit };
         }
         var from = { col: unit.col, row: unit.row };
-        game.moveUnit(unit, dest.col, dest.row, range);
+        var moved = game.moveUnit(unit, dest.col, dest.row, range);
         var effects = game.finishUnit(unit);
         return {
           t: "move", unit: unit, from: from,
           to: { col: dest.col, row: dest.row },
-          reason: "post-attack", effects: effects,
+          reason: "post-attack", effects: effects, path: moved.path,
         };
       });
     }
@@ -514,7 +514,7 @@ var AI = (function () {
           return {
             t: "move", unit: unit, from: from,
             to: { col: action.dest.col, row: action.dest.row },
-            reason: action.reason, effects: effects,
+            reason: action.reason, effects: effects, path: moved.path,
           };
         });
         return;
@@ -523,11 +523,11 @@ var AI = (function () {
       if (action.dest && (action.dest.col !== unit.col || action.dest.row !== unit.row)) {
         pending.push(function () {
           var from = { col: unit.col, row: unit.row };
-          game.moveUnit(unit, action.dest.col, action.dest.row, action.range);
+          var moved = game.moveUnit(unit, action.dest.col, action.dest.row, action.range);
           return {
             t: "move", unit: unit, from: from,
             to: { col: action.dest.col, row: action.dest.row },
-            reason: "attack",
+            reason: "attack", path: moved.path,
           };
         });
       }

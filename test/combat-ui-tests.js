@@ -30,6 +30,7 @@ module.exports = function (ok) {
       pixelToHex: function (col, row) { return { col: col, row: row }; },
     };
     ui.draw = ui.showUnitInfo = ui.refreshStatus = ui.checkGameOver = ui.updateHoverInfo = function () {};
+    ui.animateMovement = function (unit, path, done) { if (done) done(); return 0; };
     ui.warLedger = require("../js/battle-report.js").emptyLedger();
     ui.animateBattleResult = function (event, detail, done) { ui.battleEvent = event; ui.animationDone = done; };
     ui.selectUnit(game.units[0]);
@@ -80,7 +81,12 @@ module.exports = function (ok) {
     ok(atlas.attacked && atlas.moved, "Atlas fires once and completes its activation");
     atlasUI.animationDone();
     var mineUI = fixture("TRIGGER",4);
-    ok(!action("Attack") && action("End"), "Trigger offers no illegal attack or move");
+    ok(!action("Attack") && !action("End"), "Trigger offers no illegal attack or move");
+
+    var staying = fixture("BISON",7), waitingUnit = staying.selected;
+    staying.onHexClick(waitingUnit.col, waitingUnit.row);
+    ok(waitingUnit.moved && staying.mode === "idle" && !action("End"),
+      "choosing the current hex finishes a unit with no legal shot without an End step");
 
     var ui = fixture("BISON",7), unit = ui.selected;
     var before = JSON.stringify(ui.game.snapshot());
@@ -135,8 +141,8 @@ module.exports = function (ok) {
     before = JSON.stringify(ui.game.snapshot());
     ui.onHexClick(2,1);
     ok(ui.mode === "moved" && unit.shifted && !unit.moved && ui.pickTargets.length === 1 &&
-      action("End") && !action("Cancel") && Object.keys(ui.game.movementRange(unit)).length === 1,
-      "a committed move with a shot offers attack or End without another movement phase");
+      !action("End") && !action("Cancel") && Object.keys(ui.game.movementRange(unit)).length === 1,
+      "a committed move with a shot immediately targets attacks with no End button");
     var rejected = false;
     try { ui.game.moveUnit(unit,1,1); } catch (error) { rejected = true; }
     ok(rejected, "reselecting cannot grant a second ordinary movement phase");
@@ -159,13 +165,13 @@ module.exports = function (ok) {
     ok(ui._forecastCache === cached, "repeated hover reuses the forecast cache");
     ui.onMouseMove({offsetX:5,offsetY:2});
     ok(!nodes["combat-inspector"].classList.contains("hidden"), "last forecast remains readable away from its target");
-    action("End").onclick();
-    ok(unit.moved && ui.mode === "idle" && ui.undoHistory.length === 1, "End finishes the unit without adding a second undo step for the same move");
+    ui.deselect();
+    ok(unit.moved && ui.mode === "idle" && ui.undoHistory.length === 1, "Deselecting finishes the unit without adding a second undo step for the same move");
     ui.undoLast();
     ok(JSON.stringify(ui.game.snapshot()) === before && nodes["combat-inspector"].classList.contains("hidden"),
-      "one sidebar undo reverses the move plus End and clears stale forecast state");
+      "one sidebar undo reverses the move plus implicit completion and clears stale forecast state");
     ui.redoLast();
-    ok(ui.game.units[0].shifted && ui.game.units[0].moved,"redo preserves the End attached to a movement step");
+    ok(ui.game.units[0].shifted && ui.game.units[0].moved,"redo preserves the completion attached to a movement step");
 
     // A unit's move and follow-up attack are one uninterrupted activation.
     ui = fixture("BISON",3); unit = ui.selected;
@@ -309,7 +315,7 @@ module.exports = function (ok) {
     ui.endTurn(true);
     ok(ui.game.currentPlayer===1 && nodes["end-turn-warning"].classList.contains("hidden"),
       "the popup confirmation explicitly ends a turn with available actions");
-    ui=fixture("BISON",7);ui.options={hotseat:true};ui.endTurn();ui.onHexClick(1,1);
+    ui=fixture("BISON",7);ui.options={hotseat:true};ui.endTurn();ui.onCancel();
     ok(!ui._endTurnConfirmation && nodes["end-turn-warning"].classList.contains("hidden"),
       "returning to unit controls cancels the pending end-turn confirmation");
     ui.endTurn();ui.game.units[0].moved=true;ui.game.units[0].moved=false;ui.game.units[0].col=2;ui.endTurn(true);
@@ -419,7 +425,7 @@ module.exports = function (ok) {
     ui.renderUnitInfo(nodes["unit-info"],pelican);
     ok(nodes["unit-info"].innerHTML.includes("Cargo") && nodes["unit-info"].innerHTML.includes("Atlas"),
       "the shared hover and detail card names the passenger even when unloading is blocked");
-    action("End").onclick(); ui.selectUnit(pelican);
+    ui.deselect(); ui.selectUnit(pelican);
     ok(ui.selected === pelican && nodes["action-menu"].children.some(function (button) {
       return button.disabled && button.textContent.includes("Atlas");
     }), "an already-finished loaded carrier still exposes its blocked passenger when selected");
@@ -468,51 +474,19 @@ module.exports = function (ok) {
       ui.onCancel();
     });
 
-    // Commands follow the selected unit, while crowded views get a safe rail.
+    // Details and reports occupy the existing left rail, never the canvas.
     ui = fixture("ATLAS", 7);
     ui.renderer.originX = 40; ui.renderer.originY = 50;
-    [0.2, 0.5, 1, 2, 4].forEach(function (zoom) {
-      ui.renderer.zoom = zoom;
-      ui.renderer.hexCenter = function (col) { return {x: col === 1 ? 400 : 750, y: 300}; };
-      ui.positionActionMenu();
-      var menuX = parseFloat(nodes["action-menu"].style.left), menuY = parseFloat(nodes["action-menu"].style.top);
-      ok(ui.canvas.height === 600 && nodes["map-action-rail"].classList.contains("hidden") &&
-        Math.abs(menuX + 54 - 400) < 220 && menuY >= 260 && menuY < 300 &&
-        (menuX > 400 + 34 * zoom || menuX + 108 < 400 - 34 * zoom),
-        "Atlas commands stay beside its hex at zoom " + zoom);
-    });
-    ui.renderer.zoom = 1;
-    ui.renderer.hexCenter = function () { return {x: 790, y: 590}; };
-    ui.selected = ui.game.units[1]; ui.mode = "moved"; ui.pickTargets = [ui.game.units[0]];
-    ui.positionActionMenu();
-    ok(parseFloat(nodes["action-menu"].style.left) + 108 <= 792 &&
-      parseFloat(nodes["action-menu"].style.top) + 26 <= 592 &&
-      ui.renderer.originX === 40 && ui.renderer.originY === 50,
-      "commands flip at viewport edges without shifting the camera");
-    if (nodes["war-dock"]) nodes["war-dock"].classList.add("hidden");
-    ui.renderer.hexSize = 1000;
-    ui.positionActionMenu();
-    ok(ui.canvas.height === 564 && !nodes["map-action-rail"].classList.contains("hidden") &&
-      nodes["action-menu"].style.top === "569px", "crowded views use a temporary rail without covering selectable hexes");
-    ui.closeActionMenu();
-    ok(ui.canvas.height === 600 && nodes["map-action-rail"].classList.contains("hidden"),
-      "closing controls returns the entire bottom strip to the battlefield");
-
     var fits = 0;
     ui.renderer.fitToMap = function () { fits++; };
-    Object.defineProperty(ui.canvas.parentElement, "clientWidth", { get: function () {
-      return nodes.sidebar.classList.contains("hidden") ? 800 : 460;
-    } });
-    Object.defineProperty(nodes["map-action-rail"], "offsetHeight", { get: function () {
-      return this.classList.contains("hidden") ? 0 : parseInt(this.style.height, 10);
-    } });
     var layoutState = JSON.stringify(ui.game.snapshot());
-    ui.setDetailsOpen(true);
-    ok(ui.canvas.width === 460 && !nodes.sidebar.classList.contains("hidden"),
-      "opening Details makes room for its readable inspector");
-    ui.setDetailsOpen(false);
-    ok(ui.canvas.width === 800 && ui.canvas.height === 600 && fits === 2 &&
-      JSON.stringify(ui.game.snapshot()) === layoutState, "closing Details reclaims the full map without changing the match");
+    ui.openActionMenu(ui.selected); ui.closeActionMenu();
+    ui.setDetailsOpen(true); ui.setDetailsOpen(false);
+    ui.openWarDock("Report", "Long statistics"); ui.closeWarDock();
+    ok(ui.canvas.width === 800 && ui.canvas.height === 600 && fits === 0 &&
+      ui.renderer.originX === 40 && ui.renderer.originY === 50 &&
+      JSON.stringify(ui.game.snapshot()) === layoutState,
+      "changing controls, reports and Details leaves the board size, camera and game untouched");
 
     // Hover details must stay near their hex even on the ultrawide SENECA
     // layout, and must not clip at any of the four viewport corners.

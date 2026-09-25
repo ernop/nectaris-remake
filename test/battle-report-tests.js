@@ -24,6 +24,10 @@ module.exports = function (ok) {
     parts.scene.indexOf(parts.assessed.counter.losses + "</strong> lost") >= 0, "scene states destroyed and lost");
   ok(parts.math.indexOf("Roll <strong>" + parts.assessed.attack.coefficientPercent + "%</strong>") >= 0,
     "math shows the match's actual roll");
+  ok(parts.screen.includes("battle-formation-left") && parts.screen.includes("battle-formation-right") &&
+    parts.screen.includes("EXP " + aExp + " / 8") && parts.screen.includes("Terrain") &&
+    parts.screen.includes(String(result.preview.attacker.ap * aBefore)),
+    "battle screen renders opposing formations, pre-battle experience, terrain and total attack");
   var ledger = REPORT.emptyLedger();
   REPORT.record(ledger, attacker.player, parts.assessed);
   ok(ledger[0].attacks === 1 && ledger[0].destroyed === result.dmgToDefender && ledger[0].lost === result.dmgToAttacker &&
