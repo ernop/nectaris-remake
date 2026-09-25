@@ -17,7 +17,7 @@ if(!isMainThread){
   require(path.join(root,"js/data-environment-campaigns.js")).forEach(c=>allMaps.push(...c.levels));
   if(args.help){console.log("node tools/ai-research/run.cjs --opponents=classic,tactical,beam,monte-carlo,apex --boards=0,1 --cycles=10 --rounds=0 --workers=4 --seed=42 --work=standard --out=/tmp/nectaris-league\nUse --work=fast, standard or deep to control search budgets. Choose --opening=original or --opening=offers; --no-deal=skip (default) or original handles unavailable offers. Add --self-play to include same-AI games. One selected AI implies self-play. --boards=all selects all built-in boards; --list lists their indices. --config=file.json accepts a complete tournament config including custom maps. Resume with --out=PATH --resume. Archives contain run.json and games/BATCH/INDEX.json, each a replayable game.");process.exit(0);}
   if(args.list){allMaps.forEach((m,i)=>console.log(i+"\t"+m.name+"\t"+m.grid[0].length+"×"+m.grid.length));process.exit(0);}
-  const files=["hex.js","data-terrain.js","data-units.js","combat.js","engine.js","balance.js","ai.js","ai-model.js","ai-search.js","ai-tournament.js"];
+  const files=["hex.js","data-terrain.js","data-units.js","combat.js","engine.js","balance.js","ai.js","ai-model.js","ai-search.js","ai-opening.js","ai-tournament.js"];
   const hash=crypto.createHash("sha256");files.forEach(f=>hash.update(fs.readFileSync(path.join(root,"js",f))));const sourceHash=hash.digest("hex");
   const out=path.resolve(String(args.out||"/tmp/nectaris-tournament")),statePath=path.join(out,"run.json");
   let run;

@@ -507,12 +507,12 @@ the deal: that player goes second with the package they accepted, and the other
 gets first, as preferred at that menu. Matching switch points use a random
 tie-break. If both refuse the entire menu, there is no forced deal: retry, return
 to the library, or explicitly choose the normal opening. Hotseat hides the first
-player’s completed survey during device handoff; solo precommits the CPU’s full
-survey before the human answers. Its material/capture-opportunity heuristic is
-an initial negotiation policy, not a solved position evaluator. It evaluates the
-same package for both possible recipients so its accepted package still meets
-its criterion when tested as a smaller menu. Neither surveying
-nor tie-breaking reads or advances combat randomness. The final screen shows
+player’s completed survey during device handoff. Solo launches independent bot
+analysis before accepting input and can collect human answers while the worker
+thinks. Neither side sees the other's responses; settlement waits for both.
+The selected bot evaluates both roles using its own playing algorithm, as
+requested in the 2026-09-25 follow-up, superseding the shared material heuristic.
+Neither surveying nor tie-breaking reads or advances combat randomness. The final screen shows
 both switch points and the exact bonus; no army acts before Start match.
 
 A prominent **How should the match open?** panel above the campaign/level lists
@@ -536,20 +536,33 @@ completion stars. Match history and the game toolbar identify the accepted
 compensation. Balance needs playtesting across maps, player skill and opening
 choices; the feature implements negotiation, not an established 50/50 outcome.
 
-Tournament protocol 2026-09-25.1 runs the same guided search automatically for
-both bots. All playing algorithms currently share the same opening heuristic;
-the setup explicitly says so. Normal opening remains the tournament default.
-Unplaceable offers and no-deal results either skip the fixture with no Elo/WDL
-update (default), or play normally only when that fallback was selected at setup.
-Every saved result records the requested/effective opening, switch points,
-negotiation history, exact bonus and first player. The replay starts from the
-compensated state. CSV and archive exports identify openings and skipped games;
-ratings stay within each configured run. Round caps wait for both armies even
-when Xenon starts. Browser workers and the disk runner share the protocol.
+Tournament protocol 2026-09-25.2 uses each bot's actual move selector in bounded
+hypothetical openings, with common independent simulation seeds and the existing
+numerical position evaluator. The bot models both hypothetical armies using its
+own policy. Scores estimate preferences, not winning odds. Normal opening remains
+the default. Unplaceable offers/no-deal skip ratings by default, with an explicit
+normal fallback option. Normal repeats swap factions in two games; offer repeats
+use four games covering both faction assignments and both equal-offer tie
+recipients. Private commitments remove response-order advantage; unequal bids
+still decide roles. Seeds are shared within the mirrored set and change by repeat.
+Saved results include policies, role scores, both switch points, questions, bonus
+and first player. CSV and archives identify effective/requested openings. Prior
+normal runs from 2026-09-25.1 can resume with unchanged rules/move selection;
+prior offer runs remain reviewable but cannot mix the updated bidding policies.
 
-Validation: all switch boundaries and pairs, private controller transitions,
-no-deal and unavailable-map fallbacks, RNG isolation, save/replay preservation,
-and reversed-order tournament round caps have regression coverage.
+The same follow-up requires durable long runs, visible progress, intelligible
+controls, map/pair history, efficient replay and a fullscreen board for review.
+Implemented: Randomize seed, help for repeats/rounds/workers/K, immediate focus
+on live worker cards, progress and rough ETA, saved-through status, local Elo and
+replay persistence. Completed out-of-order games are saved before ordered atomic
+rating updates; reload offers Resume without discarding those records. Unfinished
+games restart from their fixed seeds. Persistent-storage requests and archive
+exports support longer experiments. Ratings stay per run. Indexed history filters
+avoid loading replay payloads, and old browser records migrate intact. Replays
+fill the window, optionally enter true fullscreen, support normal zoom/Ctrl-drag
+pan, turn jumps and cached seeking every 128 commands. Old replays are indexed
+once on opening. See [AI_OPPONENTS.md](AI_OPPONENTS.md#browser-tournaments) for
+precise search budgets, persistence boundaries, exports and validation.
 
 ## Official normal campaign (2026-09-03)
 

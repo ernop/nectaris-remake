@@ -1,5 +1,5 @@
 "use strict";
-importScripts.apply(self,["hex.js","data-terrain.js","data-units.js","combat.js","engine.js","balance.js","ai.js","ai-model.js","ai-search.js","ai-tournament.js"].map(function(f){return f+"?v=20260925-openings";}));
+importScripts.apply(self,["hex.js","data-terrain.js","data-units.js","combat.js","engine.js","balance.js","ai.js","ai-model.js","ai-search.js","ai-opening.js","ai-tournament.js"].map(function(f){return f+"?v=20260925-tournaments-2";}));
 var baseRoster=Object.assign({},UNIT_TYPES);
 self.onmessage=function(event){
   var job=event.data;

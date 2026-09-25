@@ -152,11 +152,14 @@ Facts we need across sessions:
   gets second with its accepted bonus; ties are random, no-deal is explicit.
   Fixed numbered sites near each base remain previewable. `firstPlayer` survives
   saves and AI copies; rounds advance after both sides. Tournament protocol
-  2026-09-25.1 shares the guided search, uses separate deterministic tie randomness,
+  2026-09-25.2 uses each bot’s own move policy to evaluate both opening roles,
   records openings in replays and excludes skipped offers from ratings. Explicit
-  normal fallback is configurable. All bots still share an opening heuristic,
-  not measured balance. Preserve separate compensated results and original map
-  data. See PRODUCT's compensation record and `test/balance-tests.js`.
+  normal fallback is configurable. Offer fixtures mirror both factions and both
+  equal-bid tie recipients in four games; normal fixtures use two. Preferences
+  are bounded search estimates, not measured balance. Long browser runs persist
+  out-of-order results before rating, recover on Resume, and offer indexed map/pair
+  history plus full-window replays with compact 128-command checkpoints. Preserve
+  separate compensated results and original map data. See PRODUCT's compensation record and `test/balance-tests.js`.
 
 - **Unit labels and factory hovers (updated 2026-09-23):** use `UNIT_VIEW` for short
   unit names and accompanying icons. Omit serial/model designations in the UI.

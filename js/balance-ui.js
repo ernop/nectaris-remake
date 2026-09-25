@@ -57,9 +57,49 @@ var BALANCE_UI = (function () {
       this.observer=new ResizeObserver(function(){self.resize(true);});this.observer.observe(this.canvas.parentElement);
     }
   }
+  Setup.prototype.cancelBot=function(){
+    this.botGeneration=(this.botGeneration||0)+1;
+    if(this.botWorker)this.botWorker.terminate();this.botWorker=null;
+    if(this.botTimer)clearTimeout(this.botTimer);this.botTimer=null;
+  };
+  Setup.prototype.prepareBot=function(){
+    var self=this,generation=this.botGeneration;this.botPending=true;
+    function complete(survey){
+      if(generation!==self.botGeneration)return;
+      self.botPending=false;self.surveys[1]=survey;
+      if(self.botWorker)self.botWorker.terminate();self.botWorker=null;
+      if(self.phase==="waiting")self.finish();else self.render();
+    }
+    function failed(error){
+      if(generation!==self.botGeneration)return;
+      self.cancelBot();self.botPending=false;self.phase="unavailable";
+      self.openingError="The bot could not finish its opening analysis: "+error.message+". Retry or choose the normal opening.";self.render();
+    }
+    function fallback(){
+      var ai=typeof module!=="undefined"?require("./ai-opening.js"):AI_OPENING;
+      var iterator=ai.analyze(self.plan,1,self.options.opponent);
+      function pump(){
+        if(generation!==self.botGeneration)return;
+        try{var until=Date.now()+8,step;do{step=iterator.next();}while(!step.done&&Date.now()<until);
+          if(step.done)complete(step.value);else self.botTimer=setTimeout(pump,0);
+        }catch(e){failed(e);}
+      }
+      self.botTimer=setTimeout(pump,0);
+    }
+    if(typeof Worker!=="undefined")try{
+      this.botWorker=new Worker("js/opening-worker.js?v=20260925-tournaments-2");
+      this.botWorker.onmessage=function(e){if(e.data.error)failed(new Error(e.data.error));else complete(e.data.survey);};
+      this.botWorker.onerror=function(){if(self.botWorker)self.botWorker.terminate();self.botWorker=null;fallback();};
+      this.botWorker.postMessage({state:AI_SEARCH.publicSnapshot(this.game),types:UNIT_TYPES,id:this.options.opponent});return;
+    }catch(e){if(this.botWorker)this.botWorker.terminate();this.botWorker=null;}
+    fallback();
+  };
   Setup.prototype.restart=function(){
-    this.surveys=[BALANCE.begin(this.plan),this.options.hotseat?BALANCE.begin(this.plan):BALANCE.cpuSurvey(this.plan,1)];
-    this.responder=0;this.viewer=0;this.result=null;this.phase="vote";this.showQuestion();
+    this.cancelBot();this.openingError=null;this.botPending=false;
+    this.surveys=[BALANCE.begin(this.plan),BALANCE.begin(this.plan)];
+    this.responder=0;this.viewer=0;this.result=null;this.phase="vote";
+    if(!this.options.hotseat)this.prepareBot();
+    this.showQuestion();
     if(this.options.hotseat)this.handoff(0);
   };
   Setup.prototype.showQuestion=function(){
@@ -69,6 +109,7 @@ var BALANCE_UI = (function () {
     if(row && row.scrollIntoView)row.scrollIntoView({block:"nearest"});
   };
   Setup.prototype.destroy=function(){
+    this.cancelBot();
     this.listeners.forEach(function(l){l[0].removeEventListener(l[1],l[2]);});this.listeners=[];
     if(this.observer)this.observer.disconnect();
     $("balance-screen").classList.add("hidden");$("balance-handoff").classList.add("hidden");
@@ -164,18 +205,18 @@ var BALANCE_UI = (function () {
     var self=this,host=$("balance-offers"),scroll=host.scrollTop,p=this.plan,unavailable=this.phase==="unavailable",noDeal=this.phase==="no-deal",agreed=this.phase==="agreed";
     host.replaceChildren();
     $("balance-start").classList.toggle("hidden",!agreed);
-    $("balance-restart").classList.toggle("hidden",!agreed&&!noDeal);
-    $("balance-back-answer").classList.toggle("hidden",agreed||unavailable||noDeal);
+    $("balance-restart").classList.toggle("hidden",!agreed&&!noDeal&&!this.openingError);
+    $("balance-back-answer").classList.toggle("hidden",agreed||unavailable||noDeal||this.phase==="waiting");
     $("balance-back-answer").disabled=!this.surveys || !this.surveys[this.responder].answers.length;
     $("balance-progress").textContent="";
     $("balance-question").textContent="";
-    $("balance-accept").classList.toggle("hidden",agreed||unavailable||noDeal);
-    $("balance-pass").classList.toggle("hidden",agreed||unavailable||noDeal);
+    $("balance-accept").classList.toggle("hidden",agreed||unavailable||noDeal||this.phase==="waiting");
+    $("balance-pass").classList.toggle("hidden",agreed||unavailable||noDeal||this.phase==="waiting");
     $("balance-original").classList.toggle("hidden",!unavailable&&!noDeal);
     $("balance-rules").classList.toggle("hidden",unavailable||agreed);
     $("balance-choice-note").classList.toggle("hidden",unavailable||noDeal);
     if(unavailable){
-      $("balance-turn").textContent="Opening unavailable";$("balance-message").textContent=p.error;
+      $("balance-turn").textContent="Opening unavailable";$("balance-message").textContent=this.openingError||p.error;
       $("balance-placement-list").replaceChildren();$("balance-package-name").textContent="";
       $("balance-preview-caption").textContent="The original battlefield is shown. No units have been added.";return;
     }
@@ -185,6 +226,9 @@ var BALANCE_UI = (function () {
         faction(this.result.secondPlayer)+" accepts second at the lower switch point")+" with "+p.offers[this.result.offer].label+". Nothing moves until you start. These are stated preferences, not a guarantee of equal winning chances.";
       $("balance-progress").textContent=this.result.thresholds.map(function(t,side){return faction(side)+": "+
         (t===null?"no acceptable package":t===0?"second is acceptable without a bonus":"first through menu "+(t-1)+" → second at "+t+" ("+p.offers[t].label+")");}).join(". ");
+    }else if(this.phase==="waiting"){
+      $("balance-turn").textContent="Your answers are locked";
+      $("balance-message").textContent="The bot is still comparing both opening roles with its own playing algorithm. Its analysis cannot see your answers.";
     }else if(noDeal){
       $("balance-turn").textContent="No agreement";$("balance-message").textContent="Neither player accepts second with any available package. Try the questions again, return to the library, or explicitly choose the normal opening.";
     }else{
@@ -194,7 +238,7 @@ var BALANCE_UI = (function () {
         "The map’s "+this.game.turnLimit+"-round limit still awards Xenon the win.";
       $("balance-progress").textContent=(survey.low<0?"No rejected menu yet":"You prefer first through menu "+survey.low)+" · "+
         (survey.high===p.offers.length?"No accepted package yet":"You accept second at package "+survey.high)+". "+
-        (this.options.hotseat?"The other player’s answers stay hidden.":"The bot has already locked its answers using an opening heuristic.");
+        (this.options.hotseat?"The other player’s answers stay hidden.":(this.botPending?"The bot is evaluating privately with its own playing algorithm.":"The bot has locked its answers using its own playing algorithm."));
     }
     p.offers.forEach(function(offer,i){
       var button=document.createElement("button");button.className="balance-offer";
@@ -214,6 +258,10 @@ var BALANCE_UI = (function () {
     if(this.options.hotseat && this.responder===0){
       this.responder=1;this.viewer=1;this.step=BALANCE.question(this.surveys[1]);this.preview=this.step;this.handoff(1);return;
     }
+    if(this.botPending){this.phase="waiting";this.render();return;}
+    this.finish();
+  };
+  Setup.prototype.finish=function(){
     var result=BALANCE.settle(this.plan,this.surveys);this.result=result;
     if(result.status==="agreed"){
       this.result=result;this.phase="agreed";this.preview=result.offer;this.viewer=result.secondPlayer;

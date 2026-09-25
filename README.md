@@ -133,7 +133,8 @@ that menu’s packages is enough, so it tries a larger one. Normally this finds
 your switch point in at most six questions. **Change previous answer** lets you
 correct an answer. Mixed packages are alternatives, not universal unit prices.
 
-Both players answer privately. Solo locks the bot’s answers in advance; hotseat
+Choose the bot in the level picker for both moves and opening offers. Both players
+answer privately. Solo evaluates independently in the background; hotseat
 uses a pass-the-device screen. Once both switch points are known, the lower one
 sets the compensation and its accepting player goes second. Matching switch
 points use a random tie-break. Review both boundaries, the first player and the
@@ -148,14 +149,19 @@ them. Small sites shorten the list; unsuitable maps (including AIRLIFT) explain
 why offers are unavailable and allow normal play. If neither player accepts any
 package, retry or explicitly use normal play. Cancelling/reloading negotiation
 preserves your previous saved match. Started agreements and turn order are saved;
-compensated results have separate records. The bot uses a heuristic, so the
-switch point reflects preferences rather than proven equal winning chances.
+compensated results have separate records. The bot tries both roles using its own playing algorithm; its bounded analysis
+estimates preferences rather than proven equal winning chances.
 
 **Configure a bot tournament →** in the same panel opens the linked setup screen.
 Choose normal opening or offers there too. Bots negotiate automatically. You can
 skip unavailable/no-deal games (no rating change), or explicitly allow a normal
 opening fallback. Each tournament stores its settings, and results/replays identify
-the actual opening. See [tournament usage](AI_OPPONENTS.md#browser-tournaments).
+the actual opening. Normal repeats use two swapped-faction games; offers use four,
+mirroring equal-offer tie breaks too. Start shows live progress and Elo. Every
+finished game saves in this browser; reload and Resume keep results and ratings,
+restarting unfinished games. Filter history by map/pairing and Watch on a board
+that fills the window, with turn jumps, fast seeking, zoom and pan. Use archive
+export for a separate backup. See [tournament usage](AI_OPPONENTS.md#browser-tournaments).
 
 Map authors can supply `balanceSpawns`, an array containing Union's and Xenon's
 ordered `{col, row}` arrays, using zero-based coordinates. Supply up to six

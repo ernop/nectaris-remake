@@ -27,15 +27,6 @@ module.exports=function(ok){
     if(p.symmetric)ok(p.sites[0].every(function(at,i){var other=p.sites[1][i];
       return other.col===g.width-1-at.col && other.row===(g.width%2?at.row:g.height-1-at.row);
     }),map.name+": matched slots preserve map symmetry");
-    for(var step=0;step<p.offers.length;step++){
-      var choice=B.cpuChoice(p,step,1);
-      ok(choice===null || Number.isInteger(choice)&&choice>=0&&choice<=step,map.name+": CPU chooses only available packages");
-    }
-    [0,1].forEach(function(side){
-      var survey=B.cpuSurvey(p,side),high=survey.high;
-      ok((high===p.offers.length || B.cpuChoice(p,high,side)!==null) &&
-        (survey.low===-1 || B.cpuChoice(p,survey.low,side)===null),map.name+": bot switch point agrees with its own role evaluation");
-    });
     ok(JSON.stringify(g.snapshot())===before && JSON.stringify(map)===source,map.name+": previews and CPU bidding leave state, source map and combat RNG untouched");
   });
   var g=new E.Game(maps[9],{seed:51}),p=B.plan(g);
@@ -78,7 +69,7 @@ module.exports=function(ok){
   ok(B.question(bot)===null&&JSON.stringify(g.snapshot())===draft,"CPU locks its full survey without changing map or combat randomness");
   var guidedGame=new E.Game(maps[9]),guidedPlan=B.plan(guidedGame),guidedResult=B.settle(guidedPlan,[surveys[2],surveys[8]]);
   B.apply(guidedGame,guidedPlan,guidedResult);
-  ok(JSON.stringify(E.Game.restore(guidedGame.snapshot()).balance)===JSON.stringify(guidedGame.balance)&&guidedGame.balance.version===2,
+  ok(JSON.stringify(E.Game.restore(guidedGame.snapshot()).balance)===JSON.stringify(guidedGame.balance)&&guidedGame.balance.version===3,
     "switch points and private answer record survive the started match's save and restore");
 
   // Exercise the controller's real transitions without canvas rendering.
@@ -88,6 +79,7 @@ module.exports=function(ok){
     var Setup=require("../js/balance-ui.js").Setup;
     function controller(hotseat){
       var ui=Object.create(Setup.prototype);ui.plan=p;ui.options={hotseat:hotseat};ui.render=function(){};ui.focus=function(){};
+      ui.prepareBot=function(){this.surveys[1]=surveys[8];};
       ui.handoff=function(player){this.phase="handoff";this.handedTo=player;};ui.restart();return ui;
     }
     var solo=controller(false),locked=JSON.stringify(solo.surveys[1]);

@@ -57,10 +57,38 @@ module.exports=function(ok){
   ok(skipped.skipped&&skipped.reason==="opening-unavailable"&&skipped.commands.length===0,"unplaceable offers produce a saved skip without playing a silent fallback");
   ok(!fallback.skipped&&fallback.opening==="original"&&fallback.requestedOpening==="offers"&&fallback.negotiation.status==="unavailable"&&fallback.halfTurns===2,
     "explicit normal fallback plays and records its original failed negotiation");
-  var expensive=JSON.parse(JSON.stringify(offerMap));expensive.buildings.forEach(function(base){base.stored=Array(200).fill("POLAR");});
-  var noDeal=T.playSync(T.fixture(T.normalize({opponents:["classic"],maps:[expensive],opening:"offers",maxRounds:1}),0));
-  ok(noDeal.skipped&&noDeal.reason==="opening-no-deal"&&noDeal.negotiation.thresholds.every(function(t){return t===null;})&&noDeal.commands.length===0,
-    "bots that reject even the largest available menu produce an explicit no-deal result");
+  var openingAI=require("../js/ai-opening.js"),balance=require("../js/balance.js"),analyze=openingAI.analyze;
+  try{
+    openingAI.analyze=function*(plan){var survey=balance.begin(plan);while(balance.question(survey)!==null)balance.answer(plan,survey,null);return survey;};
+    var noDeal=T.playSync(offerSpec);
+    ok(noDeal.skipped&&noDeal.reason==="opening-no-deal"&&noDeal.commands.length===0,"two policy refusals produce an explicit saved no-deal result");
+  }finally{openingAI.analyze=analyze;}
+  ok(T.canResume({version:"2026-09-25.1",config:{opening:"original"}})&&!T.canResume({version:"2026-09-25.1",config:{opening:"offers"}}),"unchanged normal runs can resume; changed offer policies cannot mix ratings");
+  var offerLegs=Array.from({length:4},function(_,i){return T.fixture(offerConfig,i);});
+  ok(offerConfig.total===4&&offerLegs.map(function(s){return s.tieSecond;}).join()==="0,0,1,1"&&offerLegs.every(function(s){return s.seed===offerLegs[0].seed;}),
+    "offers mirror both tie recipients and both faction assignments with a common combat seed");
+  var samples=[],calls=[],ai=require("../js/ai.js"),createTurn=ai.createTurn;
+  try{
+    ai.createTurn=function(game,side,opts){calls.push(opts.id);return createTurn(game,side,opts);};
+    S.modes.forEach(function(mode){
+      var game=new E.Game(offerMap,{seed:123}),before=JSON.stringify(game.snapshot()),plan=balance.plan(game);
+      var getState=game.rng.getState;game.rng.getState=function(){throw new Error("Opening read real dice");};calls=[];
+      var survey=openingAI.survey(plan,0,mode.id,{work:"fast"});game.rng.getState=getState;
+      ok(calls.length>0&&calls.every(function(id){return id===mode.id;}),mode.id+" opening uses its own real move-selection algorithm");
+      ok(survey.policy===mode.id&&balance.question(survey)===null&&survey.analysis.scores.length>0,mode.id+" records role scores and completes a private switch point");
+      ok(JSON.stringify(game.snapshot())===before,mode.id+" opening does not alter the live state or RNG");
+      samples.push(survey.analysis.scores);
+    });
+  }finally{ai.createTurn=createTurn;}
+  ok(new Set(samples.map(JSON.stringify)).size>1,"different playing algorithms can value the same opening differently");
+  var progress=[];T.playSync(T.fixture(config,0),function(p){progress.push(p);});
+  ok(progress.some(function(p){return p.phase==="playing"&&p.actions>0;}),"workers report action progress during a side's turn");
+  var long=T.playSync(Object.assign(T.fixture(config,0),{map:maps[10],maxRounds:12}));
+  ok(long.checkpoints.length>0&&long.checkpoints.every(function(p){return !p.state.map&&!p.state.types&&!p.state.log;}),"long replays save compact checkpoints without duplicating maps, rosters or logs");
+  [0,127,128,129,Math.floor(long.commands.length/2),long.commands.length].filter(function(i){return i<=long.commands.length;}).forEach(function(at){
+    var plain=T.replay(Object.assign({},long,{checkpoints:[]}),at),indexed=T.replay(long,at);
+    ok(JSON.stringify(plain.snapshot())===JSON.stringify(indexed.snapshot()),"checkpoint seek exactly matches command replay at "+at);
+  });
   // Regression: unsearched neutral priors used to win in negative positions,
   // causing the expensive AI to pass while it still had valuable actions.
   var losing=new E.Game({name:"Outnumbered",grid:[".......","B.....B","......."],buildings:[{col:0,row:1,owner:0},{col:6,row:1,owner:1}],

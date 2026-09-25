@@ -130,10 +130,9 @@ var BALANCE = (function () {
     var last=s.answers.pop();if(!last)return;
     s.low=last.low;s.high=last.high;s.choice=last.previous;
   }
-  function cpuSurvey(p,player) {
-    var s=begin(p),step;
-    while((step=question(s))!==null)answer(p,s,cpuChoice(p,step,player));
-    return s;
+  function cpuSurvey(p,player,id,options) {
+    var ai=typeof module!=="undefined"?require("./ai-opening.js"):AI_OPENING;
+    return ai.survey(p,player,id,options);
   }
   function settle(p,surveys,random) {
     if(!Array.isArray(surveys)||surveys.length!==2||surveys.some(function(s){return question(s)!==null;}))
@@ -141,7 +140,8 @@ var BALANCE = (function () {
     var thresholds=surveys.map(function(s){return s.high<p.offers.length?s.high:null;});
     var step=Math.min.apply(null,surveys.map(function(s){return s.high;}));
     var result=step===p.offers.length ? {status:"no-deal"} : resolve(p,step,surveys.map(function(s){return s.high===step?s.choice:null;}),random);
-    result.version=2;result.thresholds=thresholds;
+    result.version=3;result.thresholds=thresholds;
+    result.policies=surveys.map(function(s){return s.policy?{id:s.policy,analysis:s.analysis}:null;});
     result.answers=surveys.map(function(s){return s.answers.map(function(a){return {step:a.step,choice:a.choice};});});
     return result;
   }
@@ -169,43 +169,14 @@ var BALANCE = (function () {
     game.balance={version:result.version||1,firstPlayer:result.firstPlayer,secondPlayer:result.secondPlayer,offer:result.offer,
       step:result.step,tied:result.tied,label:p.offers[result.offer].label,placements:units};
     if(result.thresholds)game.balance.thresholds=result.thresholds.slice();
+    if(result.policies)game.balance.policies=JSON.parse(JSON.stringify(result.policies));
     if(result.answers)game.balance.answers=JSON.parse(JSON.stringify(result.answers));
     units.forEach(function(at){game.units.push(engine.makeUnit(at.typeId,result.secondPlayer,at.col,at.row,8,0));});
     return game.balance;
   }
-  // Opening-role heuristic, not a proven price list or win-probability model.
-  // It evaluates each retained package for BOTH possible recipients before
-  // seeing the human's response. It never reads the match random stream.
-  function value(type) {return (type.atkG+type.atkA+type.def)/3+type.move+(type.capture?30:0);}
-  function cpuChoice(p,step,player) {
-    var g=p.game, values=[[0],[0]], material=[0,0];
-    g.units.forEach(function(u){material[u.player]+=value(u.type)*u.strength/8;});
-    Object.values(g.buildings).forEach(function(b){if(b.owner>=0)b.stored.forEach(function(u){material[b.owner]+=value(u.type)*u.strength/8;});});
-    for(var side=0;side<2;side++) for(var i=1;i<=step;i++) {
-      var v=placements(p,side,i).reduce(function(sum,at){
-        var type=types[at.typeId], worth=value(type), target=p.homes[1-side];
-        var travel=distance(at,target)/Math.max(1,type.move);
-        if(type.capture){
-          Object.values(g.buildings).forEach(function(b){
-            if(b.kind!=="factory" || b.owner===side)return;
-            var turns=distance(at,b)/Math.max(1,type.move);
-            worth=Math.max(worth,value(type)+Math.min(90,b.stored.length*10)/(1+turns));
-          });
-        }
-        return sum+worth/(1+travel*0.025);
-      },0);
-      values[side][i]=v;
-    }
-    var contested=Object.values(g.buildings).filter(function(b){return b.owner<0 && Math.abs(distance(b,p.homes[0])-distance(b,p.homes[1]))<=2;})
-      .reduce(function(sum,b){return sum+b.stored.length;},0);
-    var initiative=12+0.16*Math.min(material[0],material[1])+Math.min(80,contested*3);
-    // Compare the SAME package under each possible recipient. Otherwise a
-    // newly unlocked enemy bonus could make us accept an earlier package we
-    // still reject when that package is the menu boundary.
-    var choice=null;
-    for(var i=0;i<=step;i++)if(values[player][i]+values[1-player][i]>=2*initiative &&
-      (choice===null || values[player][i]>values[player][choice]))choice=i;
-    return choice;
+  function cpuChoice(p,step,player,id,options) {
+    var survey=cpuSurvey(p,player,id,options);
+    return survey.high<=step?survey.choice:null;
   }
   return {plan:plan,label:label,placements:placements,resolve:resolve,apply:apply,cpuChoice:cpuChoice,
     begin:begin,question:question,answer:answer,back:back,cpuSurvey:cpuSurvey,settle:settle,

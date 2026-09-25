@@ -132,7 +132,7 @@
     opts = Object.assign({}, opts || {});
     opts.opening = saved ? (opts.opening || "original") : openingMode(opts);
     if (!saved) delete opts.balance;
-    var preferredOpponent = "apex";
+    var preferredOpponent = $("menu-opponent").value || "apex";
     try { preferredOpponent = localStorage.getItem("nectaris-opponent") || preferredOpponent; } catch (e) { /* optional preference */ }
     opts.opponent = AI_SEARCH.get(opts.opponent || (saved ? "classic" : preferredOpponent)).id;
     if (!activeProfile) { openProfileForm(); return; }
@@ -226,7 +226,7 @@
       else if (!opts.hotseat && game.currentPlayer === 1) currentUI.beginAITurn();
     }
     if (!saved && opts.opening==="offers") {
-      currentSetup=new BALANCE_UI.Setup(game,{hotseat:!!opts.hotseat,onCancel:showMenu,onStart:function(result,plan){
+      currentSetup=new BALANCE_UI.Setup(game,{hotseat:!!opts.hotseat,opponent:opts.opponent,onCancel:showMenu,onStart:function(result,plan){
         try {
           if(result)opts.balance=BALANCE.apply(game,plan,result);
           else opts.opening="original";
@@ -245,6 +245,7 @@
     currentUI = null;
     $("game-screen").classList.add("hidden");
     $("menu-screen").classList.remove("hidden");
+    try {$("menu-opponent").value=AI_SEARCH.get(localStorage.getItem("nectaris-opponent")||"apex").id;}catch(e){}
     buildMenu();
     window.scrollTo(0, menuScrollTop);
     if (!activeProfile && !$("profile-dialog").open) openProfileForm();
@@ -594,6 +595,12 @@
   }
 
   window.addEventListener("DOMContentLoaded", function () {
+    var opponent=$("menu-opponent");
+    AI_SEARCH.modes.forEach(function(mode){var option=document.createElement("option");option.value=mode.id;option.textContent=mode.label;opponent.appendChild(option);});
+    opponent.value="apex";
+    try{opponent.value=AI_SEARCH.get(localStorage.getItem("nectaris-opponent")||"apex").id;}catch(e){}
+    opponent.onchange=function(){try{localStorage.setItem("nectaris-opponent",opponent.value);}catch(e){}};
+    $("chk-hotseat").onchange=function(){opponent.disabled=this.checked;};
     var openingSelect=$("opening-select"),opening="auto";
     try {opening=localStorage.getItem("nectaris-opening") || "auto";} catch(e) { /* optional preference */ }
     if(["original","offers","auto"].indexOf(opening)<0)opening="auto";

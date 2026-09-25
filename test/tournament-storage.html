@@ -1,0 +1,44 @@
+<!doctype html><meta charset="utf-8"><title>Tournament storage regression</title>
+<h1>Tournament storage regression</h1><pre id="result">Running…</pre>
+<script src="../js/tournament-store.js"></script>
+<script>
+(async function(){
+  "use strict";
+  var name="nectaris-storage-test-"+crypto.randomUUID(),checks=0,store;
+  function ok(value,message){if(!value)throw new Error(message);checks++;}
+  function done(tx){return new Promise(function(resolve,reject){tx.oncomplete=resolve;tx.onabort=tx.onerror=function(){reject(tx.error);};});}
+  function game(index,map,players){return {runId:"test",index:index,mapIndex:map,map:"Board "+map,players:players,commands:[["endTurn",[]]],initial:{sentinel:true},final:{sentinel:true},winner:0,rounds:1};}
+  try{
+    // Build the actual previous schema and migrate, without touching user runs.
+    var old=await new Promise(function(resolve,reject){var r=indexedDB.open(name,1);
+      r.onupgradeneeded=function(){r.result.createObjectStore("runs",{keyPath:"id"});var games=r.result.createObjectStore("games",{keyPath:["runId","index"]});games.createIndex("runId","runId");};
+      r.onsuccess=function(){resolve(r.result);};r.onerror=function(){reject(r.error);};});
+    var run={id:"test",completed:1,ratings:{classic:{elo:1512}}},tx=old.transaction(["runs","games"],"readwrite");
+    tx.objectStore("runs").put(run);tx.objectStore("games").put(game(0,0,["classic","tactical"]));await done(tx);old.close();
+    store=await TOURNAMENT_STORE.open(name);
+    var history=await store.history("test",{map:"",pair:""},0,25);
+    ok(history.total===1&&history.rows[0].index===0,"v1 history migrated");
+    ok(!history.rows[0].commands&&!history.rows[0].initial,"history does not load replay payloads");
+    ok((await store.game("test",0)).initial.sentinel,"migration retains the complete replay");
+    await store.stage("test",game(2,1,["tactical","classic"]));
+    ok((await store.get("test")).completed===1,"out-of-order completion does not advance Elo");
+    store.db.close();store=await TOURNAMENT_STORE.open(name);
+    var pending=await store.games("test",1,8);
+    ok(pending.length===1&&pending[0].index===2,"out-of-order game survives connection close and reopen");
+    run.completed=2;run.ratings.classic.elo=1520;await store.save(run,game(1,0,["classic","beam"]));
+    run.completed=3;await store.save(run,pending[0]);
+    ok((await store.get("test")).ratings.classic.elo===1520,"ordered rating updates persist");
+    history=await store.history("test",{map:"",pair:""},1,1);
+    ok(history.total===3&&history.rows.length===1&&history.rows[0].index===1,"history paginates without duplicate staged rows");
+    history=await store.history("test",{map:"1",pair:"classic|tactical"},0,25);
+    ok(history.total===1&&history.rows[0].index===2,"combined map/pair index finds swapped factions");
+    ok((await store.history("test",{map:"0",pair:""},0,25)).total===2,"map index includes complete map history");
+    ok((await store.history("test",{map:"",pair:"classic|tactical"},0,25)).total===2,"pair index covers both factions");
+    ok((await store.history("test",{map:"9",pair:""},0,25)).total===0,"empty map selection is safe");
+    await store.remove("test");
+    ok(!(await store.get("test"))&&!(await store.game("test",0))&&(await store.history("test",{map:"",pair:""},0,25)).total===0,"removal clears run, replay and summary stores together");
+    document.getElementById("result").textContent="PASS: "+checks+" storage checks, including migration and reload recovery.";
+  }catch(error){document.getElementById("result").textContent="FAIL: "+error.stack;}
+  finally{if(store)store.db.close();indexedDB.deleteDatabase(name);}
+})();
+</script>

@@ -101,60 +101,102 @@ setup, with a return link back. The separate page does not alter player profiles
 or unfinished human matches.
 
 Choose **Use normal opening** (default) or **Use offer for first** for all selected
-boards. Offers run the same private switch-point search as human setup; all bots
-currently share a material/capture-opportunity opening heuristic regardless of
-playing algorithm. This is not measured equal-odds compensation. Unavailable
-placements or no deal skip the fixture with no rating change unless you explicitly
-choose **Play with the normal opening** as the fallback. These preferences persist
-separately from the human opening choice, and every run freezes its own settings.
+boards. Offers use private switch-point answers. The 2026-09-25 follow-up
+supersedes the shared material/capture opening heuristic: each bot now simulates
+both roles with its own playing algorithm. The level picker selects the bot for
+both opening offers and moves; solo analysis runs in a cancellable worker and
+never receives the human's answers. Human answers may proceed while it thinks;
+settlement waits for both commitments.
 
-Protocol **2026-09-25.1** records requested/effective opening, both switch points,
-question history, bonus placements and first player. Results, CSV exports and
-replays identify the opening; replay starts after compensation is placed. The
-tie-break is seeded separately from combat. A lab cap waits for both armies,
-including Xenon-first matches. Prior-version replays remain viewable, but their
-runs cannot resume under the changed protocol.
+`ai-opening.js` tries the retained packages in order until one is acceptable.
+For each, it compares going first while the opponent receives that package with
+going second and receiving it itself. Both simulated sides use the evaluating
+bot's policy (a self-play opponent model). Classic uses its fidelity move selector;
+Tactical, Sequence, Simulation and Apex use their greedy, beam, Monte Carlo and
+hybrid selectors. All use the existing numerical position evaluator to score the
+result. These are bounded estimates, not equal-odds guarantees or win probabilities.
+Fast / Standard / Deep opening work allows 4 / 8 / 12 visible non-preview events
+per side, for 1 / 1 / 2 rounds, ending at a completed activation/battle. Each move
+uses a reduced deterministic search budget (see `AI_OPENING.budget`); the opening
+process never runs a whole match. Public-position simulation seeds are independent
+of the real combat RNG. Exact equal role scores accept second. Each survey records
+its policy, budgets and first/second scores; earlier packages remain available.
 
-Choose opponents, multiple boards across collections, paired cycles, random
-seed, round cap, parallel workers, search work and Elo K. **Standard** uses
-the ordinary in-game budgets. **Fast** halves sampling/branch budgets and uses
-depth 2; **Deep** doubles them and uses depth 4, subject to the planner's minimum
-budgets. Classic and Tactical are unchanged. Search work is recorded with the
-experiment, and ratings from different budgets should not be mixed. Dense
-armies can still make Apex take tens of seconds per turn; parallelism and
-removing animation do not eliminate its search cost. One selected opponent automatically
-self-plays. With several opponents, use the optional same-AI checkbox to add
-those pairings. A cycle schedules every selected matchup on every selected
-board in both faction assignments, using the same seed for the pair. The
-display shows the exact total before launch, up to 1,000,000 games per run.
+Protocol **2026-09-25.2** records those analyses, requested/effective opening,
+switch points, questions, exact bonus, first player and fixture leg. Unavailable
+placements or no deal skip the fixture without changing ratings unless the setup
+explicitly selects normal fallback. Prior offer runs remain viewable but cannot
+resume with changed bidding policies. Version 2026-09-25.1 **normal** runs can
+resume and retain their version because normal move selection and rules are
+unchanged. The disk runner still enforces its full source hash.
 
-Round cap **0** preserves each scenario's original limit and its normal timeout
-winner. An earlier laboratory cap records a draw; it does not change the map
-or award a spurious Xenon win. Games execute without render/animation waits.
-Each worker runs a real engine instance and reloads the appropriate custom
-roster between games. Hardware and search complexity determine throughput.
+**Repeats per matchup** replaces the unclear “paired cycles” label. Each repeat
+covers every selected pairing and map with a new seed. Normal opening uses two
+games, swapping Union/Xenon so both bots start once. Offers use four games: both
+faction assignments with each possible equal-bid tie recipient. Responses are
+private, so response order has no advantage. Unequal preferences still determine
+who starts; the schedule does not force a bot to accept a rejected deal. All legs
+share a combat seed. One selected opponent automatically self-plays; the checkbox
+adds same-policy pairings when several opponents are selected. The exact total
+appears before launch, up to 1,000,000 games. **Randomize** supplies a uint32 seed;
+the same settings and seed reproduce outcomes independently of worker speed.
 
-**Pause** finishes active games before stopping; **Stop now** terminates them.
-**Resume** restarts unsaved games with the same seeds. Finished games and their
-rating updates commit together in IndexedDB, in schedule order regardless of
-worker completion order. The out-of-order buffer is bounded to twice the worker
-count. Web Locks prevent two tabs from running or deleting the same experiment.
-The tab must remain open to compute; a closed or reloaded run can be resumed.
+**Maximum rounds per game** gives both armies a turn per round. Zero preserves
+the map's own limit and its normal Xenon timeout win. An earlier lab cutoff is a
+draw. **Parallel workers** are simultaneous background games, not teams inside a
+game. More workers use more CPU. **Search work** changes move budgets as before:
+Standard uses normal in-game budgets, Fast halves sampling/branch budgets and
+uses depth 2, Deep doubles them and uses depth 4, subject to minimums. Classic
+and Tactical move selection is unchanged; opening horizons vary for all bots.
+**Elo update size (K)** controls rating sensitivity: K=24 moves two equally rated
+bots by +12/−12 for a decisive game. Ratings belong to the run and its settings.
 
-Results include W/D/L, faction counts, per-opponent thinking time, final Elo,
-head-to-head results, per-game outcomes and reasons, seeds and round counts.
-Each saved game has its initial state, engine commands and final state. **Watch**
-supports first/last, previous/next, a scrubber, playback speed and unit hover
-details. It executes recorded commands, not AI search. Game JSON files from
-the Node runner can also be opened in the viewer.
+Start scrolls and focuses the live run. Worker cards show map, pairing, opening
+analysis or current round/side and recorded action count. Saved progress, elapsed
+time, rough remaining time, standings and head-to-head results update as it runs.
+A single expensive move can still take time between worker messages.
+
+**Pause** finishes active games; **Stop now** terminates unfinished games.
+Every finished game first saves to IndexedDB, including out-of-order completions.
+Then each contiguous result and its Elo update commit atomically in schedule
+order. The in-memory reorder buffer is bounded to twice the worker count; saved
+pending results are recovered on Resume and never rated twice. Reload keeps the
+configuration, committed standings and all saved games, shows a recovery message,
+and offers **Resume**; interrupted unfinished games restart with their original
+seeds. “Saved through game…” identifies the rated prefix. Computing requires an
+open tab. Web Locks prevent two tabs from running/deleting one experiment.
+**Protect saved results** requests persistent browser storage; export archives
+for a separate backup regardless of whether the browser grants it.
+
+**Saved game history** filters by map and pairing through indexed lightweight
+summaries. Only Watch loads a complete replay. IndexedDB v2 migrates v1 data
+without removing games. Replays open with the board filling the window and offer
+true fullscreen, Fit, zoom, Ctrl+left-drag pan, unit hovers, turn jumps, action
+steps, scrubber and playback speed. Back to tournament leaves a running job alone.
+A compact checkpoint every 128 commands makes arbitrary seeking require at most
+127 commands after restore. Static maps, rosters and growing logs are not copied
+into every checkpoint. Older archives are indexed once when opened. Watching
+runs recorded engine commands, never AI search; full state and dice are retained.
+Opening decisions disclose each policy's role scores. Node game JSON imports
+use the same viewer.
 
 **Export results CSV** exports compact results. **Export full archive** produces
-NDJSON with the run configuration, ratings and every replay. Browsers with
-the File System Access API stream that archive directly to disk; the fallback
-Blob export is bounded to 2,000 games. Individual replay downloads are also
-available. Browser quota errors stop the run while retaining its committed
-results; use the disk runner for very large archives. Browser storage can be
-cleared or evicted, so export important experiments.
+NDJSON with settings, ratings and all saved replay records, including results
+awaiting earlier fixtures. File System Access streams large archives directly
+to disk; other browsers use a Blob limited to 2,000 games. Individual JSON replay
+downloads remain available. Quota failures stop the run and retain already saved
+results; very large disk archives can use the Node runner. Clearing site data
+still removes local results. Ratings are not silently pooled across runs.
+
+Validation (2026-09-25): the main suite passes 146,866 checks, including selected
+policy execution, distinct role valuations, public-RNG isolation, four-leg
+symmetry and exact checkpoint replay at boundary positions. The process recovery
+suite recovers 80 games exactly once after interruption. Open
+`test/tournament-storage.html` for 12 browser IndexedDB checks covering v1 migration,
+map/pair indexes, bounded pagination, out-of-order recovery and atomic records.
+A 40-game worker smoke run covered all five offer policies without errors; browser
+checks covered full-window seeking, solo offers, a 4,000-game archive after reload,
+and an interrupted run recovering its saved 11/160 games.
 
 ## Elo calculation
 

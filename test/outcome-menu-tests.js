@@ -196,6 +196,7 @@ module.exports = function (ok) {
   ok(liveSetup && !liveSetup.options.hotseat && liveUI===previousUI &&
     JSON.stringify(store.active().savedMatch)===previousSave,
     "custom battles default to offers without starting play or replacing the existing checkpoint");
+  ok(liveSetup.options.opponent==="apex","level picker passes the selected default algorithm into opening setup");
   liveSetup.options.onCancel();
   ok(liveSetup.destroyed && JSON.stringify(store.active().savedMatch)===previousSave &&
     !get("menu-screen").classList.contains("hidden"),"cancelling setup preserves the previous match and returns to the library");
