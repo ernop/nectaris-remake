@@ -36,6 +36,40 @@ relative to the recorded experiment, not a human rating or a claim of superhuman
 play. [AI_OPPONENTS.md](AI_OPPONENTS.md) owns the technical details, resource and
 storage limits, generic-unit scope and validation record.
 
+## Battle review (2026-09-25)
+
+The user asked to see a side select a unit, then its move or attack, then the
+result without a panel covering the fight, and to see whether that result was
+the roll they should have expected. The same readout is used in a match and in
+the tournament replay.
+
+The map keeps the battle: the attacker is drawn in the attack colors, the
+target is ringed, and casualties still tick on the hexes. Under the map, not
+over it, the dock states **N destroyed, M lost**, names who attacked whom, and
+shows the arithmetic for the coefficient the match actually drew. Each shot
+gives the table row (its weight out of 100), how often that roll or a higher
+one occurs, the average casualties from the same 100-row table, how often this
+exact loss and this loss-or-more occur, and whether the casualties are above,
+near, or below that average (within half a machine counts as near). A disabled
+counter says there was no roll. Attack and counter are separate draws.
+
+Replay playback has two beats per command: the selection, with the unit and
+its destination or target marked, then the committed action. **Next** and
+**Previous** step those beats. **Previous battle** and **Next battle** jump to
+an attack's selection. **Hold battles** keeps a result on screen for at least
+2.4 seconds. **Following** frames the acted hexes; Fit board, wheel zoom, and
+Ctrl+drag leave the camera where you put it until Following is turned on
+again. The scrubber is labeled at 0, the midpoint, and the last action, and
+the status line shows the current action.
+
+A ledger under that readout totals, for each side, attacks, machines destroyed,
+machines lost, and attack and counter gaps against the table average. A plus
+is more machines destroyed than those fights average. It is the running
+difference between the war that happened and the war the table expected. The
+match keeps the same ledger for the current game and shows it with each battle.
+Watch AI frames each Xenon selection the same way; Fit board restores the
+whole map. Turning Watch AI off still skips the beats.
+
 ## Optional inspector and full map height (updated 2026-09-23)
 
 The left inspector starts closed. **Details** in the control area toggles it, and

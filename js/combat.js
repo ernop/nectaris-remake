@@ -197,6 +197,7 @@ var COMBAT = (function () {
       unitDamage: unitDamage,
       totalDamage: totalDamage,
       coefficient: coefficient / 100,
+      coefficientPercent: coefficient,
     };
   }
 
@@ -208,6 +209,39 @@ var COMBAT = (function () {
       ).casualties * RANDOM_WEIGHTS[i][1];
     }
     return total / RANDOM_BUCKETS.length;
+  }
+
+  /* The match's actual roll, read against the published 100-row table.
+   * `shooter` and `target` must be the pre-battle squads: experience awards
+   * and casualties are applied before a battle result reaches the UI. */
+  function shotReport(shooter, target, attack, defense, damage, enabled) {
+    if (!enabled) {
+      return {enabled: false, losses: 0, expected: 0, exact: 100, tail: 100,
+        coefficientPercent: null, weight: 0, rollTail: 100, verdict: "no roll",
+        unitDamage: 0, totalDamage: 0, gap: 0};
+    }
+    if (!damage || !Number.isInteger(damage.coefficientPercent)) {
+      throw new Error("Battle roll is missing its table percentage");
+    }
+    var coeff = damage.coefficientPercent, weight = 0, rollTail = 0, exact = 0, tail = 0, found = false;
+    for (var i = 0; i < RANDOM_WEIGHTS.length; i++) {
+      var entry = RANDOM_WEIGHTS[i];
+      var loss = damageResult(shooter, target, attack, defense, entry[0]).casualties;
+      if (entry[0] === coeff) { weight = entry[1]; found = true; }
+      if (entry[0] >= coeff) rollTail += entry[1];
+      if (loss === damage.casualties) exact += entry[1];
+      if (loss >= damage.casualties) tail += entry[1];
+    }
+    if (!found) throw new Error("Battle roll " + coeff + "% is not in the damage table");
+    if (damage.casualties !== damageResult(shooter, target, attack, defense, coeff).casualties) {
+      throw new Error("Battle losses do not match the recorded roll");
+    }
+    var expected = expectedCasualties(shooter, target, attack, defense);
+    var gap = damage.casualties - expected;
+    return {enabled: true, losses: damage.casualties, expected: expected, exact: exact, tail: tail,
+      coefficientPercent: coeff, weight: weight, rollTail: rollTail,
+      verdict: Math.abs(gap) < 0.5 ? "near the average" : gap > 0 ? "above the average" : "below the average",
+      unitDamage: damage.unitDamage, totalDamage: damage.totalDamage, gap: gap};
   }
 
   /* Exact public chance model for planners. No match RNG access, sampling or
@@ -300,6 +334,7 @@ var COMBAT = (function () {
   function resolve(game, attacker, defender, rng) {
     var pv = preview(game, attacker, defender);
     var aStr0 = attacker.strength, dStr0 = defender.strength;
+    var aExp0 = attacker.exp, dExp0 = defender.exp;
 
     // Both damage totals use pre-battle strengths.
     var attackDamage = damageResult(
@@ -307,7 +342,7 @@ var COMBAT = (function () {
     );
     var counterDamage = pv.counter ? damageResult(
       defender, attacker, pv.defender.ap, pv.attacker.da, randomCoefficient(rng)
-    ) : { casualties: 0, unitDamage: 0, totalDamage: 0, coefficient: null };
+    ) : { casualties: 0, unitDamage: 0, totalDamage: 0, coefficient: null, coefficientPercent: null };
     var dmgToDefender = attackDamage.casualties;
     var dmgToAttacker = counterDamage.casualties;
 
@@ -333,6 +368,8 @@ var COMBAT = (function () {
       counterDamage: counterDamage,
       attackerDead: attacker.strength === 0,
       defenderDead: defender.strength === 0,
+      attackerExpBefore: aExp0,
+      defenderExpBefore: dExp0,
     };
   }
 
@@ -340,7 +377,7 @@ var COMBAT = (function () {
     preview: preview, resolve: resolve, makeRng: makeRng,
     atkStat: atkStat, isAir: isAir,
     rangeBand: rangeBand, canAttackAt: canAttackAt,
-    experienceBonus: experienceBonus, expectedCasualties: expectedCasualties, distribution: distribution,
+    experienceBonus: experienceBonus, expectedCasualties: expectedCasualties, shotReport: shotReport, distribution: distribution,
     forecast: forecast,
     MAX_EXP: MAX_EXP, MAX_STRENGTH: MAX_STRENGTH,
     EXP_DAMAGE: EXP_DAMAGE,

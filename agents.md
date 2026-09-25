@@ -184,6 +184,12 @@ Facts we need across sessions:
   again reopens it. Use the engine's unloadTargets, including transfer, passenger,
   occupancy and terrain restrictions. Apply this to Pelican, Mule and custom carriers.
 
+- **Battle review (2026-09-25):** matches and tournament replays share a dock
+  under the map. It shows who attacked whom, machines destroyed and lost, the
+  match's actual table roll, and whether those casualties were above, near, or
+  below the 100-row average. Replay steps selection, then the action. A ledger
+  sums each side's attacks and its gap from the average. See PRODUCT.
+
 - **Combat UI (2026-09-23, latest correction):** selecting a unit shows blue
   moves plus firing ranges and red legal attack targets from its current hex.
   The requested firing-border trial outlines only the outer area and inner

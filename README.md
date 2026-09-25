@@ -275,8 +275,11 @@ the page or list scrolls or resizes.
   that allowance: cargo already aboard can unload after moving. Loaded passengers
   appear with their icons in the transport's hover card. Unavailable Unload buttons stay visible with the reason, even
   when Details is closed.
-- **Watch AI: On** shows every Xenon move, combat matchup, and before/after
-  squad strength. Turn it off for immediate AI turns.
+- **Watch AI: On** shows each Xenon selection, then the move or attack. Battle
+  results sit under the map: machines destroyed and lost, the roll the match
+  drew, and whether that result was above, near, or below the average. The
+  same dock is used for your own attacks. Turn Watch AI off for immediate
+  AI turns. Fit board restores the whole map after the view follows a fight.
 - The factory panel shows each stored unit's map icon with experience stars,
   damage when present, and a full-row deployment button.
 - Experience appears on units in three star columns holding 3, 2, and 3 stars.

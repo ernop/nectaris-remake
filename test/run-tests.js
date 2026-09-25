@@ -1110,6 +1110,9 @@ require("./action-availability-tests.js")(ok);
 section("independent combat forecasts");
 require("./forecast-tests.js")(ok);
 
+section("battle roll reports");
+require("./battle-report-tests.js")(ok);
+
 section("movement, direct attack and undo history");
 require("./combat-ui-tests.js")(ok);
 

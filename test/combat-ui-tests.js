@@ -30,6 +30,7 @@ module.exports = function (ok) {
       pixelToHex: function (col, row) { return { col: col, row: row }; },
     };
     ui.draw = ui.showUnitInfo = ui.refreshStatus = ui.checkGameOver = ui.updateHoverInfo = function () {};
+    ui.warLedger = require("../js/battle-report.js").emptyLedger();
     ui.animateBattleResult = function (event, detail, done) { ui.battleEvent = event; ui.animationDone = done; };
     ui.selectUnit(game.units[0]);
     return ui;
@@ -488,6 +489,7 @@ module.exports = function (ok) {
       parseFloat(nodes["action-menu"].style.top) + 26 <= 592 &&
       ui.renderer.originX === 40 && ui.renderer.originY === 50,
       "commands flip at viewport edges without shifting the camera");
+    if (nodes["war-dock"]) nodes["war-dock"].classList.add("hidden");
     ui.renderer.hexSize = 1000;
     ui.positionActionMenu();
     ok(ui.canvas.height === 564 && !nodes["map-action-rail"].classList.contains("hidden") &&

@@ -5,7 +5,10 @@ module.exports=function(ok){
   var saved={AI:global.AI,RENDER:global.RENDER,document:global.document,setTimeout:global.setTimeout,now:Date.now};
   var tasks=[],clock=0,delays=[],slices=0;
   global.AI=AI;global.RENDER=require("../js/render.js");
-  global.document={getElementById:function(){return {textContent:""};}};
+  global.document={getElementById:function(){
+    var classes=new Set(["hidden"]);
+    return {textContent:"", innerHTML:"", classList:{add:function(c){classes.add(c);}, remove:function(c){classes.delete(c);}, contains:function(c){return classes.has(c);}}};
+  }};
   global.setTimeout=function(fn,delay){tasks.push(fn);delays.push(delay);return tasks.length;};
   Date.now=function(){clock+=9;return clock;};
   try{

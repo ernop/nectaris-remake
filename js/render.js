@@ -238,10 +238,39 @@ var RENDER = (function () {
     return this.originX !== beforeX || this.originY !== beforeY;
   };
 
-  Renderer.prototype.hexCenter = function (col, row) {
+  Renderer.prototype.boardPoint = function (col, row) {
     var p = legacyMap() ? {x: col * 32, y: row * 32 + (col & 1) * 16} : HEX.toPixel(col, row, this.hexSize);
-    if (this.sideways && !this._boardSpace) p = {x: -p.y, y: p.x};
+    if (this.sideways && !this._boardSpace) return {x: -p.y, y: p.x};
+    return p;
+  };
+
+  Renderer.prototype.hexCenter = function (col, row) {
+    var p = this.boardPoint(col, row);
     return { x: this.originX + p.x * this.zoom, y: this.originY + p.y * this.zoom };
+  };
+
+  /* Zoom in on the acted hexes when the whole-map fit would leave them tiny.
+   * A board that is already larger than that frame stays fitted. */
+  Renderer.prototype.frameHexes = function (cells) {
+    if (!cells || !cells.length) throw new Error("frameHexes needs at least one hex");
+    if (this.canvas.width < 2 || this.canvas.height < 2) return;
+    var fit = this.fitForViewport(this.canvas.width, this.canvas.height);
+    this.sideways = fit.sideways;
+    var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+    for (var i = 0; i < cells.length; i++) {
+      var p = this.boardPoint(cells[i].col, cells[i].row);
+      minX = Math.min(minX, p.x); maxX = Math.max(maxX, p.x);
+      minY = Math.min(minY, p.y); maxY = Math.max(maxY, p.y);
+    }
+    var pad = this.hexSize * 2.4;
+    var spanX = Math.max(this.hexSize * 5, maxX - minX + pad * 2);
+    var spanY = Math.max(this.hexSize * 5, maxY - minY + pad * 2);
+    var zoom = Math.min(2.5, this.canvas.width / spanX, this.canvas.height / spanY);
+    if (!(zoom > fit.zoom * 1.08)) { this.fitToMap(); return; }
+    this.zoom = zoom;
+    this.originX = this.canvas.width / 2 - ((minX + maxX) / 2) * zoom;
+    this.originY = this.canvas.height / 2 - ((minY + maxY) / 2) * zoom;
+    this.constrainView();
   };
 
   Renderer.prototype.pixelToHex = function (px, py) {

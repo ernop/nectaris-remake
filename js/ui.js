@@ -14,6 +14,7 @@
 
 var UI = (function () {
   var unitView = typeof module !== "undefined" ? require("./unit-view.js") : UNIT_VIEW;
+  var battleReport = typeof module !== "undefined" ? require("./battle-report.js") : BATTLE_REPORT;
   var opponents = typeof module !== "undefined" ? require("./ai-search.js") : AI_SEARCH;
 
   function $(id) { return document.getElementById(id); }
@@ -65,6 +66,7 @@ var UI = (function () {
     this.busy = false;
     this.destroyed = false;
     this.watchAI = localStorage.getItem("nectaris-watch-ai") !== "off";
+    this.warLedger = battleReport.emptyLedger();
     this.onGameOver = this.options.onGameOver || function () {};
     this.detailsOpen = false;
     try { this.detailsOpen = localStorage.getItem("nectaris-details-open") === "on"; } catch (e) { /* optional preference */ }
@@ -109,9 +111,8 @@ var UI = (function () {
     // Keep canvas dimensions in sync when the inspector or action strip changes.
     if (typeof ResizeObserver !== "undefined") {
       this._layoutObserver = new ResizeObserver(function () {
-        var wrap = canvas.parentElement;
-        if (canvas.width !== wrap.clientWidth ||
-            canvas.height !== Math.max(1, wrap.clientHeight - (self._actionRailHeight || 0))) self.resize();
+        if (canvas.clientWidth && canvas.clientHeight &&
+            (canvas.width !== canvas.clientWidth || canvas.height !== canvas.clientHeight)) self.resize();
       });
       this._layoutObserver.observe(canvas.parentElement);
     }
@@ -292,12 +293,28 @@ var UI = (function () {
     this.updateHoverInfo();
   };
 
+  GameUI.prototype.syncBitmap = function (refit) {
+    if (!this.canvas) return;
+    var canvas = this.canvas, wrap = canvas.parentElement;
+    var width = canvas.clientWidth, height = canvas.clientHeight;
+    if (!width || !height) {
+      if (!wrap) return;
+      var dock = $("war-dock");
+      var dockH = dock && !dock.classList.contains("hidden") ? (dock.offsetHeight || 0) : 0;
+      width = wrap.clientWidth;
+      height = wrap.clientHeight - (this._actionRailHeight || 0) - dockH;
+    }
+    canvas.width = Math.max(1, width);
+    canvas.height = Math.max(1, height);
+    if (!this.renderer || typeof this.renderer.fitToMap !== "function") return;
+    if (refit) this.renderer.fitToMap();
+    else if (typeof this.renderer.constrainView === "function") this.renderer.constrainView();
+    this.draw();
+  };
+
   GameUI.prototype.resize = function () {
     if (this.controlsPosition) this.refreshViewControls();
-    var wrap = this.canvas.parentElement;
-    this.canvas.width = wrap.clientWidth;
-    this.canvas.height = Math.max(1, wrap.clientHeight - $("map-action-rail").offsetHeight);
-    if (this.renderer) { this.renderer.fitToMap(); this.draw(); }
+    this.syncBitmap(true);
   };
 
   GameUI.prototype.bestControlsPosition = function (width, height, sidebarWidth, topHeight, leftWidth) {
@@ -360,10 +377,9 @@ var UI = (function () {
     var rail = $("map-action-rail");
     rail.classList[height ? "remove" : "add"]("hidden");
     rail.style.height = height + "px";
-    this.canvas.height = Math.max(1, this.canvas.parentElement.clientHeight - height);
     // Preserve the camera: opening controls must not move a destination
     // under the pointer or change the unit's apparent position.
-    this.draw();
+    this.syncBitmap(false);
   };
 
   GameUI.prototype.draw = function () {
@@ -438,11 +454,33 @@ var UI = (function () {
     button.setAttribute("aria-pressed", this.watchAI ? "true" : "false");
   };
 
+  GameUI.prototype.openWarDock = function (scene, math) {
+    var dock = $("war-dock");
+    $("war-scene").innerHTML = scene || "";
+    $("war-math").innerHTML = math || "";
+    unitView.paint(dock);
+    var opened = dock.classList.contains("hidden");
+    dock.classList.remove("hidden");
+    if (opened) this.syncBitmap(false);
+    else this.draw();
+  };
+
+  GameUI.prototype.closeWarDock = function () {
+    var dock = $("war-dock");
+    if (!dock || dock.classList.contains("hidden")) return;
+    dock.classList.add("hidden");
+    $("war-scene").innerHTML = "";
+    $("war-math").innerHTML = "";
+    this.syncBitmap(false);
+  };
+
+  GameUI.prototype.frameAction = function (cells) {
+    if (this.watchAI && this.renderer.frameHexes && cells && cells.length) this.renderer.frameHexes(cells);
+  };
+
   GameUI.prototype.showWatchPanel = function (title, detail) {
-    $("watch-title").textContent = title;
-    $("watch-detail").innerHTML = detail;
-    unitView.paint($("watch-detail"));
-    $("watch-panel").classList.remove("hidden");
+    $("watch-panel").classList.add("hidden");
+    this.openWarDock("<div class='war-scene'><div class='war-headline'>" + esc(title) + "</div>" + detail + "</div>", "");
   };
 
   GameUI.prototype.hideWatchPanel = function () {
@@ -463,38 +501,50 @@ var UI = (function () {
       var effect = event.effects[0];
       action += effect.t === "capture" ? " and captured " + effect.kind : " and repaired to full strength";
     }
+    var side = battleReport.faction(event.unit.player);
     this.showWatchPanel(
-      event.t === "deploy" ? "XENON DEPLOYMENT" : "XENON SHIFT",
-      "<div class='watch-move'>" + unitView.html(event.unit) + " " +
-        esc(action) +
-      "</div>"
+      event.t === "deploy" ? side + " deployment" : side + " selected",
+      "<div class='war-verb'>" + unitView.html(event.unit) + " " + esc(action) + "</div>"
     );
+    this.renderer.highlights = null;
+    var cells = [{col: event.unit.col, row: event.unit.row}];
+    if (event.from) cells.push(event.from);
+    if (event.to) {
+      cells.push(event.to);
+      this.renderer.highlights = {};
+      this.renderer.highlights[HEX.key(event.to.col, event.to.row)] = "rgba(255,180,65,0.55)";
+    }
+    this.frameAction(cells);
   };
 
   GameUI.prototype.showWatchPreview = function (event) {
     // The attacker is identified by its deep-red body (as in the original);
     // the defender gets a white ring so the pair reads as one matchup.
     this.renderer.flashUnits = {};
+    this.renderer.highlights = null;
     this.renderer.attackingUnitId = event.attacker.id;
     this.renderer.flashUnits[event.defender.id] = "#ffffff";
-    this.showWatchPanel(
-      "XENON ATTACK",
-      "<div class='watch-matchup'>" +
-        "<div class='watch-side'>" + unitView.html(event.attacker) +
-          "<div class='watch-strength'>strength " + event.attackerBefore + "</div></div>" +
-        "<div class='watch-versus'>VERSUS</div>" +
-        "<div class='watch-side'>" + unitView.html(event.defender) +
-          "<div class='watch-strength'>strength " + event.defenderBefore + "</div></div>" +
-      "</div>"
-    );
+    var parts = battleReport.previewHtml(event.attacker, event.defender, event.preview);
+    this.openWarDock(parts.scene, parts.math);
+    this.frameAction([
+      {col: event.attacker.col, row: event.attacker.row},
+      {col: event.defender.col, row: event.defender.row},
+    ]);
   };
 
   GameUI.prototype.showWatchResult = function (event) {
     this.renderer.flashUnits = {};
+    this.renderer.highlights = null;
     this.renderer.attackingUnitId = event.attacker.id;
-    $("watch-title").textContent = "BATTLE RESULT";
-    $("watch-panel").classList.remove("hidden");
-    return this.animateBattleResult(event, $("watch-detail"));
+    this.renderer.flashUnits[event.defender.id] = "#ffffff";
+    var parts = battleReport.resultParts(event.attacker, event.defender, event.result, event.attackerBefore, event.defenderBefore);
+    battleReport.record(this.warLedger, event.attacker.player, parts.assessed);
+    this.openWarDock(parts.scene, parts.math + battleReport.ledgerHtml(this.warLedger));
+    this.frameAction([
+      {col: event.attacker.col, row: event.attacker.row},
+      {col: event.defender.col, row: event.defender.row},
+    ]);
+    return this.animateBattleResult(event, $("war-scene"));
   };
 
   GameUI.prototype.animateBattleResult = function (event, detail, onComplete) {
@@ -513,18 +563,6 @@ var UI = (function () {
     var duration = Math.max(1000, Math.min(2000, largestLoss * 320));
     var start = null;
     this.renderer.battleGhosts = [event.attacker, event.defender];
-
-    function sideHtml(unit, before, current, finished) {
-      var status = "";
-      if (finished) {
-        status = current === 0 ?
-          "<div class='watch-destroyed'>squad destroyed</div>" :
-          "<div class='watch-survived'>" + current + " survived</div>";
-      }
-      return "<div class='watch-side'>" + unitView.html(unit) +
-        "<div class='watch-strength'>" + before + " =&gt; " + current + "</div>" +
-        status + "</div>";
-    }
 
     function casualtyState(before, losses, progress, unit, seed) {
       if (!losses) return before;
@@ -556,11 +594,9 @@ var UI = (function () {
       self.renderer.strengthOverrides = {};
       self.renderer.strengthOverrides[event.attacker.id] = attackerCurrent;
       self.renderer.strengthOverrides[event.defender.id] = defenderCurrent;
-      detail.innerHTML = "<div class='watch-matchup'>" +
-        sideHtml(event.attacker, event.attackerBefore, attackerCurrent, progress === 1) +
-        "<div class='watch-versus'>RESULT</div>" +
-        sideHtml(event.defender, event.defenderBefore, defenderCurrent, progress === 1) +
-        "</div>";
+      detail.innerHTML = battleReport.sceneHtml(
+        event.attacker, event.defender, event.attackerBefore, event.defenderBefore,
+        attackerCurrent, defenderCurrent);
       unitView.paint(detail);
       self.draw();
 
@@ -1006,17 +1042,17 @@ var UI = (function () {
     this.busy = true;
     this.renderer.attackingUnitId = attacker.id;
     this.renderer.highlights = null;
-    var panel = $("battle-panel");
-    $("battle-title").textContent = "Battle result";
-    panel.classList.remove("hidden");
+    $("battle-panel").classList.add("hidden");
     var attackerBefore = attacker.strength, defenderBefore = defender.strength;
     var result = g.attack(attacker, defender);
+    var parts = battleReport.resultParts(attacker, defender, result, attackerBefore, defenderBefore);
+    battleReport.record(this.warLedger, attacker.player, parts.assessed);
+    this.openWarDock(parts.scene, parts.math + battleReport.ledgerHtml(this.warLedger));
     this.clearUndo(); // Combat is an irreversible boundary, including during animation.
     this.refreshStatus();
     this.animateBattleResult({ attacker: attacker, defender: defender,
       attackerBefore: attackerBefore, defenderBefore: defenderBefore, result: result,
-    }, $("battle-detail"), function () {
-      panel.classList.add("hidden");
+    }, $("war-scene"), function () {
       self.busy = false;
       self.renderer.attackingUnitId = null;
       self.renderer.flashUnits = {};
@@ -1402,6 +1438,7 @@ var UI = (function () {
 
   GameUI.prototype.onHexClick = function (col, row) {
     this.cancelEndTurn();
+    this.closeWarDock();
     var g = this.game;
     var self = this;
     var unit = g.unitAt(col, row);
@@ -1566,16 +1603,17 @@ var UI = (function () {
       this.selected = event.attacker;
       this.showUnitInfo(event.attacker);
       this.showWatchPreview(event);
-      delay = 1100;
+      delay = 1600;
     } else if (event.t === "battle") {
       this.selected = event.result.attackerDead ? null : event.attacker;
-      delay = this.watchAI ? this.showWatchResult(event) + 350 : 0;
+      delay = this.watchAI ? this.showWatchResult(event) + 1800 : 0;
     } else if (event.t === "finish") {
       this.selected = event.unit;
       var effect = event.effects[0];
       var text = effect.t === "capture" ? "captured " + effect.kind : "repaired to full strength";
-      this.showWatchPanel("XENON ACTION", "<div class='watch-move'>" +
+      this.showWatchPanel(battleReport.faction(event.unit.player) + " selected", "<div class='war-verb'>" +
         unitView.html(event.unit) + " " + esc(text) + "</div>");
+      this.frameAction([{col: event.unit.col, row: event.unit.row}]);
       delay = 900;
     }
 
@@ -1583,6 +1621,7 @@ var UI = (function () {
     this.draw();
     if (!this.watchAI) {
       this.hideWatchPanel();
+      this.closeWarDock();
       delay = 0;
     }
     var self = this;
@@ -1649,6 +1688,7 @@ var UI = (function () {
     // A resumed AI turn starts from its saved turn-boundary checkpoint.
     this.mode = "aiTurn";
     this.busy = true;
+    this.closeWarDock();
     this.refreshOpponent();
     this.clearUndo();
     $("status-player").textContent = RENDER.PLAYER_COLORS[g.currentPlayer].name + " (thinking…)";

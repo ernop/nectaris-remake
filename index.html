@@ -6,6 +6,7 @@
 <title>Nectaris — hex tactics remake</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='24,16 20,23 12,23 8,16 12,9 20,9' fill='%23ffd94a'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="css/nectaris.css?v=20260925-tournaments-2">
+<link rel="stylesheet" href="css/battle-dock.css?v=20260925-battle-review">
 </head>
 <body>
 <div id="save-error" class="hidden" role="alert"></div>
@@ -223,6 +224,10 @@
     </aside>
     <div id="canvas-wrap">
       <canvas id="game-canvas"></canvas>
+      <div id="war-dock" class="hidden" aria-live="polite">
+        <div id="war-scene"></div>
+        <div id="war-math"></div>
+      </div>
       <div id="map-action-rail" class="hidden" aria-hidden="true"></div>
       <div id="action-menu" class="hidden" role="group" aria-label="Unit actions"></div>
       <div id="range-legend" class="hidden" role="status" aria-label="Unit movement and firing ranges"></div>
@@ -265,7 +270,7 @@
 <script src="js/hex.js?v=20260920-battle-forecast"></script>
 <script src="js/data-terrain.js?v=20260920-fidelity"></script>
 <script src="js/data-units.js?v=20260920-cpu-tactics"></script>
-<script src="js/combat.js?v=20260923-search-3"></script>
+<script src="js/combat.js?v=20260925-battle-review"></script>
 <script src="js/engine.js?v=20260923-balance-offers"></script>
 <script src="js/balance.js?v=20260925-tournaments-2"></script>
 <script src="js/ai.js?v=20260923-search-3"></script>
@@ -282,12 +287,13 @@
 <script src="js/data-unit-art-legacy.js?v=20260920-battle-forecast"></script>
 <script src="js/unit-icon-sets.js?v=20260920-battle-forecast"></script>
 <script src="js/legacy-terrain.js?v=20260923-board-frame"></script>
-<script src="js/render.js?v=20260923-auto-layout"></script>
+<script src="js/render.js?v=20260925-battle-review"></script>
 <script src="js/unit-view.js?v=20260922-factory-actions"></script>
 <script src="js/balance-ui.js?v=20260925-tournaments-2"></script>
 <script src="js/music.js?v=20260920-battle-forecast"></script>
 <script src="js/combat-view.js?v=20260922-unit-actions-2"></script>
-<script src="js/ui.js?v=20260923-auto-layout"></script>
+<script src="js/battle-report.js?v=20260925-battle-review"></script>
+<script src="js/ui.js?v=20260925-battle-review"></script>
 <script src="js/profiles.js?v=20260923-terrain-campaigns"></script>
 <script src="js/main.js?v=20260925-tournaments-2"></script>
 </body>

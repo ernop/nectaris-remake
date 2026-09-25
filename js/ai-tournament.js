@@ -77,13 +77,16 @@ var AI_TOURNAMENT = (function () {
       finally{depth--;}
     };});return commands;
   }
-  function command(game,entry){
+  function decode(game,entry){
     if(!entry||!Object.prototype.hasOwnProperty.call(methods,entry[0])||!Array.isArray(entry[1])||entry[1].length!==methods[entry[0]])throw new Error("Invalid replay command.");
-    var args=entry[1].map(function(a){
+    return entry[1].map(function(a){
       if(a&&a.unit)return model.find(game,a.unit);
       if(a&&a.building)return game.buildingAt(a.building[0],a.building[1]);
       return a;
-    });game[entry[0]].apply(game,args);
+    });
+  }
+  function command(game,entry){
+    var args=decode(game,entry);return game[entry[0]].apply(game,args);
   }
   function* play(spec,onProgress){
     if(spec.map.customUnits)mergeUnitTypes(spec.map.customUnits);
@@ -146,6 +149,6 @@ var AI_TOURNAMENT = (function () {
     for(var i=point.at;i<end;i++)command(g,result.commands[i]);return g;
   }
   return {version:VERSION,canResume:canResume,normalize:normalize,fixture:fixture,standings:standings,rate:rate,summary:summary,
-    play:play,playSync:playSync,command:command,replay:replay};
+    play:play,playSync:playSync,command:command,decode:decode,replay:replay};
 })();
 if(typeof module!=="undefined")module.exports=AI_TOURNAMENT;
