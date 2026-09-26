@@ -1063,3 +1063,19 @@ offers may add units. The briefs describe tactical problems, not hidden objectiv
 mission. The deterministic builder, physical-route tests, menu/save/progression
 tests and all-map CPU self-play cover integration and execution. These are new
 scenarios whose difficulty and multiplayer balance still need human playtesting.
+
+
+## Future Fuseki hosting (2026-09-26)
+
+The user wants this repository available through fuseki.net later, after
+Voice-Wei and Minesweeper Friendly. This request is preparation, not a launch
+instruction. The hosting review selects a separate HTTPS origin,
+`nectaris-remake.fuseki.net`, with `/nectaris-remake/` as its Fuseki entry link,
+a dedicated restricted deployment identity, and validated atomic releases of
+an explicit runtime file list. No DNS record, account, credential, or public
+route has been activated for Nectaris. Audit game/editor/tournament assets and
+existing provenance restrictions before release; exclude `inspiration/`,
+experiments, tests, and other development content. Browser saves stay at their
+original origin unless explicitly exported/imported. The Fuseki repository's
+[independent application hosting plan](https://github.com/ernop/fuseki4_ai/blob/master/docs/minesweeper-friendly-hosting-plan.md)
+owns the infrastructure design and launch checklist.

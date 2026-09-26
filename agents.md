@@ -48,8 +48,9 @@ Facts we need across sessions:
   and temporary bottom rails. Opponent playback never pans or zooms the camera.
   Replay Follow action starts off and requires explicit opt-in. Fit resets the
   camera. See PRODUCT.
-- **Deploy target:** none selected in the records. It is a static folder; any
-  static web host works. Record the target and deployment procedure when chosen.
+- **Future deploy target (2026-09-26):** the user wants Fuseki hosting later.
+  Plan: `nectaris-remake.fuseki.net`, with a Fuseki entry link and independent
+  restricted artifact deployment. Not launched; see PRODUCT "Future Fuseki hosting".
 - **Public home:** [ernop/nectaris-remake](https://github.com/ernop/nectaris-remake),
   published on 2026-08-26. Development lives only in this standalone repo;
   the former nested copy in `mybrowser` was removed after its newest changes
