@@ -87,26 +87,64 @@ var UNIT_TYPES = {
 (function () { for (var k in UNIT_TYPES) UNIT_TYPES[k].id = k; })();
 
 var MOVE_TYPES = ["foot", "wheels", "treads", "air"];
+var UNIT_CLASSES = ["air", "antiair", "artillery", "buggy", "infantry", "mine", "tank", "transport"];
+/* Custom definitions arrive in level files, web imports and recorded games,
+ * and the interface writes these fields into its markup, so each present
+ * field must have the stock roster's type. */
+var UNIT_TEXT_FIELDS = ["name", "sprite"];
+var UNIT_COUNT_FIELDS = ["move", "rngG", "rngA", "atkG", "atkA", "def", "cargo", "rmin", "rmax", "aiDeploymentEnemies"];
+var UNIT_FLAG_FIELDS = ["capture", "moveOrFire", "moveAfterAttack", "placeByTransport"];
+var UNIT_NAME_LIST_FIELDS = ["cargoTypes", "cargoFactoryTypes", "cannotEnter"];
+
+function checkUnitType(id, def) {
+  function fail(problem) { throw new Error("Custom unit " + id + " " + problem + "."); }
+  if (!def || typeof def !== "object" || Array.isArray(def)) fail("must be an object of unit fields");
+  UNIT_TEXT_FIELDS.forEach(function (field) {
+    if (def[field] !== undefined && typeof def[field] !== "string") fail("field " + field + " must be text");
+  });
+  UNIT_COUNT_FIELDS.forEach(function (field) {
+    if (def[field] !== undefined && !(Number.isInteger(def[field]) && def[field] >= 0)) {
+      fail("field " + field + " must be a whole number of 0 or more");
+    }
+  });
+  UNIT_FLAG_FIELDS.forEach(function (field) {
+    if (def[field] !== undefined && typeof def[field] !== "boolean") fail("field " + field + " must be true or false");
+  });
+  UNIT_NAME_LIST_FIELDS.forEach(function (field) {
+    var value = def[field];
+    if (value !== undefined && !(Array.isArray(value) && value.every(function (name) { return typeof name === "string"; }))) {
+      fail("field " + field + " must be a list of names");
+    }
+  });
+  if (def.cls && UNIT_CLASSES.indexOf(def.cls) < 0) {
+    fail('has unknown cls "' + def.cls + '". Use one of: ' + UNIT_CLASSES.join(", "));
+  }
+  // A misspelled movement class would otherwise produce a unit that can
+  // enter no hex at all, which reads as a map bug rather than a typo.
+  if (def.moveType && MOVE_TYPES.indexOf(def.moveType) < 0) {
+    fail('has unknown moveType "' + def.moveType + '". Use one of: ' + MOVE_TYPES.join(", "));
+  }
+}
 
 /* Merge user-defined unit types (from the editor / custom JSON) over the
- * stock roster. Unknown fields pass through untouched. Older custom units
- * carry a single rmin/rmax band instead of rngG/rngA; that documented legacy
- * spelling is translated here: the band applies to whichever domains the
- * unit has attack power for. */
+ * stock roster. Unknown fields pass through untouched. Every definition is
+ * checked before any joins the roster, so a rejected file changes nothing.
+ * Older custom units carry a single rmin/rmax band instead of rngG/rngA;
+ * that documented legacy spelling is translated here: the band applies to
+ * whichever domains the unit has attack power for. */
 function mergeUnitTypes(customObj) {
-  for (var k in customObj) {
+  if (!customObj || typeof customObj !== "object" || Array.isArray(customObj)) {
+    throw new Error("Custom units must be an object keyed by unit type.");
+  }
+  var keys = Object.keys(customObj);
+  keys.forEach(function (k) { checkUnitType(k.toUpperCase(), customObj[k]); });
+  keys.forEach(function (k) {
     var id = k.toUpperCase();
     var def = customObj[k];
     def.id = id;
     if (!def.name) def.name = id;
     if (!def.cls) def.cls = "tank";
     if (!def.moveType) def.moveType = "treads";
-    // A misspelled movement class would otherwise produce a unit that can
-    // enter no hex at all, which reads as a map bug rather than a typo.
-    if (MOVE_TYPES.indexOf(def.moveType) < 0) {
-      throw new Error("Custom unit " + id + ' has unknown moveType "' + def.moveType +
-        '". Use one of: ' + MOVE_TYPES.join(", ") + ".");
-    }
     if (def.rngG === undefined) {
       def.rngG = (def.atkG > 0) ? (def.rmax !== undefined ? def.rmax : 1) : 0;
     }
@@ -114,7 +152,7 @@ function mergeUnitTypes(customObj) {
       def.rngA = (def.atkA > 0) ? (def.rmax !== undefined ? def.rmax : 1) : 0;
     }
     UNIT_TYPES[id] = def;
-  }
+  });
 }
 
 if (typeof module !== "undefined") module.exports = { UNIT_TYPES: UNIT_TYPES, mergeUnitTypes: mergeUnitTypes };

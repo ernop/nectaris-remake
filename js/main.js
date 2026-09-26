@@ -536,29 +536,39 @@
     });
   }
 
+  function showImportStatus(className, text) {
+    var status = $("level-import-status");
+    status.className = className;
+    status.textContent = text;
+  }
+
   function importLevelFile(file) {
     var reader = new FileReader();
     reader.onload = function () {
-      var lv = JSON.parse(reader.result);
-      if (lv.customUnits) mergeUnitTypes(lv.customUnits);
-      // Validate by constructing a game; a bad file throws with a clear message.
-      new ENGINE.Game(lv, { seed: 1 });
-      var customs = getCustomLevels();
-      var replaced = false;
-      for (var i = 0; i < customs.length; i++) {
-        if (customs[i].name === lv.name) { customs[i] = lv; replaced = true; }
+      try {
+        var lv = JSON.parse(reader.result);
+        if (lv.customUnits) mergeUnitTypes(lv.customUnits);
+        // Validate by constructing a game; a bad file throws with a clear message.
+        new ENGINE.Game(lv, { seed: 1 });
+        var customs = getCustomLevels();
+        var replaced = false;
+        for (var i = 0; i < customs.length; i++) {
+          if (customs[i].name === lv.name) { customs[i] = lv; replaced = true; }
+        }
+        if (!replaced) customs.push(lv);
+        localStorage.setItem(CUSTOM_LEVELS_KEY, JSON.stringify(customs));
+        showImportStatus("success", "Installed 1 level.");
+        buildMenu();
+      } catch (error) {
+        showImportStatus("error", file.name + ": " + error.message);
       }
-      if (!replaced) customs.push(lv);
-      localStorage.setItem(CUSTOM_LEVELS_KEY, JSON.stringify(customs));
-      buildMenu();
     };
+    reader.onerror = function () { showImportStatus("error", file.name + ": " + reader.error.message); };
     reader.readAsText(file);
   }
 
   function installOnlineLevels(url) {
-    var status = $("online-import-status");
-    status.className = "";
-    status.textContent = "Downloading…";
+    showImportStatus("", "Downloading…");
     fetch(url).then(function (response) {
       if (!response.ok) {
         throw new Error("HTTP " + response.status + " " + response.statusText + " from " + url);
@@ -585,12 +595,10 @@
         if (!replaced) customs.push(lv);
       });
       localStorage.setItem(CUSTOM_LEVELS_KEY, JSON.stringify(customs));
-      status.className = "success";
-      status.textContent = "Installed " + levels.length + " level" + (levels.length === 1 ? "" : "s") + ".";
+      showImportStatus("success", "Installed " + levels.length + " level" + (levels.length === 1 ? "" : "s") + ".");
       buildMenu();
     }).catch(function (error) {
-      status.className = "error";
-      status.textContent = error.message;
+      showImportStatus("error", error.message);
     });
   }
 
@@ -737,8 +745,7 @@
     $("btn-online-import").onclick = function () {
       var url = $("online-level-url").value.trim();
       if (!url) {
-        $("online-import-status").className = "error";
-        $("online-import-status").textContent = "Enter a level JSON URL.";
+        showImportStatus("error", "Enter a level JSON URL.");
         return;
       }
       installOnlineLevels(url);

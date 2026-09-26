@@ -204,6 +204,10 @@
       var u = state.units[k];
       if (u && terrainCost(terr, UNIT_TYPES[u.t].moveType, UNIT_TYPES[u.t]) === null) delete state.units[k];
     } else if (t.kind === "unit") {
+      if (state.owner < 0) {
+        msg("Neutral is for buildings only. Choose Union or Xenon to place units.");
+        return;
+      }
       var terr2 = TERRAIN_BY_CHAR[state.grid[row][col]];
       if (terrainCost(terr2, UNIT_TYPES[t.value].moveType, UNIT_TYPES[t.value]) === null) {
         msg(UNIT_TYPES[t.value].name + " cannot stand on " + terr2.name);

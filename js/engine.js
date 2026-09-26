@@ -70,6 +70,60 @@ var ENGINE = (function () {
     return first.value;
   };
 
+  function wholeNumber(value, min, max) {
+    return Number.isInteger(value) && value >= min && value <= max;
+  }
+  function requireWhole(value, min, max, what) {
+    if (!wholeNumber(value, min, max)) {
+      throw new Error(what + " must be a whole number from " + min + " to " + max + ".");
+    }
+  }
+
+  /* Levels also arrive from files, web addresses and recorded games, and the
+   * interface writes unit and building numbers into its markup, so every
+   * field the engine reads must have its expected type before play. */
+  function checkLevel(mapDef) {
+    var grid = mapDef && mapDef.grid;
+    if (!Array.isArray(grid) || !grid.length || !grid.every(function (row) {
+      return typeof row === "string" && row.length > 0 && row.length === grid[0].length;
+    })) {
+      throw new Error("The level's grid must be rows of terrain letters, all the same length.");
+    }
+    var width = grid[0].length, height = grid.length;
+    function list(value, what) {
+      if (value !== undefined && !Array.isArray(value)) throw new Error(what + " must be a list.");
+      return value || [];
+    }
+    function checkUnitNumbers(entry, what) {
+      if (entry.str !== undefined) requireWhole(entry.str, 1, COMBAT.MAX_STRENGTH, what + " strength (str)");
+      if (entry.exp !== undefined) requireWhole(entry.exp, 0, COMBAT.MAX_EXP, what + " experience (exp)");
+    }
+    list(mapDef.units, "The level's units").forEach(function (u, i) {
+      var what = "Unit " + (i + 1);
+      if (!u || typeof u.t !== "string") throw new Error(what + " must name its unit type (t).");
+      requireWhole(u.o, 0, 1, what + " side (o)");
+      requireWhole(u.x, 0, width - 1, what + " column (x)");
+      requireWhole(u.y, 0, height - 1, what + " row (y)");
+      checkUnitNumbers(u, what);
+    });
+    list(mapDef.buildings, "The level's buildings").forEach(function (b, i) {
+      var what = "Building " + (i + 1);
+      if (!b) throw new Error(what + " must be an object.");
+      requireWhole(b.col, 0, width - 1, what + " column (col)");
+      requireWhole(b.row, 0, height - 1, what + " row (row)");
+      if (b.owner !== undefined) requireWhole(b.owner, -1, 1, what + " owner");
+      list(b.stored, what + " stored units").forEach(function (entry, s) {
+        if (typeof entry === "string") return;
+        var stored = what + " stored unit " + (s + 1);
+        if (!entry || typeof entry.t !== "string") throw new Error(stored + " must name its unit type (t).");
+        checkUnitNumbers(entry, stored);
+      });
+    });
+    if (mapDef.turnLimit !== undefined && !wholeNumber(mapDef.turnLimit, 1, Number.MAX_SAFE_INTEGER)) {
+      throw new Error("The level's turn limit must be a whole number of 1 or more.");
+    }
+  }
+
   function makeUnit(typeId, player, col, row, strength, exp) {
     var type = UNIT_TYPES[typeId];
     if (!type) throw new Error("Unknown unit type: " + typeId);
@@ -90,6 +144,7 @@ var ENGINE = (function () {
 
   function Game(mapDef, options) {
     options = options || {};
+    checkLevel(mapDef);
     this.map = mapDef;
     this.width = mapDef.grid[0].length;
     this.height = mapDef.grid.length;
@@ -184,6 +239,8 @@ var ENGINE = (function () {
     if (!data || data.version !== 1 || !Array.isArray(data.units) ||
         !Array.isArray(data.field) || !data.types || !data.buildings ||
         !Number.isInteger(data.rngState) || !Number.isInteger(data.turn) || data.turn < 1 ||
+        !wholeNumber(data.turnLimit, 1, Number.MAX_SAFE_INTEGER) ||
+        (data.winner !== null && data.winner !== 0 && data.winner !== 1) ||
         (data.currentPlayer !== 0 && data.currentPlayer !== 1) ||
         (data.firstPlayer !== undefined && data.firstPlayer !== 0 && data.firstPlayer !== 1)) {
       throw new Error("This saved match is invalid or from an unsupported version.");
@@ -199,7 +256,10 @@ var ENGINE = (function () {
     if(data.balance)game.balance=data.balance;
     var byId = {};
     data.units.forEach(function (u) {
-      if (!Number.isInteger(u.id) || u.id < 1 || byId[u.id] || !data.types[u.typeId] || !Array.isArray(u.cargo)) {
+      if (!Number.isInteger(u.id) || u.id < 1 || byId[u.id] || !data.types[u.typeId] || !Array.isArray(u.cargo) ||
+          !wholeNumber(u.player, -1, 1) || !wholeNumber(u.strength, 0, COMBAT.MAX_STRENGTH) ||
+          !wholeNumber(u.exp, 0, COMBAT.MAX_EXP) || !Number.isInteger(u.col) || !Number.isInteger(u.row) ||
+          !Number.isFinite(u.movePointsLeft)) {
         throw new Error("Saved match contains invalid units.");
       }
       u.type = data.types[u.typeId];
@@ -212,7 +272,11 @@ var ENGINE = (function () {
     }
     data.units.forEach(function (u) { u.cargo = u.cargo.map(resolve); });
     Object.keys(data.buildings).forEach(function (key) {
-      data.buildings[key].stored = data.buildings[key].stored.map(resolve);
+      var building = data.buildings[key];
+      if (!building || !wholeNumber(building.owner, -1, 1) || !Array.isArray(building.stored)) {
+        throw new Error("Saved match contains invalid buildings.");
+      }
+      building.stored = building.stored.map(resolve);
     });
     game.units = data.field.map(resolve);
     game.buildings = data.buildings;

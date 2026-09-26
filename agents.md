@@ -56,6 +56,12 @@ Facts we need across sessions:
   (a page, script, worker, stylesheet, level, or linked document), or the
   release build fails. Server allows only `css/`, `js/`, `levels/` and
   root files of type css/html/js/json/md. See PRODUCT "Fuseki hosting".
+- **Imported data is untrusted (2026-09-26):** levels, custom units and
+  recorded games come from files and web addresses, and the UI builds much
+  of its markup with `innerHTML`. `checkLevel` and `Game.restore` in
+  `js/engine.js` and `checkUnitType` in `js/data-units.js` type-check every
+  field that reaches markup; a new such field joins those checks and
+  `test/import-validation-tests.js`. See PRODUCT "Imported data is checked".
 - **Public home:** [ernop/nectaris-remake](https://github.com/ernop/nectaris-remake),
   published on 2026-08-26. Development lives only in this standalone repo;
   the former nested copy in `mybrowser` was removed after its newest changes

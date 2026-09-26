@@ -1123,6 +1123,9 @@ require("./combat-ui-tests.js")(ok);
 section("profiles and saved matches");
 require("./profiles-tests.js")(ok);
 
+section("imported levels, custom units and recorded games");
+require("./import-validation-tests.js")(ok);
+
 section("compensation offers, placement and opening order");
 require("./balance-tests.js")(ok);
 

@@ -854,6 +854,19 @@ rebuilding the list on return. Language/profile changes must preserve entered
 import URLs and handlers. Custom text is plain text; source links use safe web
 URLs (or local files when running the app from disk).
 
+Imported data is checked field by field before use (2026-09-26): levels from
+files or web addresses, their custom units, and recorded games opened in the
+tournament lab. Unit sides, positions, strength and experience, building
+positions and owners, turn limits and custom-unit statistics must be whole
+numbers in range, lists must be lists, and the grid must be equal-length rows
+of text. The interface writes these values into its markup, so a crafted file
+could otherwise inject page content; the hosted site's CSP blocks scripts, but
+the local copy has no CSP. A rejected file changes nothing: no level is saved
+and none of its custom units join the roster. File and web imports share one
+status line that names the file and the reason. Field units belong to Union or
+Xenon; the editor's Neutral owner applies to buildings only and refuses unit
+placement.
+
 ## Heavier tanks (2026-09-05)
 
 The six tracked tank sprites now use deeper hulls, tread shoes, engine grilles,

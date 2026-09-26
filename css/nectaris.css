@@ -133,9 +133,9 @@ select, input[type="url"] {
 .menu-controls { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 10px; }
 .url-import { margin-top: 12px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
 .url-import input { min-width: 0; flex: 1 1 240px; }
-#online-import-status { font-size: 12px; }
-#online-import-status.success { color: #8bcf8b; }
-#online-import-status.error { color: #ff8f6f; }
+#level-import-status { font-size: 12px; }
+#level-import-status.success { color: #8bcf8b; }
+#level-import-status.error { color: #ff8f6f; }
 #custom-level-tools a { color: var(--ui-secondary); }
 .menu-footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #393326; color: var(--ui-secondary); font-size: 12px; line-height: 1.7; }
 .menu-footer a { color: var(--ui-secondary); }
