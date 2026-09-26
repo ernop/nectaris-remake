@@ -46,7 +46,7 @@ var COMBAT_VIEW = (function () {
       return "<tr><th>" + step.label + "</th><td>" + step.ap + "</td><td>" + step.da + "</td></tr>";
     }).join("");
     return "<section class='forecast-side'><h4>" + label + "</h4>" + unitView.html(unit) +
-      "<p>EXP " + unit.exp + " · damage +" + bonus.damage + "%" +
+      "<p>Damage bonus +" + bonus.damage + "%" +
       (COMBAT.strengthCaption(unit.strength) ? " · strength " + unit.strength : "") + "</p>" +
       "<table><thead><tr><th>Per unit</th><th>ATK</th><th>DEF</th></tr></thead><tbody>" + rows + "</tbody></table>" +
       "<p>Support +" + m.supportAttack + " ATK / +" + m.supportDefense + " DEF<br>" +
@@ -58,7 +58,7 @@ var COMBAT_VIEW = (function () {
     var base = Math.floor(attack * (100 - defense) / 100);
     var experienced = Math.floor(base * COMBAT.EXP_DAMAGE[shooter.exp] / 100);
     return "<p><strong>" + label + "</strong>: floor(" + attack + " × (100 − " + defense + ") / 100) = " + base +
-      "; EXP ×" + (COMBAT.EXP_DAMAGE[shooter.exp] / 100).toFixed(2) + " → " + experienced +
+      "; damage multiplier ×" + (COMBAT.EXP_DAMAGE[shooter.exp] / 100).toFixed(2) + " → " + experienced +
       ".<br>Squad damage: floor(" + experienced + " × " + shooter.strength + " machines × roll 0.2–4.0).</p>";
   }
   function band(type, air) {
@@ -72,7 +72,7 @@ var COMBAT_VIEW = (function () {
       "<dl><dt>Power G / A · Defense</dt><dd>" + (t.atkG || 0) + " / " + (t.atkA || 0) + " · " + t.def + "</dd>" +
       "<dt>Shift · Ground / air range</dt><dd>" + t.move + " · " + band(t, false) + " / " + band(t, true) + "</dd>" +
       (unit.strength < 8 ? "<dt>Strength</dt><dd>" + unit.strength + "</dd>" : "") +
-      "<dt>Experience</dt><dd>" + unit.exp + " · +" + COMBAT.experienceBonus(unit.exp).damage + "% damage</dd></dl>" +
+      "<dt>Damage bonus</dt><dd>+" + COMBAT.experienceBonus(unit.exp).damage + "%</dd></dl>" +
       (t.capture ? "<p>Can capture buildings.</p>" : "") +
       (!t.move ? "<p>Stationary once placed; cannot shift or reboard.</p>" :
         t.moveOrFire ? "<p>Shift or attack this turn, never both.</p>" : "") +

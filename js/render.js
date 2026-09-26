@@ -1206,10 +1206,13 @@ var RENDER = (function () {
   };
 
   // Shared by map, inspector and inventory: 3/2/3 columns, then General.
-  function drawExperience(ctx, unit, u) {
+  function drawExperience(ctx, unit, u, glowFrom) {
     if (unit.exp > 0) {
+      ctx.save();
       ctx.fillStyle = theme.chrome.pip;
+      function glow(earned) { ctx.shadowColor = "#fff1a0"; ctx.shadowBlur = earned ? 5 * u : 0; }
       if (unit.exp >= 8) {
+        glow(glowFrom !== undefined && glowFrom < 8);
         ctx.fillStyle = "#321a0d";
         drawStar(ctx, 10 * u, -10 * u, 7 * u);
         ctx.fillStyle = theme.chrome.pip;
@@ -1224,16 +1227,17 @@ var RENDER = (function () {
           var count = capacities[column];
           var top = count === 3 ? -14 : -12;
           for (var row = 0; row < count && starIndex < unit.exp; row++, starIndex++) {
+            glow(glowFrom !== undefined && starIndex >= glowFrom);
             drawStar(ctx, (6 + column * 4) * u, (top + row * 4) * u, 1.65 * u);
           }
         }
       }
+      ctx.restore();
     }
 
   }
 
-  // The popup gives rank its own readable badge, using the map's exact
-  // 3/2/3 star arrangement and single large General emblem.
+  // Standalone star renderer for art previews; game UI puts stars on unit icons.
   function drawExperienceIcon(canvas, unit) {
     var ctx = canvas.getContext("2d");
     var u = Math.min(canvas.width, canvas.height) / 16;
@@ -1259,7 +1263,7 @@ var RENDER = (function () {
     if (opts && opts.spent) ctx.filter = "grayscale(1)";
     ctx.translate(Math.round(canvas.width / 2), Math.round(canvas.height / 2));
     drawUnitBody(ctx, unit, u, base);
-    if (opts && opts.experience) drawExperience(ctx, unit, u);
+    if (opts && opts.experience) drawExperience(ctx, unit, u, opts.experienceGlowFrom);
     ctx.restore();
   }
 

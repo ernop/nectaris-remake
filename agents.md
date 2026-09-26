@@ -161,6 +161,16 @@ Facts we need across sessions:
   history plus full-window replays with compact 128-command checkpoints. Preserve
   separate compensated results and original map data. See PRODUCT's compensation record and `test/balance-tests.js`.
 
+- **Battle presentation (2026-09-26):** Union always left, Xenon always right,
+  with each squad's own terrain. No per-machine prose. Engine counter eligibility
+  controls the one-way arrow. Ready / Fighting / Result stages, a brief approach,
+  and a pausable clock cover live play, watched AI and replay. Replay defaults:
+  pause before battles on, skip scenes off; click a paused scene to resume.
+  Experience ranks are stars on unit icons everywhere, never numeric or separate
+  badges. Only battle header icons have stars, not individual formation machines;
+  actual earned stars appear and glow after fighting. See PRODUCT's battle review
+  record and `test/board-playback.html` / `test/battle-replay.html` browser fixtures.
+
 - **Unit labels and factory hovers (updated 2026-09-23):** use `UNIT_VIEW` for short
   unit names and accompanying icons. Omit serial/model designations in the UI.
   Factory hovers list every reserve individually with that unit's experience

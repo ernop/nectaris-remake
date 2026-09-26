@@ -6,7 +6,7 @@ var MOVE_ANIMATION = (function () {
     options = options || {};
     var request = options.requestFrame || requestAnimationFrame;
     var cancel = options.cancelFrame || cancelAnimationFrame;
-    var stepMs = options.stepMs || 150, previous = null, elapsed = 0, frameId = null, stopped = false;
+    var stepMs = options.stepMs || 150, previous = null, elapsed = 0, frameId = null, stopped = false, paused = false;
     var duration = Math.max(0, path.length - 1) * stepMs;
     var visual = Object.assign({}, unit, {moved: false});
     function draw() { if (options.draw) options.draw(); else renderer.draw(); }
@@ -24,16 +24,19 @@ var MOVE_ANIMATION = (function () {
       renderer.motion = {unit: visual, from: path[segment], to: path[segment + 1], fraction: at - segment};
     }
     function frame(time) {
-      if (stopped) return;
+      if (stopped || paused) return;
       // A busy or background tab may skip frames. Still show every hex.
       if (previous !== null) elapsed += Math.min(Math.max(0, time - previous), stepMs);
       previous = time;
       if (elapsed >= duration) { finish(true); return; }
       position(elapsed); draw(); frameId = request(frame);
     }
-    if (path.length < 2) frameId = request(function () { finish(true); });
-    else { position(0); draw(); frameId = request(frame); }
-    return {duration: duration, cancel: function () { finish(false); }};
+    if (path.length >= 2) { position(0); draw(); }
+    frameId = request(frame);
+    return {duration: duration, cancel: function () { finish(false); },
+      pause: function () { if (!stopped && !paused) { paused = true; cancel(frameId); } },
+      resume: function () { if (!stopped && paused) { paused = false; previous = null; frameId = request(frame); } },
+    };
   }
   return {play: play};
 })();

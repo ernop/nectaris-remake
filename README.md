@@ -202,8 +202,8 @@ the page or list scrolls or resizes.
   The card stays clear
   of the unit, flips at map edges, and lets clicks pass through. It appears and
   disappears immediately, with one compact row for attack, defense and Shift,
-  a faction-colored bold name, and a separate experience badge: traditional small
-  stars, or one large star for General. Damaged units show only their remaining
+  a faction-colored bold name, and experience stars on the unit icon:
+  traditional small stars, or one large star for General. Ranks are never numeric. Damaged units show only their remaining
   count on the icon, without a Strength label. Unsupported
   air attack, default adjacent ranges and zero experience bonuses are omitted;
   longer ranges sit under their attack value, with mixed ground/air bands explicit.
@@ -273,8 +273,15 @@ the page or list scrolls or resizes.
   results sit in the fixed left panel: machines destroyed and lost, the roll the match
   drew, and whether that result was above, near, or below the average. The
   same report is used for your own attacks. A dedicated battle view shows opposing
-  formations, counts, experience, attack/defense and terrain stats. Show map /
-  Show battle switches views without changing the board. Units traverse each
+  formations with Union on the left and Xenon on the right, each on its own
+  terrain. A one-way arrow marks attacks without a counter. Ready, Fighting and
+  Result mark the approach, combat and summary. Experience stars appear only on
+  the header icons, with earned stars glowing after combat; formation machines
+  have no stars. **Pause / Resume** freezes the battle and its automatic advance.
+  Replay **Pause on battle screens** starts on; click anywhere on the paused
+  battle to continue. **Skip battle scenes** starts off and bypasses the scenes,
+  automatic pauses and holds. Show map / Show battle switches views without
+  changing the board. Units traverse each
   hex of their legal movement route in live play and replays. Turn Watch AI off for immediate
   AI turns. Opponent actions preserve your chosen camera position and zoom.
   Replay **Follow action** starts off and only follows when you enable it.

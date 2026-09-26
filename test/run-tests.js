@@ -1115,6 +1115,7 @@ require("./move-animation-tests.js")(ok);
 
 section("battle roll reports");
 require("./battle-report-tests.js")(ok);
+require("./playback-timeline-tests.js")(ok);
 
 section("movement, direct attack and undo history");
 require("./combat-ui-tests.js")(ok);

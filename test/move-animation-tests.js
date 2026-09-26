@@ -23,6 +23,10 @@ module.exports = function (ok) {
     var from=renderer.hexCenter(move.path[0].col,move.path[0].row),to=renderer.hexCenter(move.path[1].col,move.path[1].row),at=renderer.unitCenter(unit);
     ok(Math.abs(at.x-(from.x+to.x)/2)<1e-8&&Math.abs(at.y-(from.y+to.y)/2)<1e-8,"movement interpolation follows "+orientation+" board coordinates");
   });
+  var frozen=JSON.stringify(renderer.motion);animation.pause();frame(50000);
+  ok(JSON.stringify(renderer.motion)===frozen&&callbacks.size===0,"replay pause freezes a moving unit in its current hex segment");
+  animation.resume();frame(50);
+  ok(JSON.stringify(renderer.motion)===frozen,"replay resume continues from the paused segment without jumping");
   for(var i=1;i<move.path.length-1;i++) {frame(i*100);ok(renderer.motion.from.col===move.path[i].col&&renderer.motion.from.row===move.path[i].row,"animation visits intermediate hex "+i);}
   frame(animation.duration);
   ok(!renderer.motion&&done===1&&JSON.stringify(g.snapshot())===state,"finishing animation preserves the committed save, log, action flags and RNG");

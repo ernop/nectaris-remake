@@ -11,14 +11,17 @@ var UNIT_VIEW = (function () {
     return text.replace(/\s+[A-Z]+[A-Z0-9]*-?\d+$/, "");
   }
   function renderer() { return typeof module !== "undefined" ? require("./render.js") : RENDER; }
-  function iconHtml(unit) {
+  function rankLabel(unit) {
+    return unit.exp >= 8 ? "General" : unit.exp ? ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven"][unit.exp] + " experience star" + (unit.exp === 1 ? "" : "s") : "No experience stars";
+  }
+  function iconHtml(unit, opts) {
     var type = unit.type || unit, id = unit.typeId || type.id;
     return "<canvas class='unit-label-icon' width='32' height='32' aria-hidden='true' data-unit-type='" + esc(id) +
       "' data-player='" + (unit.player === undefined ? -1 : unit.player) + "' data-strength='" +
-      (unit.strength === undefined ? 8 : unit.strength) + "' data-exp='" + (unit.exp || 0) + "'></canvas>";
+      (unit.strength === undefined ? 8 : unit.strength) + "' data-exp='" + (unit.exp || 0) + "'" + (opts && opts.experienceGlowFrom !== undefined ? " data-exp-glow-from='" + opts.experienceGlowFrom + "'" : "") + "></canvas>";
   }
-  function html(unit) {
-    return "<span class='unit-label'>" + iconHtml(unit) + "<span>" + esc(name(unit)) + "</span></span>";
+  function html(unit, opts) {
+    return "<span class='unit-label'>" + iconHtml(unit, opts) + "<span>" + esc(name(unit)) + "</span></span>";
   }
   function paint(container) {
     if (!container.querySelectorAll) return;
@@ -27,7 +30,7 @@ var UNIT_VIEW = (function () {
       var id = canvas.getAttribute("data-unit-type"), type = types[id];
       if (!type) return;
       renderer().drawUnitIcon(canvas, {typeId:id,type:type,player:+canvas.getAttribute("data-player"),
-        strength:+canvas.getAttribute("data-strength"),exp:+canvas.getAttribute("data-exp"),cargo:[]}, {experience:true});
+        strength:+canvas.getAttribute("data-strength"),exp:+canvas.getAttribute("data-exp"),cargo:[]}, {experience:true,experienceGlowFrom:canvas.hasAttribute("data-exp-glow-from") ? +canvas.getAttribute("data-exp-glow-from") : undefined});
     });
   }
   function addIcon(parent, unit) {
@@ -38,6 +41,6 @@ var UNIT_VIEW = (function () {
     renderer().drawUnitIcon(canvas, unit.type ? unit : {type:unit,typeId:unit.id,player:0,strength:8,exp:0,cargo:[]}, {experience:true});
     return canvas;
   }
-  return {name:name,html:html,iconHtml:iconHtml,paint:paint,addIcon:addIcon};
+  return {name:name,rankLabel:rankLabel,html:html,iconHtml:iconHtml,paint:paint,addIcon:addIcon};
 })();
 if (typeof module !== "undefined") module.exports = UNIT_VIEW;

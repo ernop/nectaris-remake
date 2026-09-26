@@ -93,19 +93,21 @@
 .battle-count { grid-column: 2; grid-row: 2 / 4; display: flex; align-items: center; gap: 6px; }
 .battle-count strong { border: 2px solid #f7d758; padding: 3px 9px; color: #ffe668; font-size: clamp(26px, 4vw, 48px); }
 .battle-count span { font-size: 12px; }
-.battle-exp { color: #fff; font-size: 13px; }
-.battle-field { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; gap: 6px; min-height: 230px;
-  padding: 20px 12px; border-block: 2px solid #dabf4d;
-  background: repeating-linear-gradient(160deg, #453f36 0 4px, #39382f 4px 9px, #4b4335 9px 15px); }
-.battle-formation { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; align-items: center; justify-items: center; }
-.battle-formation-left { transform: skewY(-8deg); }
-.battle-formation-right { transform: skewY(8deg); }
+/* Each faction keeps its own terrain, including when Xenon initiates. */
+.battle-field { position: relative; display: grid; grid-template-columns: 1fr 1fr;
+  border-block: 2px solid #dabf4d; overflow: hidden; }
+.battle-ground { position: relative; display: grid; align-items: center; min-height: 230px;
+  padding: 25px 22px 15px; overflow: hidden; }
+.battle-terrain { position: absolute; width: 100%; height: 100%; inset: 0; }
+.battle-formation { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; align-items: center; justify-items: center; }
+.battle-formation-left { transform: translateX(calc(var(--battle-approach, 0) * -70px)) skewY(-8deg); }
+.battle-formation-right { transform: translateX(calc(var(--battle-approach, 0) * 70px)) skewY(8deg); }
 .battle-machine { display: grid; place-items: center; width: clamp(32px, 5vw, 64px); height: clamp(32px, 5vw, 64px); }
 .battle-machine .unit-label-icon { width: 100%; height: 100%; image-rendering: pixelated; }
-.battle-formation-left .unit-label-icon[data-player="1"],
-.battle-formation-right .unit-label-icon[data-player="0"] { transform: scaleX(-1); }
 .battle-casualty { color: #ffd54f; font-size: clamp(24px, 4vw, 48px); text-shadow: 0 0 10px #f50; }
-.battle-crossfire { font-size: 30px; color: #ffdf77; }
+.battle-crossfire { position: absolute; z-index: 2; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  font-size: 30px; color: #ffdf77; text-shadow: 0 1px 3px #000; }
+.battle-one-way { font-size: 25px; padding: 0 5px; border-radius: 3px; background: #24251ed9; }
 .battle-stats { padding: 10px 12px; }
 .battle-stats dl { margin: 0; display: grid; gap: 6px; }
 .battle-stats dl > div { display: flex; justify-content: space-between; gap: 8px; }
@@ -118,6 +120,24 @@
   #lab-viewer.replay-viewer { grid-template-columns: 190px minmax(0, 1fr); }
   .battle-count span { display: none; }
   .battle-combatant { padding: 6px; }
-  .battle-field { min-height: 150px; padding: 10px 4px; }
+  .battle-ground { min-height: 150px; padding: 15px 4px 10px; }
   .battle-stats { padding: 8px 6px; }
 }
+
+.battle-presentation { width: min(100%, 950px); }
+.battle-presentation .battle-screen { width: 100%; box-sizing: border-box; }
+.battle-controls { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 10px;
+  padding: 10px; color: #fff; background: #121d53; border: 3px solid #d5bc43; border-top: 0; }
+.battle-controls button { min-width: 100px; color: #fff; background: #24376e; border: 2px solid #f7d758; font-size: 16px; padding: 7px 15px; }
+.battle-controls button[aria-pressed="true"] { background: #614c16; }
+#replay-battle-stage[data-paused="true"] { cursor: pointer; }
+#replay-battle-hint { font-size: 13px; }
+.battle-exp-gain { display: block; margin-top: 4px; color: #ffe668; font-weight: 800; }
+.battle-combatant .unit-label, .replay-viewer .unit-label { display: inline-flex; align-items: center; gap: 5px; }
+.battle-combatant .unit-label-icon, .replay-viewer .unit-label-icon { width: 32px; height: 32px; flex: 0 0 32px; image-rendering: pixelated; }
+.replay-viewer .battle-machine .unit-label-icon { width: 100%; height: 100%; }
+.battle-exp-gain { grid-column: 1 / -1; }
+
+.battle-phases { display: flex; justify-content: center; gap: 10px; padding: 6px; border-bottom: 1px solid #5e6281;
+  font-size: 12px; color: #d4d9ee; letter-spacing: .04em; }
+.battle-phases [aria-current="step"] { color: #ffe668; font-weight: 800; border-bottom: 2px solid #ffe668; }

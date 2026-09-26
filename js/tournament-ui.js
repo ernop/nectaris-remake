@@ -3,7 +3,7 @@
   var $=function(id){return document.getElementById(id);},T=AI_TOURNAMENT,store,run=null,pool=[],pending=new Map(),assigned=new Set(),saving=false,page=0,lease=null,operation=Promise.resolve();
   function serialize(fn){operation=operation.then(fn,fn);return operation;}
   $("lab-start").disabled=true;
-  var rows=[],chosen=new Set(["normal:0"]),replayData=null,replayGame=null,renderer=null,replayAt=0,playTimer=null,downloadUrl=null,historyRun=null,historyRequest=0,sessionStart=0,sessionBase=0,replayToken=0,replayDrag=null,replayNeedsFit=false,replayPhase="done",replayFollow=false,replayFocus=[],replaySpec=null,actionRecord=null,replayMotion=null;
+  var rows=[],chosen=new Set(["normal:0"]),replayData=null,replayGame=null,renderer=null,replayAt=0,playTimer=null,replayPlaying=false,replayPaused=false,replayPauseReason=null,replayBattleParts=null,replayAnimatingBattle=null,downloadUrl=null,historyRun=null,historyRequest=0,sessionStart=0,sessionBase=0,replayToken=0,replayDrag=null,replayNeedsFit=false,replayPhase="done",replayFollow=false,replayFocus=[],replaySpec=null,actionRecord=null,replayMotion=null;
   var groups=[{id:"normal",name:"Normal campaign",maps:CAMPAIGN},{id:"advanced",name:"Advanced campaign",maps:ADVANCED_CAMPAIGN},
     {id:"frontiers",name:"Lunar Frontiers",maps:EXPANSION_LEVELS},{id:"base",name:"Base Nectaris",maps:BASE_NECTARIS_LEVELS},{id:"ai",name:"AI-made",maps:AI_MADE_LEVELS}];
   ENVIRONMENT_CAMPAIGNS.forEach(function(c){groups.push({id:"terrain:"+c.id,name:c.name,maps:c.levels});});
@@ -222,17 +222,89 @@
   }catch(e){error(e);}};
   $("lab-export").onclick=function(){exportRun(false);};$("lab-archive").onclick=function(){exportRun(true);};
 
-  function stopPlayback(){if(replayMotion){replayMotion.cancel();replayMotion=null;}if(playTimer)clearTimeout(playTimer);playTimer=null;$("replay-play").textContent="Play";}
+  function playbackControls(){
+    $("replay-play").textContent=replayPlaying?(replayPaused?"Resume":"Pause"):"Play";
+    var paused=!replayPlaying||replayPaused,ended=replayData&&replayAt===replayData.commands.length&&replayPhase!=="intent"&&!replayPlaying;
+    var button=$("replay-battle-pause");button.textContent=ended?"Replay complete":paused?"Resume":"Pause";button.disabled=!!ended;
+    button.setAttribute("aria-pressed",paused?"true":"false");$("replay-battle-stage").setAttribute("data-paused",paused?"true":"false");
+    $("replay-battle-hint").textContent=ended?"":paused?(replayPauseReason==="battle"?"Paused before battle · click anywhere to resume":"Click anywhere on the battle screen to resume"):"";
+  }
+  function stopPlayback(){
+    if(replayMotion){replayMotion.cancel();replayMotion=null;}
+    if(playTimer)playTimer.cancel();playTimer=null;replayAnimatingBattle=null;replayPlaying=false;replayPaused=false;replayPauseReason=null;playbackControls();
+  }
+  function pausePlayback(reason){
+    if(!replayPlaying)return;replayPaused=true;replayPauseReason=reason;
+    if(playTimer)playTimer.pause();if(replayMotion)replayMotion.pause();playbackControls();
+  }
+  function resumePlayback(){
+    if(replayPlaying){
+      replayPaused=false;replayPauseReason=null;
+      if(playTimer)playTimer.resume();else if(replayMotion)replayMotion.resume();else tickPlayback();
+    }else{
+      if(!replayData)return;
+      if(replayPhase!=="intent"&&replayAt===replayData.commands.length)seek(0);
+      replayPlaying=true;replayPaused=false;replayPauseReason=null;
+      // A manually selected battle still gets its approach before the roll.
+      if(replayPhase==="intent"&&replaySpec.kind==="attack")schedulePlayback(beatDelay("select"),true);
+      else tickPlayback();
+    }
+    playbackControls();
+  }
+  function schedulePlayback(delay,approach,reward){
+    var lastScreen="";replayAnimatingBattle=reward||null;
+    if(reward)showDock(BATTLE_REPORT.animate(reward,0));
+    playTimer=PLAYBACK_TIMELINE.play({duration:delay,update:approach?function(elapsed){
+      $("replay-battle-stage").style.setProperty("--battle-approach",Math.max(0,1-elapsed/800));
+    }:reward?function(elapsed){
+      var parts=BATTLE_REPORT.animate(reward,elapsed);
+      if(parts.screen!==lastScreen){lastScreen=parts.screen;showDock(parts,true);}
+    }:null,done:function(){playTimer=null;tickPlayback();}});
+    if(replayPaused)playTimer.pause();playbackControls();
+  }
+  function tickPlayback(){
+    if(!replayPlaying||replayPaused)return;
+    try{
+      if(replayPhase==="intent"){
+        commit(function(kind,snap){
+          if(!replayPlaying)return;
+          if(snap&&!$("replay-skip-battles").checked){schedulePlayback(BATTLE_REPORT.fightingDuration(snap)+Math.max(beatDelay(kind),BATTLE_REPORT.rewardDuration(snap)),false,snap);return;}
+          if(replayAt===replayData.commands.length){stopPlayback();return;}
+          schedulePlayback(beatDelay(kind),false);
+        });return;
+      }
+      if(replayAt===replayData.commands.length){stopPlayback();return;}
+      showIntent();var battle=replaySpec.kind==="attack"&&!$("replay-skip-battles").checked;
+      schedulePlayback(beatDelay("select"),battle);
+      if(battle&&$("replay-pause-battles").checked)pausePlayback("battle");
+    }catch(e){stopPlayback();error(e);}
+  }
   function setFollow(on){replayFollow=!!on;var button=$("replay-follow");button.setAttribute("aria-pressed",replayFollow?"true":"false");button.textContent=replayFollow?"Following":"Follow action";}
   function clearMarks(){if(!renderer)return;renderer.flashUnits={};renderer.attackingUnitId=null;renderer.highlights=null;renderer.selected=null;renderer.strengthOverrides={};renderer.battleGhosts=[];renderer.explosions=[];}
   function focusCells(cells){replayFocus=cells||[];if(replayFollow&&replayFocus.length)renderer.frameHexes(replayFocus);}
-  function battleView(parts){
-    var stage=$("replay-battle-stage"),button=$("replay-battle-toggle");
-    stage.hidden=!parts.screen;button.hidden=!parts.screen;
-    if(parts.screen){stage.innerHTML=parts.screen;UNIT_VIEW.paint(stage);button.textContent="Show map";}
+  function battleView(parts,preserveView){
+    replayBattleParts=parts.screen?parts:null;
+    var stage=$("replay-battle-stage"),button=$("replay-battle-toggle"),visible=!!parts.screen&&!$("replay-skip-battles").checked;
+    if(!preserveView||!visible)stage.hidden=!visible;button.hidden=!visible;
+    if(parts.screen){$("replay-battle-content").innerHTML=parts.screen;UNIT_VIEW.paint($("replay-battle-content"));button.textContent=stage.hidden?"Show battle":"Show map";}
+    if(!preserveView)stage.style.setProperty("--battle-approach",replayPhase==="intent"?1:0);playbackControls();
   }
   $("replay-battle-toggle").onclick=function(){var stage=$("replay-battle-stage");stage.hidden=!stage.hidden;this.textContent=stage.hidden?"Show battle":"Show map";};
-  function showDock(parts){battleView(parts);$("replay-scene").innerHTML=parts.scene||"";$("replay-math").innerHTML=parts.math||"";UNIT_VIEW.paint($("replay-war"));$("replay-war").hidden=!parts.scene&&!parts.math;}
+  $("replay-battle-pause").onclick=function(){if(replayPlaying&&!replayPaused)pausePlayback("manual");else resumePlayback();};
+  $("replay-battle-stage").onclick=function(event){
+    if(event.target.closest("button"))return;
+    if((!replayPlaying||replayPaused)&&replayData&&(replayPlaying||replayAt<replayData.commands.length))resumePlayback();
+  };
+  $("replay-pause-battles").onchange=function(){if(!this.checked&&replayPauseReason==="battle")resumePlayback();};
+  $("replay-skip-battles").onchange=function(){
+    $("replay-pause-battles").disabled=this.checked;$("replay-hold").disabled=this.checked;
+    if(this.checked&&replayAnimatingBattle)showDock(BATTLE_REPORT.present(replayAnimatingBattle));
+    else battleView(replayBattleParts||{});
+    if(this.checked&&replayBattleParts&&playTimer){playTimer.cancel();playTimer=null;}
+    if(this.checked&&replayPauseReason==="battle")resumePlayback();
+    else if(this.checked&&replayBattleParts&&replayPlaying&&!replayPaused)tickPlayback();
+  };
+  function showDock(parts,preserveView){battleView(parts,preserveView);$("replay-scene").innerHTML=parts.scene||"";$("replay-math").innerHTML=parts.math||"";UNIT_VIEW.paint($("replay-war"));$("replay-war").hidden=!parts.scene&&!parts.math;}
   function showLedger(){var row=actionRecord&&actionRecord[replayAt];$("replay-ledger").innerHTML=BATTLE_REPORT.ledgerHtml(row?row.ledger:BATTLE_REPORT.emptyLedger());}
   function updateScale(){var n=replayData?replayData.commands.length:0;$("replay-seek-end").textContent=String(n);$("replay-seek-mid").textContent=String(Math.round(n/2));}
   function settle(game,entry){
@@ -308,9 +380,13 @@
     if(snap){showDock(BATTLE_REPORT.present(snap));focusCells([{col:snap.aCol,row:snap.aRow},{col:snap.dCol,row:snap.dRow}]);}
     else if(row&&row.caption){showDock(BATTLE_REPORT.noteHtml(row.caption));focusCells(row.cells||(spec&&spec.cells)||[]);}
     else if(spec&&spec.done)showDock(BATTLE_REPORT.noteHtml(spec.done));
-    drawReplay();if(!replayMotion&&onDone)onDone(kind);return kind;
+    drawReplay();if(!replayMotion&&onDone)onDone(kind,snap);return kind;
   }
-  function beatDelay(kind){var step=Number($("replay-speed").value);return kind==="attack"&&$("replay-hold").checked?Math.max(step,2400):step;}
+  function beatDelay(kind){var step=Number($("replay-speed").value);
+    if($("replay-skip-battles").checked)return step;
+    if(kind==="select"&&replaySpec&&replaySpec.kind==="attack")return Math.max(step,800);
+    return kind==="attack"&&$("replay-hold").checked?Math.max(step,2400):step;
+  }
   function drawReplay(){
     if(!renderer||$("lab-viewer").hidden)return;var canvas=$("replay-canvas"),rect=canvas.getBoundingClientRect(),width=Math.max(1,Math.round(rect.width)),height=Math.max(1,Math.round(rect.height));
     var resized=canvas.width!==width||canvas.height!==height;
@@ -394,19 +470,7 @@
   }
   $("replay-prev-battle").onclick=function(){jumpBattle(-1);};$("replay-next-battle").onclick=function(){jumpBattle(1);};
   $("replay-follow").onclick=function(){setFollow(!replayFollow);if(replayFollow&&replayFocus.length){renderer.frameHexes(replayFocus);drawReplay();}};
-  $("replay-play").onclick=function(){if(playTimer){stopPlayback();return;}if(replayPhase!=="intent"&&replayAt===replayData.commands.length)seek(0);
-    function tick(){try{
-      if(replayPhase==="intent"){
-        commit(function(kind){
-          if(replayAt===replayData.commands.length){stopPlayback();return;}
-          playTimer=setTimeout(tick,beatDelay(kind));
-        });return;
-      }
-      if(replayAt===replayData.commands.length){stopPlayback();return;}
-      showIntent();playTimer=setTimeout(tick,beatDelay("select"));
-    }catch(e){stopPlayback();error(e);}}
-    $("replay-play").textContent="Pause";tick();
-  };
+  $("replay-play").onclick=function(){if(replayPlaying&&!replayPaused)pausePlayback("manual");else resumePlayback();};
   $("replay-download").onclick=function(){if(replayData)download(new Blob([JSON.stringify(replayData)],{type:"application/json"}),"nectaris-game-"+(replayData.index+1)+".json");};
   $("replay-import").onchange=async function(){
     var file=this.files[0];if(!file)return;
@@ -416,7 +480,10 @@
     }catch(e){error(e);}finally{this.value="";}
   };
   $("replay-canvas").onmousemove=function(event){if(!renderer)return;var rect=this.getBoundingClientRect(),p=renderer.pixelToHex((event.clientX-rect.left)*this.width/rect.width,(event.clientY-rect.top)*this.height/rect.height);
-    var u=p&&replayGame.unitAt(p.col,p.row);$("replay-hover").textContent=u?(u.player?"Xenon":"Union")+" · "+u.type.name+" · "+u.strength+" machines · experience "+u.exp+(u.cargo.length?" · cargo "+u.cargo.map(function(c){return c.type.name;}).join(", "):""):"Wheel to zoom · Ctrl+drag to pan · Hover units to inspect";
+    var u=p&&replayGame.unitAt(p.col,p.row),hover=$("replay-hover");
+    if(u){hover.innerHTML=UNIT_VIEW.html(u);hover.appendChild(document.createTextNode(" · "+(u.player?"Xenon":"Union")+" · "+u.strength+" machines"));
+      if(u.cargo.length){hover.appendChild(document.createTextNode(" · Cargo "));u.cargo.forEach(function(c){var label=document.createElement("span");label.innerHTML=UNIT_VIEW.html(c);hover.appendChild(label);});}UNIT_VIEW.paint(hover);
+    }else hover.textContent="Wheel to zoom · Ctrl+drag to pan · Hover units to inspect";
   };
   setInterval(function(){if(active())render();},1000);
   window.addEventListener("resize",drawReplay);

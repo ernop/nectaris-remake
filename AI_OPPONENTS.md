@@ -178,9 +178,16 @@ panel shows who attacked whom,
 machines destroyed and lost, the match's damage-table roll, and whether those
 casualties were above, near, or below the table average. A ledger sums each
 side's gap from that average. An original-style battle view shows opposing
-formations, counts, experience, attack/defense and terrain stats. Map/battle
-toggles and changing reports never resize the board. Previous/next battle, hold and follow are
-included. Following starts off: playback preserves the camera unless **Follow
+formations, counts, attack/defense and terrain stats. Union stays left and Xenon
+right, with each squad's own terrain and a one-way arrow when no counter is legal.
+Ready, Fighting and Result distinguish the approach, casualties and summary.
+Experience appears only on header icons; earned stars appear and glow after the
+fight, never on every formation machine. Pause/Resume freezes any stage and its
+automatic advance. **Pause on battle screens** defaults on, before the approach;
+click anywhere on a paused battle to resume. **Skip battle scenes** defaults off
+and bypasses scenes, automatic pauses and result holds. Map/battle toggles and
+changing reports never resize the board. Previous/next battle, hold and follow
+are included. Following starts off: playback preserves the camera unless **Follow
 action** is explicitly enabled. Wheel zoom, Fit and Ctrl+drag disable following
 again. Back to tournament leaves a running job alone.
 A compact checkpoint every 128 commands makes arbitrary seeking require at most

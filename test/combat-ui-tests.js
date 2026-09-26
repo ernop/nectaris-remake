@@ -7,7 +7,7 @@ module.exports = function (ok) {
   var nodes = {};
   function element() {
     var classes = new Set(["hidden"]), html = "";
-    return { getContext: function () { return new Proxy({}, {get:function(target,key) { return target[key] || function () {}; }}); }, style: {}, children: [], textContent: "", offsetWidth: 108, offsetHeight: 26,
+    return { getContext: function () { return new Proxy({}, {get:function(target,key) { return target[key] || function () {}; }}); }, style: {setProperty:function(){}}, children: [], textContent: "", offsetWidth: 108, offsetHeight: 26,
       set innerHTML(value) { html = value; this.children = []; }, get innerHTML() { return html; },
       appendChild: function (child) { this.children.push(child); }, setAttribute: function () {},
       querySelector: function () { return { width: 32, height: 32, getContext: function () {
@@ -30,6 +30,7 @@ module.exports = function (ok) {
       pixelToHex: function (col, row) { return { col: col, row: row }; },
     };
     ui.draw = ui.showUnitInfo = ui.refreshStatus = ui.checkGameOver = ui.updateHoverInfo = function () {};
+    ui.playBattleTimeline = function () {};
     ui.animateMovement = function (unit, path, done) { if (done) done(); return 0; };
     ui.warLedger = require("../js/battle-report.js").emptyLedger();
     ui.animateBattleResult = function (event, detail, done) { ui.battleEvent = event; ui.animationDone = done; };
@@ -157,7 +158,7 @@ module.exports = function (ok) {
     ui.game.units.push(secondTarget); ui.pickTargets = ui.previewTargets(unit);
     ui.onMouseMove({offsetX:2,offsetY:0});
     ok(nodes["combat-inspector"].innerHTML.includes("Charlie") &&
-      nodes["combat-inspector"].innerHTML.includes("+30% damage"), "hovering another target replaces its full forecast");
+      nodes["combat-inspector"].innerHTML.includes("+30%") && nodes["combat-inspector"].innerHTML.includes("Damage bonus"), "hovering another target replaces its full forecast");
     ui.game.units.pop(); ui.pickTargets = ui.previewTargets(unit);
     ui.onMouseMove({offsetX:3,offsetY:1});
     var cached = ui._forecastCache;

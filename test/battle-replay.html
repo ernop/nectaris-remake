@@ -1,0 +1,58 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Battle replay checks</title>
+<style>body{margin:0;background:#111;color:#fff;font:14px system-ui}header{padding:8px}#results{max-height:110px;overflow:auto}iframe{width:100%;height:760px;border:0}</style></head>
+<body><header><button id="run">Run battle replay checks</button> <strong id="status">Ready</strong><ol id="results"></ol></header>
+<iframe id="replay" src="../tournaments.html" title="Replay under test"></iframe><script>
+"use strict";
+var frame=document.getElementById("replay"),checks=0;
+function wait(ms){return new Promise(function(resolve){setTimeout(resolve,ms);});}
+function check(pass,message){if(!pass)throw new Error(message);checks++;var li=document.createElement("li");li.textContent="PASS: "+message;document.getElementById("results").appendChild(li);}
+async function until(test){for(var i=0;i<200;i++){if(test())return;await wait(30);}throw new Error("Timed out waiting for replay stage");}
+document.getElementById("run").onclick=async function(){
+ this.disabled=true;checks=0;document.getElementById("results").textContent="";document.getElementById("status").textContent="Running…";
+ try{
+  var w=frame.contentWindow,d=w.document,$=function(id){return d.getElementById(id);};
+  var game=new w.ENGINE.Game({name:"Terrain and remote fire",grid:["......",".h.-..","......"],units:[
+   {t:"HADRIAN",o:1,x:1,y:1,exp:3},{t:"BISON",o:0,x:3,y:1,exp:2},{t:"CHARLIE",o:0,x:5,y:2}]},{seed:7});
+  game.currentPlayer=1;
+  var initial=game.snapshot(),commands=[["attack",[{unit:game.units[0].id},{unit:game.units[1].id}]]];
+  var data={initial:initial,commands:commands,players:["classic","classic"],version:w.AI_TOURNAMENT.version,index:0,map:game.map.name,seed:7,reason:"browser fixture"};
+  var transfer=new w.DataTransfer();transfer.items.add(new w.File([JSON.stringify(data)],"battle.json",{type:"application/json"}));
+  $("replay-import").files=transfer.files;$("replay-import").dispatchEvent(new w.Event("change"));
+  await until(function(){return !$("lab-viewer").hidden;});await wait(100);
+  check($("replay-pause-battles").checked&&!$("replay-skip-battles").checked,"pause before battle defaults on; skip scenes defaults off");
+  $("replay-play").click();await wait(80);
+  check($("replay-battle-stage").dataset.paused==="true"&&$("replay-battle-hint").textContent.includes("Paused before battle")&&$("replay-position").textContent.includes("Selecting 1"),"automatic pause stops before the attack commits");
+  var before=$("replay-battle-content").innerHTML;await wait(900);
+  check($("replay-battle-content").innerHTML===before,"paused preview stays unchanged beyond its normal duration");
+  check(d.querySelector(".battle-screen").dataset.battlePhase==="ready"&&d.querySelector(".battle-one-way").textContent==="←"&&
+    d.querySelector(".battle-ground-road").getAttribute("aria-label")==="Union on Road"&&d.querySelector(".battle-ground-hill").getAttribute("aria-label")==="Xenon on Hills","green stays right, fires left, and each side shows its actual terrain");
+  $("replay-battle-content").click();await until(function(){return d.querySelector(".battle-screen").dataset.battlePhase==="fighting";});
+  check($("replay-battle-stage").dataset.paused==="false","clicking the battle resumes into the fighting stage");
+  $("replay-battle-pause").click();before=$("replay-battle-content").innerHTML;await wait(1900);
+  check($("replay-battle-content").innerHTML===before&&$("replay-battle-pause").textContent==="Resume","battle Pause freezes fighting even on the final replay command");
+  $("replay-battle-content").click();await until(function(){return d.querySelector(".battle-screen").dataset.battlePhase==="result";});
+  check(d.querySelector(".battle-outcome").textContent.includes("destroyed"),"the result stage shows the completed battle summary");
+  $("replay-battle-toggle").click();await wait(450);
+  check($("replay-battle-stage").hidden,"earned-star updates respect Show map");
+  $("replay-battle-toggle").click();await until(function(){return $("replay-battle-pause").disabled;});
+  check(!!d.querySelector(".battle-heading [data-exp-glow-from]")&&Array.from(d.querySelectorAll(".battle-machine canvas")).every(function(c){return c.dataset.exp==="0";}),"only header icons show earned glowing stars");
+  $("replay-first").click();$("replay-play").click();await wait(40);
+  $("replay-battle-content").click();await until(function(){return d.querySelector(".battle-screen").dataset.battlePhase==="fighting";});
+  $("replay-skip-battles").checked=true;$("replay-skip-battles").dispatchEvent(new w.Event("change"));await wait(40);
+  check(d.querySelector(".battle-screen").dataset.battlePhase==="result"&&$("replay-math").textContent.includes("Roll"),"skipping mid-fight reveals the final recorded report instead of partial casualties");
+  $("replay-skip-battles").checked=false;$("replay-skip-battles").dispatchEvent(new w.Event("change"));
+  $("replay-first").click();$("replay-play").click();await wait(40);
+  $("replay-skip-battles").checked=true;$("replay-skip-battles").dispatchEvent(new w.Event("change"));await wait(100);
+  check($("replay-battle-stage").hidden&&$("replay-position").textContent.includes("Action 1 / 1")&&$("replay-play").textContent==="Play","skip scenes bypasses automatic pause, animation and the result hold");
+  $("replay-skip-battles").checked=false;$("replay-skip-battles").dispatchEvent(new w.Event("change"));
+  $("replay-first").click();$("replay-play").click();await wait(40);
+  $("replay-pause-battles").checked=false;$("replay-pause-battles").dispatchEvent(new w.Event("change"));
+  check($("replay-play").textContent==="Pause","disabling automatic pause resumes the waiting battle");
+  $("replay-first").click();await wait(1000);
+  check($("replay-position").textContent.includes("Action 0 / 1")&&$("replay-battle-stage").hidden,"seeking cancels pending battle animation and advance");
+  $("replay-next-battle").click(); // Leave a readable preview for visual inspection.
+  document.getElementById("status").textContent=checks+" checks passed";
+ }catch(e){document.getElementById("status").textContent="FAIL: "+e.message;console.error(e);}
+ this.disabled=false;
+};
+</script></body></html>

@@ -1,6 +1,6 @@
 # Project guidance and decision index
 
-Audited 2026-09-23; camera and factory-experience records updated 2026-09-26. This is a map of the records, not a second specification.
+Audited 2026-09-23; battle, camera and experience records updated 2026-09-26. This is a map of the records, not a second specification.
 Use the owning document below for details. A newer, explicit user correction
 supersedes an older decision; update its record rather than leaving conflicting
 instructions for the next session.
@@ -48,7 +48,7 @@ retuned. These themes do not authorize extra features or unsourced rule changes.
 | Claude Opus 5.5 gap-filling units | Experimental 15-unit proposal, not additions to the playable roster. Each unit fills one rule combination the stock roster leaves empty, checked as a test over the stock data; every printed exchange is computed by the engine and asserted by the pack's `verify.js`. In-game sprites remain stock placeholders. [Overview](opus55/index.html), [design and review](opus55/README.md), [record](PRODUCT.md#claude-opus-55-gap-filling-units-study-2026-09-23). |
 | Exact original CPU, random stream and PCE boundary cases | Unverified research gaps, not established rules or a claim of full fidelity. [Remaining gaps](FIDELITY_AUDIT.md#remaining-gaps-in-priority-order). |
 | Search opponents and self-play tournaments | Implemented from the subsequent 2026-09-23 request: map-view opponent picker, greedy/beam/MCTS/hybrid algorithms, generic existing capabilities, background workers, mirrored tournaments, durable out-of-order results, per-run Elo, reload/Resume, indexed map/pair history and full-window replays with checkpoint seeking. No personalities. [Implementation, usage and limits](AI_OPPONENTS.md); [earlier analysis](AI_DESIGN_RESEARCH.md). |
-| Battle review in matches and replays | Updated 2026-09-25: original-style opposing formations, counts/experience/combat stats using existing art; fixed left reports; exact hex-route movement; direct attack after moving with no per-unit End. [Readout and replay controls](PRODUCT.md#battle-review-2026-09-25). |
+| Battle review in matches and replays | Updated 2026-09-26: fixed faction sides, per-side terrain, one-way fire cues, Ready/Fighting/Result stages, glowing earned stars on header icons only, pause/resume, default replay battle pause and optional skip. Experience ranks use icon stars throughout. Fixed left reports and board camera, exact hex routes, and no per-unit End remain. [Readout and replay controls](PRODUCT.md#battle-review-2026-09-25). |
 | Soundtrack, Manual and Surrender | Excluded from the recorded fidelity implementation pass; original-style battle presentation was subsequently requested and is covered above; do not silently turn them into scheduled work. [Scope](FIDELITY_AUDIT.md#requested-implementation-pass--2026-09-20). |
 | Public deployment target | Not selected in the records. The repository and local endpoint exist; neither establishes a hosted production site. [Working notes](agents.md). |
 

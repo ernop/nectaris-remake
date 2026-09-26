@@ -14,6 +14,7 @@
 
 var UI = (function () {
   var unitView = typeof module !== "undefined" ? require("./unit-view.js") : UNIT_VIEW;
+  var timeline = typeof module !== "undefined" ? require("./playback-timeline.js") : PLAYBACK_TIMELINE;
   var movement = typeof module !== "undefined" ? require("./move-animation.js") : MOVE_ANIMATION;
   var battleReport = typeof module !== "undefined" ? require("./battle-report.js") : BATTLE_REPORT;
   var opponents = typeof module !== "undefined" ? require("./ai-search.js") : AI_SEARCH;
@@ -115,6 +116,7 @@ var UI = (function () {
       this._layoutObserver.observe(canvas.parentElement);
     }
 
+    $("btn-battle-pause").onclick = function () { self.toggleBattlePause(); };
     $("btn-battle-map").onclick = function () {
       var stage = $("battle-stage"), hidden = stage.classList.contains("hidden");
       stage.classList[hidden ? "remove" : "add"]("hidden");
@@ -378,11 +380,10 @@ var UI = (function () {
     document.removeEventListener("keyup", h.keyup);
     window.removeEventListener("blur", h.blur);
     cancelAnimationFrame(this._drawFrame);
-    cancelAnimationFrame(this._battleAnimationFrame);
+    if (this._battlePlayback) this._battlePlayback.cancel();
     if (this._movement) this._movement.cancel();
     this.closeWarDock();
     this.hideBattleScreen();
-    clearTimeout(this._battleHoldTimer);
     clearTimeout(this._toastT);
     clearTimeout(this._aiTimer);
     if (this._aiTurn && this._aiTurn.destroy) this._aiTurn.destroy();
@@ -439,15 +440,39 @@ var UI = (function () {
 
   GameUI.prototype.showBattleScreen = function (html) {
     var stage = $("battle-stage");
-    stage.innerHTML = html; unitView.paint(stage);
+    $("battle-content").innerHTML = html; unitView.paint($("battle-content"));
     stage.classList.remove("hidden");
     $("btn-battle-map").classList.remove("hidden");
     $("btn-battle-map").textContent = "Show map";
   };
 
   GameUI.prototype.hideBattleScreen = function () {
+    if (this._battlePlayback) this._battlePlayback.cancel();
+    this._battlePlayback = null;
     $("battle-stage").classList.add("hidden");
     $("btn-battle-map").classList.add("hidden");
+  };
+
+  GameUI.prototype.refreshBattlePause = function () {
+    var paused = this._battlePlayback && this._battlePlayback.paused, button = $("btn-battle-pause");
+    button.textContent = paused ? "Resume" : "Pause";
+    button.setAttribute("aria-pressed", paused ? "true" : "false");
+  };
+
+  GameUI.prototype.toggleBattlePause = function () {
+    if (!this._battlePlayback) return;
+    this._battlePlayback[this._battlePlayback.paused ? "resume" : "pause"]();
+    this.refreshBattlePause();
+  };
+
+  GameUI.prototype.playBattleTimeline = function (duration, update, done) {
+    if (this._battlePlayback) this._battlePlayback.cancel();
+    var self = this;
+    this._battlePlayback = timeline.play({duration:duration, update:update, done:function () {
+      self._battlePlayback = null;
+      if (!self.destroyed && done) done();
+    }});
+    this.refreshBattlePause();
   };
 
   GameUI.prototype.animateMovement = function (unit, path, done) {
@@ -507,7 +532,7 @@ var UI = (function () {
     this.showBattleScreen(parts.screen);
   };
 
-  GameUI.prototype.showWatchResult = function (event) {
+  GameUI.prototype.showWatchResult = function (event, done) {
     this.renderer.flashUnits = {};
     this.renderer.highlights = null;
     this.renderer.attackingUnitId = event.attacker.id;
@@ -516,11 +541,11 @@ var UI = (function () {
     battleReport.record(this.warLedger, event.attacker.player, parts.assessed);
     this.openWarDock(parts.scene, parts.math + battleReport.ledgerHtml(this.warLedger));
     this.showBattleScreen(parts.screen);
-    return this.animateBattleResult(event, $("war-scene"));
+    return this.animateBattleResult(event, $("war-scene"), done, 2700, 0);
   };
 
-  GameUI.prototype.animateBattleResult = function (event, detail, onComplete) {
-    cancelAnimationFrame(this._battleAnimationFrame);
+  GameUI.prototype.animateBattleResult = function (event, detail, onComplete, holdMs, approachMs) {
+    if (this._battlePlayback) this._battlePlayback.cancel();
     var self = this;
     var result = event.result;
     var attackerLosses = result.dmgToAttacker;
@@ -533,11 +558,15 @@ var UI = (function () {
     }
     var largestLoss = Math.max(attackerLosses, defenderLosses);
     var duration = Math.max(1600, Math.min(2600, largestLoss * 360));
-    var start = null, lastCounts = "";
+    var lastCounts = "", resultMath = $("war-math").innerHTML;
+    if (holdMs === undefined) holdMs = 900;
+    if (approachMs === undefined) approachMs = 800;
+    holdMs = Math.max(holdMs, Math.max(event.attacker.exp - result.attackerExpBefore,
+      event.defender.exp - result.defenderExpBefore) * 350 + 700);
     this.renderer.battleGhosts = [event.attacker, event.defender];
 
     function casualtyState(before, losses, progress, unit, seed) {
-      if (!losses) return before;
+      if (!losses || progress <= 0) return before;
       if (progress >= 1) return before - losses;
       var scaled = progress * losses;
       var completed = Math.floor(scaled);
@@ -552,10 +581,10 @@ var UI = (function () {
       return before - removed;
     }
 
-    function frame(timestamp) {
+    function frame(elapsed) {
       if (self.destroyed) return;
-      if (start === null) start = timestamp;
-      var progress = Math.min(1, (timestamp - start) / duration);
+      var progress = Math.max(0, Math.min(1, (elapsed - approachMs) / duration));
+      $("battle-stage").style.setProperty("--battle-approach", approachMs ? Math.max(0, 1 - elapsed / approachMs) : 0);
       self.renderer.explosions = [];
       var attackerCurrent = casualtyState(
         event.attackerBefore, attackerLosses, progress, event.attacker, 11
@@ -566,35 +595,38 @@ var UI = (function () {
       self.renderer.strengthOverrides = {};
       self.renderer.strengthOverrides[event.attacker.id] = attackerCurrent;
       self.renderer.strengthOverrides[event.defender.id] = defenderCurrent;
-      detail.innerHTML = battleReport.sceneHtml(
-        event.attacker, event.defender, event.attackerBefore, event.defenderBefore,
-        attackerCurrent, defenderCurrent);
-      unitView.paint(detail);
-      var counts = attackerCurrent + ":" + defenderCurrent;
+      var rewardElapsed = Math.max(0, elapsed - approachMs - duration);
+      var aExp = battleReport.earnedExperience(result.attackerExpBefore, event.attacker.exp, rewardElapsed);
+      var dExp = battleReport.earnedExperience(result.defenderExpBefore, event.defender.exp, rewardElapsed);
+      var phase = elapsed < approachMs ? "ready" : progress < 1 ? "fighting" : "result";
+      var counts = attackerCurrent + ":" + defenderCurrent + ":" + aExp + ":" + dExp + ":" + phase;
       if (counts !== lastCounts) {
         lastCounts = counts;
-        var stage = $("battle-stage");
+        detail.innerHTML = battleReport.sceneHtml(
+          Object.assign({}, event.attacker, {exp:aExp}), Object.assign({}, event.defender, {exp:dExp}),
+          event.attackerBefore, event.defenderBefore, attackerCurrent, defenderCurrent);
+        unitView.paint(detail);
+        $("war-math").innerHTML = phase === "result" ? resultMath : "";
+        var stage = $("battle-content");
         stage.innerHTML = battleReport.screenHtml(event.attacker, event.defender, result.preview,
           event.attackerBefore, event.defenderBefore, attackerCurrent, defenderCurrent,
-          result.attackerExpBefore, result.defenderExpBefore);
+          result.attackerExpBefore, result.defenderExpBefore,
+          aExp, dExp, phase);
         unitView.paint(stage);
       }
       self.draw();
 
-      if (progress < 1) {
-        self._battleAnimationFrame = requestAnimationFrame(frame);
-        return;
-      }
+      if (progress < 1) return;
       self.renderer.strengthOverrides = {};
       self.renderer.battleGhosts = [];
       self.renderer.explosions = [];
       self.renderer.attackingUnitId = null;
       self.draw();
-      if (onComplete) self._battleHoldTimer = setTimeout(function () { if (!self.destroyed) onComplete(); }, 900);
     }
 
-    this._battleAnimationFrame = requestAnimationFrame(frame);
-    return duration + 900;
+    frame(0);
+    this.playBattleTimeline(approachMs + duration + holdMs, frame, onComplete);
+    return approachMs + duration + holdMs;
   };
 
   function unitInfoHtml(game, unit) {
@@ -616,11 +648,10 @@ var UI = (function () {
     var shift = remainingShift ? unit.movePointsLeft + "<small>/" + t.move + "</small>" : t.move;
     var experience = COMBAT.experienceBonus(unit.exp), damage = experience.damage;
     return "<div class='unit-card-head'><span class='unit-card-portrait'><canvas class='unit-card-icon' width='32' height='32' role='img' aria-label='" +
-      esc(unitView.name(t)) + "'></canvas>" +
+      esc(unitView.name(t) + " · " + unitView.rankLabel(unit)) + "'></canvas>" +
       (strCap ? "<span class='unit-strength' role='img' aria-label='" + strCap + " machines remaining'>" + strCap + "</span>" : "") + "</span>" +
       "<strong class='ui-name' style='color:" + factionTextColor(unit.player) + "'>" + esc(unitView.name(t)) + "</strong>" +
-      (unit.exp ? "<canvas class='unit-card-rank' width='32' height='32' role='img' aria-label='" +
-        (experience.general ? "General" : "Experience " + unit.exp + " of 8") + "'></canvas>" : "") + "</div>" +
+      "</div>" +
       "<div class='unit-combat-grid'>" + stat("Ground ATK", t.atkG || 0, groundRange) +
       (air ? stat("Air ATK", t.atkA, airRange) : "") + stat("Defense", t.def) +
       stat("Shift", shift, remainingShift ? "left" : "") + "</div>" +
@@ -656,15 +687,14 @@ var UI = (function () {
     var html = unitInfoHtml(this.game, unit);
     var attacking = unit && this.renderer.attackingUnitId === unit.id;
     var spent = unit && !attacking && unit.moved && this.game.currentPlayer === unit.player;
-    var key = html + RENDER.getStyle() + RENDER.getIconSet() + attacking + spent;
+    var key = html + (unit ? unit.exp : "") + RENDER.getStyle() + RENDER.getIconSet() + attacking + spent;
     if (container._unitCardKey === key) return;
     container._unitCardKey = key;
     container.innerHTML = html;
     unitView.paint(container);
     if (unit) {
       RENDER.drawUnitIcon(container.querySelector(".unit-card-icon"), unit,
-        { attacking: attacking, spent: spent });
-      if (unit.exp) RENDER.drawExperienceIcon(container.querySelector(".unit-card-rank"), unit);
+        { attacking: attacking, spent: spent, experience: true });
     }
   };
 
@@ -891,7 +921,7 @@ var UI = (function () {
       row.className = "factory-row" + (ready ? " is-ready" : "");
       row.setAttribute("data-unit-id", su.id);
       row.setAttribute("aria-label", (ready ? "Deploy " : "") + unitView.name(su) +
-        (su.exp === 8 ? ", General" : su.exp ? ", experience " + su.exp + " of 8" : ""));
+        ", " + unitView.rankLabel(su));
       row.innerHTML = "<span class='inventory-entry'>" + inventoryEntryHtml(su) + "</span>" +
         "<span class='factory-unit-status'>" +
           (ready ? "Deploy →" : su.moved ? "Next turn" : "No open exit") + "</span>";
@@ -1550,10 +1580,19 @@ var UI = (function () {
       this.selected = event.attacker;
       this.showUnitInfo(event.attacker);
       this.showWatchPreview(event);
-      delay = 1600;
+      var previewing = this;
+      $("battle-stage").style.setProperty("--battle-approach", 1);
+      this.playBattleTimeline(1600, function (elapsed) {
+        $("battle-stage").style.setProperty("--battle-approach", Math.max(0, 1 - elapsed / 800));
+      }, function () { previewing.runNextAIEvent(); });
+      this.refreshStatus(); this.draw();
+      return;
     } else if (event.t === "battle") {
       this.selected = event.result.attackerDead ? null : event.attacker;
-      delay = this.watchAI ? this.showWatchResult(event) + 1800 : 0;
+      var fighting = this;
+      this.showWatchResult(event, function () { fighting.runNextAIEvent(); });
+      this.refreshStatus(); this.draw();
+      return;
     } else if (event.t === "finish") {
       this.selected = event.unit;
       var effect = event.effects[0];

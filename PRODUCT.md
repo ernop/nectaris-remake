@@ -38,15 +38,38 @@ storage limits, generic-unit scope and validation record.
 
 ## Battle review (2026-09-25)
 
-The latest user correction restores an original-style battle screen: opposing
-formations, machine counts, experience, attack/defense totals and terrain bonus.
-It uses the existing selected unit art in a code-authored scene; no original
-battle artwork is imported. The local Bison/Munks capture is a layout reference.
-Stats describe the pre-battle squads, with the per-machine values shown too.
-Live matches animate casualties and hold the result briefly before returning
-to the map. Replay selection previews the fight and the next action shows its
-recorded result. **Show map / Show battle** switches views without changing the
-map's viewport or camera. This supersedes the earlier dock-only presentation.
+The 2026-09-25 request restores an original-style battle screen with opposing
+formations, machine counts, attack/defense totals and terrain bonus. The user's
+2026-09-26 corrections keep Union on the left facing right and Xenon on the
+right facing left, whichever side initiated. Each half shows that squad's
+actual terrain using original code-authored scenery and the selected unit art;
+no original battle artwork is imported. A subtle arrow points only toward the
+target when the engine says there is no counterattack, including remote fire.
+Remove the terrain-name/per-machine attack-and-defense sentence. Total combat
+stats still describe the pre-battle squads.
+
+A subtle **Ready → Fighting → Result** indicator distinguishes the approach,
+combat and final summary. Units briefly approach before casualties animate.
+Experience is shown only as stars over unit icons throughout the game, never
+as numeric ranks or a separate badge. In the battle scene, only the two header
+icons carry experience; the individual formation machines have no stars.
+After fighting ends, actual earned stars appear one by one and glow on the
+header icons, ending at the awarded rank (including the General emblem).
+This supersedes numeric battle EXP and separate inspector rank badges.
+Damage bonuses and calculation multipliers remain ordinary numeric stats.
+
+**Pause / Resume** freezes the current battle phase, including the automatic
+advance to the next action, in human combat, watched AI and replays. A paused
+replay battle resumes when clicked anywhere. Replay **Pause on battle screens**
+starts on and pauses before the approach and combat; **Skip battle scenes**
+starts off and bypasses battle animation, automatic pauses and result holds.
+It retains the recorded combat result and left-side report. Disabling automatic
+pause releases a battle waiting on that setting; manual pauses remain manual.
+Seeking and closing cancel unfinished presentation, without changing engine
+state or dice. Live results hold briefly before returning to the map.
+**Show map / Show battle** switches views without changing the map's viewport
+or camera, and earned-star updates respect that choice. This supersedes the
+earlier dock-only presentation.
 
 The fixed left panel retains **N destroyed, M lost**, who attacked whom and the
 arithmetic for the coefficient actually drawn. Each shot reports its share of
@@ -242,9 +265,9 @@ longer exact bands directly beneath their attack value; when ground range is
 longer, retain an aircraft range of 1 to make mixed ranges unambiguous (Lynx).
 Keep terrain and its defense bonus in the footer, adding damage bonus only
 when experience grants one. Show remaining/total Shift only when a friendly
-buggy has spent movement. Experience has its own readable header badge: 1–7
-small stars in the traditional 3/2/3 arrangement, replaced by one large star
-for General (8); no badge at zero experience. Reuse the map's star renderer.
+buggy has spent movement. As corrected on 2026-09-26, experience stars sit
+on the unit icon, using the map's traditional 3/2/3 arrangement and one large
+General star. Zero experience has no stars. No numeric rank or separate badge.
 Damaged units show only the remaining-unit number on their icon, without a
 “Strength” label. Names and terrain text wrap without
 truncation. No faction heading,

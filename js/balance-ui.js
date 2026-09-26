@@ -7,7 +7,7 @@ var BALANCE_UI = (function () {
     ["balance-body","balance-header"].forEach(function(id){$(id).inert=hidden;$(id).setAttribute("aria-hidden",String(hidden));});
   }
   function unitSummary(u) {
-    return faction(u.player)+" "+UNIT_VIEW.name(u)+" · "+u.strength+"/8 · "+u.exp+" experience · Move "+u.type.move+
+    return faction(u.player)+" · "+u.strength+" machines · Move "+u.type.move+
       " · Ground attack "+u.type.atkG+" · Air attack "+u.type.atkA+" · Defense "+u.type.def+(u.type.capture?" · Captures buildings":"");
   }
   function Setup(game,options) {
@@ -171,11 +171,14 @@ var BALANCE_UI = (function () {
         if(bonus){u={type:UNIT_TYPES[bonus.typeId],player:player,strength:8,exp:0};break;}
       }
     }
-    var text="Hex "+(at.col+1)+", "+(at.row+1)+" · "+t.name;
-    if(u)text+=" · "+unitSummary(u);
-    if(b)text+=" · "+(b.owner<0?"Neutral":faction(b.owner))+" "+b.kind+" · "+
-      (b.stored.length?b.stored.map(function(v){return UNIT_VIEW.name(v)+" ("+v.exp+"★)";}).join(", "):"No reserves");
-    $("balance-hex-info").textContent=text;
+    var info=$("balance-hex-info");info.textContent="Hex "+(at.col+1)+", "+(at.row+1)+" · "+t.name;
+    function unitLabel(unit){var label=document.createElement("span");label.innerHTML=UNIT_VIEW.html(unit);info.appendChild(label);}
+    if(u){unitLabel(u);info.appendChild(document.createTextNode(" · "+unitSummary(u)));}
+    if(b){
+      info.appendChild(document.createTextNode(" · "+(b.owner<0?"Neutral":faction(b.owner))+" "+b.kind+" · "));
+      if(b.stored.length)b.stored.forEach(unitLabel);else info.appendChild(document.createTextNode("No reserves"));
+    }
+    UNIT_VIEW.paint(info);
   };
   Setup.prototype.renderPlacement=function(){
     var p=this.plan,list=$("balance-placement-list"),self=this;list.replaceChildren();
@@ -190,7 +193,7 @@ var BALANCE_UI = (function () {
       var unit={type:UNIT_TYPES[at.typeId],typeId:at.typeId,player:player,strength:8,exp:0,cargo:[]};
       UNIT_VIEW.addIcon(row,unit);row.title=unitSummary(unit);
       row.onclick=function(){self.focus(player);var r=self.renderer,c=r.hexCenter(at.col,at.row);r.originX+=self.canvas.width/2-c.x;r.originY+=self.canvas.height/2-c.y;self.draw();
-        $("balance-hex-info").textContent="Hex "+(at.col+1)+", "+(at.row+1)+" · "+unitSummary(unit);};
+        var info=$("balance-hex-info");info.innerHTML=UNIT_VIEW.html(unit);info.appendChild(document.createTextNode(" · Hex "+(at.col+1)+", "+(at.row+1)+" · "+unitSummary(unit)));UNIT_VIEW.paint(info);};
       list.appendChild(row);
     });
     if(!placements.length){var empty=document.createElement("p");empty.textContent="No extra units. Numbered hexes show where later offers will arrive.";list.appendChild(empty);}
