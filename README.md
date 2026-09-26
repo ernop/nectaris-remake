@@ -93,6 +93,9 @@ See [AI_OPPONENTS.md](AI_OPPONENTS.md) for algorithms and large disk runs.
 Serve the lab over HTTP on localhost or HTTPS; it uses Web Workers, IndexedDB
 and Web Locks. Ordinary match/profile saves remain in localStorage.
 
+Hosted at https://nectaris-remake.fuseki.net/ (released automatically from
+master after Tests pass; see PRODUCT "Fuseki hosting").
+
 Static files, no build step, no dependencies. Copy the folder to any web
 server (or open `index.html` from disk — no modules, plain scripts). Ordinary
 game state (campaign progress, custom levels, custom units) lives in

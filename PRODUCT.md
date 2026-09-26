@@ -1065,17 +1065,27 @@ tests and all-map CPU self-play cover integration and execution. These are new
 scenarios whose difficulty and multiplayer balance still need human playtesting.
 
 
-## Future Fuseki hosting (2026-09-26)
+## Fuseki hosting (2026-09-26)
 
-The user wants this repository available through fuseki.net later, after
-Voice-Wei and Minesweeper Friendly. This request is preparation, not a launch
-instruction. The hosting review selects a separate HTTPS origin,
-`nectaris-remake.fuseki.net`, with `/nectaris-remake/` as its Fuseki entry link,
-a dedicated restricted deployment identity, and validated atomic releases of
-an explicit runtime file list. No DNS record, account, credential, or public
-route has been activated for Nectaris. Audit game/editor/tournament assets and
-existing provenance restrictions before release; exclude `inspiration/`,
-experiments, tests, and other development content. Browser saves stay at their
-original origin unless explicitly exported/imported. The Fuseki repository's
+Requested for later on 2026-09-26, then launched the same day at the user's
+request: https://nectaris-remake.fuseki.net/, with `https://fuseki.net/nectaris-remake/`
+as its entry link. The site has its own HTTPS origin, a dedicated restricted
+deployment identity (`nectaris`, which can only upload a release for this
+site), and validated atomic releases of the explicit runtime list in
+`deploy/runtime-files.json`: the three pages, `css/`, `js/` (including the AI,
+opening and tournament workers), `levels/`, and the linked `MECHANICS.md` and
+`LEVEL_SOURCES.md`. Excluded: `art/` sources (the runtime draws units from the
+JavaScript art tables), `inspiration/`, the model-named proposal packs,
+`tools/`, `test/`, and research documents. Every master commit that passes
+Tests is released by `.github/workflows/hosting.yml`.
+
+The page's Content-Security-Policy allows connections only to its own origin,
+`raw.githubusercontent.com` and `gist.githubusercontent.com`, matching the
+online level import's "Raw GitHub and Gist URLs work"; other import hosts are
+refused on the hosted copy. Browser saves stay at their original origin
+unless explicitly exported/imported. Provenance: the optional Legacy unit
+icons (`js/data-unit-art-legacy.js`) are third-party-derived art published
+here as they already are in the public repository; see `art/legacy/README.md`.
+The Fuseki repository's
 [independent application hosting plan](https://github.com/ernop/fuseki4_ai/blob/master/docs/minesweeper-friendly-hosting-plan.md)
-owns the infrastructure design and launch checklist.
+owns the server side.
