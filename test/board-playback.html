@@ -48,6 +48,31 @@ document.getElementById("run").onclick=async function(){
     var still=g.units.find(function(u){return u.typeId==="CHARLIE";});ui.selectUnit(still);ui.onHexClick(still.col,still.row);
     while(ui.busy)await wait(15);
     check(still.moved&&ui.mode==="idle"&&!ui.renderer.motion,"staying on the current hex completes once without leaving an animation active");
+    ui.deselect();ui.watchAI=true;ui.renderer.zoom*=1.2;ui.renderer.panBy(25,-18);
+    camera=[ui.renderer.zoom,ui.renderer.originX,ui.renderer.originY].join();
+    ui.showWatchMove({t:"move",unit:g.units[1],from:{col:10,row:6},to:{col:11,row:6}});ui.draw();
+    check([ui.renderer.zoom,ui.renderer.originX,ui.renderer.originY].join()===camera,"watched opponent selection preserves the chosen camera");
+    ui.closeWarDock();
+    // Inspect real hover canvases: data-exp alone cannot prove the stars were painted.
+    var style=w.RENDER.getStyle(),iconSet=w.RENDER.getIconSet();
+    try{
+      for(var look of [["pixel","remake"],["pixel","legacy"],["classic","remake"],["neon","remake"]]){
+        w.RENDER.setStyle(look[0]);w.RENDER.setIconSet(look[1]);
+        for(var owner of [-1,0,1]){
+          ui.game=new w.ENGINE.Game({name:"Factory stars",grid:Array(7).fill("............").map(function(row,i){return i===3?"....F.......":row;}),
+            buildings:[{col:4,row:3,owner:owner,stored:[{t:"BISON",exp:0},{t:"BISON",exp:3},{t:"BISON",exp:8}]}],
+            units:[{t:"CHARLIE",o:0,x:0,y:0},{t:"BISON",o:1,x:11,y:6}]},{seed:7});
+          ui.renderer.game=ui.game;ui.renderer.fitToMap();ui.mode="idle";ui.renderer.hoverHex={col:4,row:3};ui.updateHoverInfo();ui.showHexInfo(4,3);
+          for(var id of ["unit-hover","hex-info"]){
+            var icons=Array.from(d.getElementById(id).querySelectorAll("canvas[data-unit-type]"));
+            var pixels=icons.map(function(c){return c.getContext("2d").getImageData(0,0,32,32).data;});
+            check(icons.length===3&&pixels[1].some(function(value,i){return value!==pixels[0][i];})&&pixels[2].some(function(value,i){return value!==pixels[0][i];}),
+              look.join("/")+" owner "+owner+" "+id+": rank stars and General are visible on the existing icons");
+          }
+        }
+      }
+    }finally{w.RENDER.setStyle(style);w.RENDER.setIconSet(iconSet);}
+    ui.game=g;ui.renderer.game=g;ui.refreshStatus();ui.draw();
     document.getElementById("status").textContent=checks+" checks passed";
   }catch(error){document.getElementById("status").textContent="FAIL: "+error.message;console.error(error);}
   this.disabled=false;

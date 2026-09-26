@@ -40,12 +40,14 @@ Facts we need across sessions:
   pan; Ctrl-click never issues a unit command. Never recenter merely because
   the map is smaller than the viewport. Show grab while Ctrl is held and
   grabbing during panning; use a crosshair for normal map actions.
-- **Board layout (updated 2026-09-25):** Auto / Normal / Sideways orientation
+- **Board layout (updated 2026-09-26):** Auto / Normal / Sideways orientation
   remains persisted. All controls, metadata, Details, forecasts and battle
   reports now live in a fixed left panel in matches and replays. It scrolls
   independently: changing its content must never resize/refit the board.
   This supersedes Auto / Top / Left control placement, on-map action menus
-  and temporary bottom rails. Fit resets the camera. See PRODUCT.
+  and temporary bottom rails. Opponent playback never pans or zooms the camera.
+  Replay Follow action starts off and requires explicit opt-in. Fit resets the
+  camera. See PRODUCT.
 - **Deploy target:** none selected in the records. It is a static folder; any
   static web host works. Record the target and deployment procedure when chosen.
 - **Public home:** [ernop/nectaris-remake](https://github.com/ernop/nectaris-remake),
@@ -162,7 +164,9 @@ Facts we need across sessions:
 - **Unit labels and factory hovers (updated 2026-09-23):** use `UNIT_VIEW` for short
   unit names and accompanying icons. Omit serial/model designations in the UI.
   Factory hovers list every reserve individually with that unit's experience
-  stars; never aggregate identical types. Inspection lives in hover cards.
+  stars; never aggregate identical types. The 2026-09-26 clarification keeps
+  this design: fix missing stars in place, without new badges or numeric rows.
+  Inspection lives in hover cards.
   Neutral/enemy, empty and fully blocked factory clicks never open a popup.
   Owned factories open only an actionable deployment picker. These pickers
   reuse the two-column roster, anchor next to the factory,

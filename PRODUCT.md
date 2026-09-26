@@ -57,8 +57,12 @@ The per-side ledger and opening decisions also remain in the left panel.
 
 Replay steps selection then action. Previous/next battle jump to an attack's
 selection; Hold battles keeps results visible for at least 2.4 seconds.
-Following frames the acted hexes; Fit, wheel zoom and Ctrl+drag leave the camera
-where the player puts it until Following is reenabled. The scrubber shows 0,
+The user's 2026-09-26 correction keeps the chosen camera still during opponent
+playback: watched moves, deployments, battles, captures and repairs never pan
+or zoom. Replays open with **Follow action** off; explicitly enabling it frames
+the acted hexes. Fit, wheel zoom and Ctrl+drag turn following off again. This
+supersedes automatic live action framing and following by default in replays.
+The scrubber shows 0,
 midpoint and final command. Seeking or closing cancels visual movement safely.
 
 ## Optional inspector and full map height (updated 2026-09-25)
@@ -612,6 +616,12 @@ remain. Clicking again while all reserves are blocked, spent or absent stays
 silent; inspect them through the hover card. Experience
 uses the map's traditional 3/2/3 star overlay (General at 8) on the icon, with
 an accessible label; there is no separate numeric experience row.
+The user reaffirmed on 2026-09-26 that a missing-star mouseover is a rendering
+bug to investigate within this design, not authorization to add separate badges
+or numeric experience labels. Preserve the existing compact roster.
+The reported case is not yet reproduced: browser checks show the existing
+stars in both live factory mouseovers across owners and visual styles. The
+exact affected view/map is still needed; the defect is not recorded as fixed.
 
 
 The latest maximum-fidelity request restores the 1989 PCE distinction:

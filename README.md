@@ -276,7 +276,8 @@ the page or list scrolls or resizes.
   formations, counts, experience, attack/defense and terrain stats. Show map /
   Show battle switches views without changing the board. Units traverse each
   hex of their legal movement route in live play and replays. Turn Watch AI off for immediate
-  AI turns. Fit board restores the whole map after the view follows a fight.
+  AI turns. Opponent actions preserve your chosen camera position and zoom.
+  Replay **Follow action** starts off and only follows when you enable it.
 - The factory panel shows each stored unit's map icon with experience stars,
   damage when present, and a full-row deployment button.
 - Experience appears on units in three star columns holding 3, 2, and 3 stars.

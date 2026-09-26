@@ -180,8 +180,9 @@ casualties were above, near, or below the table average. A ledger sums each
 side's gap from that average. An original-style battle view shows opposing
 formations, counts, experience, attack/defense and terrain stats. Map/battle
 toggles and changing reports never resize the board. Previous/next battle, hold and follow are
-included. Wheel zoom, Fit and Ctrl+drag leave the camera until Following is
-turned on again. Back to tournament leaves a running job alone.
+included. Following starts off: playback preserves the camera unless **Follow
+action** is explicitly enabled. Wheel zoom, Fit and Ctrl+drag disable following
+again. Back to tournament leaves a running job alone.
 A compact checkpoint every 128 commands makes arbitrary seeking require at most
 127 commands after restore. Static maps, rosters and growing logs are not copied
 into every checkpoint. Older archives are indexed once when opened. Watching

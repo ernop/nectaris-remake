@@ -54,7 +54,7 @@
 <div class="pages"><button id="lab-prev">Previous 25</button><span id="lab-page"></span><button id="lab-next">Next 25</button></div>
 </div></section>
 <section id="lab-viewer" class="replay-viewer" hidden aria-labelledby="replay-title"><aside id="replay-sidebar"><div class="section-bar"><h2 id="replay-title">Replay</h2><div class="replay-tools"><button id="replay-download">Download game JSON</button><button id="replay-fullscreen">Fullscreen</button><button id="replay-close">Back to tournament</button></div></div>
-<p id="replay-detail"></p><details><summary>Opening decisions</summary><div id="replay-offers"></div></details><div class="replay-controls"><button id="replay-first">|◀</button><button id="replay-back">Previous action</button><button id="replay-play">Play</button><button id="replay-forward">Next action</button><button id="replay-last">▶|</button><button id="replay-prev-battle" type="button">Previous battle</button><button id="replay-next-battle" type="button">Next battle</button><button id="replay-follow" type="button" aria-pressed="true">Following</button><button id="replay-fit">Fit board</button><button id="replay-zoom-out" aria-label="Zoom out">−</button><button id="replay-zoom-in" aria-label="Zoom in">+</button>
+<p id="replay-detail"></p><details><summary>Opening decisions</summary><div id="replay-offers"></div></details><div class="replay-controls"><button id="replay-first">|◀</button><button id="replay-back">Previous action</button><button id="replay-play">Play</button><button id="replay-forward">Next action</button><button id="replay-last">▶|</button><button id="replay-prev-battle" type="button">Previous battle</button><button id="replay-next-battle" type="button">Next battle</button><button id="replay-follow" type="button" aria-pressed="false">Follow action</button><button id="replay-fit">Fit board</button><button id="replay-zoom-out" aria-label="Zoom out">−</button><button id="replay-zoom-in" aria-label="Zoom in">+</button>
 <label>Speed <select id="replay-speed"><option value="700" selected>0.7s per beat</option><option value="200">0.2s per beat</option><option value="16">Fast</option></select></label><label><input id="replay-hold" type="checkbox" checked> Hold battles</label><label>Turn <select id="replay-turn"></select></label></div>
 <input id="replay-seek" aria-label="Replay position" type="range" min="0" max="1" value="0">
 <div class="seek-scale" aria-hidden="true"><span>0</span><span id="replay-seek-mid">0</span><span id="replay-seek-end">0</span></div>
@@ -73,5 +73,5 @@
 <script src="js/unit-view.js?v=20260925-battle-review"></script>
 <script src="js/move-animation.js?v=20260925-board-playback"></script>
 <script src="js/battle-report.js?v=20260925-board-playback"></script>
-<script src="js/tournament-store.js?v=20260925-tournaments-2"></script><script src="js/tournament-ui.js?v=20260925-board-playback"></script>
+<script src="js/tournament-store.js?v=20260925-tournaments-2"></script><script src="js/tournament-ui.js?v=20260926-camera"></script>
 </body></html>

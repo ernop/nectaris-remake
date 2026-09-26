@@ -3,7 +3,7 @@
   var $=function(id){return document.getElementById(id);},T=AI_TOURNAMENT,store,run=null,pool=[],pending=new Map(),assigned=new Set(),saving=false,page=0,lease=null,operation=Promise.resolve();
   function serialize(fn){operation=operation.then(fn,fn);return operation;}
   $("lab-start").disabled=true;
-  var rows=[],chosen=new Set(["normal:0"]),replayData=null,replayGame=null,renderer=null,replayAt=0,playTimer=null,downloadUrl=null,historyRun=null,historyRequest=0,sessionStart=0,sessionBase=0,replayToken=0,replayDrag=null,replayNeedsFit=false,replayPhase="done",replayFollow=true,replayFocus=[],replaySpec=null,actionRecord=null,replayMotion=null;
+  var rows=[],chosen=new Set(["normal:0"]),replayData=null,replayGame=null,renderer=null,replayAt=0,playTimer=null,downloadUrl=null,historyRun=null,historyRequest=0,sessionStart=0,sessionBase=0,replayToken=0,replayDrag=null,replayNeedsFit=false,replayPhase="done",replayFollow=false,replayFocus=[],replaySpec=null,actionRecord=null,replayMotion=null;
   var groups=[{id:"normal",name:"Normal campaign",maps:CAMPAIGN},{id:"advanced",name:"Advanced campaign",maps:ADVANCED_CAMPAIGN},
     {id:"frontiers",name:"Lunar Frontiers",maps:EXPANSION_LEVELS},{id:"base",name:"Base Nectaris",maps:BASE_NECTARIS_LEVELS},{id:"ai",name:"AI-made",maps:AI_MADE_LEVELS}];
   ENVIRONMENT_CAMPAIGNS.forEach(function(c){groups.push({id:"terrain:"+c.id,name:c.name,maps:c.levels});});
@@ -345,7 +345,7 @@
       if(!game.final)game.final=indexed.snapshot();
     }
     if(token!==replayToken)return;
-    replayData=game;replayAt=0;replayPhase="done";replaySpec=null;replayFocus=[];actionRecord=null;replayGame=ENGINE.Game.restore(game.initial);renderer=new RENDER.Renderer($("replay-canvas"),replayGame);setFollow(true);
+    replayData=game;replayAt=0;replayPhase="done";replaySpec=null;replayFocus=[];actionRecord=null;replayGame=ENGINE.Game.restore(game.initial);renderer=new RENDER.Renderer($("replay-canvas"),replayGame);setFollow(false);
     $("lab-form").inert=true;$("lab-results").inert=true;document.querySelector("body>header").inert=true;
     document.body.classList.add("reviewing");replayNeedsFit=true;$("lab-viewer").hidden=false;$("replay-title").textContent="Game "+(game.index+1)+" · "+game.map;
     $("replay-detail").textContent=label(game.players[0])+" (Union) vs "+label(game.players[1])+" (Xenon) · seed "+game.seed+" · "+game.reason+" · "+openingLabel(game)+

@@ -642,6 +642,27 @@ module.exports = function (ok) {
     ui.onContextMenu(pointer(2,destination.x,destination.y));
     ok(ui.game.units[0].col===1 && ui.mode==="idle" && ui.canRedo(),
       "right-click after a committed move undoes it and enables redo");
+    // Watched actions must preserve the player's camera even when the action is elsewhere.
+    ui = fixture("BISON", 2);
+    ui.renderer.zoom = 2.3; ui.renderer.originX = -120; ui.renderer.originY = 47;
+    ui.renderer.frameHexes = function () { throw new Error("Opponent playback must not frame the action"); };
+    ui.watchAI = true; ui._aiTurn = {};
+    var actor = ui.game.units[0], defender = ui.game.units[1];
+    var aBefore = actor.strength, dBefore = defender.strength;
+    var camera = [ui.renderer.zoom, ui.renderer.originX, ui.renderer.originY].join();
+    function watched(event) {
+      ui.nextAIEvent = function () { return event; };
+      try { ui.runNextAIEvent(); } finally { clearTimeout(ui._aiTimer); }
+      ok([ui.renderer.zoom, ui.renderer.originX, ui.renderer.originY].join() === camera,
+        "watched " + event.t + " preserves camera zoom and position");
+    }
+    watched({t:"move",unit:actor,from:{col:0,row:1},to:{col:1,row:1},path:[{col:0,row:1},{col:1,row:1}]});
+    watched({t:"deploy",unit:actor,building:{col:0,row:1},to:{col:1,row:1}});
+    watched({t:"battle-preview",attacker:actor,defender:defender,preview:COMBAT.preview(ui.game,actor,defender)});
+    var result = ui.game.attack(actor,defender);
+    watched({t:"battle",attacker:actor,defender:defender,attackerBefore:aBefore,defenderBefore:dBefore,result:result});
+    watched({t:"finish",unit:actor,effects:[{t:"capture",kind:"factory"}]});
+    watched({t:"finish",unit:actor,effects:[{t:"repair"}]});
   } finally {
     if (savedDocument === undefined) delete global.document; else global.document = savedDocument;
     if (savedView === undefined) delete global.COMBAT_VIEW; else global.COMBAT_VIEW = savedView;

@@ -460,10 +460,6 @@ var UI = (function () {
     return this._movement.duration;
   };
 
-  GameUI.prototype.frameAction = function (cells) {
-    if (this.watchAI && this.renderer.frameHexes && cells && cells.length) this.renderer.frameHexes(cells);
-  };
-
   GameUI.prototype.showWatchPanel = function (title, detail) {
     $("watch-panel").classList.add("hidden");
     this.openWarDock("<div class='war-scene'><div class='war-headline'>" + esc(title) + "</div>" + detail + "</div>", "");
@@ -493,14 +489,10 @@ var UI = (function () {
       "<div class='war-verb'>" + unitView.html(event.unit) + " " + esc(action) + "</div>"
     );
     this.renderer.highlights = null;
-    var cells = [{col: event.unit.col, row: event.unit.row}];
-    if (event.from) cells.push(event.from);
     if (event.to) {
-      cells.push(event.to);
       this.renderer.highlights = {};
       this.renderer.highlights[HEX.key(event.to.col, event.to.row)] = "rgba(255,180,65,0.55)";
     }
-    this.frameAction(cells);
   };
 
   GameUI.prototype.showWatchPreview = function (event) {
@@ -513,10 +505,6 @@ var UI = (function () {
     var parts = battleReport.previewHtml(event.attacker, event.defender, event.preview);
     this.openWarDock(parts.scene, parts.math);
     this.showBattleScreen(parts.screen);
-    this.frameAction([
-      {col: event.attacker.col, row: event.attacker.row},
-      {col: event.defender.col, row: event.defender.row},
-    ]);
   };
 
   GameUI.prototype.showWatchResult = function (event) {
@@ -528,10 +516,6 @@ var UI = (function () {
     battleReport.record(this.warLedger, event.attacker.player, parts.assessed);
     this.openWarDock(parts.scene, parts.math + battleReport.ledgerHtml(this.warLedger));
     this.showBattleScreen(parts.screen);
-    this.frameAction([
-      {col: event.attacker.col, row: event.attacker.row},
-      {col: event.defender.col, row: event.defender.row},
-    ]);
     return this.animateBattleResult(event, $("war-scene"));
   };
 
@@ -1556,7 +1540,6 @@ var UI = (function () {
       this.showWatchMove(event);
       this.hideBattleScreen();
       var path = event.path || [event.from || {col: event.building.col, row: event.building.row}, event.to];
-      this.frameAction(path);
       var moving = this;
       this.animateMovement(event.unit, path, function () {
         moving._aiTimer = setTimeout(function () { moving.runNextAIEvent(); }, 250);
@@ -1577,7 +1560,6 @@ var UI = (function () {
       var text = effect.t === "capture" ? "captured " + effect.kind : "repaired to full strength";
       this.showWatchPanel(battleReport.faction(event.unit.player) + " selected", "<div class='war-verb'>" +
         unitView.html(event.unit) + " " + esc(text) + "</div>");
-      this.frameAction([{col: event.unit.col, row: event.unit.row}]);
       delay = 900;
     }
 
