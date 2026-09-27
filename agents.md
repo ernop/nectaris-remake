@@ -108,6 +108,13 @@ Facts we need across sessions:
   published on 2026-08-26. Development lives only in this standalone repo;
   the former nested copy in `mybrowser` was removed after its newest changes
   were transferred here.
+- **Thanks page (2026-09-27):** `thanks.html` thanks everyone who made Nectaris,
+  in English and Japanese; the menu and tournament page link to it and it links
+  back. `NECTARIS_CREDITS.md` is its research record: update both together.
+  Pictures are freely licensed Wikimedia Commons files only, embedded by
+  `tools/build-thanks-images.py`, because the server and its CSP allow no image
+  files and no outside images. No box art, screenshots, or photographs of people
+  without a free license or the person's consent. See PRODUCT "Thanks page".
 - **IP posture (keep it this way):** mechanics/stat tables are functional
   game data reimplemented from community documentation. The project owner
   confirmed redistribution permission on 2026-09-03 for the 16 original PC

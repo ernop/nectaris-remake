@@ -7,7 +7,9 @@ to find them on X/Twitter, LinkedIn or by mail; to send each a respectful letter
 of thanks; and to commemorate their work. The research below was completed on
 2026-09-27. No letters have been sent and no one has been contacted. The owner
 sends them personally and records each one in the Sent and Reply columns of the
-[contact list](#contact-list).
+[contact list](#contact-list). The public thank-you page built from this record
+is [`thanks.html`](https://nectaris-remake.fuseki.net/thanks.html), added
+2026-09-27; when a name, role or source changes here, change the page too.
 
 Sections: [how this was compiled](#how-this-was-compiled) ·
 [versions](#versions) · [how the game was made](#how-the-game-was-made) ·
@@ -707,8 +709,6 @@ Community additions, one sentence each after the remake paragraph:
 
 ## Open questions
 
-- **Owner decision, commemoration beyond letters:** the remake could show a
-  public credits page built from this file. That is an idea, not scheduled work.
 - **Repository wording:** `agents.md`, `MECHANICS.md`, `FIDELITY_AUDIT.md`,
   `MANUAL_AUDIT.md`, `art/legacy/README.md` and several code comments call
   anka.sakura.ne.jp "Anka's" guide. Its administrator is 火鉢; those references

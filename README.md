@@ -34,6 +34,9 @@ editor with URL sharing.
 | `js/ai.js` | Computer opponent |
 | [AI_OPPONENTS.md](AI_OPPONENTS.md) | Five opponent algorithms, custom capability support, tournament instructions and strength limits |
 | `tournaments.html` | Parallel self-play, per-run Elo, saved games and replay viewer |
+| `thanks.html` | Thanks, in English and Japanese, to everyone who made Nectaris and the fans who documented it |
+| [NECTARIS_CREDITS.md](NECTARIS_CREDITS.md) | Research behind the thanks page: every documented person per version, public channels, letter drafts |
+| `tools/build-thanks-images.py` | Rebuilds the thanks page's embedded Wikimedia Commons pictures and their credits |
 | `tools/ai-research/run.cjs` | Multi-core disk tournaments, exact game archives and resumable ratings |
 | `js/data-maps.js` / `js/data-advanced-maps.js` | Official normal and advanced campaigns, 16 missions each, from Hudson's 1997 PC Engine remake |
 | `js/data-expansion-maps.js` | 12-map Lunar Frontiers online expansion |

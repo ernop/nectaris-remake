@@ -1448,7 +1448,8 @@ request: https://nectaris-remake.fuseki.net/, with `https://fuseki.net/nectaris-
 as its entry link. The site has its own HTTPS origin, a dedicated restricted
 deployment identity (`nectaris`, which can only upload a release for this
 site), and validated atomic releases of the explicit runtime list in
-`deploy/runtime-files.json`: the three pages, `css/`, `js/` (including the AI,
+`deploy/runtime-files.json`: the pages (game, editor, tournaments and, since
+2026-09-27, [thanks](#thanks-page-2026-09-27)), `css/`, `js/` (including the AI,
 opening and tournament workers), `levels/`, and the linked `MECHANICS.md` and
 `LEVEL_SOURCES.md`. Excluded: `art/` sources (the runtime draws units from the
 JavaScript art tables), `inspiration/`, the model-named proposal packs,
@@ -1465,3 +1466,46 @@ here as they already are in the public repository; see `art/legacy/README.md`.
 The Fuseki repository's
 [independent application hosting plan](https://github.com/ernop/fuseki4_ai/blob/master/docs/minesweeper-friendly-hosting-plan.md)
 owns the server side.
+
+## Thanks page (2026-09-27)
+
+Requested by the user on 2026-09-27, after the credits research in
+[NECTARIS_CREDITS.md](NECTARIS_CREDITS.md): a page thanking the creators of
+"this wonderful game", in English and Japanese, with links to all sources and
+the best references, imagery from the game's history and of the team, and
+links in both directions between it and the game on fuseki. Tone (user
+requirement): gratitude and respect for their hard work, respectful ways of
+addressing people, not overly formal.
+
+Implemented as `thanks.html`, deployed with `css/thanks.css` and
+`css/thanks-images.css`:
+
+- English and Japanese side by side, stacking on narrow windows. People are
+  named in full; the Japanese prose uses さん and 皆さま, and the tables list
+  names as credited.
+- Sections: dedication with the Moon picture; how the game began (Isamu Izumi,
+  Hiromasa Iwasaki's board-wargame advice, the "LONG REINS" planning document,
+  Taiichi Matsuda's words from Konami's 2020 interview); the 1989 team with its
+  sourcing note; one card per version from 1989 to 2020 with its key credited
+  people and a link to the full roll; the fan community; references; an
+  invitation to named people to add a memory or photo, correct details or ask
+  to be removed, through GitHub issues; picture credits.
+- Links: the menu (`index.html`) and `tournaments.html` carry a "Thanks to the
+  creators" tab; the page's tabs and "Play the remake" link return to the game,
+  and its footer gives the fuseki address and GitHub.
+- Pictures: only freely licensed Wikimedia Commons files (public domain, CC0,
+  CC BY, CC BY-SA); `tools/build-thanks-images.py` refuses anything else. The
+  server accepts only css/html/js/json/md files and its Content-Security-Policy
+  allows images only from the site or `data:` URLs, so the tool embeds each
+  picture as WebP in `css/thanks-images.css` and regenerates the picture-credit
+  list in `thanks.html`. Shown: NASA's near side of the Moon with Mare Nectaris
+  outlined, the HUDSON sign on the Sapporo head office, the hardware of each
+  version, and Chris Huelsbeck (2011).
+- Team photographs: no freely licensed photograph of the Japanese team exists.
+  The page links to Konami's 2020 interview, which shows Matsuda and Iwasaki,
+  instead of copying photographs, and invites team members to send their own.
+  No box art, screenshots or other original assets appear, per the IP posture
+  in `agents.md`.
+- Implementation choices, not user requirements: the dark site palette with
+  pure white text, gold years, the card layout and which people each card
+  names. The Japanese text still needs a native speaker's read.

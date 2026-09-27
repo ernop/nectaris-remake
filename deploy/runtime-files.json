@@ -3,6 +3,8 @@
   "MECHANICS.md",
   "css/battle-dock.css",
   "css/nectaris.css",
+  "css/thanks-images.css",
+  "css/thanks.css",
   "css/tournaments.css",
   "editor.html",
   "index.html",
@@ -110,5 +112,6 @@
   "levels/switchback-fjords.json",
   "levels/turning-fjords.json",
   "levels/twisted-fjords.json",
+  "thanks.html",
   "tournaments.html"
 ]
