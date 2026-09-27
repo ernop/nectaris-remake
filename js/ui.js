@@ -522,8 +522,7 @@ var UI = (function () {
         defenderLosses > event.defenderBefore) {
       throw new Error("Battle result casualties exceed the pre-battle squad count");
     }
-    var largestLoss = Math.max(attackerLosses, defenderLosses);
-    var duration = Math.max(1600, Math.min(2600, largestLoss * 360));
+    var duration = battleReport.fightingDuration(), volley = battleReport.VOLLEY_MS;
     var lastCounts = "", resultMath = $("war-math").innerHTML;
     if (holdMs === undefined) holdMs = 900;
     if (approachMs === undefined) approachMs = 800;
@@ -531,40 +530,26 @@ var UI = (function () {
     holdMs = Math.max(holdMs, battleReport.rewardHoldMs(earned));
     this.renderer.battleGhosts = [event.attacker, event.defender];
 
-    function casualtyState(before, losses, progress, unit, seed) {
-      if (!losses || progress <= 0) return before;
-      if (progress >= 1) return before - losses;
-      var scaled = progress * losses;
-      var completed = Math.floor(scaled);
-      var phase = scaled - completed;
-      var removed = Math.min(losses, completed + (phase >= 0.62 ? 1 : 0));
-      if (phase < 0.86) {
-        self.renderer.explosions.push({
-          col: unit.col, row: unit.row,
-          phase: phase / 0.86, seed: seed + completed,
-        });
-      }
-      return before - removed;
-    }
-
     function frame(elapsed) {
       if (self.destroyed) return;
-      var progress = Math.max(0, Math.min(1, (elapsed - approachMs) / duration));
+      var fight = elapsed - approachMs, hit = fight >= volley;
       $("battle-stage").style.setProperty("--battle-approach", approachMs ? Math.max(0, 1 - elapsed / approachMs) : 0);
+      var attackerCurrent = hit ? event.attackerBefore - attackerLosses : event.attackerBefore;
+      var defenderCurrent = hit ? event.defenderBefore - defenderLosses : event.defenderBefore;
+      // All losses land together: one burst on the map per squad that lost machines.
       self.renderer.explosions = [];
-      var attackerCurrent = casualtyState(
-        event.attackerBefore, attackerLosses, progress, event.attacker, 11
-      );
-      var defenderCurrent = casualtyState(
-        event.defenderBefore, defenderLosses, progress, event.defender, 29
-      );
+      if (hit && fight < duration) {
+        var burst = (fight - volley) / (duration - volley);
+        if (attackerLosses) self.renderer.explosions.push({col: event.attacker.col, row: event.attacker.row, phase: burst, seed: 11});
+        if (defenderLosses) self.renderer.explosions.push({col: event.defender.col, row: event.defender.row, phase: burst, seed: 29});
+      }
       self.renderer.strengthOverrides = {};
       self.renderer.strengthOverrides[event.attacker.id] = attackerCurrent;
       self.renderer.strengthOverrides[event.defender.id] = defenderCurrent;
-      var rewardElapsed = Math.max(0, elapsed - approachMs - duration);
+      var rewardElapsed = Math.max(0, fight - duration);
       var aExp = battleReport.earnedExperience(result.attackerExpBefore, event.attacker.exp, rewardElapsed);
       var dExp = battleReport.earnedExperience(result.defenderExpBefore, event.defender.exp, rewardElapsed);
-      var phase = elapsed < approachMs ? "ready" : progress < 1 ? "fighting" : "result";
+      var phase = elapsed < approachMs ? "ready" : !hit ? "fighting" : fight < duration ? "impact" : "result";
       var counts = attackerCurrent + ":" + defenderCurrent + ":" + aExp + ":" + dExp + ":" + phase;
       if (counts !== lastCounts) {
         lastCounts = counts;
@@ -582,7 +567,7 @@ var UI = (function () {
       }
       self.draw();
 
-      if (progress < 1) return;
+      if (fight < duration) return;
       self.renderer.strengthOverrides = {};
       self.renderer.battleGhosts = [];
       self.renderer.explosions = [];

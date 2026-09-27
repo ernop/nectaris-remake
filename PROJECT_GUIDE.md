@@ -92,6 +92,8 @@ Release first, verify later (user decision). Examine together later:
     - whether 450 ms moves and 1.4 s trails read well at each Speed setting;
     - bursts of deployments;
     - one-press Next action for non-battle steps.
+13. The battle volley: how the bullets look on narrow screens and at each
+    squad size; the loss burst; the single map explosion per squad.
 
 Research rather than a check: direct PC Engine confirmation of the Windows
 combat traces.

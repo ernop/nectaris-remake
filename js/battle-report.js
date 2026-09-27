@@ -157,17 +157,30 @@ var BATTLE_REPORT = (function () {
       "<svg class='battle-terrain' viewBox='0 0 400 260' preserveAspectRatio='none' aria-hidden='true'>" +
       "<path fill='#393c40' d='M0 0H400V260H0Z'/><path fill='" + terrains[id].color + "' d='M0 100H400V260H0Z'/>" + relief[id] +
       "<path d='M12 231h13m84 -35h10m46 49h18m97 -87h12m55 85h13m-177 -94h9' stroke='#514a3b' stroke-opacity='.35' stroke-width='3'/></svg>" +
-      formationHtml(side.unit, side.before, side.now, position) + "</div>";
+      formationHtml(side.unit, side.before, side.now, position, side.fresh) + "</div>";
   }
-  function formationHtml(unit, before, now, side) {
+  function formationHtml(unit, before, now, side, fresh) {
     var html = "<div class='battle-formation battle-formation-" + side + "' aria-label='" +
       faction(unit.player) + ": " + now + " machines remaining'>";
     for (var i = 0; i < before; i++) {
       var icon = Object.assign({}, unit, {strength: 8, exp: 0});
-      html += "<span class='battle-machine" + (i >= now ? " battle-casualty" : "") + "'>" +
+      html += "<span class='battle-machine" + (i >= now ? " battle-casualty" + (fresh ? " battle-casualty-new" : "") : "") + "'>" +
         (i < now ? unitView.iconHtml(icon) : "<span aria-hidden='true'>✹</span>") + "</span>";
     }
     return html + "</div>";
+  }
+  // Every firing machine sends one bullet across at once; both sides fire from
+  // their pre-battle strength, as the calculation does.
+  function volleyHtml(left, right) {
+    var html = "<span class='battle-volley' aria-hidden='true'>";
+    [[left, "ltr"], [right, "rtl"]].forEach(function (pair) {
+      if (!pair[0].canFire) return;
+      for (var i = 0; i < pair[0].before; i++) {
+        html += "<i class='battle-bullet battle-bullet-" + pair[1] + "' style='top:" + (18 + (i % 4) * 20) +
+          "%;animation-delay:" + i * 25 + "ms'></i>";
+      }
+    });
+    return html + "</span>";
   }
 
   // Earned ranks are revealed one per STAR_MS; each then fades in, glows and
@@ -228,13 +241,14 @@ var BATTLE_REPORT = (function () {
       {unit:defender,before:dBefore,now:dNow,exp:dExp === undefined ? defender.exp : dExp,
         after:dExpAfter,role:"defending",stats:preview.defender,terrain:preview.defenderTerrain,canFire:preview.counter},
     ].sort(function (a, b) { return a.unit.player - b.unit.player; });
-    var left = sides[0], right = sides[1];
+    var left = sides[0], right = sides[1], stage = phase === "impact" ? "fighting" : phase;
+    sides.forEach(function (side) { side.fresh = phase === "impact"; });
     return "<div class='battle-screen' data-battle-phase='" + phase + "'><div class='battle-phases' aria-label='Battle stages'>" +
-      ["ready", "fighting", "result"].map(function (step) { return "<span" + (phase === step ? " aria-current='step'" : "") + ">" +
+      ["ready", "fighting", "result"].map(function (step) { return "<span" + (stage === step ? " aria-current='step'" : "") + ">" +
         {ready:"Ready",fighting:"Fighting",result:"Result"}[step] + "</span>"; }).join("<span aria-hidden='true'>·</span>") +
       "</div><div class='battle-heading'>" +
       sides.map(function (side) { return head(side.unit, side.now, side.exp, side.role, side.after); }).join("") +
-      "</div><div class='battle-field'>" + groundHtml(left, "left") +
+      "</div><div class='battle-field'>" + (phase === "fighting" ? volleyHtml(left, right) : "") + groundHtml(left, "left") +
       "<span class='battle-crossfire" + (preview.counter ? "" : " battle-one-way") + "' role='img' aria-label='" +
       (preview.counter ? "Attack and counterattack" : "One-way attack · no counterattack") + "' title='" +
       (preview.counter ? "Attack and counterattack" : "One-way attack · no counterattack") + "'>" +
@@ -242,7 +256,7 @@ var BATTLE_REPORT = (function () {
       "</div><div class='battle-stat-panels'>" + sides.map(function (side) {
         return stats(side.unit, side.stats, side.exp, side.canFire);
       }).join("") + "</div><p class='battle-outcome'>" + (phase === "ready" ? faction(attacker.player) + " preparing to attack" :
-        phase === "fighting" ? faction(attacker.player) + " attacking" : faction(attacker.player) + " attack · " +
+        stage === "fighting" ? faction(attacker.player) + " attacking" : faction(attacker.player) + " attack · " +
         (dBefore - dNow) + " destroyed · " + (aBefore - aNow) + " lost") + "</p></div>";
   }
 
@@ -261,14 +275,15 @@ var BATTLE_REPORT = (function () {
   function rewardDuration(snap) {
     return rewardHoldMs(Math.max((snap.aExpAfter || 0) - snap.aExp, (snap.dExpAfter || 0) - snap.dExp, 0));
   }
-  function fightingDuration(snap) {
-    return Math.max(1600, Math.min(2600, Math.max(snap.aBefore-snap.aAfter, snap.dBefore-snap.dAfter)*360));
+  // One volley, then every loss at once, however many machines fall.
+  var VOLLEY_MS = 500, IMPACT_MS = 450;
+  function fightingDuration() {
+    return VOLLEY_MS + IMPACT_MS;
   }
   function animate(snap, elapsed) {
-    var duration=fightingDuration(snap),progress=Math.min(1,Math.max(0,elapsed/duration));
-    function remaining(before,after){return before-Math.min(before-after,Math.floor(progress*(before-after)+0.38));}
-    return present(snap,Math.max(0,elapsed-duration),{aNow:remaining(snap.aBefore,snap.aAfter),
-      dNow:remaining(snap.dBefore,snap.dAfter),phase:progress<1?"fighting":"result"});
+    var duration = fightingDuration(), hit = elapsed >= VOLLEY_MS;
+    return present(snap, Math.max(0, elapsed - duration), {aNow: hit ? snap.aAfter : snap.aBefore,
+      dNow: hit ? snap.dAfter : snap.dBefore, phase: !hit ? "fighting" : elapsed < duration ? "impact" : "result"});
   }
   function present(snap, rewardElapsed, frame) {
     var aExp = earnedExperience(snap.aExp, snap.aExpAfter, rewardElapsed), dExp = earnedExperience(snap.dExp, snap.dExpAfter, rewardElapsed);
@@ -344,7 +359,7 @@ var BATTLE_REPORT = (function () {
   }
 
   return {faction: faction, emptyLedger: emptyLedger, cloneLedger: cloneLedger, assess: assess,
-    snapshot: snapshot, animate: animate, fightingDuration: fightingDuration, earnedExperience: earnedExperience, rewardDuration: rewardDuration, rewardHoldMs: rewardHoldMs, rewardRevealMs: rewardRevealMs, record: record, sceneHtml: sceneHtml, screenHtml: screenHtml, present: present, resultParts: resultParts,
+    snapshot: snapshot, animate: animate, fightingDuration: fightingDuration, VOLLEY_MS: VOLLEY_MS, earnedExperience: earnedExperience, rewardDuration: rewardDuration, rewardHoldMs: rewardHoldMs, rewardRevealMs: rewardRevealMs, record: record, sceneHtml: sceneHtml, screenHtml: screenHtml, present: present, resultParts: resultParts,
     previewHtml: previewHtml, effectsHtml: effectsHtml, ledgerHtml: ledgerHtml, noteHtml: noteHtml};
 })();
 if (typeof module !== "undefined") module.exports = BATTLE_REPORT;

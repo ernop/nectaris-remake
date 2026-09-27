@@ -103,7 +103,12 @@ Remove the terrain-name/per-machine attack-and-defense sentence. Total combat
 stats still describe the pre-battle squads.
 
 A subtle **Ready → Fighting → Result** indicator distinguishes the approach,
-combat and final summary. Units briefly approach before casualties animate.
+combat and final summary. Units briefly approach. Then one volley of bullets
+crosses the field, with both sides firing at once from their pre-battle
+strength. Every loss bursts at the same moment: 0.5 s + 0.45 s, however many
+machines fall. This follows the user's 2026-09-26 request ("with bullets and
+all at once, like the orig game"); machines previously fell one by one over
+1.6–2.6 s.
 Experience is shown only as stars over unit icons throughout the game, never
 as numeric ranks or a separate badge. In the battle scene, only the two header
 icons carry experience; the individual formation machines have no stars.
