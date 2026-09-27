@@ -70,7 +70,8 @@ search bots must not rely on invented special-case rules. They can again leave
 a mine or Atlas on their own factory's only exit, stranding that factory for the
 rest of the match. This is a known weakness, to be solved by more general
 methods. The position score itself is a sum of hand-picked constants; the user
-deferred replacing it with self-play tuning or deeper simulation (2026-09-26).
+deferred replacing it with self-play tuning or deeper simulation, then asked the
+same day for a training plan ([AI_TRAINING_PLAN.md](AI_TRAINING_PLAN.md)).
 Limits: a
 reserve with a legal exit is always deployed before the turn ends (there is no
 "keep stored" action), and a mine's placement value comes only from defending
@@ -106,6 +107,10 @@ Neither planning nor worker serialization reads or advances the match RNG.
   horizon 8, 10 branches. Apex: depth 3, width 5, 12 branches, 64 iterations,
   horizon 12, 4 verification samples. MCTS iterations scale down with very
   large ready armies, with at least two visits per root branch budget.
+- Measured 2026-09-26 on one mid-game NECTOR turn (30×20, 49 units, 21 unit
+  decisions): Tactical 0.75 s, Sequence 10 s, Simulation 26 s, Apex 176 s. About
+  40% of search time goes to movement ranges and threat maps. See
+  [AI_TRAINING_PLAN.md](AI_TRAINING_PLAN.md).
 
 This is selective search with handcrafted evaluations and bounded rollouts.
 Candidate pruning can miss a sacrifice or coordinated maneuver. Transport

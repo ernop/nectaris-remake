@@ -1,5 +1,6 @@
 settings.json
 node_modules/
+__pycache__/
 dist/
 *.local
 inspiration/nectaris-original/*.png
