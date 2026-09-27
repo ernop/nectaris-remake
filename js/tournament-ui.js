@@ -3,7 +3,7 @@
   var $=function(id){return document.getElementById(id);},T=AI_TOURNAMENT,store,run=null,pool=[],pending=new Map(),assigned=new Set(),saving=false,page=0,lease=null,operation=Promise.resolve();
   function serialize(fn){operation=operation.then(fn,fn);return operation;}
   $("lab-start").disabled=true;
-  var rows=[],chosen=new Set(["normal:0"]),replayData=null,replayGame=null,renderer=null,replayAt=0,playTimer=null,replayPlaying=false,replayPaused=false,replayPauseReason=null,replayBattleParts=null,replayAnimatingBattle=null,downloadUrl=null,historyRun=null,historyRequest=0,sessionStart=0,sessionBase=0,replayToken=0,replayDrag=null,replayNeedsFit=false,replayPhase="done",replayFollow=false,replayFocus=[],replaySpec=null,actionRecord=null,replayMotion=null;
+  var rows=[],chosen=new Set(["normal:0"]),replayData=null,replayGame=null,renderer=null,replayAt=0,playTimer=null,replayPlaying=false,replayPaused=false,replayPauseReason=null,replayBattleParts=null,replayAnimatingBattle=null,downloadUrl=null,historyRun=null,historyRequest=0,sessionStart=0,sessionBase=0,replayToken=0,replayDrag=null,replayNeedsFit=false,replayPhase="done",replayFollow=false,replayFocus=[],replaySpec=null,actionRecord=null,replayMotion=null,replayTrails=[],trailFrame=null;
   var groups=[{id:"normal",name:"Normal campaign",maps:CAMPAIGN},{id:"advanced",name:"Advanced campaign",maps:ADVANCED_CAMPAIGN},
     {id:"frontiers",name:"Lunar Frontiers",maps:EXPANSION_LEVELS},{id:"base",name:"Base Nectaris",maps:BASE_NECTARIS_LEVELS},{id:"ai",name:"AI-made",maps:AI_MADE_LEVELS}];
   ENVIRONMENT_CAMPAIGNS.forEach(function(c){groups.push({id:"terrain:"+c.id,name:c.name,maps:c.levels});});
@@ -262,26 +262,41 @@
     }:null,done:function(){playTimer=null;tickPlayback();}});
     if(replayPaused)playTimer.pause();playbackControls();
   }
+  // Only battles pause on their selection; every other action plays at once.
   function tickPlayback(){
     if(!replayPlaying||replayPaused)return;
     try{
-      if(replayPhase==="intent"){
-        commit(function(kind,snap){
-          if(!replayPlaying)return;
-          if(snap&&!$("replay-skip-battles").checked){schedulePlayback(BATTLE_REPORT.fightingDuration(snap)+Math.max(beatDelay(kind),BATTLE_REPORT.rewardDuration(snap)),false,snap);return;}
-          if(replayAt===replayData.commands.length){stopPlayback();return;}
-          schedulePlayback(beatDelay(kind),false);
-        });return;
+      if(replayPhase!=="intent"){
+        if(replayAt===replayData.commands.length){stopPlayback();return;}
+        showIntent();
+        if(replaySpec.kind==="attack"&&!$("replay-skip-battles").checked){
+          schedulePlayback(beatDelay("select"),true);
+          if($("replay-pause-battles").checked)pausePlayback("battle");
+          return;
+        }
       }
-      if(replayAt===replayData.commands.length){stopPlayback();return;}
-      showIntent();var battle=replaySpec.kind==="attack"&&!$("replay-skip-battles").checked;
-      schedulePlayback(beatDelay("select"),battle);
-      if(battle&&$("replay-pause-battles").checked)pausePlayback("battle");
+      commit(function(kind,snap){
+        if(!replayPlaying)return;
+        if(snap&&!$("replay-skip-battles").checked){schedulePlayback(BATTLE_REPORT.fightingDuration(snap)+Math.max(beatDelay(kind),BATTLE_REPORT.rewardDuration(snap)),false,snap);return;}
+        if(replayAt===replayData.commands.length){stopPlayback();return;}
+        schedulePlayback(beatDelay(kind),false);
+      });
     }catch(e){stopPlayback();error(e);}
   }
   function setFollow(on){replayFollow=!!on;var button=$("replay-follow");button.setAttribute("aria-pressed",replayFollow?"true":"false");button.textContent=replayFollow?"Following":"Follow action";}
-  function clearMarks(){if(!renderer)return;renderer.flashUnits={};renderer.attackingUnitId=null;renderer.highlights=null;renderer.selected=null;renderer.strengthOverrides={};renderer.battleGhosts=[];renderer.explosions=[];}
+  function clearMarks(){if(!renderer)return;renderer.flashUnits={};renderer.attackingUnitId=null;renderer.highlights=null;renderer.selected=null;renderer.strengthOverrides={};renderer.battleGhosts=[];renderer.explosions=[];renderer.battlePair=null;}
   function focusCells(cells){replayFocus=cells||[];if(replayFollow&&replayFocus.length)renderer.frameHexes(replayFocus);}
+  function markPair(a,d){renderer.battlePair={attacker:{col:a.col,row:a.row},defender:{col:d.col,row:d.row}};}
+  // Each move leaves its route in the side's colour, fading over TRAIL_MS, so
+  // quick playback still shows where every unit came from.
+  var TRAIL_MS=1400;
+  function addTrail(unit,path){replayTrails.push({path:path.slice(),player:unit.player,born:performance.now()});if(trailFrame===null)trailFrame=requestAnimationFrame(fadeTrails);}
+  function fadeTrails(){trailFrame=null;if(!renderer)return;var now=performance.now();
+    replayTrails=replayTrails.filter(function(t){return now-t.born<TRAIL_MS;});
+    renderer.trails=replayTrails.map(function(t){return {path:t.path,player:t.player,alpha:0.8*(1-(now-t.born)/TRAIL_MS)};});
+    if(!$("lab-viewer").hidden)renderer.draw();
+    if(replayTrails.length)trailFrame=requestAnimationFrame(fadeTrails);}
+  function clearTrails(){replayTrails=[];if(renderer)renderer.trails=[];}
   function battleView(parts,preserveView){
     replayBattleParts=parts.screen?parts:null;
     var stage=$("replay-battle-stage"),button=$("replay-battle-toggle"),visible=!!parts.screen&&!$("replay-skip-battles").checked;
@@ -331,7 +346,7 @@
   }
   function markIntent(spec){
     clearMarks();
-    if(spec.attacker){renderer.attackingUnitId=spec.attacker.id;renderer.flashUnits[spec.defender.id]="#ffffff";renderer.selected=spec.attacker;}
+    if(spec.attacker){renderer.attackingUnitId=spec.attacker.id;renderer.flashUnits[spec.defender.id]="#ffffff";renderer.selected=spec.attacker;markPair(spec.attacker,spec.defender);}
     else if(spec.selected){renderer.selected=spec.selected;renderer.flashUnits[spec.selected.id]="#ffe9a0";}
     if(spec.dest){renderer.highlights={};renderer.highlights[HEX.key(spec.dest.col,spec.dest.row)]="rgba(255,180,65,0.55)";}
   }
@@ -372,12 +387,15 @@
       else if(kind==="loadFromFactory"){unit=args[1];path=[{col:args[0].col,row:args[0].row},{col:args[2].col,row:args[2].row}];}
       if(unit&&path){
         focusCells(path);
-        replayMotion=MOVE_ANIMATION.play(renderer,unit,path,{stepMs:Math.max(65,Math.min(200,Number($("replay-speed").value)/3)),draw:drawReplay,done:function(){replayMotion=null;if(onDone)onDone(kind);}});
+        // Every hex of the route, but the whole move within 450 ms.
+        var stepMs=Math.min(Math.max(25,Math.min(90,Number($("replay-speed").value)/8)),450/Math.max(1,path.length-1));
+        replayMotion=MOVE_ANIMATION.play(renderer,unit,path,{stepMs:stepMs,draw:drawReplay,done:function(){replayMotion=null;addTrail(unit,path);if(onDone)onDone(kind);}});
       }
     }
     replayAt++;replayPhase="done";replaySpec=null;clearMarks();showLedger();
     var row=actionRecord&&actionRecord[replayAt],snap=(row&&row.battle)||live;
-    if(snap){showDock(BATTLE_REPORT.present(snap));focusCells([{col:snap.aCol,row:snap.aRow},{col:snap.dCol,row:snap.dRow}]);}
+    if(snap){showDock(BATTLE_REPORT.present(snap));focusCells([{col:snap.aCol,row:snap.aRow},{col:snap.dCol,row:snap.dRow}]);
+      markPair({col:snap.aCol,row:snap.aRow},{col:snap.dCol,row:snap.dRow});}
     else if(row&&row.caption){showDock(BATTLE_REPORT.noteHtml(row.caption));focusCells(row.cells||(spec&&spec.cells)||[]);}
     else if(spec&&spec.done)showDock(BATTLE_REPORT.noteHtml(spec.done));
     drawReplay();if(!replayMotion&&onDone)onDone(kind,snap);return kind;
@@ -403,7 +421,7 @@
     $("replay-position").textContent=phase+" / "+replayData.commands.length+" · round "+replayGame.turn+" · "+(replayGame.currentPlayer?"Xenon":"Union")+" · "+last+(replayGame.winner!==null?" · "+replayGame.winReason:"");
     showLedger();
   }
-  function seek(at){if(!replayData)return;at=Math.max(0,Math.min(replayData.commands.length,at));
+  function seek(at){if(!replayData)return;at=Math.max(0,Math.min(replayData.commands.length,at));clearTrails();
     try{if(at<replayAt || at-replayAt>128){replayGame=T.replay(replayData,at);replayAt=at;}
       while(replayAt<at)T.command(replayGame,replayData.commands[replayAt++]);showArrived();
     }catch(e){stopPlayback();error(new Error("Replay could not advance: "+e.message));}
@@ -421,7 +439,7 @@
       if(!game.final)game.final=indexed.snapshot();
     }
     if(token!==replayToken)return;
-    replayData=game;replayAt=0;replayPhase="done";replaySpec=null;replayFocus=[];actionRecord=null;replayGame=ENGINE.Game.restore(game.initial);renderer=new RENDER.Renderer($("replay-canvas"),replayGame);setFollow(false);
+    replayData=game;replayAt=0;replayPhase="done";replaySpec=null;replayFocus=[];actionRecord=null;replayTrails=[];replayGame=ENGINE.Game.restore(game.initial);renderer=new RENDER.Renderer($("replay-canvas"),replayGame);setFollow(false);
     $("lab-form").inert=true;$("lab-results").inert=true;document.querySelector("body>header").inert=true;
     document.body.classList.add("reviewing");replayNeedsFit=true;$("lab-viewer").hidden=false;$("replay-title").textContent="Game "+(game.index+1)+" · "+game.map;
     $("replay-detail").textContent=label(game.players[0])+" (Union) vs "+label(game.players[1])+" (Xenon) · seed "+game.seed+" · "+game.reason+" · "+openingLabel(game)+
@@ -436,7 +454,7 @@
     $("replay-seek").max=game.commands.length;updateScale();drawReplay();$("replay-close").focus();
     buildRecord(game,token).then(function(marks){if(!marks||token!==replayToken)return;actionRecord=marks;showLedger();if(replayPhase==="done")showArrived();}).catch(function(e){if(token===replayToken)error(e);});
   }
-  function closeReplay(){$("lab-form").inert=false;$("lab-results").inert=false;document.querySelector("body>header").inert=false;stopPlayback();replayToken++;$("lab-viewer").hidden=true;document.body.classList.remove("reviewing");
+  function closeReplay(){$("lab-form").inert=false;$("lab-results").inert=false;document.querySelector("body>header").inert=false;stopPlayback();clearTrails();replayToken++;$("lab-viewer").hidden=true;document.body.classList.remove("reviewing");
     if(document.fullscreenElement===$("lab-viewer"))document.exitFullscreen().catch(error);
     $("lab-results").focus({preventScroll:true});
   }
@@ -462,7 +480,8 @@
   $("replay-seek").oninput=function(){stopPlayback();seek(Number(this.value));};
   $("replay-first").onclick=function(){stopPlayback();seek(0);};$("replay-last").onclick=function(){stopPlayback();seek(replayData.commands.length);};
   $("replay-back").onclick=function(){stopPlayback();if(replayPhase==="intent"){replayPhase="done";replaySpec=null;clearMarks();showArrived();}else seek(replayAt-1);};
-  $("replay-forward").onclick=function(){stopPlayback();if(replayPhase==="intent")commit();else if(replayData&&replayAt<replayData.commands.length)showIntent();};
+  $("replay-forward").onclick=function(){stopPlayback();if(replayPhase==="intent")commit();
+    else if(replayData&&replayAt<replayData.commands.length){showIntent();if(replaySpec.kind!=="attack")commit();}};
   function jumpBattle(dir){if(!replayData)return;stopPlayback();
     var start=dir>0?(replayPhase==="intent"&&replayData.commands[replayAt][0]==="attack"?replayAt+1:replayAt):replayAt-1;
     if(dir<0&&replayPhase!=="intent"&&replayAt>0&&replayData.commands[replayAt-1][0]==="attack")start=replayAt-2;

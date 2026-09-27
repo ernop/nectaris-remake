@@ -763,6 +763,7 @@ var UI = (function () {
     this.renderer.attackingUnitId = null;
     this.renderer.flashUnits = {};
     this.renderer.combatEffects = null;
+    this.renderer.battlePair = null;
   };
 
   GameUI.prototype.showCombatPreview = function (defender) {
@@ -798,6 +799,7 @@ var UI = (function () {
   GameUI.prototype.playCombatEffects = function (attacker, defender, pv, done) {
     var self = this, fx = combatEffects(defender, pv);
     this._advanceBattle = false;
+    this.renderer.battlePair = {attacker: {col: attacker.col, row: attacker.row}, defender: {col: defender.col, row: defender.row}};
     var ringCount = fx.ring.filter(function (hex) { return hex.onMap; }).length;
     var supportEnd = fx.supporters.length * EFFECT_SUPPORT_MS, terrainEnd = supportEnd + EFFECT_TERRAIN_MS;
     var ringEnd = terrainEnd + ringCount * EFFECT_RING_MS, lastStage = null;
@@ -1025,8 +1027,9 @@ var UI = (function () {
     });
   };
 
-  // Back on the map, a destroyed squad explodes at its hex a few more times and
-  // the unit that destroyed it keeps its battle highlight until the next action.
+  // Back on the map, the two units that fought stay faintly marked until the
+  // next action. A destroyed squad also explodes at its hex a few more times,
+  // and the unit that destroyed it keeps its battle highlight.
   var AFTERMATH_BURST_MS = 480, AFTERMATH_BURSTS = 3;
   GameUI.prototype.showAftermath = function (attacker, defender, result) {
     var self = this, renderer = this.renderer;
@@ -1036,6 +1039,7 @@ var UI = (function () {
     renderer.aftermath = [];
     renderer.attackingUnitId = null;
     renderer.flashUnits = {};
+    renderer.battlePair = {attacker: {col: attacker.col, row: attacker.row}, defender: {col: defender.col, row: defender.row}};
     if (dead.length === 1 && result.defenderDead) renderer.attackingUnitId = attacker.id;
     if (dead.length === 1 && result.attackerDead) renderer.flashUnits[defender.id] = "#ffffff";
     if (!dead.length) { this.draw(); return; }

@@ -150,6 +150,8 @@ var RENDER = (function () {
     this.explosions = [];
     this.aftermath = [];       // explosions replayed where a squad was destroyed
     this.combatEffects = null; // support and surround overlay; see drawCombatEffects
+    this.battlePair = null;    // {attacker, defender} hexes of the current or last battle
+    this.trails = [];          // [{path, player, alpha}] fading routes of recent moves
   }
 
   Renderer.prototype.fitForViewport = function (width, height) {
@@ -1497,6 +1499,43 @@ var RENDER = (function () {
     ctx.restore();
   };
 
+  // Drawn under the units: thin outlines (attacker red, defender white) and a
+  // faint dashed link, so the pair stays identifiable without covering either.
+  Renderer.prototype.drawBattlePair = function () {
+    var pair = this.battlePair;
+    if (!pair) return;
+    var ctx = this.ctx, s = this.hexSize * this.zoom;
+    var a = this.hexCenter(pair.attacker.col, pair.attacker.row), d = this.hexCenter(pair.defender.col, pair.defender.row);
+    ctx.save();
+    ctx.lineCap = "round";
+    ctx.setLineDash([5, 5]);
+    ctx.strokeStyle = "rgba(255,255,255,0.7)"; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(d.x, d.y); ctx.stroke();
+    ctx.setLineDash([]);
+    pathHex(ctx, a.x, a.y, s * 0.9); ctx.strokeStyle = "rgba(255,119,112,0.9)"; ctx.stroke();
+    pathHex(ctx, d.x, d.y, s * 0.9); ctx.strokeStyle = "rgba(255,255,255,0.9)"; ctx.stroke();
+    ctx.restore();
+  };
+
+  Renderer.prototype.drawTrails = function () {
+    var ctx = this.ctx, self = this;
+    if (!this.trails.length) return;
+    ctx.save();
+    ctx.lineCap = "round"; ctx.lineJoin = "round";
+    this.trails.forEach(function (trail) {
+      if (!(trail.alpha > 0) || trail.path.length < 2) return;
+      var points = trail.path.map(function (hex) { return self.hexCenter(hex.col, hex.row); });
+      ctx.globalAlpha = trail.alpha;
+      ctx.strokeStyle = ctx.fillStyle = PLAYER_COLORS[trail.player].light;
+      ctx.lineWidth = Math.max(2, 3 * self.zoom);
+      ctx.beginPath(); ctx.moveTo(points[0].x, points[0].y);
+      for (var i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
+      ctx.stroke();
+      ctx.beginPath(); ctx.arc(points[0].x, points[0].y, Math.max(3, 4 * self.zoom), 0, Math.PI * 2); ctx.fill();
+    });
+    ctx.restore();
+  };
+
   /* On-map surrounding hexes of the combat target, in a clockwise sweep. */
   Renderer.prototype.combatRing = function () {
     var fx = this.combatEffects, self = this;
@@ -1578,6 +1617,8 @@ var RENDER = (function () {
         }
       }
 
+      this.drawTrails();
+      this.drawBattlePair();
       // Only exposed firing-area edges; movement and legal targets keep their fill.
       this.drawFiringRange();
     });

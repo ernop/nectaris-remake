@@ -142,8 +142,20 @@ exact-loss and loss-or-more shares. Within half a machine counts as near the
 average. A disabled counter has no roll. Attack and counter remain separate draws.
 The per-side ledger and opening decisions also remain in the left panel.
 
-Replay steps selection then action. Previous/next battle jump to an attack's
-selection; Hold battles keeps results visible for at least 2.4 seconds.
+Replay pacing (user request, 2026-09-26): every action is shown and none is
+drawn out, with no selection cursor and no slow walking.
+- Only battles pause on their selection. Moves, deployments, unloads, boardings,
+  finishes and turn ends play at once.
+- A unit still crosses every hex of its route, but the whole move takes at
+  most 450 ms (up to 90 ms per hex).
+- Each route stays drawn in its side's colour and fades over 1.4 s, so quick
+  sequences remain readable.
+- Speed sets the pause between actions.
+- Next action steps a non-battle action in one press.
+- Previous/next battle jump to an attack's selection; Hold battles keeps
+  results visible for at least 2.4 seconds.
+- A battle's two units stay faintly marked from its selection until the next
+  action.
 The user's 2026-09-26 correction keeps the chosen camera still during opponent
 playback: watched moves, deployments, battles, captures and repairs never pan
 or zoom. When the opponent's turn ends, its last unit is deselected: its
@@ -1124,6 +1136,11 @@ totals.
     deep red for an attacker, the white ring for a defender that killed with its
     counterattack. After mutual destruction, nothing is highlighted.
   - Play continues during the explosions; a watched opponent does not wait.
+- The two units in a battle are marked subtly on the map before and after the
+  battle screen, from the start of the effects until the next action (user
+  request, 2026-09-26). The marks are thin outlines, red at the attacker and
+  white at the defender, and a faint dashed link between them, all drawn under
+  the units. A destroyed unit's hex stays marked.
 
 ## Grok 4.7 15 tactical gap-filling units study (2026-09-23)
 
