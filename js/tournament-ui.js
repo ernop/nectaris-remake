@@ -403,7 +403,7 @@
   function beatDelay(kind){var step=Number($("replay-speed").value);
     if($("replay-skip-battles").checked)return step;
     if(kind==="select"&&replaySpec&&replaySpec.kind==="attack")return Math.max(step,800);
-    return kind==="attack"&&$("replay-hold").checked?Math.max(step,2400):step;
+    return kind==="attack"&&$("replay-hold").checked?Math.max(step,1400):step;
   }
   function drawReplay(){
     if(!renderer||$("lab-viewer").hidden)return;var canvas=$("replay-canvas"),rect=canvas.getBoundingClientRect(),width=Math.max(1,Math.round(rect.width)),height=Math.max(1,Math.round(rect.height));

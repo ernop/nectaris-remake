@@ -120,8 +120,11 @@ narrow screens) with the standard rank stars drawn on top: columns of 3, 2 and
 3, replaced by the General star at rank 8, as on every other icon. Ranks start
 at 0 and follow the published awards (+1 per battle; +2 for destroying the
 enemy squad or, as defender, taking no damage). Each newly earned star fades in,
-holds a bright glow, then settles to the normal star colour over 1.8 s; Pause
-freezes it. After the last star the result holds until its glow has settled.
+holds a bright glow, then settles to the normal star colour over 1.2 s; Pause
+freezes it. The result closes as the last star's glow settles. With no new
+stars it holds 0.5 s after your battles and 1.4 s after watched opponent
+battles. The user found the end pause too long (2026-09-26); it was 1.8 s of
+glow plus 0.3 s, and at least 0.9 s or 2.7 s.
 This supersedes the single large star overlay tried earlier the same day, and
 applies to live, watched and replayed battles alike.
 This supersedes numeric battle EXP and separate inspector rank badges.
@@ -160,7 +163,7 @@ drawn out, with no selection cursor and no slow walking.
 - Speed sets the pause between actions.
 - Next action steps a non-battle action in one press.
 - Previous/next battle jump to an attack's selection; Hold battles keeps
-  results visible for at least 2.4 seconds.
+  results visible for at least 1.4 seconds (2.4 s before 2026-09-26).
 - A battle's two units stay faintly marked from its selection until the next
   action.
 The user's 2026-09-26 correction keeps the chosen camera still during opponent

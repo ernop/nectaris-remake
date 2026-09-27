@@ -185,7 +185,7 @@ var BATTLE_REPORT = (function () {
 
   // Earned ranks are revealed one per STAR_MS; each then fades in, glows and
   // settles to the normal star colour over STAR_GLOW_MS.
-  var STAR_MS = 350, STAR_GLOW_MS = 1800;
+  var STAR_MS = 350, STAR_GLOW_MS = 1200;
   // A new star's delay is its age on the reward clock, so rebuilding the
   // screen for the next rank continues earlier stars mid-glow.
   function rankHtml(before, shown) {
@@ -248,9 +248,9 @@ var BATTLE_REPORT = (function () {
     if (after === undefined || elapsed === undefined) return after;
     return Math.min(after, before + Math.floor(elapsed / STAR_MS));
   }
-  // The last star finishes its glow, then stays in view briefly before the screen closes.
+  // The screen closes as the last star's glow settles.
   function rewardHoldMs(stars) {
-    return stars ? stars * STAR_MS + STAR_GLOW_MS + 300 : 700;
+    return stars ? stars * STAR_MS + STAR_GLOW_MS : 500;
   }
   // Time from the start of the result until every earned star is shown.
   function rewardRevealMs(stars) {

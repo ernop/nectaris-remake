@@ -507,7 +507,7 @@ var UI = (function () {
     battleReport.record(this.warLedger, event.attacker.player, parts.assessed);
     this.openWarDock(parts.scene, parts.math + battleReport.ledgerHtml(this.warLedger));
     this.showBattleScreen(parts.screen);
-    return this.animateBattleResult(event, $("war-scene"), done, 2700, 0);
+    return this.animateBattleResult(event, $("war-scene"), done, 1400, 0);
   };
 
   GameUI.prototype.animateBattleResult = function (event, detail, onComplete, holdMs, approachMs) {
@@ -524,7 +524,7 @@ var UI = (function () {
     }
     var duration = battleReport.fightingDuration(), volley = battleReport.VOLLEY_MS;
     var lastCounts = "", resultMath = $("war-math").innerHTML;
-    if (holdMs === undefined) holdMs = 900;
+    if (holdMs === undefined) holdMs = 500;
     if (approachMs === undefined) approachMs = 800;
     var earned = Math.max(event.attacker.exp - result.attackerExpBefore, event.defender.exp - result.defenderExpBefore);
     holdMs = Math.max(holdMs, battleReport.rewardHoldMs(earned));

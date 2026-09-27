@@ -184,7 +184,7 @@
 .battle-rank-star, .battle-rank-general { display: block; color: #ffd23d;
   text-shadow: 0 0 2px #2a1800, 0 0 0 transparent, 0 0 0 transparent; }
 .battle-rank-general { font-size: 40px; }
-.battle-rank-new { animation: battle-rank-glow 1800ms ease-out both; }
+.battle-rank-new { animation: battle-rank-glow 1200ms ease-out both; }
 #battle-stage[data-paused="true"] .battle-rank-new,
 #replay-battle-stage[data-paused="true"] .battle-rank-new,
 #battle-stage[data-paused="true"] .battle-bullet,
