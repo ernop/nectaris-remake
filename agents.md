@@ -49,9 +49,18 @@ Facts we need across sessions:
   earlier agent messages, and a question form can hide the text shown before it.
   Put everything the user needs in the final message, and the facts a decision
   depends on inside the question itself.
-- **How much to test (user instruction, 2026-09-26):** do not test after each
-  edit. Make the whole change, then run `node test/run-tests.js` once (about 35 s)
-  and do one quick browser look at the changed screen.
+- **Release first, verify later (user instruction, 2026-09-26, 8:49 PM):**
+  finish a requested change and push it; the user reports problems.
+  - No browser checks, fixture pages or screenshots unless he asks.
+  - No test runs between edits.
+  - Add tests only for rule or engine logic, where failures are silent, and
+    keep them short; none for presentation.
+  - Run `node test/run-tests.js` once right before each push (about 35 s),
+    because a failure there blocks the deploy. Do not wait on CI after pushing.
+  - Anything worth a closer look goes in
+    [Deferred checks](PROJECT_GUIDE.md#deferred-checks-2026-09-26); the user
+    runs them together later. This replaces the earlier "one suite run and one
+    browser look per change" rule.
 - **Map navigation (2026-09-23):** only Ctrl+left-drag pans, at every zoom level,
   including during movement selection. Ordinary left/middle/right drags never
   pan; Ctrl-click never issues a unit command. Never recenter merely because

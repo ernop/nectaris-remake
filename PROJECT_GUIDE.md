@@ -54,6 +54,39 @@ retuned. These themes do not authorize extra features or unsourced rule changes.
 | Battle review in matches and replays | Updated 2026-09-26: fixed faction sides, per-side terrain, one-way fire cues, Ready/Fighting/Result stages, glowing earned stars on header icons only, pause/resume, default replay battle pause and optional skip. Experience ranks use icon stars throughout. Fixed left reports and board camera, exact hex routes, and no per-unit End remain. [Readout and replay controls](PRODUCT.md#battle-review-2026-09-25). |
 | Soundtrack, Manual and Surrender | Excluded from the recorded fidelity implementation pass; original-style battle presentation was subsequently requested and is covered above; do not silently turn them into scheduled work. [Scope](FIDELITY_AUDIT.md#requested-implementation-pass--2026-09-20). |
 | Public deployment target | Not selected in the records. The repository and local endpoint exist; neither establishes a hosted production site. [Working notes](agents.md). |
+| Deferred checks | Release-first mode since 2026-09-26: items to verify later are collected below and run together in one careful session. |
+
+## Deferred checks (2026-09-26)
+
+Release first, verify later (user decision). Examine together later:
+
+1. Support/surround overlay while aiming:
+   - legibility of the white, dashed orange, green and yellow outlines on Pixel,
+     Legacy, Neon and Classic;
+   - sideways boards;
+   - the "SURROUNDED ½" label at small zoom.
+2. The pre-battle effects sequence (0.8–2 s per battle) during long watched AI
+   turns: should it be shorter or optional?
+3. Click to skip:
+   - from the map effects, a watched preview, fighting and the result;
+   - with Pause and with Show map;
+   - the Pause button must never skip.
+4. Aftermath explosions:
+   - visible after AI kills while the AI keeps moving;
+   - the killer highlight clears on the next selection and at turn end;
+   - mutual destruction.
+5. Per-machine battle stats and the war-dock step table on narrow windows.
+6. Loaded Mules: no Attack in the action menu; AI transport behavior; saves
+   made with a loaded Mule.
+7. The forecast's surround sentence and map legend wording.
+8. The compact in-game settings and the re-imported Legacy unit art, both made
+   by another session on 2026-09-26.
+9. The tournament replay viewer with the per-machine battle stats. It has no
+   skip or aftermath.
+10. CI after GitHub's `ubuntu-latest` move to Ubuntu 26 (from 2026-10-19).
+
+Research rather than a check: direct PC Engine confirmation of the Windows
+combat traces.
 
 ## Evidence and history
 
