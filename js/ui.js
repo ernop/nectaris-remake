@@ -1385,6 +1385,7 @@ var UI = (function () {
     }
     if (e.key === "Escape") { this.onMouseLeave(); this.onCancel(); }
     if (e.key === "e" && !e.repeat && this.mode === "idle") this.endTurn();
+    if ((e.key === "f" || e.key === "F") && !e.repeat && !e.ctrlKey && !e.metaKey && !e.altKey) this.fitBoard();
   };
 
   GameUI.prototype.onWheel = function (e) {

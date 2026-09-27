@@ -318,6 +318,11 @@ module.exports = function (ok) {
       "first End Turn warns about a movable unit without changing the board or spending actions");
     ui.onKey({key:"e",repeat:true});
     ok(ui.game.currentPlayer===0,"holding E cannot accidentally confirm the end-turn warning");
+    var fitUI=fixture("BISON",7),fits=0;fitUI.fitBoard=function(){fits++;};
+    fitUI.onKey({key:"f"});fitUI.onKey({key:"F"});
+    fitUI.onKey({key:"f",repeat:true});fitUI.onKey({key:"f",ctrlKey:true});fitUI.onKey({key:"f",metaKey:true});
+    fitUI.onKey({key:"f",target:{tagName:"INPUT"}});
+    ok(fits===2,"F fits the board; holding it, Ctrl/Cmd+F and typing in a field do not");
     ui.endTurn(true);
     ok(ui.game.currentPlayer===1 && nodes["end-turn-warning"].classList.contains("hidden"),
       "the popup confirmation explicitly ends a turn with available actions");

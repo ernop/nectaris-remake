@@ -263,8 +263,11 @@ the board. Legacy terrain is drawn upright for the turned board
 ([2026-09-27](#legacy-terrain-redraw-and-upright-turned-boards-2026-09-27));
 other styles and art sets rotate the terrain picture. This is presentation only
 and the editor retains normal orientation.
-**Fit** restores the complete board. Window, explicit orientation, art or style
-changes may refit; metadata and selection changes may not. Keep the 8-pixel fit
+**Fit board (F)** restores the complete board. The user asked on 2026-09-27
+for it to be large and easy to hit and bound to F: it is a full-width button at
+the top of the view settings, and the F key does the same (not with Ctrl, Cmd
+or Alt, and not while typing in a field). Window, explicit orientation, art or
+style changes may refit; metadata and selection changes may not. Keep the 8-pixel fit
 margin, up to 4× zoom, Ctrl+left-drag pan and cursor-anchored wheel zoom.
 
 ## Movement presentation and automatic attacks (2026-09-25)

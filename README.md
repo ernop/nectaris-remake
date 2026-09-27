@@ -198,7 +198,8 @@ the page or list scrolls or resizes.
 - **Board: Auto / Normal / Sideways** rotates the view by 90° when useful.
   Auto picks the orientation that fits the board largest. Units and labels stay
   upright; clicking, wheel zoom and Ctrl+left-drag follow the displayed board.
-  **Fit** restores the whole board after zooming or panning.
+  **Fit board (F)**, the large button above the view settings, or the F key
+  restores the whole board after zooming or panning.
 - Controls, unit actions, reports and replay metadata stay in a fixed left panel.
   That panel scrolls independently; changing details never resizes the board.
 - Hover a unit for a compact stats card beside its hex. Factory hovers show
