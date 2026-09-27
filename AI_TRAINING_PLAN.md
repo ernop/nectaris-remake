@@ -69,14 +69,28 @@ The browser game stays plain JavaScript. Rust is a development tool
   JavaScript's 13–20 µs, 8–16× faster. Bots take most of self-play time, so
   the self-play speed-up is measured in phase 3.
 
-**Phases 3–5:**
-3. **Rust bots:** Classic, Tactical, Sequence, Simulation and Apex. Gate: from
-   each corpus game's board and seed they play the recorded commands, then
-   JavaScript replays Rust-played games of every family with equal
-   fingerprints.
-4. **Self-play runner** on all cores, writing records that the tournament
-   replay viewer opens. Speed is measured against the JavaScript runner.
-5. **Training** runs on it (the phases below); JavaScript re-checks samples.
+**Phase 3, the Rust bots (done 2026-09-27):**
+- `sim/src/classic.rs`, `model.rs` and `search.rs` port `js/ai.js`,
+  `js/ai-model.js` and `js/ai-search.js`: Classic, Tactical, Sequence,
+  Simulation and Apex. `play.rs` is the tournament game loop.
+- `sim/src/fdlibm.rs` ports V8's `Math.log` and `Math.tanh`. The export
+  fingerprints V8's results on a million generated inputs; `replay` fails if
+  the port differs in any bit.
+- In `sim/`, `cargo run --release -- decide [CORPUS]` plays every game again
+  from its board and seed and compares every command with the recording.
+  - All 54 corpus games match.
+  - The wider check matched too: all 620 games, every command.
+- Speed of this first port, one thread, on 11 corpus games: 4.7 s against
+  JavaScript's 17.8 s (3–6× faster). The port is still direct: it allocates
+  freely and recomputes enemy stopping cells that JavaScript caches.
+
+**Phases 4–6:**
+4. **Faster Rust bots**, keeping every gate: allocation-free searches, cached
+   stopping cells, cheaper copies of positions.
+5. **Self-play runner** on all cores, writing records that the tournament
+   replay viewer opens. JavaScript replays samples of Rust-played games with
+   equal fingerprints. Speed is measured against the JavaScript runner.
+6. **Training** runs on it (the phases below); JavaScript re-checks samples.
 
 ## Speed work
 

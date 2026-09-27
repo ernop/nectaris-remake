@@ -71,10 +71,11 @@ Facts we need across sessions:
     and updates the Rust simulator to match in the same change.
   - `tools/sim/state-hash.cjs` defines the state fingerprint both sides compute.
   - The Rust simulator must replay the corpus exactly, checked in `sim/` with
-    `cargo run --release -- replay` (Rust from rustup, `~/.cargo/bin`). The
-    Tests workflow runs the same replay, so a mismatch holds the release
-    (user, 2026-09-27). The user allowed its crates.io libraries: serde,
-    serde_json and flate2, for the tool only.
+    `cargo run --release -- replay`, and its bots must choose every recorded
+    command, checked with `cargo run --release -- decide` (Rust from rustup,
+    `~/.cargo/bin`). The Tests workflow runs both, so a mismatch holds the
+    release (user, 2026-09-27). The user allowed its crates.io libraries:
+    serde, serde_json and flate2, for the tool only.
   - After a data change, `node tools/sim/export-data.cjs` rewrites
     `sim/data/game-data.json`; the suite fails while it is stale.
 - **Map navigation (2026-09-23):** only Ctrl+left-drag pans, at every zoom level,
