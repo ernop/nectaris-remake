@@ -101,4 +101,12 @@ module.exports = function (ok) {
   }finally{
     Object.keys(UNIT_TYPES).forEach(function(k){delete UNIT_TYPES[k];});Object.assign(UNIT_TYPES,roster);
   }
+
+  // Search reuses enemy stopping cells across states; a stale entry would
+  // silently change moves, so every reused entry is recomputed here.
+  var mid=new ENGINE.Game(require("../js/data-basenectaris-maps.js").BASE_NECTARIS_LEVELS[0],{seed:3}), stopsError=null;
+  while(mid.winner===null&&mid.turn<4){AI.playTurn(mid,mid.currentPlayer);if(mid.winner===null)mid.endTurn();}
+  M.verifyCachedStops(true);
+  try{AI.playTurn(mid,mid.currentPlayer,{id:"monte-carlo"});}catch(e){stopsError=e;}finally{M.verifyCachedStops(false);}
+  ok(mid.turn===4&&!stopsError,"cached enemy stopping cells equal a fresh search wherever search reuses them"+(stopsError?": "+stopsError.message:""));
 };

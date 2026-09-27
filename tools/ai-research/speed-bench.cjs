@@ -5,8 +5,9 @@
  * Each case plays Classic self-play from a fixed seed to a mid-game round, then
  * lets one bot play the whole side's turn. The fingerprint hashes the resulting
  * board and random-number state, so any changed decision or battle shows up.
- * --bots=tactical,beam limits the bots. Optimizations must keep every
- * fingerprint; only the time may change.
+ * --bots=tactical,beam limits the bots. --verify recomputes every cached
+ * enemy stopping-cell list and stops on any difference. Optimizations must
+ * keep every fingerprint; only the time may change.
  */
 "use strict";
 const fs = require("node:fs"), path = require("node:path"), crypto = require("node:crypto");
@@ -24,6 +25,7 @@ const POSITIONS = [
 const BOTS = {tactical: [0, 1, 2, 3, 4, 5], beam: [0, 1, 2, 3, 4, 5], "monte-carlo": [0, 1, 2], apex: [0, 1]};
 const args = Object.fromEntries(process.argv.slice(2).map(a => { const [k, ...v] = a.replace(/^--/, "").split("="); return [k, v.length ? v.join("=") : true]; }));
 const chosen = args.bots ? String(args.bots).split(",") : Object.keys(BOTS);
+if (args.verify) require(path.join(root, "js/ai-model.js")).verifyCachedStops(true);
 chosen.forEach(b => { if (!BOTS[b]) throw new Error("Unknown bot " + b + "; choose from " + Object.keys(BOTS).join(", ")); });
 
 function start(p) {

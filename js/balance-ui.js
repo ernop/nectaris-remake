@@ -87,7 +87,7 @@ var BALANCE_UI = (function () {
       self.botTimer=setTimeout(pump,0);
     }
     if(typeof Worker!=="undefined")try{
-      this.botWorker=new Worker("js/opening-worker.js?v=20260927-fast-search");
+      this.botWorker=new Worker("js/opening-worker.js?v=20260927-fast-search-2");
       this.botWorker.onmessage=function(e){if(e.data.error)failed(new Error(e.data.error));else complete(e.data.survey);};
       this.botWorker.onerror=function(){if(self.botWorker)self.botWorker.terminate();self.botWorker=null;fallback();};
       this.botWorker.postMessage({state:AI_SEARCH.publicSnapshot(this.game),types:UNIT_TYPES,id:this.options.opponent});return;

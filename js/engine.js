@@ -82,7 +82,7 @@ var ENGINE = (function () {
     t = { width: w, size: size, neighbors: new Int32Array(size * 6), keys: new Array(size),
       building: new Uint8Array(size), cells: new Array(size), drains: new Uint8Array(size), costs: new Map(),
       occupant: new Int32Array(size), zone: new Int8Array(size), best: new Float64Array(size).fill(Infinity),
-      record: new Array(size) };
+      flags: new Uint8Array(size), prev: new Int32Array(size) };
     for (var row = 0; row < game.height; row++) for (var col = 0; col < w; col++) {
       var at = row * w + col, ns = HEX.neighbors(col, row);
       t.keys[at] = HEX.key(col, row);
@@ -96,6 +96,8 @@ var ENGINE = (function () {
     TABLES.set(game.terrain, t);
     return t;
   }
+  // `version` is unique to one terrain as rebuilt, across every map in the process.
+  var terrainVersion = 0;
   function refreshTerrain(game, t) {
     for (var at = 0; at < t.size; at++) {
       var terr = game.terrain[(at / t.width) | 0][at % t.width];
@@ -103,6 +105,7 @@ var ENGINE = (function () {
       t.drains[at] = terr.costsAllMovement ? 1 : 0;
     }
     t.costs.clear();
+    t.version = ++terrainVersion;
   }
   // The tables with terrain costs matching the terrain as it is now. Tests and
   // tools edit terrain cells in place, so every search checks the cells first.
@@ -448,20 +451,54 @@ var ENGINE = (function () {
    * Execution may supply a destination key to stop once its cheapest route is
    * settled. Previews omit it and get the complete range. */
   Game.prototype.movementRange = function (unit, destinationKey) {
-    var result = {};
-    var startKey = HEX.key(unit.col, unit.row);
-    result[startKey] = { col: unit.col, row: unit.row, cost: 0, canStop: true, prev: null };
-    if (unit.shifted || unit.movePointsLeft <= 0) return result;
+    return searchMoves(this, unit, destinationKey, function (t, order, start) {
+      var result = {}, w = t.width, keys = t.keys;
+      result[keys[start]] = { col: unit.col, row: unit.row, cost: 0, canStop: true, prev: null };
+      for (var i = 1; i < order.length; i++) {
+        var n = order[i], f = t.flags[n];
+        result[keys[n]] = {
+          col: n % w, row: (n / w) | 0, cost: t.best[n],
+          stop: (f & STOP) !== 0,                  // move ends here
+          canStop: (f & CAN_STOP) !== 0,           // can end move on hex
+          load: (f & LOAD) !== 0,
+          enterBuilding: f & ENTER ? true : f & ENTER_UNSET ? undefined : false,
+          prev: keys[t.prev[n]],
+        };
+      }
+      return result;
+    });
+  };
 
-    // Occupancy is indexed only for this synchronous search. Units are also
-    // moved directly during AI simulations/editor operations, so a persistent
-    // index could silently use stale positions after a move, undo, deployment
-    // or load. Cells are numbered row * width + col; records keep their keys.
-    var t = terrainTables(this), w = this.width, h = this.height, nbr = t.neighbors, keys = t.keys;
-    var occupant = t.occupant, zone = t.zone, best = t.best, record = t.record, drainsAt = t.drains;
-    var costs = stepCosts(this, t, unit.type), units = this.units, player = unit.player;
-    var air = unit.type.moveType === "air", budget = unit.movePointsLeft;
-    var start = unit.row * w + unit.col, filled = [], touched = [start];
+  /* The cells of movementRange's records that allow stopping without boarding
+   * or entering a building, in the same order, without building the records. */
+  Game.prototype.stoppingCells = function (unit) {
+    return searchMoves(this, unit, undefined, function (t, order) {
+      var out = [];
+      for (var i = 0; i < order.length; i++) {
+        var f = t.flags[order[i]];
+        if ((f & CAN_STOP) && !(f & (LOAD | ENTER))) out.push(order[i]);
+      }
+      return out;
+    });
+  };
+
+  // ENTER_UNSET keeps entersBuilding's undefined result for a unit that cannot
+  // capture, on a building other than its own factory.
+  var STOP = 1, CAN_STOP = 2, LOAD = 4, ENTER = 8, ENTER_UNSET = 16;
+  /* The search behind movementRange. Reached cells are listed in the order
+   * they were first reached, the start first; each keeps its cheapest cost,
+   * record flags and predecessor. `read` sees them before the scratch tables
+   * are cleared. Occupancy is indexed only for this synchronous search. Units
+   * are also moved directly during AI simulations/editor operations, so a
+   * persistent index could silently use stale positions after a move, undo,
+   * deployment or load. Cells are numbered row * width + col. */
+  function searchMoves(game, unit, destinationKey, read) {
+    var t = terrainTables(game), w = game.width, h = game.height, nbr = t.neighbors, keys = t.keys;
+    if (unit.col < 0 || unit.col >= w || unit.row < 0 || unit.row >= h) {
+      throw new Error("Unit at " + unit.col + "," + unit.row + " is outside the map");
+    }
+    var occupant = t.occupant, zone = t.zone, best = t.best, flags = t.flags, prev = t.prev, drainsAt = t.drains;
+    var units = game.units, player = unit.player, start = unit.row * w + unit.col, filled = [], order = [start];
     function enemyZOC(cell) {
       if (zone[cell]) return zone[cell] === 2;
       for (var j = cell * 6, end = j + 6; j < end; j++) {
@@ -472,13 +509,15 @@ var ENGINE = (function () {
       return false;
     }
     try {
+      best[start] = 0; flags[start] = CAN_STOP;
+      if (unit.shifted || unit.movePointsLeft <= 0) return read(t, order, start);
+      var costs = stepCosts(game, t, unit.type), air = unit.type.moveType === "air", budget = unit.movePointsLeft;
       for (var i = 0; i < units.length; i++) {
         var u = units[i];
         if (u.carriedBy || u.inFactory || u.col < 0 || u.col >= w || u.row < 0 || u.row >= h) continue;
         var at = u.row * w + u.col;
         if (!occupant[at]) { occupant[at] = i + 1; filled.push(at); }
       }
-      best[start] = 0; record[start] = result[startKey];
 
       // The origin is exempt from a ZOC stop, not from terrain costs on entry
       // to the next hex. Confirmed by the original Windows movement routine;
@@ -490,7 +529,7 @@ var ENGINE = (function () {
         var c = cur.cell;
         if (cur.cost !== best[c]) continue;
         if (keys[c] === destinationKey) break;
-        if (record[c].stop && c !== start) continue; // ZOC: no expansion past
+        if ((flags[c] & STOP) && c !== start) continue; // ZOC: no expansion past
         for (var s = c * 6, last = s + 6; s < last; s++) {
           var n = nbr[s];
           if (n < 0) continue;
@@ -510,39 +549,36 @@ var ENGINE = (function () {
           var isLoad = false;
           if (occ) {
             if (occ.player !== player) continue;                  // enemies block
-            if (this.canLoad(occ, unit, false)) isLoad = true;    // can board
+            if (game.canLoad(occ, unit, false)) isLoad = true;    // can board
             // friendly non-transport: can pass through, not stop
           }
           var col = n % w, row = (n / w) | 0;
           var enteringZOC = enemyZOC(n);
           var canStopHere = !occ || isLoad;
-          if (!isLoad && t.building[n] && !this.canStopAtBuilding(unit, col, row)) canStopHere = false;
-          if (best[n] === Infinity) touched.push(n);
-          best[n] = newCost;
-          result[keys[n]] = record[n] = {
-            col: col, row: row, cost: newCost,
-            stop: enteringZOC || drains,             // move ends here
-            canStop: canStopHere,                    // can end move on hex
-            load: isLoad,
-            enterBuilding: canStopHere && !isLoad && t.building[n] === 1 ? this.entersBuilding(unit, col, row) : false,
-            prev: keys[c],
-          };
+          if (!isLoad && t.building[n] && !game.canStopAtBuilding(unit, col, row)) canStopHere = false;
+          var enters = canStopHere && !isLoad && (t.building[n] === 1 ? game.entersBuilding(unit, col, row) : false);
+          if (best[n] === Infinity) order.push(n);
+          best[n] = newCost; prev[n] = c;
+          flags[n] = (enteringZOC || drains ? STOP : 0) | (canStopHere ? CAN_STOP : 0) | (isLoad ? LOAD : 0) |
+            (enters ? ENTER : enters === undefined ? ENTER_UNSET : 0);
           if (!isLoad) frontier.push({ cell: n, cost: newCost });
         }
       }
+      return read(t, order, start);
     } finally {
       for (i = 0; i < filled.length; i++) occupant[filled[i]] = 0;
-      for (i = 0; i < touched.length; i++) { var k = touched[i]; best[k] = Infinity; record[k] = undefined; zone[k] = 0; }
+      for (i = 0; i < order.length; i++) { var k = order[i]; best[k] = Infinity; flags[k] = 0; zone[k] = 0; }
     }
-    return result;
-  };
+  }
 
-  /* Hexes the unit could attack from its current position. */
-  Game.prototype.attackTargets = function (unit) {
-    var out = [];
+  /* Hexes the unit could attack from its current position. A planner that
+   * tries many positions on an unchanged board may pass `among`, the units in
+   * board order that could be targets, and gets the same result. */
+  Game.prototype.attackTargets = function (unit, among) {
+    var out = [], units = among || this.units;
     if (!unit.type.rngG && !unit.type.rngA) return out;
-    for (var i = 0; i < this.units.length; i++) {
-      var e = this.units[i];
+    for (var i = 0; i < units.length; i++) {
+      var e = units[i];
       if (e.player === unit.player || e.carriedBy || e.inFactory) continue;
       var d = HEX.distance(unit.col, unit.row, e.col, e.row);
       if (!COMBAT.canAttackAt(unit.type, COMBAT.isAir(e), d)) continue;
@@ -570,8 +606,27 @@ var ENGINE = (function () {
       !(unit.type.moveOrFire && unit.attackSpent) && this.unitAt(unit.col, unit.row) === unit;
   };
 
-  Game.prototype.legalAttackTargets = function (unit) {
-    return this.canAttackNow(unit) ? this.attackTargets(unit) : [];
+  Game.prototype.legalAttackTargets = function (unit, among) {
+    return this.canAttackNow(unit) ? this.attackTargets(unit, among) : [];
+  };
+
+  /* Cells, numbered row * width + col, from which `unit` could fire on at least
+   * one of `among`; attackTargets finds nothing from any other cell. */
+  Game.prototype.attackCells = function (unit, among) {
+    var w = this.width, h = this.height, cells = new Uint8Array(w * h);
+    for (var i = 0; i < among.length; i++) {
+      var e = among[i];
+      if (e.player === unit.player || e.carriedBy || e.inFactory) continue;
+      var band = COMBAT.rangeBand(unit.type, COMBAT.isAir(e));
+      if (!band) continue;
+      for (var r = Math.max(0, e.row - band.max - 1); r <= Math.min(h - 1, e.row + band.max + 1); r++) {
+        for (var c = Math.max(0, e.col - band.max); c <= Math.min(w - 1, e.col + band.max); c++) {
+          var d = HEX.distance(c, r, e.col, e.row);
+          if (d >= band.min && d <= band.max) cells[r * w + c] = 1;
+        }
+      }
+    }
+    return cells;
   };
 
   Game.prototype.availableActions = function (unit) {

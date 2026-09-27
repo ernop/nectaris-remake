@@ -7,15 +7,18 @@ var AI_MODEL = (function () {
   var engine = typeof module !== "undefined" ? require("./engine.js") : ENGINE;
   var combat = typeof module !== "undefined" ? require("./combat.js") : COMBAT;
   var ringCache = new Map();
+  // Column and row steps, flattened, from a hex of this column parity to every
+  // hex within the weapon band.
   function offsets(band, parity) {
     var key=band.min+":"+band.max+":"+parity;
     if(ringCache.has(key))return ringCache.get(key);
     var out=[];
     for(var r=-band.max-1;r<=band.max+1;r++)for(var c=-band.max;c<=band.max;c++){
       var d=HEX.distance(parity,0,parity+c,r);
-      if(d>=band.min&&d<=band.max)out.push([c,r]);
+      if(d>=band.min&&d<=band.max)out.push(c,r);
     }
-    ringCache.set(key,out);return out;
+    var flat=new Int32Array(out);
+    ringCache.set(key,flat);return flat;
   }
 
   function allUnits(game) {
@@ -59,7 +62,8 @@ var AI_MODEL = (function () {
     return h >>> 0;
   }
   function context(game) {
-    return {routes: new Map(), analysis: new WeakMap(), evaluationGoals: new Map(), stats: {generated: 0, simulations: 0, nodes: 0}, seed: seedFor(game)};
+    return {routes: new Map(), analysis: new WeakMap(), evaluationGoals: new Map(), stops: new Map(), stopCount: 0,
+      stats: {generated: 0, simulations: 0, nodes: 0}, seed: seedFor(game)};
   }
   function prepareEvaluation(game,ctx){
     ctx.evaluationGoals.clear();
@@ -87,7 +91,12 @@ var AI_MODEL = (function () {
   function fullValue(u) { return valueAt(u.type, combat.MAX_STRENGTH, u.exp); }
   function fresh(u) { return Object.assign({}, u, {moved: false, shifted: false, attacked: false,
     attackSpent: false, movePointsLeft: u.type.move}); }
-  function routeKey(unit) { return JSON.stringify([unit.type.moveType, unit.type.move, unit.type.cannotEnter || []]); }
+  var routeKeys = new WeakMap();
+  function routeKey(unit) {
+    var t = unit.type, k = routeKeys.get(t);
+    if (k === undefined) { k = JSON.stringify([t.moveType, t.move, t.cannotEnter || []]); routeKeys.set(t, k); }
+    return k;
+  }
 
   /* Reverse multi-source Dijkstra over chassis terrain, independent of transient
    * occupancy. Actual moves still use movementRange with live ZOC and blockers. */
@@ -213,6 +222,71 @@ var AI_MODEL = (function () {
     });return best;
   }
 
+  // Most hexes a chassis crosses on a full budget: no step costs less than its
+  // cheapest terrain, or 1 when a valley takes the rest of the budget.
+  var cheapest = new WeakMap();
+  function reachOf(game, tables, type) {
+    var costs = engine.stepCosts(game, tables, type), min = cheapest.get(costs);
+    if (min === undefined) {
+      min = 1;
+      for (var i = 0; i < costs.length; i++) if (costs[i] >= 0 && costs[i] < min) min = costs[i];
+      cheapest.set(costs, min);
+    }
+    return min > 0 ? Math.floor(type.move / min) : Infinity;
+  }
+  var typeCodes = new Map();
+  function typeCode(id) {
+    var code = typeCodes.get(id);
+    if (code === undefined) { code = typeCodes.size + 1; typeCodes.set(id, code); }
+    return code;
+  }
+  /* Everything game.stoppingCells(fresh(enemy)) reads: the terrain version, the
+   * enemy, every field unit within its reach plus one hex (blocking, boarding
+   * and ZOC) and every building within its reach. */
+  function stopSignature(game, tables, enemy, reach) {
+    var w = game.width, sig = [tables.version, enemy.col, enemy.row, typeCode(enemy.typeId), enemy.player, enemy.cargo.length];
+    for (var i = 0; i < game.units.length; i++) {
+      var u = game.units[i];
+      if (u.carriedBy || u.inFactory || HEX.distance(u.col, u.row, enemy.col, enemy.row) > reach + 1) continue;
+      sig.push(u.row * w + u.col, u.player);
+      if (u.player === enemy.player) sig.push(typeCode(u.typeId), u.transferUsed ? 1 : 0, u.cargo.length);
+    }
+    sig.push(-1);
+    for (var k in game.buildings) {
+      var b = game.buildings[k];
+      if (HEX.distance(b.col, b.row, enemy.col, enemy.row) <= reach) sig.push(b.row * w + b.col, b.owner);
+    }
+    return sig;
+  }
+  var verifyStops = false;
+  function sameCells(a, b) {
+    if (a.length !== b.length) return false;
+    for (var i = 0; i < a.length; i++) if (a[i] !== b[i]) return false;
+    return true;
+  }
+  // An enemy's stopping cells, shared by every search state that gives the same signature.
+  function enemyStops(game, tables, enemy, ctx) {
+    var sig = stopSignature(game, tables, enemy, reachOf(game, tables, enemy.type)), h = 2166136261;
+    for (var i = 0; i < sig.length; i++) h = Math.imul(h ^ sig[i], 16777619);
+    h = h >>> 0;
+    var list = ctx.stops.get(h);
+    if (list) {
+      for (var j = 0; j < list.length; j++) {
+        if (!sameCells(list[j].sig, sig)) continue;
+        if (verifyStops && !sameCells(list[j].cells, game.stoppingCells(fresh(enemy)))) {
+          throw new Error("Cached stopping cells differ for unit " + enemy.id + " (" + enemy.typeId + ")");
+        }
+        return list[j].cells;
+      }
+    }
+    var cells = game.stoppingCells(fresh(enemy));
+    if (ctx.stopCount >= 50000) { ctx.stops.clear(); ctx.stopCount = 0; list = null; }
+    if (!list) ctx.stops.set(h, list = []);
+    list.push({sig: sig, cells: cells});
+    ctx.stopCount++;
+    return cells;
+  }
+
   // One hex set per enemy weapon band, cleared by advancing the mark.
   var marks = new Int32Array(0), mark = 0;
   function nextMark(size) {
@@ -221,26 +295,39 @@ var AI_MODEL = (function () {
   }
   function analysis(game, ctx) {
     if (ctx.analysis.has(game)) return ctx.analysis.get(game);
-    var w = game.width, size = w * game.height, info = {threat: [], cells: new Array(size), emergencies: []};
+    var w = game.width, h = game.height, size = w * h, info = {threat: [], cells: new Array(size), emergencies: []};
     game.units.forEach(function (u) {
-      if (!u.carriedBy && !u.inFactory && u.col >= 0 && u.col < w && u.row >= 0 && u.row < game.height) info.cells[u.row * w + u.col] = u;
+      if (!u.carriedBy && !u.inFactory && u.col >= 0 && u.col < w && u.row >= 0 && u.row < h) info.cells[u.row * w + u.col] = u;
     });
     [1-game.currentPlayer].forEach(function (player) {
-      var ground = new Float64Array(size), air = new Float64Array(size);
+      var ground = new Float64Array(size), air = new Float64Array(size), tables = engine.terrainTables(game), nbr = tables.neighbors;
       game.playerUnits(player).forEach(function (enemy) {
         if (!enemy.type.atkG && !enemy.type.atkA) return;
-        var positions = enemy.type.moveOrFire ? [{col:enemy.col,row:enemy.row,canStop:true}] :
-          Object.values(game.movementRange(fresh(enemy))).filter(function (rec) { return rec.canStop && !rec.load && !rec.enterBuilding; });
+        var positions = enemy.type.moveOrFire ? [enemy.row * w + enemy.col] : enemyStops(game, tables, enemy, ctx);
         [false,true].forEach(function (isAir) {
           var band = combat.rangeBand(enemy.type, isAir); if (!band) return;
-          var seen = nextMark(size), array = isAir ? air : ground;
+          var seen = nextMark(size), array = isAir ? air : ground, p, at;
           var power = Math.min(100, combat.atkStat(enemy.type,isAir)) * enemy.strength / 8 * combat.EXP_DAMAGE[enemy.exp] / 100;
-          positions.forEach(function (pos) {
-            offsets(band,pos.col&1).forEach(function(offset){
-              var c=pos.col+offset[0],r=pos.row+offset[1],at=r*w+c;
-              if(c>=0&&c<w&&r>=0&&r<game.height&&marks[at]!==seen){marks[at]=seen;array[at]+=power;}
-            });
-          });
+          if (band.min === 1 && band.max === 1) {
+            for (p = 0; p < positions.length; p++) {
+              for (var j = positions[p] * 6, end = j + 6; j < end; j++) {
+                at = nbr[j];
+                if (at >= 0 && marks[at] !== seen) { marks[at] = seen; array[at] += power; }
+              }
+            }
+            return;
+          }
+          var steps = [offsets(band, 0), offsets(band, 1)];
+          for (p = 0; p < positions.length; p++) {
+            var col = positions[p] % w, row = (positions[p] / w) | 0, step = steps[col & 1];
+            for (var k = 0; k < step.length; k += 2) {
+              var c = col + step[k], r = row + step[k + 1];
+              if (c >= 0 && c < w && r >= 0 && r < h) {
+                at = r * w + c;
+                if (marks[at] !== seen) { marks[at] = seen; array[at] += power; }
+              }
+            }
+          }
         });
       });
       info.threat[player] = [ground,air];
@@ -306,8 +393,13 @@ var AI_MODEL = (function () {
     if (left < 8) scores[1] += (8-left)*35;
     return scores[player]-scores[1-player];
   }
+  // Equal exactly when the action fields are equal; only compared and used as map keys.
   function key(action) {
-    return JSON.stringify([action.kind,action.unit,action.to,action.target,action.cargo,action.drop,action.before,action.into,action.building]);
+    var to = action.to, drop = action.drop, building = action.building;
+    return action.kind + "|" + action.unit + "|" + (to ? to[0] + "," + to[1] : "") + "|" +
+      (action.target === undefined ? "" : action.target) + "|" + (action.cargo === undefined ? "" : action.cargo) + "|" +
+      (drop ? drop[0] + "," + drop[1] : "") + "|" + (action.before ? 1 : "") + "|" +
+      (action.into === undefined ? "" : action.into) + "|" + (building ? building[0] + "," + building[1] : "");
   }
   function supportScore(game,u,col,row,info) {
     var result=0, w=game.width, nbr=engine.gridTables(game).neighbors, cells=info.cells;
@@ -357,6 +449,10 @@ var AI_MODEL = (function () {
     var ready=!u.moved, range=game.canMoveNow(u)?game.movementRange(u):{};
     if (ready && !Object.keys(range).length) range[HEX.key(u.col,u.row)]={col:u.col,row:u.row,cost:0,canStop:true};
     var recs=Object.values(range).filter(function (r) {return r.canStop;});
+    // The board is unchanged while this unit tries its positions, and
+    // positions outside fireFrom have no attack targets.
+    var foes=game.units.filter(function (e) {return e.player!==u.player&&!e.carriedBy&&!e.inFactory;});
+    var fireFrom=game.attackCells(u,foes);
     function add(a,score) { a.score=score; actions.push(a); }
     recs.forEach(function (rec) {
       var moved=rec.col!==origin.col || rec.row!==origin.row;
@@ -375,11 +471,12 @@ var AI_MODEL = (function () {
       }
       add(base,score);
       if (rec.enterBuilding) return;
+      var canFire=fireFrom[rec.row*game.width+rec.col]===1;
       var old={col:u.col,row:u.row,attackSpent:u.attackSpent};
       try {
         u.col=rec.col;u.row=rec.row;
         if (u.type.moveOrFire && moved) u.attackSpent=true;
-        game.legalAttackTargets(u).forEach(function (enemy) {
+        if (canFire) game.legalAttackTargets(u,foes).forEach(function (enemy) {
           add(Object.assign({},base,{target:enemy.id}),score+tradeScore(game,u,enemy));
         });
         // A combat-capable carrier considers unloading and shooting together.
@@ -392,7 +489,7 @@ var AI_MODEL = (function () {
             var unloadScore=2+(gain-carry)*1.4-danger(game,cargo,drop.col,drop.row,info)*0.5;
             var action=Object.assign({},base,{cargo:cargo.id,drop:[drop.col,drop.row]});
             add(action,score+unloadScore);
-            game.legalAttackTargets(u).forEach(function (enemy) {
+            if (canFire) game.legalAttackTargets(u,foes).forEach(function (enemy) {
               add(Object.assign({},action,{target:enemy.id}),score+unloadScore+tradeScore(game,u,enemy));
             });
           });
@@ -548,7 +645,10 @@ var AI_MODEL = (function () {
     if(representative)state.rng=function(){return 0.5;};
     ctx.stats.simulations++;return apply(state,action,ctx);
   }
+  // Tests recompute every cached stopping-cell list and throw on any difference.
+  function verifyCachedStops(on) { verifyStops = !!on; }
   return {clone:clone,find:find,context:context,prepareEvaluation:prepareEvaluation,value:value,key:key,seedFor:seedFor,signature:signature,
+    verifyCachedStops:verifyCachedStops,
     candidates:candidates,evaluate:evaluate,simulate:simulate,apply:apply,execute:execute,baseDanger:baseDanger};
 })();
 if(typeof module!=="undefined")module.exports=AI_MODEL;

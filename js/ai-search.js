@@ -276,7 +276,7 @@ var AI_SEARCH = (function () {
     }
     if(async&&typeof Worker!=="undefined"){
       try{
-        worker=new Worker("js/ai-worker.js?v=20260927-fast-search");
+        worker=new Worker("js/ai-worker.js?v=20260927-fast-search-2");
         worker.onmessage=function(e){
           if(ended||e.data.sequence!==sequence)return;
           if(e.data.error){error=new Error(e.data.error);pending=false;return;}

@@ -34,6 +34,41 @@ Step 1 (2026-09-27) kept every decision identical:
 
 The mid-game NECTOR turn that took Sequence 10.0 s now takes 4.8 s.
 
+Step 2 (2026-09-27), again with every decision identical:
+- **Movement search:** records its flags in typed arrays and builds each
+  record once.
+- **Threat map:** reads each enemy's stopping cells through a lean engine
+  query, and reuses them across search states whose signature matches. The
+  signature covers the enemy, every unit within its reach plus one hex, the
+  buildings within reach and the terrain version. A verification switch
+  recomputes every reuse; a test and `speed-bench.cjs --verify` use it.
+- **Attack checks:** skip positions from which no enemy can be hit.
+- **Keys and odds:** loss distributions are cached on their five inputs; action
+  and route keys are cheaper.
+
+Benchmark against the original code: Tactical and Sequence 2.5×, Simulation
+and Apex 4.0×. The mid-game NECTOR turn:
+
+| Bot | Original | Now |
+| --- | --- | --- |
+| Tactical | 0.75 s | — |
+| Sequence | 10.0 s | — |
+| Simulation | 26.1 s | 3.4 s |
+
+Whole self-play games with the same seeds end identically (winner, reason,
+round). With 14 games in parallel on both sides:
+
+| Board | Tactical | Sequence |
+| --- | --- | --- |
+| NECTOR | 6.6 s → 2.7 s | 174 s → 54 s |
+| HIPPARCHUS | — | 6.7 s → 2.3 s |
+| DELTA CROSSINGS (180 rounds) | 125 s → 62 s | — |
+
+**Hardware for sizing runs:** a Ryzen 9 5950X has 16 cores with 2 threads
+each. The first timing table above ran 30 games at once and was about 2×
+slower per game from contention. About 16 parallel games use the machine;
+more add little.
+
 ## Goal and constraints
 
 - **Goal:** Tactical, Sequence, Simulation and Apex win more often on every

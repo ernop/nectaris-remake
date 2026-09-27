@@ -82,9 +82,11 @@ var COMBAT = (function () {
     return { min: max > 1 ? 2 : 1, max: max };
   }
 
+  // rangeBand's rule without allocating a band; attack scans call this per target.
   function canAttackAt(unitType, targetIsAir, dist) {
-    var band = rangeBand(unitType, targetIsAir);
-    return !!band && dist >= band.min && dist <= band.max;
+    var max = targetIsAir ? (unitType.rngA || 0) : (unitType.rngG || 0);
+    if (max < 1 || atkStat(unitType, targetIsAir) <= 0) return false;
+    return dist >= (max > 1 ? 2 : 1) && dist <= max;
   }
 
   function capStat(value) {
@@ -260,17 +262,31 @@ var COMBAT = (function () {
 
   /* Exact public chance model for planners. No match RNG access, sampling or
    * duplicated combat arithmetic. Merge roll buckets with identical losses. */
+  // One shooter's loss distribution depends only on these five numbers.
+  // Callers read the arrays and never change them.
+  var marginals = new Map(), NO_SHOT = [{loss: 0, probability: 1}];
+  function marginal(shooter, target, ap, da, enabled) {
+    if (!enabled) return NO_SHOT;
+    if (!(shooter.exp >= 0 && shooter.exp <= MAX_EXP && shooter.strength >= 0 && shooter.strength <= MAX_STRENGTH &&
+        target.strength >= 0 && target.strength <= MAX_STRENGTH && ap >= 0 && ap <= STAT_CAP && da >= 0 && da <= STAT_CAP)) {
+      throw new Error("Battle values out of range: exp " + shooter.exp + ", strengths " + shooter.strength + "/" +
+        target.strength + ", attack " + ap + ", defense " + da);
+    }
+    var key = (((shooter.exp * 9 + shooter.strength) * 9 + target.strength) * 101 + ap) * 101 + da;
+    var cached = marginals.get(key);
+    if (cached) return cached;
+    var losses = {};
+    RANDOM_WEIGHTS.forEach(function (entry) {
+      var loss = damageResult(shooter, target, ap, da, entry[0]).casualties;
+      losses[loss] = (losses[loss] || 0) + entry[1] / 100;
+    });
+    cached = Object.keys(losses).map(function (loss) { return {loss: +loss, probability: losses[loss]}; });
+    if (marginals.size >= 65536) marginals.clear();
+    marginals.set(key, cached);
+    return cached;
+  }
   function distribution(game, attacker, defender) {
     var pv = battleStats(game, attacker, defender);
-    function marginal(shooter, target, ap, da, enabled) {
-      var losses = {};
-      if (!enabled) return [{loss: 0, probability: 1}];
-      RANDOM_WEIGHTS.forEach(function (entry) {
-        var loss = damageResult(shooter, target, ap, da, entry[0]).casualties;
-        losses[loss] = (losses[loss] || 0) + entry[1] / 100;
-      });
-      return Object.keys(losses).map(function (loss) { return {loss: +loss, probability: losses[loss]}; });
-    }
     var outgoing = marginal(attacker, defender, pv.attacker.ap, pv.defender.da, true);
     var incoming = marginal(defender, attacker, pv.defender.ap, pv.attacker.da, pv.counter);
     var outcomes = [], out = 0, in_ = 0, kill = 0, death = 0;
