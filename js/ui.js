@@ -762,12 +762,11 @@ var UI = (function () {
     if (!this._forecastCache) this._forecastCache = {};
     var forecast = this._forecastCache[key];
     if (!forecast) forecast = this._forecastCache[key] = COMBAT.forecast(attacker, defender, pv);
-    var inspector = $("combat-inspector"), panel = $("topbar");
+    var inspector = $("combat-inspector"), panel = $("rail-live");
     inspector.innerHTML = COMBAT_VIEW.html(attacker, defender, pv, forecast);
     unitView.paint(inspector);
     inspector.classList.remove("hidden");
-    // The forecast sits in the left panel whether or not Details is open; scroll
-    // the panel, never the board, when a short window hides it.
+    // Scroll the rail's middle section, never the board, when a short window hides the forecast.
     if (inspector.getBoundingClientRect().top >= panel.getBoundingClientRect().bottom)
       panel.scrollTop += inspector.getBoundingClientRect().top - panel.getBoundingClientRect().top;
     this.renderer.attackingUnitId = attacker.id;
@@ -1551,8 +1550,7 @@ var UI = (function () {
     var event = this.nextAIEvent();
     if (event && event.t === "error") return;
     if (event && event.t === "thinking") {
-      $("status-player").textContent = RENDER.PLAYER_COLORS[this.game.currentPlayer].name + " · " +
-        opponents.get(this.opponent).label + " (thinking…)";
+      $("status-player").textContent = RENDER.PLAYER_COLORS[this.game.currentPlayer].name + " (thinking…)";
       var waiting = this;
       this._aiTimer = setTimeout(function () { waiting.runNextAIEvent(); }, 25);
       return;

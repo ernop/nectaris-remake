@@ -283,7 +283,11 @@ Facts we need across sessions:
   card carries unit, terrain-under-unit and building contents. Empty-hex terrain
   is shown nowhere; the user chose to leave that gap, so do not add it unasked.
   Hovering an attackable enemy shows its outcome forecast, heatmap first, in the
-  left panel directly under the unit's action strip, above Undo and End Turn.
+  left panel directly under the unit's action strip. Status lines, Undo/Redo
+  and End Turn stay fixed at the top of the panel and settings at its foot;
+  anything that appears or resizes during play (action strip, legend, forecast,
+  battle report) lives in the middle section, which scrolls by itself, and must
+  never push the commands (user, 2026-09-26). The side line stays one line.
   Enemy inspection retains orange movement and ground/air firing contours.
   Never restore automatic layout changes from metadata or
   automatic move-and-attack shortcuts. `PRODUCT.md` records the current flow;

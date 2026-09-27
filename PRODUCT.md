@@ -208,12 +208,22 @@ the style and similar choosers too prominent. Visual style, art set, Board
 orientation with Fit, Watch AI, Move animation and Music now share one compact
 block at the bottom of the panel, below End Turn and the battle report. The top
 keeps Save & Menu, Tournaments, the level name, turn, side, unit counts and the
-fixed opponent, then unit commands, Undo / Redo and End Turn. The user left the treatment open
+fixed opponent, then Undo / Redo and End Turn. The user left the treatment open
 ("smaller/to the side or whatever"); the bottom placement and 12-pixel controls
 are implementation choices. A same-day follow-up asked for the Watch AI, Music
 and Move animation buttons to take less space: they are now unboxed toggles, a
 check mark (☑ in green when on, ☐ when off) before a short label, replacing the
 boxed "Watch AI: On"-style buttons.
+
+**Commands never move during play (user instruction, 2026-09-26):** the user
+reported that a status line growing to two lines, such as the enemy's thinking
+note, pushed every button below it down. The panel now has three parts. The top
+(status lines, Undo / Redo, End Turn) and the settings at the foot keep a fixed
+size and place. Everything that appears or changes size during either side's
+turn shares the middle section, which scrolls by itself: the unit's action strip
+and range legend, the attack forecast under that strip, Show map and the battle
+report. The side line stays one line; while the AI plans it reads
+"Xenon (thinking…)", as the opponent line already names the bot.
 
 ## Board orientation and control docking (2026-09-23)
 
@@ -928,8 +938,10 @@ red. Hovering one shows its identity, both units' combat stats, support, terrain
 surround, experience, counterattack eligibility and the resulting calculation
 in the fixed left panel, outside the map. Restored at the user's 2026-09-26
 request: this forecast, with its heatmap, appears directly under the selected
-unit's action strip whenever an attackable enemy is hovered; Undo/Redo and
-End Turn move down below it while it shows (the user's chosen placement). It
+unit's action strip whenever an attackable enemy is hovered (the user's chosen
+placement). Undo/Redo and End Turn first moved down below it while it showed;
+since the later same-day instruction that commands never move during play, they
+stay above the action strip and the forecast opens in the middle section. It
 had been hidden inside the closed-by-default Details panel since 2026-09-22.
 The heatmap comes first. The last hovered matchup remains readable while moving
 into the left panel; hovering another target replaces it. Clicking a red target

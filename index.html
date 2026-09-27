@@ -6,7 +6,7 @@
 <title>Nectaris — hex tactics remake</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='24,16 20,23 12,23 8,16 12,9 20,9' fill='%23ffd94a'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="css/nectaris.css?v=20260926-no-special-rules">
-<link rel="stylesheet" href="css/battle-dock.css?v=20260926-end-hold">
+<link rel="stylesheet" href="css/battle-dock.css?v=20260926-fixed-rail">
 </head>
 <body>
 <div id="save-error" class="hidden" role="alert"></div>
@@ -150,8 +150,6 @@
     <span id="status-opponent"></span>
     <span id="balance-match-label" class="hidden"></span>
     </div>
-    <div id="dock-unit-controls"></div>
-    <div id="combat-inspector" class="hidden" aria-live="polite"></div>
     <div class="topbar-actions">
     <div class="history-controls" role="group" aria-label="Action history">
       <button id="btn-undo" disabled>↶ Undo</button>
@@ -159,11 +157,15 @@
     </div>
     <button id="btn-endturn">End Turn (E)</button>
     </div>
-    <button id="btn-battle-map" class="hidden">Show map</button>
+    <div id="rail-live">
+      <div id="dock-unit-controls"></div>
+      <div id="combat-inspector" class="hidden" aria-live="polite"></div>
+      <button id="btn-battle-map" class="hidden">Show map</button>
       <div id="war-dock" class="hidden" aria-live="polite">
         <div id="war-scene"></div>
         <div id="war-math"></div>
       </div>
+    </div>
     <div id="match-settings" role="group" aria-label="View settings">
       <select id="style-select" aria-label="Visual style">
         <option value="pixel">Pixel style</option>
@@ -268,7 +270,7 @@
 <script src="js/playback-timeline.js?v=20260926-battle-skip"></script>
 <script src="js/move-animation.js?v=20260926-air-speed"></script>
 <script src="js/battle-report.js?v=20260926-end-hold"></script>
-<script src="js/ui.js?v=20260926-no-special-rules"></script>
+<script src="js/ui.js?v=20260926-fixed-rail"></script>
 <script src="js/profiles.js?v=20260926-no-special-rules"></script>
 <script src="js/main.js?v=20260926-no-special-rules"></script>
 </body>
