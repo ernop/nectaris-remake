@@ -63,7 +63,8 @@ a map-view opponent picker, support for combinations of existing numerical unit
 capabilities, and large configurable self-play tournaments with Elo and replays.
 Personality presets are explicitly excluded. Implemented policies are Classic,
 Tactical (greedy), Sequence (beam), Simulation (MCTS) and Apex (hybrid search
-with complete-turn verification). The new-match default is Apex; a save without
+with complete-turn verification). The new-match default is Classic
+(2026-09-27; previously Apex). A saved choice in the menu still wins. A save without
 a recorded policy is refused as an older format. All play under the same engine
 rules and cannot
 read future match randomness.

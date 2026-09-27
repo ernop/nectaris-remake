@@ -183,7 +183,7 @@ games):
 | Simulation | 0.85 s | 2.4 s | 20.4 s | 26 s |
 | Apex | 1.9 s | — | over 9 min per game, unfinished | 176 s |
 
-Apex, the default opponent, needs about three minutes for one mid-game turn on
+Apex needs about three minutes for one mid-game turn on
 the last normal-campaign board. A profile of the Sequence turn puts about 40%
 of the time in movement ranges: `Game.movementRange` 20%, the enemy threat map
 built from every enemy's range 11%, `enemyZOC` 10.5%.

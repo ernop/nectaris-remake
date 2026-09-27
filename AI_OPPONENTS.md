@@ -8,7 +8,7 @@ that document remains the historical analysis and research bibliography.
 ## Playing
 
 The menu's **AI** setting offers five policies. A new match defaults to
-**Apex** unless another choice was saved. A saved match without this field is
+**Classic** unless another choice was saved (2026-09-27; previously Apex). A saved match without this field is
 refused as an older format (2026-09-26). The opponent is fixed for the whole match (user
 instruction, 2026-09-26); the match panel names it. The choice is recorded with
 the match history.
@@ -336,8 +336,8 @@ seed 42, original turn limits, four workers and K=24. Each policy played 24 game
 | Classic | 10 / 14 | 1464 |
 | Tactical | 8 / 16 | 1459 |
 
-No game in that comparison drew or failed. This supports Apex as the current
-default, while showing that the simple Tactical policy is not uniformly stronger
+No game in that comparison drew or failed. That run ranked Apex highest. The
+new-match default is Classic (2026-09-27). The same run shows that the simple Tactical policy is not uniformly stronger
 than Classic. Its 1,000-game two-board result went the other way. Both are
 evidence for keeping board selection, seeds and opponent pool attached to every
 rating, and for testing more than one small sample before making strength claims.

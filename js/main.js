@@ -139,7 +139,7 @@
       throw new Error("This saved match is from an older version and cannot be loaded.");
     }
     if (!saved) { opts.opening = openingMode(opts); delete opts.balance; }
-    var preferredOpponent = $("menu-opponent").value || "apex";
+    var preferredOpponent = $("menu-opponent").value || "classic";
     try { preferredOpponent = localStorage.getItem("nectaris-opponent") || preferredOpponent; } catch (e) { /* optional preference */ }
     opts.opponent = AI_SEARCH.get(saved ? opts.opponent : opts.opponent || preferredOpponent).id;
     if (!activeProfile) { openProfileForm(); return; }
@@ -241,7 +241,7 @@
     currentUI = null;
     $("game-screen").classList.add("hidden");
     $("menu-screen").classList.remove("hidden");
-    try {$("menu-opponent").value=AI_SEARCH.get(localStorage.getItem("nectaris-opponent")||"apex").id;}catch(e){}
+    try {$("menu-opponent").value=AI_SEARCH.get(localStorage.getItem("nectaris-opponent")||"classic").id;}catch(e){}
     buildMenu();
     window.scrollTo(0, menuScrollTop);
   }
@@ -569,8 +569,8 @@
   window.addEventListener("DOMContentLoaded", function () {
     var opponent=$("menu-opponent");
     AI_SEARCH.modes.forEach(function(mode){var option=document.createElement("option");option.value=mode.id;option.textContent=mode.label;opponent.appendChild(option);});
-    opponent.value="apex";
-    try{opponent.value=AI_SEARCH.get(localStorage.getItem("nectaris-opponent")||"apex").id;}catch(e){}
+    opponent.value="classic";
+    try{opponent.value=AI_SEARCH.get(localStorage.getItem("nectaris-opponent")||"classic").id;}catch(e){}
     opponent.onchange=function(){try{localStorage.setItem("nectaris-opponent",opponent.value);}catch(e){}};
     $("chk-hotseat").onchange=function(){opponent.disabled=this.checked;};
     var openingSelect=$("opening-select"),opening=null;

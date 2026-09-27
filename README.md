@@ -90,7 +90,7 @@ bind error rather than selecting a different port.
 ## Deployment
 
 The menu's **AI** setting selects Classic, Tactical, Sequence, Simulation
-or Apex (the new-match default); the opponent stays fixed for the whole match. **Tournaments** opens the self-play lab with
+or Apex. A new match defaults to Classic unless another choice was saved; the opponent stays fixed for the whole match. **Tournaments** opens the self-play lab with
 board, game-count, round-cap and worker controls, Elo tables and saved replays.
 See [AI_OPPONENTS.md](AI_OPPONENTS.md) for algorithms and large disk runs.
 Serve the lab over HTTP on localhost or HTTPS; it uses Web Workers, IndexedDB
