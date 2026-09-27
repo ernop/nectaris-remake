@@ -20,6 +20,13 @@
 .war-headline strong { font-size: 40px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
 .war-verb { color: #fff; font-size: 18px; font-weight: 800; }
 .war-side { display: flex; align-items: center; gap: 8px; color: #fff; flex-wrap: wrap; }
+/* Step-by-step battle calculation shown beside the map before the battle screen. */
+.war-effects-side { flex: 1 1 240px; display: grid; gap: 6px; }
+.war-effects-steps { border-collapse: collapse; color: #fff; font-size: 15px; }
+.war-effects-steps th { text-align: left; font-weight: 800; padding: 2px 12px 2px 0; }
+.war-effects-steps td { text-align: right; font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; padding: 2px 0 2px 14px; }
+.war-effects-final th, .war-effects-final td { border-top: 2px solid #f7d758; }
+.war-effects-side p { margin: 0; color: #fff; font-size: 14px; font-weight: 700; }
 .war-count { color: #fff; font-size: 32px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
 .war-count-label { color: #fff; font-size: 16px; font-weight: 800; }
 .war-destroyed .war-count-label { color: #ff5c33; }
@@ -49,16 +56,29 @@
   height: 100%; min-height: 0; overflow: auto; padding: 10px; border-right: 1px solid #686045; border-bottom: 0; }
 #game-screen .topbar-scroll { display: flex; flex-direction: column; align-items: stretch; overflow: visible;
   height: auto; min-height: 0; flex: none; gap: 8px; }
-#game-screen .topbar-scroll > *, #game-screen #map-jump { width: 100%; max-width: 100%; white-space: normal; }
-#game-screen .view-controls { display: flex; margin: 12px 0; flex-wrap: wrap; }
+#game-screen .topbar-scroll > * { width: 100%; max-width: 100%; white-space: normal; }
 #game-screen .topbar-actions { display: flex; flex-direction: column; margin: 10px 0; gap: 7px; }
 #game-screen #dock-unit-controls { max-height: none; overflow: visible; }
-#game-screen #sidebar { width: 100%; padding: 10px 0; border: 0; overflow: visible; }
 #game-screen #war-dock { width: 100%; max-height: none; overflow: visible; padding: 12px 0; }
 #game-screen #canvas-wrap { overflow: hidden; min-height: 0; }
 #game-screen #action-menu, #game-screen #range-legend { position: static; width: 100%; max-width: none; flex-wrap: wrap; }
 #game-screen #map-action-rail { display: none; }
 #game-screen #btn-battle-map { width: 100%; margin: 8px 0; }
+/* Style, art, board and playback settings: one small block at the foot of
+   the rail, below the match status, commands and battle report. */
+#game-screen #match-settings { display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
+  margin-top: 14px; padding-top: 8px; border-top: 1px solid #3d382c; color: #fff; font-size: 12px; }
+#game-screen #match-settings button, #game-screen #match-settings select {
+  padding: 2px 6px; font-size: 12px; color: #fff; border-color: #3d382c; }
+#game-screen #match-settings button { padding: 1px 5px; }
+#game-screen #match-settings select:disabled { opacity: 1; border-style: dashed; }
+#game-screen #match-settings .view-controls { display: flex; gap: 4px; margin: 0; }
+/* Watch AI, Move animation and Music are unboxed toggles with a check mark. */
+#game-screen #match-settings .playback-controls { display: flex; flex: 1 0 100%; flex-wrap: wrap; gap: 2px 8px; }
+#game-screen #match-settings .playback-controls button { padding: 1px 2px; border: 0; background: none; }
+#game-screen #match-settings .playback-controls button:hover:not(:disabled) { background: #3d382c; }
+#game-screen #match-settings .playback-controls button::before { content: "\2610\00a0"; }
+#game-screen #match-settings .playback-controls button[aria-pressed="true"]::before { content: "\2611\00a0"; color: #bfe95c; }
 
 #lab-viewer.replay-viewer { display: grid; grid-template-columns: clamp(220px, 28vw, 340px) minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr); gap: 0; padding: 0; overflow: hidden; }
@@ -131,25 +151,39 @@
 .battle-controls button { min-width: 100px; color: #fff; background: #24376e; border: 2px solid #f7d758; font-size: 16px; padding: 7px 15px; }
 .battle-controls button[aria-pressed="true"] { background: #614c16; }
 #replay-battle-stage[data-paused="true"] { cursor: pointer; }
+#battle-stage { cursor: pointer; }
+.battle-skip-hint { font-size: 14px; font-weight: 700; }
 #replay-battle-hint { font-size: 13px; }
 .battle-combatant .unit-label, .replay-viewer .unit-label { display: inline-flex; align-items: center; gap: 5px; }
 .battle-combatant .unit-label-icon, .replay-viewer .unit-label-icon { width: 32px; height: 32px; flex: 0 0 32px; image-rendering: pixelated; }
 .replay-viewer .battle-machine .unit-label-icon { width: 100%; height: 100%; }
 
-/* Newly earned stars fade in large and glowing over the header unit icon. */
-.battle-rank-icon { position: relative; display: inline-flex; flex: 0 0 32px; }
-.battle-new-stars { position: absolute; z-index: 3; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  display: flex; align-items: center; gap: 1px; pointer-events: none; white-space: nowrap; }
-.battle-new-star { display: inline-block; color: #ffe45c; font: 700 30px/1 "DejaVu Sans", "Segoe UI Symbol", sans-serif;
-  text-shadow: 0 1px 1px #4a2e00, 0 0 8px #fff3a8, 0 0 18px #ffb800;
-  animation: battle-star-in 650ms cubic-bezier(.2, .75, .25, 1) both; }
-.battle-new-star.battle-new-general { font-size: 42px; }
-#battle-stage[data-paused="true"] .battle-new-star,
-#replay-battle-stage[data-paused="true"] .battle-new-star { animation-play-state: paused; }
-@keyframes battle-star-in {
-  0% { opacity: 0; transform: scale(2.8); text-shadow: 0 0 2px #fff, 0 0 30px #fff8cc, 0 0 60px #ffc400; }
-  45% { opacity: 1; }
-  100% { opacity: 1; transform: scale(1); text-shadow: 0 1px 1px #4a2e00, 0 0 8px #fff3a8, 0 0 18px #ffb800; }
+/* Battle header: an enlarged unit icon with the standard rank stars on top
+   (columns of 3, 2 and 3, then the General star). New stars fade in, hold a
+   bright glow, then settle to the normal star colour. */
+.battle-rank-icon { position: relative; display: inline-flex; flex: 0 0 96px; width: 96px; height: 96px; }
+.battle-combatant .battle-rank-icon .unit-label-icon { width: 96px; height: 96px; flex-basis: 96px; }
+.battle-rank { position: absolute; top: 6px; right: 8px; display: flex; gap: 2px; pointer-events: none;
+  font: 700 13px/1 "DejaVu Sans", "Segoe UI Symbol", sans-serif; }
+.battle-rank-col { display: flex; flex-direction: column; gap: 1px; }
+.battle-rank-col-1 { padding-top: 7px; }
+.battle-rank-star, .battle-rank-general { display: block; color: #ffd23d;
+  text-shadow: 0 0 2px #2a1800, 0 0 0 transparent, 0 0 0 transparent; }
+.battle-rank-general { font-size: 40px; }
+.battle-rank-new { animation: battle-rank-glow 1800ms ease-out both; }
+#battle-stage[data-paused="true"] .battle-rank-new,
+#replay-battle-stage[data-paused="true"] .battle-rank-new { animation-play-state: paused; }
+@keyframes battle-rank-glow {
+  0% { opacity: 0; transform: scale(2.4); color: #fff; text-shadow: 0 0 4px #fff, 0 0 12px #ffe98a, 0 0 24px #ffb400; }
+  17% { opacity: 1; transform: scale(1.3); color: #fffbe0; text-shadow: 0 0 4px #fff, 0 0 12px #ffe98a, 0 0 24px #ffb400; }
+  67% { opacity: 1; transform: scale(1.3); color: #fffbe0; text-shadow: 0 0 4px #fff, 0 0 12px #ffe98a, 0 0 24px #ffb400; }
+  100% { opacity: 1; transform: scale(1); color: #ffd23d; text-shadow: 0 0 2px #2a1800, 0 0 0 transparent, 0 0 0 transparent; }
+}
+@media (max-width: 700px) {
+  .battle-rank-icon, .battle-combatant .battle-rank-icon .unit-label-icon { width: 64px; height: 64px; flex-basis: 64px; }
+  .battle-rank { top: 4px; right: 5px; font-size: 10px; }
+  .battle-rank-col-1 { padding-top: 5px; }
+  .battle-rank-general { font-size: 28px; }
 }
 
 .battle-phases { display: flex; justify-content: center; gap: 10px; padding: 6px; border-bottom: 1px solid #5e6281;

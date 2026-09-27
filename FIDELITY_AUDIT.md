@@ -62,7 +62,7 @@ Completed:
 - All 16 advanced missions, TLOVER through ROTCEN, extracted from the same
   verified Hudson executable as the normal campaign. Normal data is unchanged.
   Missions 17–32 are wired into the menu, map jump, next mission and existing
-  profile/save/result handling. See `LEVEL_SOURCES.md` for source discrepancies.
+  profile/save/result handling. (The in-game map jump was removed on 2026-09-26.) See `LEVEL_SOURCES.md` for source discrepancies.
 
 Still unresolved: exact original CPU decision order/scoring, the additional
 Atlas infantry trigger, original frame-dependent RNG/call sequencing, and the
@@ -85,7 +85,7 @@ lacked it. “Unverified” is not the same as “incorrect.”
 | Additional Atlas infantry deployment trigger remains unverified | CPU implements the documented four-enemy deployment condition and can deploy mines and multiple reserves. | The separate infantry condition is not specified by the PCE source. Windows disassembly identifies a further state-dependent branch but does not establish the PCE condition. |
 | Original tactical decision-making is replaced | New attack scoring and activation order, with guarded-factory diversion and a response to infantry-loaded Pelicans threatening the base. | We wrote a heuristic opponent. The original CPU has not been reconstructed; stronger or weaker play is not proof of fidelity. |
 | Original random sequence generation is replaced | Mulberry32 with independent opposing rolls, rather than a recovered original generator. | The Windows generator has now been located, but it shares state with frame activity and presentation calls. PCE equivalence and exact call sequencing remain unverified; transplanting the generator alone would not reproduce the original stream. |
-| Original audiovisual battle presentation is replaced | Map explosions and casualty counters, recreated terrain/art options and new procedural music. Legacy unit icons do not reproduce the entire original presentation. | The renderer and music were authored for this remake; full original combat scenes/audio were not implemented or imported. |
+| Original audiovisual battle presentation is replaced | Map explosions and casualty counters, recreated terrain/art options and new procedural music. Legacy unit icons do not reproduce the entire original presentation. | The renderer and music were authored for this remake; full original combat scenes/audio were not implemented or imported. The original pre-battle sequence (surrounding hexes and supporters lighting one by one, then numbers updating) is reproduced on the map, but in the true calculation order and with true per-machine numbers (`PRODUCT.md` § Support and surround display). The original's displayed arithmetic is deliberately not copied. |
 | Original in-game Manual and Surrender command are missing | Markdown help and Save & Menu; no original tutorial/manual mode or command to concede the match. | Those interfaces/actions were not implemented. Saving and leaving is not surrendering. |
 | Original combat-results graph is missing | Profiles record match outcomes; no turn-by-turn army-strength graph is shown. | The booklet's results display was not implemented; see `MANUAL_AUDIT.md`. |
 
@@ -99,7 +99,7 @@ PCE/Windows in-game manuals are identified in [Anka's supplement](https://anka.s
 | Current addition | How it differs | Why it exists |
 |---|---|---|
 | Statistical combat forecasts | Shows casualty distributions and kill probabilities from 100,000 trials, beyond the original attack/defense information. | Explicit modern combat-inspector feature; changes the player's available information. |
-| All-mission access and map jumping | All installed missions are available immediately, without reproducing the original password/progression interface. | Deliberate mission-browser and testing convenience. |
+| All-mission access | All installed missions are available immediately from the menu, without reproducing the original password/progression interface. | Deliberate mission-browser and testing convenience. |
 | Custom unit statistics and arbitrary turn limits | Custom games can exceed the official 23-unit roster and 50-turn scenario limit. | Modding/data-driven level support. Stock original maps retain their ordinary roster and limit. |
 | Additional scenario packs | Lunar Frontiers and the remake rosters on Base Nectaris terrain are not original campaign missions. | Added playable content; they do not replace the missing advanced campaign. |
 | Profiles, detailed result history and per-action browser autosaves | Our particular persistence and reporting system is new. Saving itself is not inherently unofficial across all ports. | Explicit product features for continuing browser sessions and tracking results. |
@@ -173,8 +173,9 @@ not that every boundary case has been observed on hardware.
 | Ordinary attacks | Move then attack; attack ends activation | Retained. Added engine rejection of friendly, hidden/carried and out-of-range targets. |
 | Indirect attacks | Minimum range 2; no counter, support or surround | Matches documentation. Hadrian/Octopus/Atlas/Hawkeye move **or** fire; Lynx is the exception. |
 | Counterattacks | Adjacent only, matching target domain; pre-battle strength | Retained. Casualties do not reduce the simultaneous return shot. |
-| Support | Strength-weighted relevant base stats / twice initiator strength | Matches combat reconstruction, including the unusual defense denominator. |
-| Terrain / surround / caps | Add terrain; halve defender after support and terrain; cap 100 | Matches reconstruction. Edge units cannot be surrounded; initiating while surrounded has no penalty. |
+| Support | Strength-weighted relevant base stats / twice initiator strength | Matches combat reconstruction, including the unusual defense denominator. **Confirmed 2026-09-26** by 40 executed Windows cases (`0x41b810`): defense supporters touch the attacker only, and supporters need no range. English FAQs requiring contact with both combatants are wrong for Windows. |
+| Terrain / surround / caps | Add terrain; halve defender after support and terrain; cap 100 | Matches reconstruction and the Windows executable. Every defender neighbour must be in the attacker's ZOC; two opposite units suffice; the defender's allies in the ring do not break it. Edge units cannot be surrounded; initiating while surrounded has no penalty. |
+| Loaded transport attacks | A loaded Mule could start a battle | **Fixed 2026-09-26:** the original refuses ("搭載中は攻撃できません"). A loaded Mule still counterattacks. |
 | Damage and temporary HP | Integer damage stages; `100 × strength + 50`, except strength 1 | Windows floor ordering confirmed by disassembly; direct PCE verification remains outstanding. |
 | Random damage | Uniform 381 values from 0.20 to 4.00 | **Fixed:** published 14-value weighted table. AI expectations, combat and forecasts now agree. |
 | Experience | Correct coefficients; extra +2 for a damaged defender's counter-kill | **Fixed:** damaged surviving defender +1; unhurt +2. Attacker +0/+1/+2 and factory capture +4 retained. Anka's explicit table takes priority over ambiguous English prose. |
@@ -183,7 +184,7 @@ not that every boundary case has been observed on hardware.
 | Boarding controls | Map click switched selection | **Fixed:** highlighted carrier click boards the selected passenger. Used carriers can receive passengers. |
 | Loading / unloading | Same-turn load-and-unload allowed; unloading consumed carrier action | **Fixed:** passenger activation controls unloading. Unload before moving or after a committed carrier move is possible; newly boarded passengers wait. |
 | Unloading destination | Any passable terrain; infantry could drop onto enemy base | **Fixed:** plains/road/bridge, plus owned-factory storage in PCE. No hills, mountains, valleys, hostile factories or prison-base drops. |
-| Transport casualties | Cargo survived intact until carrier destruction | **Fixed:** on carrier casualties, cargo strength clamps to remaining carrier strength. It never increases. |
+| Transport casualties | Cargo survived intact until carrier destruction | **Fixed:** on carrier casualties, cargo strength clamps to remaining carrier strength. It never increases. A destroyed carrier destroys its cargo. Windows `0x420ff0` confirms both, with fixtures. |
 | Immobile units | Atlas/Trigger could only leave in a transport | **Fixed:** direct adjacent factory deployment also allowed. Once placed they cannot move or reboard. |
 | Factory repairs | Ground only; loaded transports rejected | **Fixed:** aircraft and loaded transports enter; passenger and carrier repair into separate stored units. Experience preserved. |
 | Factory capture / deployment | Infantry capture, reserve transfer, adjacent exits, activation delay | Retained. Captured ready reserves may deploy; capturing infantry waits. No production, purchases or resource economy. |

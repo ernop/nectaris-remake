@@ -20,6 +20,21 @@ var PLAYBACK_TIMELINE = (function () {
     frameId = request(frame);
     return {
       get paused() { return paused; },
+      get elapsed() { return elapsed; },
+      // Jump ahead and keep playing, resuming if paused. Reaching the
+      // duration completes immediately.
+      seek: function (time) {
+        if (stopped) return;
+        if (frameId !== null) cancel(frameId);
+        frameId = null; paused = false; previous = null;
+        elapsed = Math.max(elapsed, Math.min(time, options.duration));
+        if (options.update) options.update(elapsed);
+        if (stopped) return;
+        if (elapsed >= options.duration) {
+          stopped = true;
+          if (options.done) options.done();
+        } else frameId = request(frame);
+      },
       pause: function () {
         if (stopped || paused) return;
         paused = true; cancel(frameId); frameId = null;

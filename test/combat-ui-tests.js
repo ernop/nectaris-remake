@@ -33,11 +33,12 @@ module.exports = function (ok) {
       hexCenter: function (col, row) { var p = HEX.toPixel(col, row, 34); return {x: p.x + 200, y: p.y + 100}; },
       pixelToHex: function (col, row) { return { col: col, row: row }; },
     };
-    ui.draw = ui.showUnitInfo = ui.refreshStatus = ui.checkGameOver = ui.updateHoverInfo = function () {};
+    ui.draw = ui.refreshStatus = ui.checkGameOver = ui.updateHoverInfo = function () {};
     ui.playBattleTimeline = function () {};
     ui.animateMovement = function (unit, path, done) { if (done) done(); return 0; };
     ui.warLedger = require("../js/battle-report.js").emptyLedger();
     ui.animateBattleResult = function (event, detail, done) { ui.battleEvent = event; ui.animationDone = done; };
+    ui.playCombatEffects = function (attacker, defender, preview, done) { done(); };
     ui.selectUnit(game.units[0]);
     return ui;
   }
@@ -379,9 +380,8 @@ module.exports = function (ok) {
     ui.renderer.hoverHex={col:unit.col,row:unit.row};document.getElementById("unit-hover").classList.remove("hidden");
     UI.GameUI.prototype.updateHoverInfo.call(ui);
     ok(nodes["unit-hover"].classList.contains("hidden"),"unloading hides the hover card so it cannot cover orange landing hexes");
-    ok(nodes["action-menu"].children.some(function(node){return node.className==="deploy-prompt unload-prompt" && node.textContent.includes("Charlie");}) &&
-      nodes["transport-actions"].children.some(function(node){return node.className==="unload-available";}),
-      "orange passenger prompt and available Unload control explain the new highlight color");
+    ok(nodes["action-menu"].children.some(function(node){return node.className==="deploy-prompt unload-prompt" && node.textContent.includes("Charlie");}),
+      "the orange passenger prompt explains the new highlight color");
     ui.onCancel(true);
     ok(ui.mode==="idle" && !ui.renderer.highlights && !ui.unloadCargo && JSON.stringify(ui.game.snapshot())===movedCarrier && ui.undoHistory.length===1,
       "right-click dismisses automatic unloading without undoing or spending an action");
@@ -427,9 +427,9 @@ module.exports = function (ok) {
     ok(nodes["action-menu"].children.some(function (button) {
       return button.disabled && button.textContent.includes("Atlas") && button.textContent.includes("no landing space");
     }), "blocked Atlas unloading stays visible in the action strip with a reason");
-    ui.renderUnitInfo(nodes["unit-info"],pelican);
-    ok(nodes["unit-info"].innerHTML.includes("Cargo") && nodes["unit-info"].innerHTML.includes("Atlas"),
-      "the shared hover and detail card names the passenger even when unloading is blocked");
+    ui.renderUnitInfo(nodes["unit-hover"],pelican);
+    ok(nodes["unit-hover"].innerHTML.includes("Cargo") && nodes["unit-hover"].innerHTML.includes("Atlas"),
+      "the hover card names the passenger even when unloading is blocked");
     ui.deselect(); ui.selectUnit(pelican);
     ok(ui.selected === pelican && nodes["action-menu"].children.some(function (button) {
       return button.disabled && button.textContent.includes("Atlas");
@@ -486,7 +486,6 @@ module.exports = function (ok) {
     ui.renderer.fitToMap = function () { fits++; };
     var layoutState = JSON.stringify(ui.game.snapshot());
     ui.openActionMenu(ui.selected); ui.closeActionMenu();
-    ui.setDetailsOpen(true); ui.setDetailsOpen(false);
     ui.openWarDock("Report", "Long statistics"); ui.closeWarDock();
     ok(ui.canvas.width === 800 && ui.canvas.height === 600 && fits === 0 &&
       ui.renderer.originX === 40 && ui.renderer.originY === 50 &&
@@ -569,7 +568,7 @@ module.exports = function (ok) {
     var clicks = 0, cancels = 0;
     ui.onHexClick = function () { clicks++; };
     ui.onCancel = function (undo) { if (undo) cancels++; };
-    ui.updateHoverInfo = ui.showHexInfo = ui.showUnitInfo = function () {};
+    ui.updateHoverInfo = function () {};
     function pointer(button, x, y, ctrl) { return { button: button, offsetX: x, offsetY: y, ctrlKey: !!ctrl, preventDefault: function () {} }; }
     var cameraX = ui.renderer.originX, cameraY = ui.renderer.originY;
     var state = JSON.stringify(ui.game.snapshot());
@@ -628,7 +627,6 @@ module.exports = function (ok) {
     ui.canvas = { width: 800, height: 600, style: {}, parentElement: { clientWidth: 800, clientHeight: 600 },
       getContext: function () { return {}; } };
     ui.renderer = new RENDER.Renderer(ui.canvas, ui.game);
-    ui.showHexInfo = function () {};
     cameraX = ui.renderer.originX; cameraY = ui.renderer.originY;
     var destination = ui.renderer.hexCenter(2, 1);
     ui.updateMapCursor();
@@ -668,6 +666,128 @@ module.exports = function (ok) {
     watched({t:"battle",attacker:actor,defender:defender,attackerBefore:aBefore,defenderBefore:dBefore,result:result});
     watched({t:"finish",unit:actor,effects:[{t:"capture",kind:"factory"}]});
     watched({t:"finish",unit:actor,effects:[{t:"repair"}]});
+    watched({t:"move",unit:actor,from:{col:0,row:1},to:{col:1,row:1},path:[{col:0,row:1},{col:1,row:1}]});
+    ok(ui.selected === actor && ui.renderer.highlights && !nodes["war-dock"].classList.contains("hidden"),
+      "a watched opponent move selects and highlights its unit");
+    ui.finishAITurn();
+    ok(ui.selected === null && ui.renderer.highlights === null && nodes["war-dock"].classList.contains("hidden"),
+      "ending the opponent's turn deselects its unit and clears its highlight and selection entry");
+
+    // Support and surround on the map: while aiming, and step by step before the battle screen.
+    ui = fixture("BISON", 2);
+    ui.game = new ENGINE.Game({name: "Effects", grid: Array(7).fill("..........."), units: [
+      {t: "BISON", o: 0, x: 5, y: 2}, {t: "BISON", o: 1, x: 5, y: 3}, {t: "BISON", o: 0, x: 5, y: 4},
+      {t: "BISON", o: 1, x: 5, y: 1}, {t: "FALCON", o: 0, x: 6, y: 3}]}, {seed: 7});
+    var striker = ui.game.units[0], target = ui.game.units[1];
+    ui.selectUnit(striker);
+    ui.showCombatPreview(target);
+    var fx = ui.renderer.combatEffects;
+    ok(fx && fx.surrounded && fx.ring.length === 6 && fx.ring.every(function (hex) { return hex.controlled; }) &&
+      JSON.stringify(fx.supporters) === JSON.stringify([{col: 5, row: 4, side: "attack"}, {col: 5, row: 1, side: "defense"}]) &&
+      fx.shownRing === Infinity && fx.surroundShown,
+      "aiming shows the whole ring and every supporter that changes the numbers, not a Falcon worth 0");
+    ok(nodes["combat-inspector"].innerHTML.includes("all 6 surrounding hexes are in your ZOC"),
+      "the forecast states why the target is surrounded");
+    ui.hideCombatPreview();
+    ok(ui.renderer.combatEffects === null, "closing the forecast removes the map overlay");
+    var timelines = [], effectsDone = false, pv = COMBAT.preview(ui.game, striker, target);
+    ui.playBattleTimeline = function (duration, update, done) { timelines.push({duration: duration, update: update, done: done}); };
+    UI.GameUI.prototype.playCombatEffects.call(ui, striker, target, pv, function () { effectsDone = true; });
+    fx = ui.renderer.combatEffects;
+    var run = timelines[0], scene = function () { return nodes["war-scene"].innerHTML; };
+    ok(run.duration === 2 * 170 + 260 + 6 * 90 + 500 && fx.shownSupporters === 1 && fx.shownRing === 0 &&
+      !fx.surroundShown && scene().includes("Base") && !scene().includes("+ Support"),
+      "the sequence starts with the first supporter lit and only the base values");
+    run.update(2 * 170);
+    ok(fx.shownSupporters === 2 && fx.shownRing === 0 && scene().includes("+ Support") && !scene().includes("+ Terrain"),
+      "all supporters light before support is added");
+    run.update(2 * 170 + 260);
+    ok(fx.shownRing === 1 && !fx.surroundShown && scene().includes("+ Terrain") && !scene().includes("Surrounded ½"),
+      "terrain is added before the surrounding hexes are checked one by one");
+    run.update(run.duration);
+    ok(fx.shownRing === 6 && fx.surroundShown && scene().includes("Surrounded ½") && scene().includes("Final (max 100)"),
+      "the surround verdict and halving come last, as in the calculation");
+    run.done();
+    ok(effectsDone && ui.renderer.combatEffects === null, "the overlay clears when the battle screen takes over");
+
+    ui = fixture("BISON", 2);
+    var effectsCall = null, bison = ui.game.units[0], polar = ui.game.units[1], bisonExp = bison.exp;
+    ui.playCombatEffects = function (a, d, preview, done) { effectsCall = {a: a, d: d, preview: preview, done: done}; };
+    ui.battleEvent = null;
+    nodes["battle-stage"].classList.add("hidden");
+    ui.showBattle(bison, polar, function () {});
+    ok(effectsCall && bison.attacked && effectsCall.a.strength === 8 && effectsCall.a.exp === bisonExp &&
+      ui.renderer.strengthOverrides[bison.id] === 8 && ui.renderer.strengthOverrides[polar.id] === 8 &&
+      ui.battleEvent === null && nodes["battle-stage"].classList.contains("hidden"),
+      "a player attack shows the pre-battle squads and effects before the battle screen");
+    effectsCall.done();
+    ok(ui.battleEvent && !nodes["battle-stage"].classList.contains("hidden"),
+      "the battle screen and casualty animation follow the effects");
+
+    var strokes = [], texts = [];
+    var drawing = new Proxy({}, {get: function (target, key) {
+      if (key === "stroke") return function () { strokes.push(target.strokeStyle + (target.dash && target.dash.length ? " dashed" : "")); };
+      if (key === "setLineDash") return function (value) { target.dash = value; };
+      if (key === "fillText") return function (text) { texts.push(text); };
+      return key in target ? target[key] : function () {};
+    }, set: function (target, key, value) { target[key] = value; return true; }});
+    var board = new ENGINE.Game({name: "Overlay", grid: Array(7).fill("..........."), units: [
+      {t: "BISON", o: 0, x: 5, y: 2}, {t: "BISON", o: 1, x: 5, y: 3}]}, {seed: 7});
+    var painter = new RENDER.Renderer({width: 800, height: 600, getContext: function () { return drawing; }}, board);
+    function paint(state) {
+      strokes = []; texts = [];
+      painter.combatEffects = Object.assign({target: {col: 5, row: 3}, surrounded: false,
+        ring: board.surroundRing(board.units[1]).map(function (hex, i) { return Object.assign({}, hex, {controlled: i !== 0}); }),
+        supporters: [{col: 5, row: 4, side: "attack"}, {col: 5, row: 1, side: "defense"}]}, state);
+      painter.drawCombatEffects(); painter.drawSurroundBadge();
+      return strokes.slice().sort().join("|");
+    }
+    ok(paint({shownSupporters: 1, shownRing: 6, surroundShown: false}) ===
+      ["#63ff8e"].concat(Array(5).fill("#ffffff")).sort().join("|"),
+      "before the verdict only checked hexes inside the zone and revealed supporters are outlined");
+    ok(paint({shownSupporters: Infinity, shownRing: 6, surroundShown: true}) ===
+      ["#63ff8e", "#ffb347 dashed", "#ffd23d"].concat(Array(5).fill("#ffffff")).sort().join("|") && !texts.length,
+      "the verdict adds the open hex as a dashed gap; a broken ring shows no surround badge");
+    paint({shownSupporters: 0, shownRing: 2, surroundShown: false});
+    ok(strokes.length >= 1 && strokes.length <= 2 && strokes.every(function (s) { return s === "#ffffff"; }),
+      "the clockwise check lights only hexes reached so far, and only those inside the zone");
+    painter.combatEffects = null;
+    paint({shownSupporters: 0, shownRing: 6, surroundShown: true, surrounded: true,
+      ring: board.surroundRing(board.units[1]).map(function (hex) { return Object.assign({}, hex, {controlled: true}); })});
+    ok(texts.indexOf("SURROUNDED ½") >= 0 && strokes.filter(function (s) { return s === "#ffffff"; }).length === 6,
+      "a complete ring lights all six hexes and labels the target");
+
+    // Clicking during a battle skips to its last stage.
+    ui = fixture("BISON", 2);
+    delete ui.animateBattleResult;
+    var seeks = [], battleOver = false;
+    ui.refreshBattlePause = function () {};
+    ui.playBattleTimeline = function (duration, update, done) {
+      ui._battleResultAt = null;
+      ui._battlePlayback = {elapsed: 0, seek: function (time) {
+        seeks.push(time); this.elapsed = Math.min(time, duration); update(this.elapsed);
+        if (this.elapsed >= duration) { ui._battlePlayback = null; done(); }
+      }};
+    };
+    var effectsOver = false;
+    ui.playBattleTimeline(1640, function () {}, function () { effectsOver = true; });
+    ui.advanceBattle();
+    ok(effectsOver && ui._advanceBattle, "a click during the map effects ends them and asks the battle screen for its result");
+    var fighter = ui.game.units[0], foe = ui.game.units[1], fighterBefore = fighter.strength, foeBefore = foe.strength;
+    var outcome = ui.game.attack(fighter, foe);
+    seeks = [];
+    ui.animateBattleResult({attacker: fighter, defender: foe, attackerBefore: fighterBefore, defenderBefore: foeBefore,
+      result: outcome}, nodes["war-scene"], function () { battleOver = true; }, 900, 800);
+    ok(!ui._advanceBattle && seeks.length === 1 && seeks[0] === ui._battleResultAt && ui._battleResultAt > 800 &&
+      nodes["battle-content"].innerHTML.includes("data-battle-phase='result'") && !battleOver,
+      "the battle screen opens directly at its result");
+    ui.advanceBattle();
+    ok(battleOver && seeks[1] === Infinity, "a click at the result returns to the map at once");
+    ui.playBattleTimeline(5000, function () {}, function () { battleOver = "late"; });
+    ui._battleResultAt = 3000; ui._battlePlayback.elapsed = 100;
+    ui.advanceBattle();
+    ok(ui._battlePlayback && ui._battlePlayback.elapsed === 3000 && battleOver === true,
+      "a click while fighting jumps to the result without ending the battle");
   } finally {
     if (savedDocument === undefined) delete global.document; else global.document = savedDocument;
     if (savedView === undefined) delete global.COMBAT_VIEW; else global.COMBAT_VIEW = savedView;

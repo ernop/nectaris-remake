@@ -135,14 +135,18 @@ module.exports = function (ok) {
   battle = cargoBattle(8,0.99);
   ok(battle.result.defenderDead && !battle.g.units.includes(battle.cargo), "destroyed transport also removes its cargo");
 
-  game = new ENGINE.Game({name:"Attacking transport",grid:["....","...."],
+  game = new ENGINE.Game({name:"Loaded Mule",grid:["....","...."],
     units:[{t:"MULE",o:0,x:0,y:0},{t:"POLAR",o:1,x:1,y:0},{t:"CHARLIE",o:0,x:0,y:1}]});
   carrier = game.units[0]; cargo = game.units[2];
   carrier.cargo.push(cargo); cargo.carriedBy = carrier.id;
+  ok(game.legalAttackTargets(carrier).length === 0, "a loaded Mule has no legal attack targets");
+  rejects(game, function () { game.attack(carrier,game.units[1]); },
+    "a loaded Mule cannot start a battle");
+  game.endTurn();
   game.rng = function () { return 0.5; };
-  result = game.attack(carrier,game.units[1]);
-  ok(result.dmgToAttacker > 0 && cargo.strength === carrier.strength,
-    "counterattack damage also reduces the initiating transport's cargo");
+  result = game.attack(game.units[1],carrier);
+  ok(result.counterDamage.totalDamage > 0 && result.dmgToDefender > 0 && cargo.strength === carrier.strength,
+    "an attacked loaded Mule counterattacks and its passenger drops to the Mule's strength");
 
   game = new ENGINE.Game({name:"Illegal attacks",grid:["......."],
     units:[{t:"BISON",o:0,x:0,y:0},{t:"CHARLIE",o:0,x:1,y:0},{t:"FALCON",o:1,x:2,y:0},

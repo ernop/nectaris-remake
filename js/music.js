@@ -96,7 +96,6 @@ var MUSIC = (function () {
   function updateButton() {
     var button = document.getElementById("btn-music");
     if (!button) return;
-    button.textContent = playing ? "Music: On" : "Music: Off";
     button.setAttribute("aria-pressed", playing ? "true" : "false");
   }
 

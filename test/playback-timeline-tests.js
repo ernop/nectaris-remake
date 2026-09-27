@@ -27,6 +27,38 @@ module.exports = function (ok) {
     ok(button.textContent==="Pause"&&advanced===0,"battle button resumes the remaining preview time");
     frame(12100);
     ok(advanced===1&&!ui._battlePlayback,"battle advances only once after the resumed time completes");
+
+    var sought = 0; elapsed = [];
+    clock = timeline.play({duration:1000,update:function(ms){elapsed.push(ms);},done:function(){sought++;}});
+    frame(160000);frame(160100);clock.seek(600);
+    ok(clock.elapsed===600&&elapsed[elapsed.length-1]===600&&sought===0,"seek jumps ahead and keeps playing");
+    clock.pause();clock.seek(700);
+    ok(!clock.paused&&clock.elapsed===700,"seeking resumes a paused clock");
+    frame(170000);frame(170400);
+    ok(sought===1&&elapsed[elapsed.length-1]===1000,"a sought clock still completes once at its duration");
+    clock = timeline.play({duration:1000,done:function(){sought++;}});clock.seek(Infinity);
+    ok(sought===2&&callbacks.size===0,"seeking past the end completes immediately without a pending frame");
+
+    var shown = Object.create(UI.GameUI.prototype);
+    shown.renderer = {aftermath:[], flashUnits:{}, attackingUnitId:null};
+    shown.draw = function () {};
+    var hunter = {id:1,col:2,row:3}, prey = {id:2,col:3,row:3};
+    shown.showAftermath(hunter,prey,{defenderDead:true,attackerDead:false});frame(180000);
+    ok(shown.renderer.attackingUnitId===1&&!Object.keys(shown.renderer.flashUnits).length&&
+      shown.renderer.aftermath.length===1&&shown.renderer.aftermath[0].col===3&&shown.renderer.aftermath[0].row===3,
+      "back on the map a destroyed defender explodes at its hex while its attacker keeps the battle highlight");
+    frame(181500);
+    ok(!shown.renderer.aftermath.length&&!shown._aftermath&&shown.renderer.attackingUnitId===1,
+      "the explosions stop after three bursts; the highlight stays until the next action");
+    shown.showAftermath(hunter,prey,{defenderDead:false,attackerDead:true});frame(190000);
+    ok(shown.renderer.attackingUnitId===null&&shown.renderer.flashUnits[2]==="#ffffff"&&shown.renderer.aftermath[0].col===2,
+      "a counterattack kill explodes at the attacker's hex and keeps the defender's ring");
+    shown.showAftermath(hunter,prey,{defenderDead:true,attackerDead:true});frame(200000);
+    ok(shown.renderer.attackingUnitId===null&&!Object.keys(shown.renderer.flashUnits).length&&shown.renderer.aftermath.length===2,
+      "mutual destruction explodes at both hexes with no survivor highlighted");
+    shown.showAftermath(hunter,prey,{defenderDead:false,attackerDead:false});
+    ok(!shown._aftermath&&!shown.renderer.aftermath.length&&shown.renderer.attackingUnitId===null&&callbacks.size===0,
+      "a battle without a destroyed squad leaves no aftermath and clears the battle highlight");
   } finally {
     global.requestAnimationFrame=saved.request;global.cancelAnimationFrame=saved.cancel;global.document=saved.document;
   }

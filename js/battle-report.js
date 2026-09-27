@@ -170,21 +170,29 @@ var BATTLE_REPORT = (function () {
     return html + "</div>";
   }
 
-  // Earned ranks are revealed one per STAR_MS; each then fades in over STAR_FADE_MS.
-  var STAR_MS = 350, STAR_FADE_MS = 650;
-  // A star's delay is its age on the reward clock, so rebuilding the screen for
-  // the next rank continues earlier stars mid-fade and the markup stays identical
-  // between ranks.
-  function newStarsHtml(before, shown) {
-    if (!(shown > before)) return "";
-    var html = "";
-    for (var rank = before + 1; rank <= shown; rank++) {
-      html += "<span class='battle-new-star" + (rank >= combat.MAX_EXP ? " battle-new-general" : "") +
-        "' style='animation-delay:-" + (shown - rank) * STAR_MS + "ms'>★</span>";
+  // Earned ranks are revealed one per STAR_MS; each then fades in, glows and
+  // settles to the normal star colour over STAR_GLOW_MS.
+  var STAR_MS = 350, STAR_GLOW_MS = 1800;
+  // The standard rank layout over the enlarged header icon: columns of 3, 2 and 3
+  // stars, replaced by the General star at rank 8. A new star's delay is its age
+  // on the reward clock, so rebuilding the screen for the next rank continues
+  // earlier stars mid-glow and the markup stays identical between ranks.
+  function rankHtml(before, shown) {
+    var html = "", rank = 0;
+    function star(value, className) {
+      var fresh = value > before;
+      return "<span class='" + className + (fresh ? " battle-rank-new" : "") + "'" +
+        (fresh ? " style='animation-delay:-" + (shown - value) * STAR_MS + "ms'" : "") + ">★</span>";
     }
-    var label = shown >= combat.MAX_EXP ? "Promoted to General" :
-      "Earned " + (shown - before) + " experience star" + (shown - before === 1 ? "" : "s");
-    return "<span class='battle-new-stars' role='img' aria-label='" + label + "'>" + html + "</span>";
+    if (shown >= combat.MAX_EXP) html = star(combat.MAX_EXP, "battle-rank-general");
+    else [3, 2, 3].forEach(function (capacity, column) {
+      var stars = "";
+      for (var row = 0; row < capacity && rank < shown; row++) stars += star(++rank, "battle-rank-star");
+      if (stars) html += "<span class='battle-rank-col battle-rank-col-" + column + "'>" + stars + "</span>";
+    });
+    var label = unitView.rankLabel({exp: shown}) + (shown > before ? ", " + (shown - before) + " newly earned" : "");
+    return "<span class='battle-rank' role='img' aria-label='" + label + "' data-exp='" + shown + "'" +
+      (shown > before ? " data-exp-glow-from='" + before + "'" : "") + ">" + html + "</span>";
   }
 
   // Original-style opposing formations, recreated with the selected remake art.
@@ -192,18 +200,26 @@ var BATTLE_REPORT = (function () {
   function screenHtml(attacker, defender, preview, aBefore, dBefore, aNow, dNow, aExp, dExp, aExpAfter, dExpAfter, phase) {
     phase = phase || "result";
     function head(unit, now, exp, role, after) {
-      var shownUnit=Object.assign({},unit,{strength:now,exp:after === undefined ? exp : after});
+      var shown = after === undefined ? exp : after;
+      var sprite = Object.assign({}, unit, {strength: now, exp: 0});
       return "<div class='battle-combatant' data-player='" + unit.player + "'><span class='war-faction war-faction-" + unit.player + "'>" +
         faction(unit.player) + " · " + role + "</span><h3><span class='unit-label'><span class='battle-rank-icon'>" +
-        unitView.iconHtml(shownUnit, after > exp ? {experienceGlowFrom:exp} : null) + newStarsHtml(exp, after) +
-        "</span><span>" + esc(unitView.name(shownUnit)) + "</span></span></h3>" +
+        unitView.iconHtml(sprite) + rankHtml(exp, shown) +
+        "</span><span>" + esc(unitView.name(unit)) + "</span></span></h3>" +
         "<div class='battle-count'><strong>" + now + "</strong><span>machines</span></div></div>";
     }
-    function stats(unit, side, strength, canFire) {
-      return "<div class='battle-stats' data-player='" + unit.player + "'><dl><div><dt>Attack</dt><dd>" + (canFire ? side.ap * strength : "—") +
-        "</dd></div><div><dt>Defense</dt><dd>" + side.da * strength + "</dd></div>" +
-        "<div><dt>Terrain</dt><dd>+" + side.modifiers.terrain + "%</dd></div></dl>" +
-        (side.modifiers.surrounded ? "<p>Surrounded</p>" : "") +
+    // Per-machine values as calculated. Squad size multiplies damage, never
+    // defense, so neither stat is scaled by the machine count.
+    function stats(unit, side, exp, canFire) {
+      var m = side.modifiers, bonus = combat.experienceBonus(exp).damage, notes = [];
+      if (m.supportAttack) notes.push("support +" + m.supportAttack + " attack");
+      if (m.supportDefense) notes.push("support +" + m.supportDefense + " defense");
+      notes.push("terrain +" + m.terrain + " defense");
+      if (m.surrounded) notes.push("surrounded: halved");
+      if (bonus) notes.push("damage +" + bonus + "%");
+      return "<div class='battle-stats' data-player='" + unit.player + "'><dl><div><dt>Attack</dt><dd>" + (canFire ? side.ap : "—") +
+        "</dd></div><div><dt>Defense</dt><dd>" + side.da + "</dd></div></dl>" +
+        "<p>Per machine · " + notes.join(" · ") + "</p>" +
         (!canFire ? "<p>No counterattack</p>" : "") + "</div>";
     }
     var sides = [
@@ -224,7 +240,7 @@ var BATTLE_REPORT = (function () {
       (preview.counter ? "Attack and counterattack" : "One-way attack · no counterattack") + "'>" +
       (preview.counter ? "↔" : attacker.player ? "←" : "→") + "</span>" + groundHtml(right, "right") +
       "</div><div class='battle-stat-panels'>" + sides.map(function (side) {
-        return stats(side.unit, side.stats, side.before, side.canFire);
+        return stats(side.unit, side.stats, side.exp, side.canFire);
       }).join("") + "</div><p class='battle-outcome'>" + (phase === "ready" ? faction(attacker.player) + " preparing to attack" :
         phase === "fighting" ? faction(attacker.player) + " attacking" : faction(attacker.player) + " attack · " +
         (dBefore - dNow) + " destroyed · " + (aBefore - aNow) + " lost") + "</p></div>";
@@ -234,9 +250,13 @@ var BATTLE_REPORT = (function () {
     if (after === undefined || elapsed === undefined) return after;
     return Math.min(after, before + Math.floor(elapsed / STAR_MS));
   }
-  // The last star finishes fading, then stays in view briefly before the screen closes.
+  // The last star finishes its glow, then stays in view briefly before the screen closes.
   function rewardHoldMs(stars) {
-    return stars ? stars * STAR_MS + STAR_FADE_MS + 350 : 700;
+    return stars ? stars * STAR_MS + STAR_GLOW_MS + 300 : 700;
+  }
+  // Time from the start of the result until every earned star is shown.
+  function rewardRevealMs(stars) {
+    return stars * STAR_MS;
   }
   function rewardDuration(snap) {
     return rewardHoldMs(Math.max((snap.aExpAfter || 0) - snap.aExp, (snap.dExpAfter || 0) - snap.dExp, 0));
@@ -263,6 +283,29 @@ var BATTLE_REPORT = (function () {
     var snap = snapshot(attacker, defender, result, attackerBefore, defenderBefore);
     var view = present(snap);
     return {assessed: snap.assessed, snapshot: snap, scene: view.scene, math: view.math, screen: view.screen};
+  }
+
+  // The calculation's own per-machine steps, revealed in order while the map
+  // lights supporters (stage 1), terrain (2) and the surrounding hexes (3).
+  var EFFECT_STAGE = {BASE: 0, SUPPORT: 1, TERRAIN: 2, SURROUNDED: 3, FINAL: 3};
+  var EFFECT_LABEL = {BASE: "Base", SUPPORT: "+ Support", TERRAIN: "+ Terrain",
+    SURROUNDED: "Surrounded ½", FINAL: "Final (max 100)"};
+  function effectsHtml(attacker, defender, preview, stage) {
+    function side(unit, calc, role, canFire) {
+      var rows = calc.steps.filter(function (step) { return EFFECT_STAGE[step.label] <= stage; }).map(function (step) {
+        return "<tr" + (step.label === "FINAL" ? " class='war-effects-final'" : "") + "><th>" + EFFECT_LABEL[step.label] +
+          "</th><td>" + (canFire ? step.ap : "—") + "</td><td>" + step.da + "</td></tr>";
+      }).join("");
+      var bonus = combat.experienceBonus(unit.exp).damage;
+      return "<div class='war-effects-side'><div class='war-side'>" + unitView.html(unit) +
+        "<span class='war-faction war-faction-" + unit.player + "'>" + faction(unit.player) + " · " + role + "</span></div>" +
+        "<table class='war-effects-steps'><thead><tr><th>Per machine</th><th>Attack</th><th>Defense</th></tr></thead><tbody>" +
+        rows + "</tbody></table>" + (bonus ? "<p>Experience: damage +" + bonus + "%</p>" : "") + "</div>";
+    }
+    return "<div class='war-scene war-effects'><div class='war-headline'>" + (preview.ranged ?
+      "Indirect fire: terrain only" : "Support, terrain and surround") + "</div>" +
+      side(attacker, preview.attacker, "attacking", true) +
+      side(defender, preview.defender, "defending", preview.counter) + "</div>";
   }
 
   function previewHtml(attacker, defender, preview) {
@@ -301,7 +344,7 @@ var BATTLE_REPORT = (function () {
   }
 
   return {faction: faction, emptyLedger: emptyLedger, cloneLedger: cloneLedger, assess: assess,
-    snapshot: snapshot, animate: animate, fightingDuration: fightingDuration, earnedExperience: earnedExperience, rewardDuration: rewardDuration, rewardHoldMs: rewardHoldMs, record: record, sceneHtml: sceneHtml, screenHtml: screenHtml, present: present, resultParts: resultParts,
-    previewHtml: previewHtml, ledgerHtml: ledgerHtml, noteHtml: noteHtml};
+    snapshot: snapshot, animate: animate, fightingDuration: fightingDuration, earnedExperience: earnedExperience, rewardDuration: rewardDuration, rewardHoldMs: rewardHoldMs, rewardRevealMs: rewardRevealMs, record: record, sceneHtml: sceneHtml, screenHtml: screenHtml, present: present, resultParts: resultParts,
+    previewHtml: previewHtml, effectsHtml: effectsHtml, ledgerHtml: ledgerHtml, noteHtml: noteHtml};
 })();
 if (typeof module !== "undefined") module.exports = BATTLE_REPORT;

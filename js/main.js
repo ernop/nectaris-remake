@@ -177,20 +177,10 @@
       balanceLabel.classList.toggle("hidden",!game.balance);
       balanceLabel.textContent=game.balance ? (game.firstPlayer===0?"Union":"Xenon")+" first · "+
         (game.balance.secondPlayer===0?"Union":"Xenon")+" bonus: "+game.balance.label : "";
-      $("map-jump").value = opts.environmentCampaign ?
-        "t:" + opts.environmentCampaign + ":" + opts.environmentIndex : opts.campaignIndex !== undefined ? "c:" + opts.campaignIndex :
-        (opts.expansionIndex !== undefined ? "e:" + opts.expansionIndex :
-        (opts.baseNecIndex !== undefined ? "b:" + opts.baseNecIndex :
-        (opts.aiMadeIndex !== undefined ? "a:" + opts.aiMadeIndex : "")));
 
       currentUI = new UI.GameUI($("game-canvas"), game, {
         hotseat: !!opts.hotseat,
         opponent: opts.opponent,
-        onOpponentChange: function (id, turn) {
-          if (!opts.opponentChanges) opts.opponentChanges = [];
-          opts.opponentChanges.push({turn:turn, from:opts.opponent, to:id});
-          opts.opponent = id;
-        },
         undoHistory: saved && saved.state.undoHistory,
         redoHistory: saved && saved.state.redoHistory,
         onMenu: showMenu,
@@ -224,7 +214,6 @@
         },
       });
       currentUI.resize();
-      $("playing-profile").textContent = "PLAYER · " + profile.name;
       readyToSave = true;
       saveMatch(currentUI);
       if (game.winner !== null) currentUI.checkGameOver();
@@ -648,75 +637,6 @@
     });
     loadCustomUnits();
     MUSIC.init();
-    var jump = $("map-jump");
-    var placeholder = document.createElement("option");
-    placeholder.value = "";
-    placeholder.textContent = "Jump to map…";
-    jump.appendChild(placeholder);
-    var campaignGroup = document.createElement("optgroup");
-    campaignGroup.label = "Campaign";
-    ORIGINAL_CAMPAIGN.forEach(function (m, i) {
-      var option = document.createElement("option");
-      option.value = "c:" + i;
-      option.textContent = String(i + 1).padStart(2, "0") + " · " + m.name;
-      campaignGroup.appendChild(option);
-    });
-    jump.appendChild(campaignGroup);
-    var baseNecGroup = document.createElement("optgroup");
-    baseNecGroup.label = "Base Nectaris Terrain";
-    BASE_NECTARIS_LEVELS.forEach(function (m, i) {
-      var option = document.createElement("option");
-      option.value = "b:" + i;
-      option.textContent = String(i + 1).padStart(2, "0") + " · " + m.name;
-      baseNecGroup.appendChild(option);
-    });
-    jump.appendChild(baseNecGroup);
-    ENVIRONMENT_CAMPAIGNS.forEach(function (campaign) {
-      var group = document.createElement("optgroup"); group.label = campaign.name;
-      campaign.levels.forEach(function (map, index) {
-        var option = document.createElement("option");
-        option.value = "t:"+campaign.id+":"+index;
-        option.textContent = String(index+1).padStart(2,"0")+" · "+map.name;
-        group.appendChild(option);
-      });
-      jump.appendChild(group);
-    });
-    var aiMadeGroup = document.createElement("optgroup");
-    aiMadeGroup.label = "AI-made";
-    AI_MADE_LEVELS.forEach(function (m, i) {
-      var option = document.createElement("option");
-      option.value = "a:" + i;
-      option.textContent = String(i + 1).padStart(2, "0") + " · " + m.name;
-      aiMadeGroup.appendChild(option);
-    });
-    jump.appendChild(aiMadeGroup);
-    var expansionGroup = document.createElement("optgroup");
-    expansionGroup.label = "Lunar Frontiers";
-    EXPANSION_LEVELS.forEach(function (m, i) {
-      var option = document.createElement("option");
-      option.value = "e:" + i;
-      option.textContent = String(i + 1).padStart(2, "0") + " · " + m.name;
-      expansionGroup.appendChild(option);
-    });
-    jump.appendChild(expansionGroup);
-    jump.onchange = function () {
-      if (this.value === "") return;
-      var parts = this.value.split(":");
-      var i = +parts[1];
-      if (parts[0] === "t") {
-        var terrain = terrainCampaign(parts[1]), ti = Number(parts[2]);
-        if (terrain && Number.isInteger(ti) && terrain.levels[ti]) startGame(terrain.levels[ti],
-          {environmentCampaign:terrain.id, environmentIndex:ti, hotseat:!!currentOptions.hotseat, opening:currentOptions.opening});
-      } else if (parts[0] === "c") {
-        startGame(ORIGINAL_CAMPAIGN[i], { campaignIndex: i, hotseat: !!currentOptions.hotseat, opening:currentOptions.opening });
-      } else if (parts[0] === "b") {
-        startGame(BASE_NECTARIS_LEVELS[i], { baseNecIndex: i, hotseat: !!currentOptions.hotseat, opening:currentOptions.opening });
-      } else if (parts[0] === "a") {
-        startGame(AI_MADE_LEVELS[i], { aiMadeIndex: i, hotseat: !!currentOptions.hotseat, opening:currentOptions.opening });
-      } else {
-        startGame(EXPANSION_LEVELS[i], { expansionIndex: i, hotseat: !!currentOptions.hotseat, opening:currentOptions.opening });
-      }
-    };
     $("file-import").onchange = function (e) {
       if (e.target.files[0]) importLevelFile(e.target.files[0]);
       e.target.value = "";

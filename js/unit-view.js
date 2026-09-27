@@ -14,14 +14,14 @@ var UNIT_VIEW = (function () {
   function rankLabel(unit) {
     return unit.exp >= 8 ? "General" : unit.exp ? ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven"][unit.exp] + " experience star" + (unit.exp === 1 ? "" : "s") : "No experience stars";
   }
-  function iconHtml(unit, opts) {
+  function iconHtml(unit) {
     var type = unit.type || unit, id = unit.typeId || type.id;
     return "<canvas class='unit-label-icon' width='32' height='32' aria-hidden='true' data-unit-type='" + esc(id) +
       "' data-player='" + (unit.player === undefined ? -1 : unit.player) + "' data-strength='" +
-      (unit.strength === undefined ? 8 : unit.strength) + "' data-exp='" + (unit.exp || 0) + "'" + (opts && opts.experienceGlowFrom !== undefined ? " data-exp-glow-from='" + opts.experienceGlowFrom + "'" : "") + "></canvas>";
+      (unit.strength === undefined ? 8 : unit.strength) + "' data-exp='" + (unit.exp || 0) + "'></canvas>";
   }
-  function html(unit, opts) {
-    return "<span class='unit-label'>" + iconHtml(unit, opts) + "<span>" + esc(name(unit)) + "</span></span>";
+  function html(unit) {
+    return "<span class='unit-label'>" + iconHtml(unit) + "<span>" + esc(name(unit)) + "</span></span>";
   }
   function paint(container) {
     if (!container.querySelectorAll) return;
@@ -30,7 +30,7 @@ var UNIT_VIEW = (function () {
       var id = canvas.getAttribute("data-unit-type"), type = types[id];
       if (!type) return;
       renderer().drawUnitIcon(canvas, {typeId:id,type:type,player:+canvas.getAttribute("data-player"),
-        strength:+canvas.getAttribute("data-strength"),exp:+canvas.getAttribute("data-exp"),cargo:[]}, {experience:true,experienceGlowFrom:canvas.hasAttribute("data-exp-glow-from") ? +canvas.getAttribute("data-exp-glow-from") : undefined});
+        strength:+canvas.getAttribute("data-strength"),exp:+canvas.getAttribute("data-exp"),cargo:[]}, {experience:true});
     });
   }
   function addIcon(parent, unit) {

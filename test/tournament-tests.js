@@ -113,17 +113,13 @@ module.exports=function(ok){
     runner.destroy();workers[0].onmessage({data:{sequence:1,action:action}});
     ok(workers[0].terminated&&runner.next()===null&&JSON.stringify(losing.snapshot())===old,"cancelling a worker ignores late replies and leaves the match untouched");
   }finally{if(savedWorker===undefined)delete global.Worker;else global.Worker=savedWorker;}
-  var doc=global.document,UI=require("../js/ui.js"),elements={"opponent-select":{},"status-player":{}},changes=0,saves=0;
+  var doc=global.document,UI=require("../js/ui.js"),elements={"status-player":{}};
+  var page=require("node:fs").readFileSync(require("node:path").join(__dirname,"../index.html"),"utf8");
+  ok(!UI.GameUI.prototype.setOpponent&&!/id="opponent-select"/.test(page)&&/id="status-opponent"/.test(page),
+    "a match names the opponent chosen before it started and offers no way to change it");
   try{
     global.document={getElementById:function(id){return elements[id];}};
-    var ui=Object.create(UI.GameUI.prototype);ui.game=losing;ui.mode="idle";ui.opponent="classic";
-    ui.options={onOpponentChange:function(){changes++;},onStateChange:function(){saves++;}};
-    ui.setOpponent("beam");
-    ok(ui.opponent==="beam"&&elements["opponent-select"].value==="beam"&&changes===1&&saves===1,"opponent picker updates the match and checkpoints the selection");
-    ui.mode="aiTurn";ui.setOpponent("apex");
-    ok(ui.opponent==="beam"&&elements["opponent-select"].disabled,"opponent cannot change during an AI turn");
-    ui.mode="idle";ui.options.hotseat=true;ui.setOpponent("apex");
-    ok(ui.opponent==="beam"&&elements["opponent-select"].disabled,"hotseat never accepts a computer-opponent change");
+    var ui=Object.create(UI.GameUI.prototype);ui.game=losing;ui.opponent="classic";
     var terminated=false;ui.mode="aiTurn";ui.toast=function(){};ui._aiTurn={next:function(){throw new Error("Search failed");},destroy:function(){terminated=true;}};
     ok(ui.nextAIEvent().t==="error"&&terminated&&ui.snapshotForSave()===null&&losing.currentPlayer===0,"search errors preserve the checkpoint instead of passing the side's turn");
   }finally{if(doc===undefined)delete global.document;else global.document=doc;}

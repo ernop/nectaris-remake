@@ -18,15 +18,32 @@ on the source page. That distinction must remain in provenance records.
 ## Adaptation
 
 The JPEG contains 23 blue unit pictures on colored role cards. It is not a
-lossless transparent sprite atlas. `tools/import-legacy-unit-art.py` records
-each source rectangle, removes card backgrounds, quantizes JPEG color noise,
-and centers the result inside a transparent **32×32** frame. Nearest-neighbor
-normalization fits the existing hex envelope; infantry stays at most 17 pixels
-tall. These are adaptations of the selected chart, not claimed bit-exact ROM
-sprites or newly invented silhouettes.
+lossless transparent sprite atlas, but every picture is an exact 2× enlargement:
+each art pixel is a 2×2 block of chart pixels, and no sprite exceeds 16×16 art
+pixels. `tools/import-legacy-unit-art.py` finds each sprite's block grid,
+averages every block, removes the flat card color by flood fill from outside the
+sprite, and gives each remaining block the nearest of the chart's seven colors:
+black, dark teal, mid blue, gray, cyan, light cyan and white. JPEG stores
+brightness at full resolution and color at half resolution, so the comparison
+weights brightness. These are adaptations of the selected chart, not claimed
+bit-exact ROM sprites or newly invented silhouettes.
 
-The chart supplies one faction and facing. Green, red and neutral palettes are
-derived for game states; spent icons use the normal greyscale treatment.
+**Every unit keeps the chart's 2×2 pixels, infantry included** (user decision,
+2026-09-26). Frames place the sprite unscaled and centered in **32×32**, which
+gives the original map's proportions on 48×32 hexes (sprites up to 32×32; corners
+may reach past the hex's slanted edges, as in the original). The Remake safe-hex
+envelope and 17-pixel infantry limit do not apply to Legacy. This supersedes the
+first import (2026-09-20), which classified single JPEG pixels and shrank the
+result with nearest-neighbor sampling to fit that envelope. That dropped every
+mid-gray pixel, so terrain showed through holes in all 46 frames, and drew some
+art pixels half-width. `test/unit-art-tests.js` checks that each Legacy frame is
+intact 2×2 blocks, has no enclosed see-through pixel and uses only the seven
+chart colors.
+
+The chart supplies one faction and facing. Its dark teal, mid blue, cyan and
+light cyan are the faction colors; green, red and neutral ramps replace them
+for game states, while black, gray and white stay shared. Spent icons use the
+normal greyscale treatment.
 Left-facing art mirrors the extracted source, including its lighting. This is
 a documented preservation exception to the separately relit Remake frames.
 
@@ -44,6 +61,9 @@ node test/run-tests.js
 Pillow is needed only for rebuilding; playing still has no dependencies or
 build step. Generated indexed data lives in `js/data-unit-art-legacy.js`.
 `output/` contains 184 native PNGs, a contact sheet and the import manifest.
+
+Palette codes 1–7 are the chart colors, darkest first; codes 8–f are unused and
+filled with magenta so a stray reference is visible.
 
 Both sets are registered in `js/unit-icon-sets.js`. A pack needs an id, label,
 complete 32×32 left/right frames for all 23 stock units, and union/xenon/attack/

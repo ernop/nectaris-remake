@@ -41,9 +41,9 @@ document.getElementById("run").onclick=async function(){
     var canvas=d.getElementById("game-canvas"),baseline=bounds(canvas),camera=[ui.renderer.zoom,ui.renderer.originX,ui.renderer.originY].join();
     ui.openWarDock("<p>Short report</p>","<p>One statistic</p>");await wait(20);
     check(bounds(canvas)===baseline,"opening a report does not resize or move the board");
-    ui.openWarDock("<p>Long report</p>",Array(100).fill("<p>Battle statistics</p>").join(""));ui.setDetailsOpen(true);await wait(30);
-    check(bounds(canvas)===baseline&&[ui.renderer.zoom,ui.renderer.originX,ui.renderer.originY].join()===camera,"growing metadata and opening details preserve board bounds and camera");
-    ui.setDetailsOpen(false);ui.closeWarDock();
+    ui.openWarDock("<p>Long report</p>",Array(100).fill("<p>Battle statistics</p>").join(""));await wait(30);
+    check(bounds(canvas)===baseline&&[ui.renderer.zoom,ui.renderer.originX,ui.renderer.originY].join()===camera,"growing metadata preserves board bounds and camera");
+    ui.closeWarDock();
     var unit=g.units[0];ui.selectUnit(unit);ui.tryMove(unit,2,3);
     check(ui.busy&&ui.renderer.motion&&unit.col===2,"movement locks commands while the engine has committed the destination");
     var save=JSON.stringify(ui.snapshotForSave()),rng=g.rng.getState(),visited=new Set();
@@ -52,7 +52,9 @@ document.getElementById("run").onclick=async function(){
     check(JSON.stringify(ui.snapshotForSave())===save&&g.rng.getState()===rng,"animation leaves the committed save and RNG untouched");
     check(ui.mode==="moved"&&ui.pickTargets.length===1&&!Array.from(d.querySelectorAll("#action-menu button")).some(function(b){return b.textContent==="End";}),"a move flows directly into available attacks without an End choice");
     ui.onHexClick(3,3);await wait(30);
-    check(!d.getElementById("battle-stage").classList.contains("hidden")&&d.getElementById("battle-stage").textContent.includes("Terrain"),"combat opens the opposing formations and battle stats");
+    check(ui.busy&&ui.renderer.combatEffects&&d.getElementById("battle-stage").classList.contains("hidden")&&d.getElementById("war-scene").textContent.includes("Per machine"),"committing an attack first lights supporters and surrounding hexes on the map beside the per-machine steps");
+    for(var tries=0;tries<200&&d.getElementById("battle-stage").classList.contains("hidden");tries++)await wait(15);
+    check(!d.getElementById("battle-stage").classList.contains("hidden")&&!ui.renderer.combatEffects&&d.getElementById("battle-stage").textContent.includes("Per machine"),"combat then opens the opposing formations and per-machine battle stats");
     check(bounds(canvas)===baseline,"battle screen and casualty readout preserve the board viewport");
     var battleSnapshot=JSON.stringify(g.snapshot()),battleText=d.getElementById("battle-content").textContent;
     d.getElementById("btn-battle-pause").click();
@@ -69,7 +71,7 @@ document.getElementById("run").onclick=async function(){
     check(["ready","fighting","result"].every(function(p){return phases.has(p);}),"live battles visibly pass through Ready, Fighting and Result");
     check(Array.from(d.querySelectorAll(".battle-machine canvas")).every(function(c){return c.dataset.exp==="0";})&&
       !!d.querySelector(".battle-heading [data-exp-glow-from]"),"only header icons gain glowing experience stars; formation models have no stars");
-    check(!!d.querySelector(".battle-heading .battle-rank-icon .battle-new-star")&&!d.getElementById("battle-content").textContent.includes("Experience gained")&&!d.getElementById("battle-content").textContent.includes("EXP "),"earned stars fade in over the header icon without a separate row or numeric experience");
+    check(!!d.querySelector(".battle-heading .battle-rank-icon .battle-rank-new")&&!d.getElementById("battle-content").textContent.includes("Experience gained")&&!d.getElementById("battle-content").textContent.includes("EXP "),"earned stars fade in over the header icon without a separate row or numeric experience");
     check(d.getElementById("battle-stage").classList.contains("hidden")&&bounds(canvas)===baseline,"battle completes and returns to the same map viewport");
     var gun=g.units.find(function(u){return u.typeId==="HADRIAN";});ui.selectUnit(gun);ui.tryMove(gun,1,0);
     while(ui.busy)await wait(15);
@@ -101,8 +103,8 @@ document.getElementById("run").onclick=async function(){
           ui.game=new w.ENGINE.Game({name:"Factory stars",grid:Array(7).fill("............").map(function(row,i){return i===3?"....F.......":row;}),
             buildings:[{col:4,row:3,owner:owner,stored:[{t:"BISON",exp:0},{t:"BISON",exp:3},{t:"BISON",exp:8}]}],
             units:[{t:"CHARLIE",o:0,x:0,y:0},{t:"BISON",o:1,x:11,y:6}]},{seed:7});
-          ui.renderer.game=ui.game;ui.renderer.fitToMap();ui.mode="idle";ui.renderer.hoverHex={col:4,row:3};ui.updateHoverInfo();ui.showHexInfo(4,3);
-          for(var id of ["unit-hover","hex-info"]){
+          ui.renderer.game=ui.game;ui.renderer.fitToMap();ui.mode="idle";ui.renderer.hoverHex={col:4,row:3};ui.updateHoverInfo();
+          for(var id of ["unit-hover"]){
             var icons=Array.from(d.getElementById(id).querySelectorAll("canvas[data-unit-type]"));
             var pixels=icons.map(function(c){return c.getContext("2d").getImageData(0,0,32,32).data;});
             check(icons.length===3&&pixels[1].some(function(value,i){return value!==pixels[0][i];})&&pixels[2].some(function(value,i){return value!==pixels[0][i];}),

@@ -45,6 +45,10 @@ Facts we need across sessions:
   times out and a plain `Page.captureScreenshot` returns an old frame; pass
   `captureBeyondViewport: true` to get a fresh one. Tool calls sent in one batch
   run concurrently, so never batch an edit with the command that checks it.
+- **Where the user reads (2026-09-26):** Cursor greys out and collapses some
+  earlier agent messages, and a question form can hide the text shown before it.
+  Put everything the user needs in the final message, and the facts a decision
+  depends on inside the question itself.
 - **How much to test (user instruction, 2026-09-26):** do not test after each
   edit. Make the whole change, then run `node test/run-tests.js` once (about 35 s)
   and do one quick browser look at the changed screen.
@@ -54,7 +58,7 @@ Facts we need across sessions:
   the map is smaller than the viewport. Show grab while Ctrl is held and
   grabbing during panning; use a crosshair for normal map actions.
 - **Board layout (updated 2026-09-26):** Auto / Normal / Sideways orientation
-  remains persisted. All controls, metadata, Details, forecasts and battle
+  remains persisted. All controls, metadata, forecasts and battle
   reports now live in a fixed left panel in matches and replays. It scrolls
   independently: changing its content must never resize/refit the board.
   This supersedes Auto / Top / Left control placement, on-map action menus
@@ -122,8 +126,11 @@ Facts we need across sessions:
   The user rejected chibi/toy proportions. Always horizontally
   center the visible unit silhouette in its tile. Map icons scale with hex zoom, preserving their intended proportions
   (updated 2026-09-21; supersedes the old no-enlargement rule). Inspectors,
-  factories and review sheets use the native 32×32 frame. Charlie must
-  stay small within its frame; bases use original-style domed compounds. Review changes in
+  factories and review sheets use the native 32×32 frame. Remake Charlie must
+  stay small within its frame; bases use original-style domed compounds. Legacy
+  units, infantry included, keep the chart's pixels as exact 2×2 blocks, with no
+  resampling and no safe-hex shrink (user decision, 2026-09-26; see
+  `art/legacy/README.md`). Review changes in
   `tools/unit-sheet.html`. Union is blue, Xenon green, red means "attacking".
 - **Rules are sourced, not guessed** (since 2026-09-01): movement costs,
   per-domain attack ranges (`rngG`/`rngA`, indirect band 2..range),
@@ -203,9 +210,11 @@ Facts we need across sessions:
   and a pausable clock cover live play, watched AI and replay. Replay defaults:
   pause before battles on, skip scenes off; click a paused scene to resume.
   Experience ranks are stars on unit icons everywhere, never numeric or separate
-  badges. Only battle header icons have stars, not individual formation machines;
-  newly earned stars fade in large and glowing on top of the header icon after
-  fighting, with no "Experience gained" row (2026-09-26). See PRODUCT's battle review
+  badges. Only battle header icons have stars, not individual formation machines. The
+  header icon is enlarged (96 px) with the standard 3/2/3 stars, or the General
+  star, on top; newly earned stars fade in, glow, then settle to the normal
+  colour. No "Experience gained" row (2026-09-26). The opponent's last unit is
+  deselected when its turn ends. See PRODUCT's battle review
   record and `test/board-playback.html` / `test/battle-replay.html` browser fixtures.
 
 - **Unit labels and factory hovers (updated 2026-09-23):** use `UNIT_VIEW` for short
@@ -260,11 +269,12 @@ Facts we need across sessions:
   clear redo. Right-click cancels menus or undoes a just-completed/idle move.
   Battle, turn and match-end boundaries clear history; never undo/redo combat.
   Buggies retain their remaining movement only after attacking. Keep action
-  controls clear of target hexes. The left inspector is optional (Details,
-  initially closed); commands and changing readouts stay in the fixed left panel.
-  Hovering an attackable enemy always shows its outcome forecast and heatmap in
-  the left panel directly under the unit's action strip (above Details, Undo and
-  End Turn), even with Details closed (2026-09-26).
+  controls clear of target hexes. Commands and changing readouts stay in the
+  fixed left panel. There is no Details panel (removed 2026-09-26): the map hover
+  card carries unit, terrain-under-unit and building contents. Empty-hex terrain
+  is shown nowhere; the user chose to leave that gap, so do not add it unasked.
+  Hovering an attackable enemy shows its outcome forecast, heatmap first, in the
+  left panel directly under the unit's action strip, above Undo and End Turn.
   Enemy inspection retains orange movement and ground/air firing contours.
   Never restore automatic layout changes from metadata or
   automatic move-and-attack shortcuts. `PRODUCT.md` records the current flow;

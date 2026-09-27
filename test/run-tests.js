@@ -733,6 +733,9 @@ var g8e = new ENGINE.Game({
 ok(g8e.isSurrounded(g8e.unitAt(3, 0)) === false,
    "a unit against the map edge can never be surrounded");
 
+section("support, surround, casualties and cargo against the original Windows executable");
+require("./combat-original-tests.js")(ok);
+
 section("original manual roster contract");
 require("./manual-contract-tests.js")(ok);
 

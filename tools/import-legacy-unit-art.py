@@ -2,8 +2,14 @@
 """Import the user-selected unit chart; this is JPEG-derived, not a ROM atlas.
 
 Requires Pillow only when rebuilding. Runtime uses checked-in indexed data.
-Coordinates refer to the unmodified 579x635 source image. Remove chart backgrounds,
-quantize compression noise, and normalize transparent frames without inventing art.
+Coordinates refer to the unmodified 579x635 source image.
+
+The chart draws every sprite at exactly twice its size, so each art pixel is a
+2x2 block of chart pixels. The import reads that grid instead of single JPEG
+pixels: it averages each block, removes the flat card background by flood fill
+from outside the sprite, and gives every remaining block the nearest of the
+chart's seven colours. JPEG keeps brightness at full resolution but colour at
+half resolution, so brightness dominates every colour comparison.
 """
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
@@ -12,7 +18,6 @@ import hashlib, json
 ROOT=Path(__file__).resolve().parents[1]
 SOURCE=ROOT/'art/legacy/source/d2-01.jpg'
 OUT=ROOT/'art/legacy/output'
-OUT.mkdir(parents=True,exist_ok=True)
 # US ids are mapped by equipment/designation, not the chart's category order.
 # エストール is MR-22/Octopus; ナスホルン is SG-4/Hadrian.
 CENTERS={
@@ -25,79 +30,97 @@ CENTERS={
  'MULE':(519,472),'PELICAN':(519,567),'TRIGGER':(403,472),
 }
 JP=dict(zip(CENTERS,['ムンクス','ダーベック','ドレイパー','バイソン','レネット','アルマジロ','グリズリー','スラッガー','モンスター','ギガント','ジャビイ','ファルコ','ハンター','ナスホルン','エストール','モノケロス','ラビット','リンクス','シーカー','ホークアイ','ミュール','ペリカン','ヤマアラシ']))
-UNION=[None,'#080c10','#153039','#42616a','#90b7bf','#f0ffff',
- '#06384d','#086280','#109cbe','#66cedc','#b0eef4','#15222b','#66858b','#9c6a25','#f2cb58','#111820']
+# The chart's colours, darkest first; the list position is the frame code.
+# Medians of chart blocks whose neighbours share their colour (least JPEG bleed).
+CHART=[None,'#060606','#093a57','#397a97','#767b82','#15b8ef','#83fafb','#ecfeff']
+FACTION_CODES=(2,3,5,6)
 RAMPS={
- 'union':UNION[6:11],
- 'xenon':['#163b16','#35661f','#68a838','#b0d46b','#e4f4b2'],
- 'attack':['#481319','#81212e','#c63745','#eb7d80','#ffd4c8'],
- 'neutral':['#273138','#4c6065','#7a9599','#bdcdd0','#edf4f4'],
+ 'union':[CHART[c] for c in FACTION_CODES],
+ 'xenon':['#163b16','#35661f','#68a838','#b0d46b'],
+ 'attack':['#481319','#81212e','#c63745','#eb7d80'],
+ 'neutral':['#273138','#4c6065','#7a9599','#bdcdd0'],
 }
-PALETTES={key:UNION[:6]+ramp+UNION[11:] for key,ramp in RAMPS.items()}
-def rgb(c):return tuple(bytes.fromhex(c[1:]))
-COLORS={i:rgb(c) for i,c in enumerate(UNION) if c}
-assert hashlib.sha256(SOURCE.read_bytes()).hexdigest()=='bcc5f5a34670a9b6049c738e6b0b6ade1157c99688bd482a2bbb0e178cd199f5', 'Source chart changed'
-source=Image.open(SOURCE).convert('RGB')
-assert source.size==(579,635)
-frames={};report=[]
+# The icon-set registry requires 16 entries; codes 8-f are unused, so any
+# frame that referenced one would show magenta.
+UNUSED=['#ff00ff']*8
+PALETTES={faction:[dict(zip(FACTION_CODES,ramp)).get(code,color) for code,color in enumerate(CHART)]+UNUSED
+ for faction,ramp in RAMPS.items()}
+WINDOW=22 # art pixels per side of the area read around each chart centre
 
-def import_unit(id,cx,cy):
- crop=source.crop((cx-17,cy-17,cx+17,cy+17));core=set()
- for y in range(34):
-  for x in range(34):
-   r,g,b=crop.getpixel((x,y))
-   if (b>r+18 and g>r+12 and g>48) or (min(r,g,b)>150 and max(r,g,b)-min(r,g,b)<75):core.add((x,y))
- mask=set(core)
- for x,y in core:
-  for dy in range(-2,3):
-   for dx in range(-2,3):
-    xx,yy=x+dx,y+dy
-    if not(0<=xx<34 and 0<=yy<34):continue
-    r,g,b=crop.getpixel((xx,yy))
-    if max(r,g,b)<64 and max(r,g,b)-min(r,g,b)<30:mask.add((xx,yy))
- # Ignore isolated JPEG speckles, retaining components connected to the main sprite.
- components=[];todo=set(mask)
+def rgb(c):return tuple(bytes.fromhex(c[1:]))
+def ycc(c):
+ r,g,b=c
+ return (.299*r+.587*g+.114*b,128-.168736*r-.331264*g+.5*b,128+.5*r-.418688*g-.081312*b)
+def distance(a,b):
+ a,b=ycc(a),ycc(b)
+ return 2*abs(a[0]-b[0])+.5*(abs(a[1]-b[1])+abs(a[2]-b[2]))
+def median(colors):return tuple(sorted(c[k] for c in colors)[len(colors)//2] for k in range(3))
+CHART_RGB={code:rgb(c) for code,c in enumerate(CHART) if c}
+
+def grid_phase(source,cx,cy):
+ """Chart x/y parity at which each 2x2 art pixel starts."""
+ phase=[]
+ for dx,dy in ((1,0),(0,1)):
+  step=[0,0]
+  for y in range(cy-20,cy+20):
+   for x in range(cx-20,cx+20):
+    a,b=source.getpixel((x,y)),source.getpixel((x+dx,y+dy))
+    step[(x if dx else y)%2]+=sum(abs(a[k]-b[k]) for k in range(3))
+  # Neighbours inside one art pixel differ only by JPEG noise.
+  inside=min((0,1),key=lambda p:step[p])
+  assert step[1-inside]>2*step[inside],('no 2x2 art-pixel grid',cx,cy,step)
+  phase.append(inside)
+ return phase
+
+def art_pixels(source,cx,cy):
+ px,py=grid_phase(source,cx,cy)
+ x0=cx-WINDOW+(px-(cx-WINDOW))%2;y0=cy-WINDOW+(py-(cy-WINDOW))%2
+ grid=[[tuple(sum(source.getpixel((x0+2*i+u,y0+2*j+v))[k] for u in (0,1) for v in (0,1))/4 for k in range(3))
+  for i in range(WINDOW)] for j in range(WINDOW)]
+ return (x0,y0),grid
+
+def import_unit(source,id):
+ """Return the sprite as rows of chart codes (0 transparent), cropped to its bounds."""
+ origin,grid=art_pixels(source,*CENTERS[id]);n=WINDOW
+ margin=[grid[j][i] for j in range(1,n-1) for i in (1,n-2)]+[grid[1][i] for i in range(1,n-1)]
+ card=median(margin)
+ assert sum(distance(c,card)>=25 for c in margin)<=len(margin)//10,(id,'card background is not uniform')
+ references=dict(CHART_RGB,card=card)
+ label=[[min(references,key=lambda k:distance(grid[j][i],references[k])) for i in range(n)] for j in range(n)]
+ # Card-coloured art pixels reachable from outside the sprite are background.
+ outside=set((i,j) for j in range(n) for i in range(n) if i in (0,n-1) or j in (0,n-1))
+ todo=list(outside)
  while todo:
-  pending=[todo.pop()];component=set(pending)
-  while pending:
-   x,y=pending.pop()
-   for dx,dy in [(1,0),(-1,0),(0,1),(0,-1)]:
-    p=(x+dx,y+dy)
-    if p in todo:todo.remove(p);component.add(p);pending.append(p)
-  components.append(component)
- mask=set().union(*(c for c in components if len(c)>=4))
- xs=[x for x,y in mask];ys=[y for x,y in mask]
- bbox=(min(xs),min(ys),max(xs)+1,max(ys)+1)
- indexed=Image.new('L',(34,34))
- for x,y in mask:
-  color=crop.getpixel((x,y));r,g,b=color
-  # Greys stay neutral; cyan surfaces use the faction ramp.
-  candidates=range(6,11) if b-r>24 and g-r>15 else [1,2,3,4,5,11,12,15]
-  index=min(candidates,key=lambda i:sum((color[n]-COLORS[i][n])**2 for n in range(3)))
-  indexed.putpixel((x,y),index)
- indexed=indexed.crop(bbox)
- max_height=17 if id in ('CHARLIE','KILROY','PANTHER') else 28
- scale=min(1,28/indexed.width,max_height/indexed.height)
- width=max(2,round(indexed.width*scale/2)*2);height=max(2,round(indexed.height*scale))
- indexed=indexed.resize((width,height),Image.Resampling.NEAREST)
- # Crop sampling margins before checking the final centered hex envelope.
- indexed=indexed.crop(indexed.getbbox())
- if indexed.width%2:
-  indexed=indexed.resize((indexed.width+1,indexed.height),Image.Resampling.NEAREST)
- # Fit the common flattened-hex safety envelope, using only nearest sampling.
- while True:
-  pixels=list(indexed.get_flattened_data());w,h=indexed.size;ox=(32-w)//2;oy=(32-h)//2
-  if all(not v or abs(x+ox+.5-16)+abs(y+oy+.5-16)<=22 for y in range(h) for x in range(w) for v in [pixels[y*w+x]]):break
-  width-=2;height=max(2,round(indexed.height*width/indexed.width));indexed=indexed.resize((width,height),Image.Resampling.NEAREST)
-  indexed=indexed.crop(indexed.getbbox())
-  if indexed.width%2:indexed=indexed.resize((indexed.width+1,indexed.height),Image.Resampling.NEAREST)
- frame=Image.new('L',(32,32));frame.paste(indexed,((32-indexed.width)//2,(32-indexed.height)//2))
- rows=[''.join(format(v,'x') if v else '.' for v in list(frame.get_flattened_data())[y*32:y*32+32]) for y in range(32)]
- bounds=frame.getbbox()
- assert bounds[0]==32-bounds[2] and 2<=bounds[0] and bounds[2]<=30,(id,bounds)
- assert id not in ('CHARLIE','KILROY','PANTHER') or bounds[3]-bounds[1]<=17
- report.append({'id':id,'japaneseName':JP[id],'sourceCrop':[cx-17,cy-17,34,34],'visibleBounds':list(bounds),'opaquePixels':sum(bool(v) for v in frame.get_flattened_data())})
- return rows
+  i,j=todo.pop()
+  for q in ((i+1,j),(i-1,j),(i,j+1),(i,j-1)):
+   if 0<=q[0]<n and 0<=q[1]<n and q not in outside and label[q[1]][q[0]]=='card':outside.add(q);todo.append(q)
+ # The sprite is the largest remaining region; smaller ones are card borders and captions.
+ remaining=set((i,j) for j in range(n) for i in range(n) if (i,j) not in outside);regions=[]
+ while remaining:
+  region={remaining.pop()};todo=list(region)
+  while todo:
+   i,j=todo.pop()
+   for q in ((i+1,j),(i-1,j),(i,j+1),(i,j-1)):
+    if q in remaining:remaining.remove(q);region.add(q);todo.append(q)
+  regions.append(region)
+ sprite=max(regions,key=len)
+ xs=[i for i,j in sprite];ys=[j for i,j in sprite]
+ left,top,right,bottom=min(xs),min(ys),max(xs)+1,max(ys)+1
+ assert right-left<=16 and bottom-top<=16 and 0<left and 0<top and right<n and bottom<n,(id,'sprite bounds',left,top,right,bottom)
+ # Inside the outline, blurred dark pixels can sit nearer the card colour.
+ rows=[[min(CHART_RGB,key=lambda k:distance(grid[j][i],CHART_RGB[k])) if (i,j) in sprite else 0
+  for i in range(left,right)] for j in range(top,bottom)]
+ return rows,{'chartOrigin':[origin[0]+2*left,origin[1]+2*top],'artPixels':[right-left,bottom-top]}
+
+def frame(rows):
+ """Centre the sprite in 32x32 with each art pixel as a 2x2 block, as on the original map."""
+ ox,oy=16-len(rows[0]),16-len(rows)
+ out=[['.']*32 for _ in range(32)]
+ for y in range(2*len(rows)):
+  for x in range(2*len(rows[0])):
+   code=rows[y//2][x//2]
+   if code:out[oy+y][ox+x]=format(code,'x')
+ return [''.join(r) for r in out]
 
 def colored(rows,faction,spent=False):
  im=Image.new('RGBA',(32,32));pal=PALETTES[faction]
@@ -109,22 +132,36 @@ def colored(rows,faction,spent=False):
    im.putpixel((x,y),color+(255,))
  return im
 
-for id,(x,y) in CENTERS.items():
- right=import_unit(id,x,y)
- frames[id]={'right':right,'left':[row[::-1] for row in right]}
- for facing,rows in frames[id].items():
-  for state in ('union','xenon','attack','spent'):
-   colored(rows,'union' if state=='spent' else state,state=='spent').save(OUT/(id.lower()+'-'+state+'-'+facing+'.png'))
-data={'frame':32,'anchor':[16,16],'light':'source shading; left facing mirrored','codes':'123456789abcdef','palettes':PALETTES,'descriptions':{id:'Legacy · '+JP[id] for id in CENTERS},'frames':frames}
-(ROOT/'js/data-unit-art-legacy.js').write_text('/* Generated by tools/import-legacy-unit-art.py from the user-selected JPEG chart. */\nvar LEGACY_UNIT_ART = '+json.dumps(data,ensure_ascii=False,indent=2)+';\nif(typeof module!=="undefined")module.exports=LEGACY_UNIT_ART;\n')
-sheet=Image.new('RGB',(548,480),'#14151f');draw=ImageDraw.Draw(sheet);font=ImageFont.load_default(size=10)
-draw.text((16,10),'LEGACY / 23 UNITS / 32 X 32 FRAMES',font=font,fill='#c0e4f6')
-for i,id in enumerate(CENTERS):
- x=18+(i%6)*88;y=32+(i//6)*112;draw.text((x+8,y),id,font=font,fill='#ecf4f0')
- for row,(facing,faction) in enumerate([('right','union'),('left','xenon')]):
-  cx=x+32;cy=y+34+row*38
-  draw.polygon([(cx-24,cy),(cx-8,cy-16),(cx+8,cy-16),(cx+24,cy),(cx+8,cy+16),(cx-8,cy+16)],fill='#482f36')
-  im=colored(frames[id][facing],faction);sheet.paste(im,(cx-16,cy-16),im)
-sheet.save(OUT/'units-native.png')
-(OUT/'manifest.json').write_text(json.dumps({'source':'https://anka.sakura.ne.jp/nectaris/image/d2-01.jpg','sourcePage':'https://anka.sakura.ne.jp/nectaris/d2.html','sha256':hashlib.sha256(SOURCE.read_bytes()).hexdigest(),'method':'JPEG-derived crops; background removal, shared-palette quantization, nearest-neighbor normalization','frame':32,'leftFacing':'mirrored source shading','unitCount':23,'units':report},ensure_ascii=False,indent=2)+'\n')
-print('Imported 23 Legacy units into 46 centered frames and 184 PNG variants.')
+def main():
+ assert hashlib.sha256(SOURCE.read_bytes()).hexdigest()=='bcc5f5a34670a9b6049c738e6b0b6ade1157c99688bd482a2bbb0e178cd199f5','Source chart changed'
+ source=Image.open(SOURCE).convert('RGB')
+ assert source.size==(579,635)
+ OUT.mkdir(parents=True,exist_ok=True)
+ frames={};report=[]
+ for id in CENTERS:
+  rows,info=import_unit(source,id)
+  right=frame(rows)
+  frames[id]={'right':right,'left':[row[::-1] for row in right]}
+  opaque=[(x,y) for y,row in enumerate(right) for x,c in enumerate(row) if c!='.']
+  xs=[x for x,y in opaque];ys=[y for x,y in opaque]
+  bounds=[min(xs),min(ys),max(xs)+1,max(ys)+1]
+  assert bounds[0]==32-bounds[2],(id,bounds)
+  report.append({'id':id,'japaneseName':JP[id],**info,'visibleBounds':bounds,'opaquePixels':len(opaque)})
+  for facing,frame_rows in frames[id].items():
+   for state in ('union','xenon','attack','spent'):
+    colored(frame_rows,'union' if state=='spent' else state,state=='spent').save(OUT/(id.lower()+'-'+state+'-'+facing+'.png'))
+ data={'frame':32,'anchor':[16,16],'light':'source shading; left facing mirrored','codes':'1234567','palettes':PALETTES,'descriptions':{id:'Legacy · '+JP[id] for id in CENTERS},'frames':frames}
+ (ROOT/'js/data-unit-art-legacy.js').write_text('/* Generated by tools/import-legacy-unit-art.py from the user-selected JPEG chart. */\nvar LEGACY_UNIT_ART = '+json.dumps(data,ensure_ascii=False,indent=2)+';\nif(typeof module!=="undefined")module.exports=LEGACY_UNIT_ART;\n')
+ sheet=Image.new('RGB',(548,480),'#14151f');draw=ImageDraw.Draw(sheet);font=ImageFont.load_default(size=10)
+ draw.text((16,10),'LEGACY / 23 UNITS / 32 X 32 FRAMES',font=font,fill='#c0e4f6')
+ for i,id in enumerate(CENTERS):
+  x=18+(i%6)*88;y=32+(i//6)*112;draw.text((x+8,y),id,font=font,fill='#ecf4f0')
+  for row,(facing,faction) in enumerate([('right','union'),('left','xenon')]):
+   cx=x+32;cy=y+34+row*38
+   draw.polygon([(cx-24,cy),(cx-8,cy-16),(cx+8,cy-16),(cx+24,cy),(cx+8,cy+16),(cx-8,cy+16)],fill='#482f36')
+   im=colored(frames[id][facing],faction);sheet.paste(im,(cx-16,cy-16),im)
+ sheet.save(OUT/'units-native.png')
+ (OUT/'manifest.json').write_text(json.dumps({'source':'https://anka.sakura.ne.jp/nectaris/image/d2-01.jpg','sourcePage':'https://anka.sakura.ne.jp/nectaris/d2.html','sha256':hashlib.sha256(SOURCE.read_bytes()).hexdigest(),'method':'2x2 chart blocks averaged into art pixels; card background removed by flood fill; brightness-weighted nearest of seven chart colours; no resampling','frame':32,'leftFacing':'mirrored source shading','unitCount':23,'units':report},ensure_ascii=False,indent=2)+'\n')
+ print('Imported 23 Legacy units into 46 centered frames and 184 PNG variants.')
+
+if __name__=='__main__':main()

@@ -322,22 +322,19 @@ var ENGINE = (function () {
     return false;
   };
 
-  /* Surround check (combat step 2): every adjacent hex is either occupied by
-   * an enemy of `unit` or itself adjacent to an enemy of `unit`. Off-map
-   * hexes prevent surround: the map edge has no enemy ZOC. */
+  /* The six hexes around `unit`, each controlled when occupied by an enemy of
+   * `unit` or adjacent to one. Off-map hexes carry no ZOC, so a unit against
+   * the map edge can never be surrounded (the original is explicit about this). */
+  Game.prototype.surroundRing = function (unit) {
+    return HEX.neighbors(unit.col, unit.row).map(function (n) {
+      var onMap = this.inBounds(n.col, n.row), occupant = onMap ? this.unitAt(n.col, n.row) : null;
+      return { col: n.col, row: n.row, onMap: onMap, controlled: onMap &&
+        (!!occupant && occupant.player !== unit.player || this.inEnemyZOC(n.col, n.row, unit.player)) };
+    }, this);
+  };
+
   Game.prototype.isSurrounded = function (unit) {
-    var ns = HEX.neighbors(unit.col, unit.row);
-    for (var i = 0; i < ns.length; i++) {
-      var n = ns[i];
-      // Off-map hexes carry no ZOC, so a unit against the map edge can
-      // never be surrounded (the original is explicit about this).
-      if (!this.inBounds(n.col, n.row)) return false;
-      var occ = this.unitAt(n.col, n.row);
-      if (occ && occ.player !== unit.player) continue;
-      if (this.inEnemyZOC(n.col, n.row, unit.player)) continue;
-      return false;
-    }
-    return true;
+    return this.surroundRing(unit).every(function (hex) { return hex.controlled; });
   };
 
   Game.prototype.adjacentAllies = function (col, row, player, exclude) {
@@ -493,9 +490,11 @@ var ENGINE = (function () {
       this.unitAt(unit.col, unit.row) === unit;
   };
 
+  // A loaded transport cannot start a battle ("搭載中は攻撃できません" in the
+  // original); it still counterattacks when attacked.
   Game.prototype.canAttackNow = function (unit) {
     return this.winner === null && unit.player === this.currentPlayer &&
-      !unit.moved && !unit.attacked && !unit.carriedBy && !unit.inFactory &&
+      !unit.moved && !unit.attacked && !unit.carriedBy && !unit.inFactory && !unit.cargo.length &&
       !(unit.type.moveOrFire && unit.attackSpent) && this.unitAt(unit.col, unit.row) === unit;
   };
 
@@ -581,8 +580,7 @@ var ENGINE = (function () {
     unit.shifted = true;
     if (!unit.type.moveAfterAttack || unit.attacked) unit.movePointsLeft = 0;
     if (unit.moved || unit.carriedBy || unit.inFactory) return [];
-    if (this.entersBuilding(unit, unit.col, unit.row) || unit.attacked ||
-        (unit.type.moveOrFire && unit.attackSpent) || !this.attackTargets(unit).length) {
+    if (this.entersBuilding(unit, unit.col, unit.row) || !this.legalAttackTargets(unit).length) {
       return this.finishUnit(unit);
     }
     return [];

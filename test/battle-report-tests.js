@@ -25,9 +25,26 @@ module.exports = function (ok) {
   ok(parts.math.indexOf("Roll <strong>" + parts.assessed.attack.coefficientPercent + "%</strong>") >= 0,
     "math shows the match's actual roll");
   ok(parts.screen.includes("battle-formation-left") && parts.screen.includes("battle-formation-right") &&
-    parts.screen.includes("data-exp='" + attacker.exp + "'") && parts.screen.includes("Terrain") &&
-    parts.screen.includes(String(result.preview.attacker.ap * aBefore)),
-    "battle screen renders opposing formations, pre-battle experience, terrain and total attack");
+    parts.screen.includes("data-exp='" + attacker.exp + "'") && parts.screen.includes("terrain +5 defense") &&
+    parts.screen.includes("<dt>Attack</dt><dd>" + result.preview.attacker.ap + "</dd>") &&
+    parts.screen.includes("<dt>Defense</dt><dd>" + result.preview.defender.da + "</dd>") &&
+    parts.screen.includes("damage +20%") && !parts.screen.includes("<dd>" + result.preview.attacker.ap * aBefore + "</dd>"),
+    "battle screen shows per-machine attack and defense, terrain and the experience damage bonus, never squad totals");
+  var ring = new ENGINE.Game({name: "Effects", grid: Array(7).fill("..........."), units: [
+    {t: "BISON", o: 0, x: 5, y: 2}, {t: "BISON", o: 1, x: 5, y: 3}, {t: "BISON", o: 0, x: 5, y: 4},
+    {t: "BISON", o: 1, x: 5, y: 1}]}, {seed: 7});
+  var ringPreview = COMBAT.preview(ring, ring.units[0], ring.units[1]);
+  var staged = [0, 1, 2, 3].map(function (stage) {
+    return REPORT.effectsHtml(ring.units[0], ring.units[1], ringPreview, stage);
+  });
+  ok(ringPreview.surrounded && staged[0].includes("Base") && !staged[0].includes("+ Support") &&
+    staged[1].includes("+ Support") && !staged[1].includes("+ Terrain") &&
+    staged[2].includes("+ Terrain") && !staged[2].includes("Surrounded ½") &&
+    staged[3].includes("Surrounded ½") && staged[3].includes("Final (max 100)"),
+    "effects panel reveals support, terrain, then surround and the final values");
+  ok(staged[3].includes("<th>Final (max 100)</th><td>" + ringPreview.defender.ap + "</td><td>" + ringPreview.defender.da + "</td>") &&
+    ringPreview.defender.da === Math.floor((40 + 20 + 5) / 2),
+    "the final panel row is the defense the battle uses: (40 + 20 support + 5 terrain) halved");
   [0,1].forEach(function (initiator) {
     var fight = new ENGINE.Game({name:"Faction sides",grid:["....",".h-.","...."],units:[
       {t:"BISON",o:0,x:1,y:1,str:6,exp:3},{t:"POLAR",o:1,x:2,y:1,str:7,exp:7}]},{seed:7});
@@ -55,27 +72,41 @@ module.exports = function (ok) {
     ok(start.includes("data-exp='"+out.attackerExpBefore+"'")&&end===screen&&
       REPORT.earnedExperience(3,7,350)===4&&REPORT.earnedExperience(7,8,9999)===8,
       "earned stars reveal one at a time from the original rank, ending at the actual awarded rank");
-    ok(!before.includes("battle-new-star"),"a battle preview never claims experience before the attack occurs");
-    var heads=screen.slice(screen.indexOf("battle-heading"),screen.indexOf("battle-field")).split("battle-combatant'").slice(1);
-    function stars(html){return (html.match(/class='battle-new-star[ ']/g)||[]).length;}
+    ok(!before.includes("battle-rank-new"),"a battle preview never claims experience before the attack occurs");
+    function headsOf(html){return html.slice(html.indexOf("battle-heading"),html.indexOf("battle-field")).split("battle-combatant'").slice(1);}
+    function fresh(html){return (html.match(/battle-rank-new/g)||[]).length;}
+    function pips(html){return (html.match(/class='battle-rank-star/g)||[]).length;}
+    function layout(html){return html.split("battle-rank-col-").slice(1).map(function(part){return pips(part);}).join("/");}
+    var heads=headsOf(screen);
     var earned=[0,1].map(function(p){return p===a.player ? a.exp-out.attackerExpBefore : d.exp-out.defenderExpBefore;});
-    ok(heads.length===2 && earned.every(function(n,p){return stars(heads[p])===n && heads[p].includes("battle-rank-icon");}) &&
-      !screen.includes("Experience gained"),"each header icon carries exactly the stars it earned, with no separate experience row");
+    var rank=[0,1].map(function(p){return p===a.player ? a.exp : d.exp;});
+    ok(heads.length===2 && [0,1].every(function(p){
+        return heads[p].includes("battle-rank-icon") && heads[p].includes("data-exp='0'") &&
+          (rank[p]>=8 ? heads[p].includes("battle-rank-general") && !pips(heads[p]) : pips(heads[p])===rank[p]) &&
+          fresh(heads[p])===(rank[p]>=8 && earned[p] ? 1 : earned[p]);
+      }) && !screen.includes("Experience gained"),
+      "each enlarged header icon shows its whole rank as stars or the General star; only the earned ones glow");
+    var expected={0:"",1:"1",3:"3",4:"3/1",5:"3/2",6:"3/2/1",7:"3/2/2"};
+    ok(Object.keys(expected).every(function(n){
+      var head=headsOf(REPORT.screenHtml(a,d,out.preview,a0,d0,a.strength,d.strength,+n,0,undefined,undefined,"ready"))[a.player];
+      return layout(head)===expected[n] && !head.includes("battle-rank-general") && !fresh(head);
+    }),"header ranks fill columns of 3, 2 and 3 stars, as on every other icon");
     var most=Math.max(earned[0],earned[1]),at0=REPORT.present(report.snapshot,0).screen;
-    ok(!at0.includes("battle-new-star") && (!most || REPORT.present(report.snapshot,350).screen===REPORT.present(report.snapshot,699).screen),
+    ok(!at0.includes("battle-rank-new") && (!most || REPORT.present(report.snapshot,350).screen===REPORT.present(report.snapshot,699).screen),
       "new stars follow the reward clock, one rank per 350 ms, and the screen is unchanged between ranks");
-    var promoted=REPORT.screenHtml(a,d,out.preview,a0,d0,a.strength,d.strength,6,2,8,2,"result");
-    var promotedHeads=promoted.slice(promoted.indexOf("battle-heading"),promoted.indexOf("battle-field")).split("battle-combatant'").slice(1);
-    ok(stars(promotedHeads[a.player])===2 && promotedHeads[a.player].includes("battle-new-general") &&
-      promotedHeads[a.player].includes("Promoted to General") && promotedHeads[a.player].indexOf("animation-delay:-350ms") <
-      promotedHeads[a.player].indexOf("animation-delay:-0ms") && !stars(promotedHeads[d.player]),
-      "a promotion shows the seventh star and the larger General star; the older star continues its fade");
+    var two=headsOf(REPORT.screenHtml(a,d,out.preview,a0,d0,a.strength,d.strength,5,2,7,2,"result"))[a.player];
+    ok(fresh(two)===2 && layout(two)==="3/2/2" && two.indexOf("animation-delay:-350ms")<two.indexOf("animation-delay:-0ms"),
+      "a second new star joins without restarting the first star's glow");
+    var promoted=headsOf(REPORT.screenHtml(a,d,out.preview,a0,d0,a.strength,d.strength,6,2,8,2,"result"));
+    ok(promoted[a.player].includes("battle-rank-general battle-rank-new") && !pips(promoted[a.player]) &&
+      promoted[a.player].includes("General, 2 newly earned") && !fresh(promoted[d.player]),
+      "reaching rank 8 replaces the columns with the glowing General star");
     var models=screen.slice(screen.indexOf("battle-field"),screen.indexOf("battle-stat-panels"));
     ok(!/data-exp='[1-8]'/.test(models)&&screen.includes("data-exp-glow-from"),
       "formation machines have no rank overlays; earned stars glow only on the header icons");
     var fighting=REPORT.animate(report.snapshot,0),summary=REPORT.animate(report.snapshot,REPORT.fightingDuration(report.snapshot)+REPORT.rewardDuration(report.snapshot));
     ok(before.includes("data-battle-phase='ready'")&&fighting.screen.includes("data-battle-phase='fighting'")&&
-      !fighting.screen.includes("battle-new-star")&&fighting.math===""&&summary.screen===screen&&summary.math===report.math,
+      !fighting.screen.includes("battle-rank-new")&&fighting.math===""&&summary.screen===screen&&summary.math===report.math,
       "ready, fighting and result are distinct stages; experience and final arithmetic appear after combat");
   });
   var ledger = REPORT.emptyLedger();

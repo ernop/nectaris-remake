@@ -60,8 +60,29 @@ module.exports = function (ok) {
         var dx=Math.abs(x+.5-16),dy=Math.abs(y+.5-16);
         if (dx>14||dy>14||dx+dy>22) safe=false;
       }); });
-      ok(count>0 && safe && Math.min.apply(null,xs)===31-Math.max.apply(null,xs),id+"/"+facing+" is centered with safe hex clearance");
-      if (types[id].cls==="infantry") ok(Math.max.apply(null,ys)-Math.min.apply(null,ys)+1<=17 && count<=240,id+" stays small inside its frame");
+      var centered=count>0 && Math.min.apply(null,xs)===31-Math.max.apply(null,xs);
+      if (pack.id === "remake") {
+        ok(centered && safe,id+"/"+facing+" is centered with safe hex clearance");
+        if (types[id].cls==="infantry") ok(Math.max.apply(null,ys)-Math.min.apply(null,ys)+1<=17 && count<=240,id+" stays small inside its frame");
+      } else ok(centered,id+"/"+facing+" is horizontally centered");
+      if (pack.id === "legacy") {
+        var left=Math.min.apply(null,xs),top=Math.min.apply(null,ys),blocks=true;
+        for (var by=top; by<=Math.max.apply(null,ys); by+=2) for (var bx=left; bx<=Math.max.apply(null,xs); bx+=2) {
+          var code=rows[by][bx];
+          if (rows[by][bx+1]!==code || rows[by+1][bx]!==code || rows[by+1][bx+1]!==code) blocks=false;
+        }
+        ok(blocks,id+"/"+facing+" draws every chart art pixel as an unresampled 2x2 block");
+        var outside={},open=[];
+        for (var edge=0; edge<32; edge++) open.push([edge,0],[edge,31],[0,edge],[31,edge]);
+        while (open.length) {
+          var p=open.pop(),key=p[0]+","+p[1];
+          if (p[0]<0 || p[1]<0 || p[0]>31 || p[1]>31 || outside[key] || rows[p[1]][p[0]]!==".") continue;
+          outside[key]=true; open.push([p[0]+1,p[1]],[p[0]-1,p[1]],[p[0],p[1]+1],[p[0],p[1]-1]);
+        }
+        ok(rows.every(function (row,y) { return row.split("").every(function (c,x) { return c!=="." || outside[x+","+y]; }); }),
+          id+"/"+facing+" has no see-through holes inside its silhouette");
+        ok(rows.every(function (row) { return /^[.1-7]{32}$/.test(row); }),id+"/"+facing+" uses only the seven chart colours");
+      }
       var player=facing==="left"?1:0, faction=player?"xenon":"union";
       var unit={id:id,typeId:id,type:types[id],player:player,col:1,row:1,strength:8,exp:0,cargo:[]};
       [32,96].forEach(function (size) {

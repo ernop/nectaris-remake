@@ -236,10 +236,6 @@ select, input[type="url"] {
 .view-controls { display: flex; flex: 0 0 auto; align-items: center; gap: 4px; }
 #topbar button { padding: 5px 9px; }
 #topbar select { padding: 5px 4px; }
-.opponent-control { display: inline-flex; align-items: center; gap: 6px; }
-#opponent-select { max-width: 235px; }
-.controls-left .opponent-control { display: flex; flex-direction: column; align-items: stretch; }
-.controls-left #opponent-select { width: 100%; min-width: 0; }
 .history-controls { display: inline-flex; }
 .history-controls button { min-width: 78px; border-radius: 0; }
 .history-controls button:first-child { border-radius: 4px 0 0 4px; }
@@ -252,9 +248,6 @@ select, input[type="url"] {
    scrollbar consuming the settings row's height. Keyboard focus still scrolls. */
 #topbar { scrollbar-width: none; }
 #map-title { font-weight: 700; letter-spacing: 3px; color: #ffd94a; }
-#map-jump { max-width: 150px; }
-#btn-watch[aria-pressed="true"], #btn-animate[aria-pressed="true"] { color: #bfe95c; border-color: #6f8d31; }
-#btn-music[aria-pressed="true"] { color: #ffd94a; border-color: #8c7930; }
 #btn-endturn { margin-left: auto; }
 
 #game-main { flex: 1; display: flex; min-width: 0; min-height: 0; }
@@ -271,7 +264,6 @@ select, input[type="url"] {
   min-width: 0; height: auto; overflow-x: hidden; overflow-y: auto; }
 .controls-left .topbar-scroll > * { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
 .controls-left #map-title { letter-spacing: 1px; }
-.controls-left #map-jump { max-width: 100%; width: 100%; }
 .controls-left .topbar-actions { order: 2; flex-direction: column; align-items: stretch;
   padding-top: 8px; border-top: 1px solid #3d382c; }
 .controls-left .history-controls { display: flex; }
@@ -298,21 +290,6 @@ select, input[type="url"] {
 #canvas-wrap { flex: 1; position: relative; min-width: 0; display: flex; flex-direction: column; }
 #game-canvas { display: block; width: 100%; height: 0; flex: 1; min-height: 0; cursor: crosshair; }
 #map-action-rail { flex-shrink: 0; background: #19160f; border-top: 1px solid #302b22; }
-#btn-details[aria-expanded="true"] { color: #ffd94a; border-color: #8c7930; }
-
-#sidebar {
-  width: 340px;
-  flex: 0 0 340px;
-  background: #1d1912;
-  border-right: 1px solid #3d382c;
-  padding: 12px;
-  overflow-y: auto;
-  font-size: 13px;
-}
-.sidebar-heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-.sidebar-heading > strong { color: #ffd94a; }
-#btn-details-close { font-size: 20px; line-height: 20px; padding: 2px 8px; }
-#hex-info { margin-top: 14px; color: var(--ui-secondary); }
 .ui-name { font-weight: 700; color: #ffd94a; margin-bottom: 6px; }
 /* One compact stat row; only exceptions need a second line. Shared by the
    nearby card and selection inspector so both disclose the same details. */
@@ -392,12 +369,6 @@ select, input[type="url"] {
 #range-legend .range-ground::before { border-color: #ff7770; }
 #range-legend .range-air::before { border-color: #dab0ff; border-style: dashed; }
 #range-legend .range-note { color: var(--ui-secondary); }
-#action-status { padding: 9px 10px; margin-bottom: 12px; border-left: 2px solid #ffb467;
-  background: #30271a; color: #eee0ba; line-height: 1.5; }
-#transport-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px; }
-#transport-actions button { font-size: 12px; padding: 5px 8px; }
-#attack-targets { display: flex; gap: 4px; flex-wrap: wrap; margin-bottom: 12px; }
-#attack-targets button { font-size: 11px; padding: 4px 6px; border-color: #864e39; }
 .forecast-final { display: flex; gap: 14px; margin: 9px 0; font-size: 11px; color: var(--ui-secondary); }
 .forecast-final strong { display: block; font: 700 16px monospace; color: #eee6cb; margin-top: 3px; }
 #combat-inspector { color: #e9e4d4; }
@@ -426,7 +397,6 @@ select, input[type="url"] {
 .forecast-side td, .forecast-side th { text-align: right; padding: 3px 1px; border-bottom: 1px solid #383323; }
 .forecast-side th:first-child { text-align: left; font-weight: 400; }
 .forecast-side tr:last-child { color: #ffe5a1; }
-@media (max-width: 850px) { #sidebar { width: 290px; flex-basis: 290px; padding: 10px; } }
 .popup-title { font-weight: 700; color: #ffd94a; margin-bottom: 8px; letter-spacing: 1px; }
 .popup-buttons { display: flex; gap: 8px; margin-top: 10px; justify-content: flex-end; }
 
@@ -449,9 +419,8 @@ button.factory-row:focus-visible { outline: 2px solid #ffd94a; outline-offset: -
 .factory-unit-status { color: var(--ui-secondary); font-size: 11px; text-align: right; }
 .is-ready .factory-unit-status { color: #ffe09a; font-weight: 700; }
 .deploy-prompt { flex-shrink: 0; white-space: nowrap; font-size: 12px; padding-right: 6px; }
-.unload-prompt, #action-menu .unload-available, #transport-actions .unload-available {
-  color: #ffb653; }
-#action-menu .unload-available, #transport-actions .unload-available { border-color: #c67f2e; }
+.unload-prompt, #action-menu .unload-available { color: #ffb653; }
+#action-menu .unload-available { border-color: #c67f2e; }
 .unload-prompt::before { content: "⬡"; margin-right: 5px; color: #ff9b2d; }
 
 #battle-panel { left: 50%; top: 18%; transform: translateX(-50%); min-width: 420px; }
@@ -564,8 +533,6 @@ button.primary:hover { background: #ffe985; }
 #profile-error { color: #ffb2a2; font-size: 14px; }
 #save-error { position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
   padding: 12px 20px; background: #652a1f; color: #fff; text-align: center; }
-#playing-profile { padding: 0 0 14px; overflow-wrap: anywhere; color: #e4cf98; font-size: 12px; letter-spacing: 1px; }
-
 #profile-history li > span { margin-left: 10px; }
 .outcome-win { color: #bfe95c; }
 .outcome-loss { color: #ffb2a2; }

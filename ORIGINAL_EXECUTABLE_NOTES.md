@@ -7,6 +7,16 @@ The executable is not distributed with this project. Reproduce inspection with
 `objdump -d -Mintel path/to/Nec.exe`. Addresses below are virtual addresses,
 not file offsets. This is **Windows evidence**, not a PCE execution trace.
 
+## Obtaining the executable
+
+Hudson distributed the game as freeware. Its archived installer is
+`https://web.archive.org/web/20030102120236id_/http://www.hudson.co.jp/gamenavi/gamedb/slg/data/winnec.exe`
+(SHA-256 `bcd43e7dee31ccefac62d766f2b497245cebe0fed32ec5db2a004c4f12925a8c`).
+It is an LHa self-extractor. Read `data.z` from the embedded archive with Python
+`lhafile`, then extract `Nec.exe` with
+[isextract](https://github.com/OmniBlade/isextract) (`isextract x data.z out/`).
+Keep the installer, archive and executable outside the repository.
+
 ## Campaign selection
 
 - `0x405b24`: dimensions use the stage number at `0x495c52`.
@@ -88,7 +98,92 @@ Temporary HP and survivor calculation follow at `0x420d26–0x420daa`.
 
 For the official stat/strength ranges, these stages agree with our current
 `damageResult`. No new floor-order change is justified by this executable.
-This does not validate every support, counter or custom-stat boundary case.
+Support, counter and surround cases are covered in the next section.
+
+## Battle effects, casualties and cargo — 2026-09-26
+
+`0x41b810(attacker, defender, indirect)` prepares every battle. Arguments are
+unit-table indices; `0x495c63` is the side to move.
+
+- Direct fire only: attack support scans the defender's six neighbours for the
+  moving side's field units other than the attacker. Defense support scans the
+  attacker's neighbours for the other side's units other than the defender.
+  Carried units (status bit `0x40`) and stored units are skipped; their carriers
+  are not.
+- Each supporter adds its attack against the defender's domain (`0x41bc10`, no
+  range check) or its defense (`0x41bc50`), times its strength. Each sum is
+  divided by twice the attacker's strength. Supporting directions are recorded
+  in `0x481e54`/`0x481e56`, including supporters worth 0.
+- Surround reads the moving side's ZOC bit on all six defender neighbours
+  (`0x41bd40`, which reports no bit off the map). `0x423a80` sets bit `0x40` for
+  the moving side and `0x80` for the other on each field unit's hex and its
+  neighbours. All six set means surrounded (`0x481e4a` = `0x3f`).
+- The attacker's own attack is 0 unless its range against the defender's
+  domain is 1. The counter uses the defender's base attack only when its range
+  against the attacker's domain is 1.
+- Attacker attack = base + support; attacker defense = base + terrain. Defender
+  attack = base, halved if surrounded; defender defense = base + support +
+  terrain, halved if surrounded. Both are capped at 100, then `0x41bb32` applies.
+
+`0x420cd0` scales both totals by a roll in tenths and computes survivors.
+`0x420e20` writes strengths back and calls `0x420ff0` for each combatant. If a
+carrier (status bit `0x20`) lost machines, its cargo (status `0x40 | carrier`)
+drops to the carrier's new strength when larger. A carrier at 0 erases its
+cargo's records. The returned losses feed the per-turn loss tallies
+(`0x495bd0`/`0x495c10`) behind the end-of-map results graph.
+
+Experience lives in the strength byte `0x4957e0`: strength − 1 in bits 0–2,
+points in bits 3–7. `0x40a460` adds points up to 31. `0x415850` awards the
+attacker 4 points for damage and 8 for a kill, and a surviving defender 8 when
+unhurt and 4 when hurt. Capture awards 16 (`0x402472`). Damage uses points ÷ 4
+against the eight-entry table `0x42b158`; the display draws (points + 1) ÷ 4
+stars.
+
+A loaded transport cannot attack. State `0x4209e0` tests the selected unit's
+carrying bit (`0x420a3e`) and shows "搭載中は攻撃できません" (`0x435c60`). The
+Mule's description at `0x433920` says it "cannot attack while transporting".
+Counterattacks do not check the bit.
+
+`tools/trace-original-combat.py` runs only these routines (ZOC rebuild,
+effects, roll scaling and survivors with supplied rolls, strength write-back,
+carrier losses) under an address guard. It records 40 cases in
+`test/fixtures/windows-combat.json`. Cases include:
+- Every support geometry, including the English guides' disputed layouts and
+  both Base Nectaris Seeker/Hunter figures.
+- Loaded transports, mines, artillery and aircraft as supporters.
+- Two-unit, edge-blocked and ally-occupied rings.
+- Caps, indirect fire, Lynx counters, experience and single-machine squads.
+- The cargo clamp and cascade.
+
+Our engine matches every case, through survivors and cargo. Mutating the
+defense-support geometry breaks 20 cases; requiring occupied rings breaks 8.
+
+```sh
+python tools/trace-original-combat.py /path/to/Nec.exe > /tmp/windows-combat.json
+cmp /tmp/windows-combat.json test/fixtures/windows-combat.json
+node test/combat-original-tests.js
+```
+
+### How the original presents the effects
+
+Before the battle animation, the state chain `0x419060–0x4194d0` plays a timed
+sequence. Indirect fire skips steps 2 and 3.
+
+1. Each side starts with base attack and base defense, both multiplied by its
+   experience percentage (`0x418d30`). Player 1's unit is always on the left.
+   Each number is drawn as value × strength, capped at 999 (`0x419590`).
+2. Surround: one direction per frame, each defender neighbour inside the
+   attacker's ZOC lights up with a sound. When all six light, a second sound
+   plays and the defender's shown attack and defense halve.
+3. Support: attack supporters around the defender and defense supporters around
+   the attacker light up one by one, each with a sound and a label on its side.
+   The support values are then added to the shown attack and defense.
+4. Terrain: both terrain percentages appear, and each shown defense grows by
+   defense × terrain% ÷ 100.
+
+So the screen differs from the calculation. Experience appears as attack and
+defense, surround is shown before support and terrain, terrain multiplies, and
+squad size scales defense. Magia Laboratory lists the same discrepancies.
 
 ## Randomness — located, but not transplanted as an alleged exact stream
 

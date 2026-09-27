@@ -7,11 +7,11 @@ that document remains the historical analysis and research bibliography.
 
 ## Playing
 
-The map's **Opponent** dropdown offers five policies. A new match defaults to
+The menu's **AI** setting offers five policies. A new match defaults to
 **Apex** unless another choice was saved. An older saved match without this
-field continues with Classic. Change opponents on a human turn; the setting is
-disabled during combat, AI turns, finished games and hotseat. The choice and
-mid-match changes are recorded with the match history.
+field continues with Classic. The opponent is fixed for the whole match (user
+instruction, 2026-09-26); the match panel names it. The choice is recorded with
+the match history, and older records keep any mid-match changes made before then.
 
 | Opponent | Implemented method | Typical computational cost |
 | --- | --- | --- |

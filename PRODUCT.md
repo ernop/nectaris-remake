@@ -36,7 +36,6 @@ profile and opening-choice records below.
   Japanese fields), and the "Briefings & making-of notes: ?" legend.
 - **Collection order:** Normal campaign, Advanced campaign, Base Nectaris, then
   the three AI-made terrain campaigns, AI-made, Lunar Frontiers and Custom levels.
-  The in-game map selector follows the same order.
 - **Collection headers:** title, won count and the collection `?`. Category labels
   and introductions are removed except "From the PC Engine campaign." (Normal)
   and "Community terrain, with new forces and briefings for this remake." (Base
@@ -68,9 +67,12 @@ with complete-turn verification). The new-match default is Apex; older saves
 without a policy retain Classic. All play under the same engine rules and cannot
 read future match randomness.
 
-The **Opponent** dropdown applies changes to the next enemy turn, saves the
-selection and records mid-match changes. It is disabled during combat, AI turns,
-finished matches and hotseat. Search runs in a cancellable background worker;
+**The opponent is fixed for the whole match** (user instruction, 2026-09-26): it
+is chosen before play with the menu's **AI** setting, and the match panel only
+names it ("Opponent: …", or "Two players (hotseat)"). This supersedes the
+map-view dropdown that changed the opponent from the next enemy turn. Records of
+older matches that did change it keep their "(changed during match)" note.
+Search runs in a cancellable background worker;
 Watch AI controls animation without changing decisions. Failures preserve the
 turn-start checkpoint and show an actionable error.
 
@@ -107,11 +109,16 @@ as numeric ranks or a separate badge. In the battle scene, only the two header
 icons carry experience; the individual formation machines have no stars.
 After fighting ends, actual earned stars appear one by one and glow on the
 header icons, ending at the awarded rank (including the General emblem).
-The user's 2026-09-26 correction removes the "Experience gained" row, which
-shifted the header layout. Each newly earned star now fades in large and
-glowing on top of the header unit icon (General as a larger star) and stays
-until the screen closes; Pause freezes the fade. After the last star the
-result holds 1 s instead of 0.7 s so its fade completes.
+The user's 2026-09-26 corrections remove the "Experience gained" row, which
+shifted the header layout, and enlarge the header unit icon to 96 px (64 px on
+narrow screens) with the standard rank stars drawn on top: columns of 3, 2 and
+3, replaced by the General star at rank 8, as on every other icon. Ranks start
+at 0 and follow the published awards (+1 per battle; +2 for destroying the
+enemy squad or, as defender, taking no damage). Each newly earned star fades in,
+holds a bright glow, then settles to the normal star colour over 1.8 s; Pause
+freezes it. After the last star the result holds until its glow has settled.
+This supersedes the single large star overlay tried earlier the same day, and
+applies to live, watched and replayed battles alike.
 This supersedes numeric battle EXP and separate inspector rank badges.
 Damage bonuses and calculation multipliers remain ordinary numeric stats.
 
@@ -139,7 +146,9 @@ Replay steps selection then action. Previous/next battle jump to an attack's
 selection; Hold battles keeps results visible for at least 2.4 seconds.
 The user's 2026-09-26 correction keeps the chosen camera still during opponent
 playback: watched moves, deployments, battles, captures and repairs never pan
-or zoom. Replays open with **Follow action** off; explicitly enabling it frames
+or zoom. When the opponent's turn ends, its last unit is deselected: its
+destination highlight and the "selected" entry in the left panel clear (user
+request, 2026-09-26); a report of its last battle stays until the player acts. Replays open with **Follow action** off; explicitly enabling it frames
 the acted hexes. Fit, wheel zoom and Ctrl+drag turn following off again. This
 supersedes automatic live action framing and following by default in replays.
 The scrubber shows 0,
@@ -147,15 +156,41 @@ midpoint and final command. Seeking or closing cancels visual movement safely.
 
 ## Optional inspector and full map height (updated 2026-09-25)
 
-All match controls, contextual commands, status, optional Details, forecasts,
-battle reports and replay metadata occupy a fixed-width left panel with its
-own vertical scroll. The board owns the remaining width and full window height.
+All match controls, contextual commands, status, forecasts, battle reports and
+replay metadata occupy a fixed-width left panel with its own vertical scroll.
+The board owns the remaining width and full window height.
 Opening, closing or growing metadata must never resize, refit or move the board.
 This user correction supersedes top/bottom bars, nearby unit-command popups,
 temporary action rails and automatic control-position switching.
-Details still starts closed and remembers its preference. Hover cards remain
-available by map hexes. Undo / Redo stay paired; End Turn remains the side-wide
-command and is distinct from the removed per-unit End choice.
+Hover cards remain available by map hexes. Undo / Redo stay paired; End Turn
+remains the side-wide command and is distinct from the removed per-unit End choice.
+
+The user removed the optional **Details** panel on 2026-09-26, judging that the
+map hover covers its information. A unit's hover card now also lists the stored
+units of a base or factory it stands on. Removed with the panel: its hint line,
+the "PLAYER · name" label, the duplicate Unload list, and the target buttons that
+were the only keyboard/touch way to open a forecast. Known gap, left open by the
+user's choice the same day: an empty hex's terrain and defense bonus are shown
+nowhere. A briefly added empty-hex hover card was withdrawn at his request; a
+left-panel terrain readout was floated as an idea, not requested.
+
+**Level name, no mission chooser (user instruction, 2026-09-26):** during a match
+the panel prints the level's name and has no mission dropdown. The user judged
+the full chooser unnecessary inside a specific level. Missions are chosen from
+the menu; **Next mission** after a win is unchanged. This removes the former
+"Jump to map…" selector.
+
+**Settings at the foot of the panel (user request, 2026-09-26):** the user found
+the style and similar choosers too prominent. Visual style, art set, Board
+orientation with Fit, Watch AI, Move animation and Music now share one compact
+block at the bottom of the panel, below End Turn and the battle report. The top
+keeps Save & Menu, Tournaments, the level name, turn, side, unit counts and the
+fixed opponent, then unit commands, Undo / Redo and End Turn. The user left the treatment open
+("smaller/to the side or whatever"); the bottom placement and 12-pixel controls
+are implementation choices. A same-day follow-up asked for the Watch AI, Music
+and Move animation buttons to take less space: they are now unboxed toggles, a
+check mark (☑ in green when on, ☐ when off) before a short label, replacing the
+boxed "Watch AI: On"-style buttons.
 
 ## Board orientation and control docking (2026-09-23)
 
@@ -206,7 +241,7 @@ Also show firing range from its current hex: solid red outlines for ground fire,
 dashed violet for air fire. Keep movement fill visible inside firing outlines.
 Use the real per-domain bands, including indirect fire's adjacent blind spot;
 show immobile Atlas range and omit unsupported domains. A compact on-map legend
-identifies each range even with Details closed. These are separate movement and
+identifies each range. These are separate movement and
 current-position firing areas, never a combined move-and-fire threat projection.
 Clicking a destination clears inspection; it never moves the enemy. Escape
 also clears it, and clicking another unit selects or inspects that unit.
@@ -236,6 +271,16 @@ Remake as the default; the preference key moved to `nectaris-unit-icon-set-v2`
 so every browser starts once on Legacy. Legacy unit icons are adapted from the user-selected ユニットデータ
 chart; source provenance and the JPEG limitations are in `art/legacy/README.md`.
 Both sets provide all 23 units in native 32×32 frames and all game states.
+
+**Legacy unit size (user decision, 2026-09-26):** every Legacy unit, infantry
+included, keeps the chart's pixels at exactly 2×, each art pixel a 2×2 block,
+unscaled and centered in its frame. Units therefore have the original map's
+proportions (up to 32×32 on the 48×32 hex; corners may reach past the hex's
+slanted edges, as in the original). The small-infantry sizes and safe-hex mask in
+the pixel-art section below apply to Remake only. The user reported the Rabbit
+looked broken; every Legacy frame had holes where terrain showed through, and
+the shrink to the Remake envelope drew some art pixels half-width. The user
+chose exact 2× for all units over keeping small infantry or the envelope.
 
 Legacy also selects reconstructed original-style terrain and buildings, with
 48×32 flattened hexes, 32×32 pitch, 16-pixel odd-column stagger, connected roads
@@ -283,13 +328,13 @@ The settled specification is documented in
 [ART_DIRECTION.md](ART_DIRECTION.md). Every unit has one **32×32** native
 transparent frame, centered at (16,16). Planned terrain hexes have a **48×32** footprint,
 **32×32** center pitch and **16-pixel** odd-column stagger, following the
-original's flattened geometry. Sprite corners remain transparent so visible
+original's flattened geometry. Remake sprite corners remain transparent so visible
 art fits the hex; see the explicit safe mask in that specification.
 
 Map icons scale from their 32×32 frame with hex zoom (2026-09-21 correction,
 superseding the old prohibition on enlarging them). Inspector, factory and
 review icons remain native 32×32. Center the visible silhouette horizontally with equal
-left/right transparent padding in every facing. Infantry stays smaller within
+left/right transparent padding in every facing. Remake infantry stays smaller within
 its frame (Charlie 18×17, Kilroy 22×17, Panther 22×14 visible). Bases are low domed compounds with
 open service areas, following the original art's structure.
 
@@ -341,7 +386,6 @@ The card stays anchored to the hex. Placement
 flips at viewport edges and favors space with fewer units underneath.
 The card never covers its own hex and passes pointer events through to the map.
 It clears on empty terrain, map exit, Escape, panning, combat and modal panels.
-The sidebar remains available for persistent selection and detailed forecasts.
 
 ## Strength chrome (2026-08-30)
 
@@ -477,7 +521,7 @@ the spent-unit art palette retain their separate gameplay/art requirements.
 ## AI-made fjord levels (2026-09-22)
 
 The AI-made category preserves fifteen separate original maps, with stable
-`aiMadeIndex` values 0–14 in the menu, map selector and profile records.
+`aiMadeIndex` values 0–14 in the menu and profile records.
 Twisted Fjords (65×49) is a winding tree; Shattered Fjords (65×49) and
 Fractured Fjords (40×40) introduce angular, variable-width passages and
 connections between branches. Each has fifteen neutral factories with twelve
@@ -728,8 +772,9 @@ with its deployment locked until its next turn.
 The user removed redundant click-to-inspect inventory popups on 2026-09-23.
 Neutral/enemy, empty and fully blocked buildings use hover inspection without
 opening a dialog. The hover card retains ownership, inventory count, every
-unit's icon/name, damage and experience; the sidebar also lists contents even
-when a unit occupies the hex or another unit is selected. A valid movement click
+unit's icon/name, damage and experience. When a unit occupies the hex, its
+hover card lists the building's contents below the unit (2026-09-26, replacing
+the removed Details panel's list). A valid movement click
 still captures or stores the selected unit. An unreachable owned building may
 offer deployment if reserves can act, but an unreachable unowned building never
 opens a popup. This supersedes the earlier any-building inspection dialog.
@@ -835,16 +880,15 @@ red. Hovering one shows its identity, both units' combat stats, support, terrain
 surround, experience, counterattack eligibility and the resulting calculation
 in the fixed left panel, outside the map. Restored at the user's 2026-09-26
 request: this forecast, with its heatmap, appears directly under the selected
-unit's action strip whenever an attackable enemy is hovered, whether or not
-Details is open; Details, Undo/Redo and End Turn move down below it while it
-shows (the user's chosen placement). It had been hidden inside the
-closed-by-default Details panel since 2026-09-22. The last hovered matchup remains readable
-while moving into the sidebar; hovering another target replaces it. Clicking
-a red target commits the attack from the chosen position.
-Sidebar target buttons also preview on focus or click, so the details remain
-available with a keyboard or touch input.
+unit's action strip whenever an attackable enemy is hovered; Undo/Redo and
+End Turn move down below it while it shows (the user's chosen placement). It
+had been hidden inside the closed-by-default Details panel since 2026-09-22.
+The heatmap comes first. The last hovered matchup remains readable while moving
+into the left panel; hovering another target replaces it. Clicking a red target
+commits the attack from the chosen position. The keyboard/touch target buttons
+were removed with the Details panel on 2026-09-26, so forecasts need mouse hover.
 
-The sidebar includes a two-dimensional casualty probability heatmap from
+The forecast includes a two-dimensional casualty probability heatmap from
 100,000 independent simulation seeds: enemy losses on the horizontal axis and
 our losses on the vertical axis. Show cell rates, mean losses and destruction
 probabilities. Simulations use the current combat formula and the documented weighted
@@ -1015,6 +1059,72 @@ unloading consume the passenger's turn; unloading a ready passenger remains
 available after its carrier acts. Modern profiles, saves, editor and forecasts
 remain product features and are identified as extras, not original PCE rules.
 
+### Support, surround and transport losses verified (2026-09-26)
+
+Hudson's 1997 Windows executable (the only original code available) was traced
+for support, surround, counters, survivors and transport losses. Our engine
+matches all 40 recorded cases; see `MECHANICS.md` § Combat calculations and
+`ORIGINAL_EXECUTABLE_NOTES.md`. Where English guides disagree with the
+executable, the executable wins.
+
+- Defense supporters only need to touch the attacker.
+- Supporters need no range.
+- Two opposite units surround.
+- A damaged carrier cuts its cargo to its own strength; a destroyed carrier
+  destroys the cargo. This is the sudden whole-unit loss seen in play.
+- One rule changed: a loaded transport can no longer start a battle (the
+  original refuses with "搭載中は攻撃できません"). It still counterattacks.
+
+## Support and surround display (2026-09-26)
+
+User decisions:
+- Show the effects both before the attack and during the battle.
+- "What we present should always be true (although still random)": the
+  original's misleading battle-screen numbers are not reproduced. The original
+  shows experience inside attack and defense, surround before support and
+  terrain, terrain as a multiplier, and defense times squad size; see
+  `ORIGINAL_EXECUTABLE_NOTES.md` § How the original presents the effects.
+- Cargo fate is not displayed: "the user will figure that out".
+
+Before the attack (target forecast), the map outlines the target's six
+surrounding hexes: white inside the attacker's ZOC, dashed orange for gaps,
+and a "SURROUNDED ½" label when all six are covered. Units whose support
+changes the numbers are outlined: green for attack support, yellow for the
+target's defense support. Supporters worth 0, such as a Bison beside an
+aircraft, are left unmarked. The forecast states how many surrounding hexes
+are covered and when the map edge blocks surround.
+
+After an attack is committed, by the player or a watched opponent, the same
+display plays on the map before the battle screen, in the true order of the
+calculation:
+1. Supporters light one by one (170 ms each).
+2. Terrain is added (260 ms).
+3. The surrounding hexes are checked clockwise (90 ms each).
+4. The verdict holds for 500 ms.
+
+Meanwhile the war dock lists the per-machine steps: Base, + Support,
++ Terrain, Surrounded ½, Final (max 100).
+
+The battle screen shows per-machine attack and defense with support, terrain
+(+N defense), surround and the experience damage bonus. It never shows squad
+totals.
+
+### Skipping and the return to the map (2026-09-26)
+
+- A click during a battle jumps to its last stage, saving time. The click can
+  land on the battle screen (not its buttons) or on the map during the effects
+  or while "Show map" is on.
+  - From the map effects, a watched preview, or the approach and fighting, the
+    battle screen goes straight to its result with every earned star shown.
+  - At the result, a click returns to the map at once.
+  - The battle screen reads "Click to skip ahead".
+- Returning to the map after a squad was destroyed, its hex explodes three more
+  times (1.4 s) so the loss is noticed.
+  - The unit that destroyed it keeps its battle highlight until the next action:
+    deep red for an attacker, the white ring for a defender that killed with its
+    counterattack. After mutual destruction, nothing is highlighted.
+  - Play continues during the explosions; a watched opponent does not wait.
+
 ## Grok 4.7 15 tactical gap-filling units study (2026-09-23)
 
 Review of the experimental outline item "design 15 gap-filling units" recorded in
@@ -1126,13 +1236,13 @@ Horizons**, **The Knotted Heart**, and **Broken Ground**, with all three aircraf
 excluded entirely. Pelicans and all other stock types are used across the set.
 
 The user's follow-up explicitly requires clear AI-made attribution. All three
-campaign display names are prefixed **AI-made:** in the library, navigation and
-map selector; their collection category is **AI-made campaign**, and every
+campaign display names are prefixed **AI-made:** in the library and
+navigation; their collection category is **AI-made campaign**, and every
 individual level credits **AI-made by Codex**, including downloadable JSON.
 Campaign IDs, map names, progress keys and gameplay data remain unchanged.
 
 These are 48 new missions in three separate menu collections, with their own
-01–16 numbering, profile result keys, map-jump groups, saved-match identity and
+01–16 numbering, profile result keys, saved-match identity and
 Next mission progression. Mission 16 ends its own campaign. Existing map packs,
 numbering and source data are preserved. Each mission starts with fresh forces;
 there is no army carryover or new campaign economy.

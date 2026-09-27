@@ -86,8 +86,8 @@ bind error rather than selecting a different port.
 
 ## Deployment
 
-The map's **Opponent** picker selects Classic, Tactical, Sequence, Simulation
-or Apex (the new-match default). **Tournaments** opens the self-play lab with
+The menu's **AI** setting selects Classic, Tactical, Sequence, Simulation
+or Apex (the new-match default); the opponent stays fixed for the whole match. **Tournaments** opens the self-play lab with
 board, game-count, round-cap and worker controls, Elo tables and saved replays.
 See [AI_OPPONENTS.md](AI_OPPONENTS.md) for algorithms and large disk runs.
 Serve the lab over HTTP on localhost or HTTPS; it uses Web Workers, IndexedDB
@@ -191,10 +191,10 @@ touches its button so its links remain reachable. Clicking outside or pressing E
 also closes it. Moving across an entry does not open anything. Panels close when
 the page or list scrolls or resizes.
 
-- **Details** toggles the left inspector, initially closed; your choice is
-  remembered. Unit details and factory information remain available there.
-  Hovering an attackable enemy shows the outcome forecast and heatmap directly
-  under the unit's action strip whether or not Details is open.
+- Hovering an attackable enemy shows the outcome forecast, heatmap first,
+  directly under the unit's action strip. There is no separate Details panel;
+  the map hover card carries unit and building details, including the terrain
+  under a unit.
 - **Board: Auto / Normal / Sideways** rotates the view by 90° when useful.
   Auto picks the orientation that fits the board largest. Units and labels stay
   upright; clicking, wheel zoom and Ctrl+left-drag follow the displayed board.
@@ -212,8 +212,9 @@ the page or list scrolls or resizes.
   count on the icon, without a Strength label. Unsupported
   air attack, default adjacent ranges and zero experience bonuses are omitted;
   longer ranges sit under their attack value, with mixed ground/air bands explicit.
-  Terrain defense, earned damage bonuses and damaged strength remain visible. Move away or
-  press Esc to dismiss it; the sidebar keeps the persistent selection details.
+  Terrain defense, earned damage bonuses and damaged strength remain visible. A unit
+  standing on a base or factory also lists the building's stored units. Move away
+  or press Esc to dismiss it.
 - Click a unit to immediately show blue legal moves, boardable transports,
   firing-area borders and red attack targets. Firing borders trace the outer
   limit and any inner blind spot, without outlining each covered hex.
@@ -272,23 +273,24 @@ the page or list scrolls or resizes.
   plains, roads, bridges and direct storage in an owned factory. Each transport
   permits one load or unload per turn. Moving does not consume
   that allowance: cargo already aboard can unload after moving. Loaded passengers
-  appear with their icons in the transport's hover card. Unavailable Unload buttons stay visible with the reason, even
-  when Details is closed.
-- **Watch AI: On** shows each Xenon selection, then the move or attack. Battle
+  appear with their icons in the transport's hover card. Unavailable Unload buttons stay visible in
+  the unit's action strip, with the reason on hover.
+- **Watch AI** (checked by default) shows each Xenon selection, then the move or attack. Battle
   results sit in the fixed left panel: machines destroyed and lost, the roll the match
   drew, and whether that result was above, near, or below the average. The
   same report is used for your own attacks. A dedicated battle view shows opposing
   formations with Union on the left and Xenon on the right, each on its own
   terrain. A one-way arrow marks attacks without a counter. Ready, Fighting and
-  Result mark the approach, combat and summary. Experience stars appear only on
-  the header icons; newly earned stars fade in large and glowing on top of the
-  icon after combat. Formation machines have no stars. **Pause / Resume** freezes the battle and its automatic advance.
+  Result mark the approach, combat and summary. Each side's unit icon in
+  the battle header is enlarged, with its rank stars on top (columns of 3, 2 and
+  3, then the General star); newly earned stars fade in, glow brightly, then
+  settle to the normal colour. Formation machines have no stars. **Pause / Resume** freezes the battle and its automatic advance.
   Replay **Pause on battle screens** starts on; click anywhere on the paused
   battle to continue. **Skip battle scenes** starts off and bypasses the scenes,
   automatic pauses and holds. Show map / Show battle switches views without
   changing the board. Units traverse each
   hex of their legal movement route in live play and replays. Turn Watch AI off for immediate
-  AI turns. **Move animation: Off** separately places moving units straight on
+  AI turns. Unchecking **Move animation** separately places moving units straight on
   their destination while Watch AI still shows each AI step. Opponent actions preserve your chosen camera position and zoom.
   Replay **Follow action** starts off and only follows when you enable it.
 - The factory panel shows each stored unit's map icon with experience stars,
@@ -310,8 +312,8 @@ the page or list scrolls or resizes.
 - Mission choices list Union, Xenon and Neutral squad totals in that order,
   including fielded units and the reserves stored under each side's ownership.
   Labels and numbers use the same size, saturated faction colors and strong contrast.
-- **Music: On/Off** starts an original square-wave/triangle/noise military
-  chiptune. Browsers require the button press before audio may begin.
+- **Music** starts an original square-wave/triangle/noise military
+  chiptune; its check mark shows when it plays. Browsers require the button press before audio may begin.
 
 ## Custom levels
 
@@ -391,7 +393,7 @@ builder is `tools/build-curiosity-maps.js`, invoked by the main AI-made builder.
 Parts 1–4 exclude aircraft; Parts 5–15 permit Pelicans only.
 Charlie and Kilroy can cross mountains; Panther cannot. See the
 [movement table and audit](MECHANICS.md#movement-and-terrain).
-All maps are available in the menu and map selector, with
+All maps are available in the menu, with
 separate profile records and downloadable JSON from their source links.
 
 Map zoom fits the entire battlefield in every style and art set, with
@@ -470,7 +472,9 @@ Mountain ranges join continuously across hex corners. A thin rounded board
 frame fills exterior gaps with decorative terrain, without adding playable
 cells, duplicating buildings or extending roads beyond the map.
 The terrain is a reconstruction; the icons are JPEG-derived adaptations,
-not a bit-exact ROM atlas. Provenance and rebuilding: [art/legacy/README.md](art/legacy/README.md).
+not a bit-exact ROM atlas. Each icon keeps the chart's pixels at exactly 2×,
+infantry included, so units have the original map's proportions.
+Provenance and rebuilding: [art/legacy/README.md](art/legacy/README.md).
 
 The art-set choice is stored under `nectaris-unit-icon-set-v2`, shared by
 the game, editor and review tools. It applies in Pixel style. New sets can

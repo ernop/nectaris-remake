@@ -148,6 +148,8 @@ var RENDER = (function () {
     this.battleGhosts = [];
     this.motion = null;
     this.explosions = [];
+    this.aftermath = [];       // explosions replayed where a squad was destroyed
+    this.combatEffects = null; // support and surround overlay; see drawCombatEffects
   }
 
   Renderer.prototype.fitForViewport = function (width, height) {
@@ -1174,7 +1176,7 @@ var RENDER = (function () {
     drawUnitBody(ctx, unit, u, colors, this.zoom);
 
     // No stencil badge: the silhouettes are the identification, as in the
-    // original, and the sidebar names the unit under the cursor.
+    // original, and the hover card names the unit under the cursor.
 
     // Strength is omitted at 8 (the default). Damaged 1–7 stay bottom-left.
     var shownStrength = this.strengthOverrides[unit.id];
@@ -1206,13 +1208,11 @@ var RENDER = (function () {
   };
 
   // Shared by map, inspector and inventory: 3/2/3 columns, then General.
-  function drawExperience(ctx, unit, u, glowFrom) {
+  function drawExperience(ctx, unit, u) {
     if (unit.exp > 0) {
       ctx.save();
       ctx.fillStyle = theme.chrome.pip;
-      function glow(earned) { ctx.shadowColor = "#fff1a0"; ctx.shadowBlur = earned ? 5 * u : 0; }
       if (unit.exp >= 8) {
-        glow(glowFrom !== undefined && glowFrom < 8);
         ctx.fillStyle = "#321a0d";
         drawStar(ctx, 10 * u, -10 * u, 7 * u);
         ctx.fillStyle = theme.chrome.pip;
@@ -1227,7 +1227,6 @@ var RENDER = (function () {
           var count = capacities[column];
           var top = count === 3 ? -14 : -12;
           for (var row = 0; row < count && starIndex < unit.exp; row++, starIndex++) {
-            glow(glowFrom !== undefined && starIndex >= glowFrom);
             drawStar(ctx, (6 + column * 4) * u, (top + row * 4) * u, 1.65 * u);
           }
         }
@@ -1263,7 +1262,7 @@ var RENDER = (function () {
     if (opts && opts.spent) ctx.filter = "grayscale(1)";
     ctx.translate(Math.round(canvas.width / 2), Math.round(canvas.height / 2));
     drawUnitBody(ctx, unit, u, base);
-    if (opts && opts.experience) drawExperience(ctx, unit, u, opts.experienceGlowFrom);
+    if (opts && opts.experience) drawExperience(ctx, unit, u);
     ctx.restore();
   }
 
@@ -1498,6 +1497,68 @@ var RENDER = (function () {
     ctx.restore();
   };
 
+  /* On-map surrounding hexes of the combat target, in a clockwise sweep. */
+  Renderer.prototype.combatRing = function () {
+    var fx = this.combatEffects, self = this;
+    var center = this.hexCenter(fx.target.col, fx.target.row);
+    function angle(hex) {
+      var at = self.hexCenter(hex.col, hex.row);
+      return (Math.atan2(at.x - center.x, center.y - at.y) + 2 * Math.PI) % (2 * Math.PI);
+    }
+    return fx.ring.filter(function (hex) { return hex.onMap; })
+      .sort(function (a, b) { return angle(a) - angle(b); });
+  };
+
+  /* combatEffects = {target, ring, supporters: [{col,row,side}], surrounded,
+   * shownSupporters, shownRing, surroundShown}. Supporters are revealed in list
+   * order and ring hexes in the clockwise sweep; a checked ring hex lights only
+   * inside the attacker's ZOC, and open hexes appear with the surround verdict. */
+  Renderer.prototype.drawCombatEffects = function () {
+    var fx = this.combatEffects;
+    if (!fx) return;
+    var ctx = this.ctx, s = this.hexSize * this.zoom, self = this;
+    ctx.save();
+    ctx.lineJoin = "round";
+    this.combatRing().forEach(function (hex, i) {
+      var lit = hex.controlled && i < fx.shownRing, open = !hex.controlled && fx.surroundShown;
+      if (!lit && !open) return;
+      var at = self.hexCenter(hex.col, hex.row);
+      pathHex(ctx, at.x, at.y, s * 0.96);
+      if (lit) {
+        ctx.fillStyle = "rgba(255,255,255,0.18)"; ctx.fill();
+        ctx.setLineDash([]); ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3;
+      } else {
+        ctx.setLineDash([6, 4]); ctx.strokeStyle = "#ffb347"; ctx.lineWidth = 2.5;
+      }
+      ctx.stroke();
+    });
+    ctx.setLineDash([]);
+    fx.supporters.slice(0, fx.shownSupporters).forEach(function (hex) {
+      var at = self.hexCenter(hex.col, hex.row);
+      pathHex(ctx, at.x, at.y, s * 0.8);
+      ctx.strokeStyle = hex.side === "attack" ? "#63ff8e" : "#ffd23d"; ctx.lineWidth = 3.5;
+      ctx.stroke();
+    });
+    ctx.restore();
+  };
+
+  Renderer.prototype.drawSurroundBadge = function () {
+    var fx = this.combatEffects;
+    if (!fx || !fx.surroundShown || !fx.surrounded) return;
+    var ctx = this.ctx, at = this.hexCenter(fx.target.col, fx.target.row);
+    var fontSize = Math.round(Math.max(11, Math.min(18, 12 * this.zoom)));
+    ctx.save();
+    ctx.font = "bold " + fontSize + "px monospace";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    var label = "SURROUNDED ½", width = Math.ceil(label.length * fontSize * 0.65) + 10, height = fontSize + 6;
+    // Inside the target's own hex, so the label never hides a neighbouring unit.
+    var x = Math.round(at.x - width / 2), y = Math.round(at.y + this.hexSize * this.zoom * 0.62 - height);
+    ctx.fillStyle = "#ffffff"; ctx.fillRect(x - 2, y - 2, width + 4, height + 4);
+    ctx.fillStyle = "#080b12"; ctx.fillRect(x, y, width, height);
+    ctx.fillStyle = "#ffffff"; ctx.fillText(label, x + width / 2, y + height / 2 + 0.5);
+    ctx.restore();
+  };
+
   Renderer.prototype.draw = function () {
     var ctx = this.ctx, g = this.game;
     this.withBoardView(function () {
@@ -1538,9 +1599,11 @@ var RENDER = (function () {
       }
     }
     for (i = 0; i < this.explosions.length; i++) this.drawExplosion(this.explosions[i]);
+    for (i = 0; i < this.aftermath.length; i++) this.drawExplosion(this.aftermath[i]);
     this.drawFactoryCounts();
 
     this.withBoardView(function () {
+      this.drawCombatEffects();
       // selected ring
       if (this.selected) {
         var sc = this.unitCenter(this.selected);
@@ -1557,6 +1620,7 @@ var RENDER = (function () {
         ctx.stroke();
       }
     });
+    this.drawSurroundBadge();
   };
 
   return {

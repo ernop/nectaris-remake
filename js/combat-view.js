@@ -86,14 +86,20 @@ var COMBAT_VIEW = (function () {
       return "<p><strong>" + label + "</strong>: " + (terms.length ? terms.join(" + ") +
         "<br>floor(total / (2 × " + attacker.strength + ")) = +" + total : "none (+0)") + ".</p>";
     }
+    var inZone = tactical.ring.filter(function (hex) { return hex.controlled; }).length;
+    var edge = tactical.ring.some(function (hex) { return !hex.onMap; });
     return "<section class='forecast-tactics'><h4>ZOC &amp; support</h4><p>Your position: " +
       (tactical.attackerInZOC ? "inside enemy ZOC" : "outside enemy ZOC") + ". Target: " +
       (tactical.defenderInZOC ? "inside your ZOC" : "outside your ZOC") + ".<br>" +
-      (pv.surrounded ? "Target surrounded: attack and defense are halved." : "Target is not surrounded.") +
-      " ZOC restricts movement; it is not a separate damage bonus.</p>" +
+      (pv.ranged ? "" : pv.surrounded ? "Target surrounded: all 6 surrounding hexes are in your ZOC, so its attack and defense are halved. " :
+        "Target not surrounded: " + inZone + " of 6 surrounding hexes are in your ZOC" +
+        (edge ? "; the map edge blocks surround" : "") + ". ") +
+      "ZOC restricts movement; it is not a separate damage bonus.</p>" +
       (pv.ranged ? "<p>Indirect fire ignores support and surround.</p>" :
         support(tactical.attackSupporters, "Your attack support", pv.attacker.modifiers.supportAttack) +
-        support(tactical.defenseSupporters, "Target defense support", pv.defender.modifiers.supportDefense)) + "</section>";
+        support(tactical.defenseSupporters, "Target defense support", pv.defender.modifiers.supportDefense) +
+        "<p>Map: white hexes are in your ZOC, dashed orange hexes are gaps; green outlines add to your attack, " +
+        "yellow outlines add to the target's defense.</p>") + "</section>";
   }
   function html(attacker, defender, pv, projection) {
     return "<div class='forecast-eyebrow'>ATTACK PREVIEW · " + pv.dist + " HEX" + (pv.dist === 1 ? "" : "ES") + "</div>" +

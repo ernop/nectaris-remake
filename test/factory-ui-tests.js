@@ -46,13 +46,21 @@ module.exports = function (ok) {
     }, { seed: 7 });
     var ui = Object.create(UI.GameUI.prototype);
     ui.animateMovement = function (unit, path, done) { if (done) done(); return 0; };
-    ui.game = game; ui.mode = "idle"; ui.canvas = {style:{}};
-    ui.renderer = { pixelToHex: function (col, row) { return { col: col, row: row }; } };
+    ui.game = game; ui.mode = "idle"; ui.canvas = {style:{}, width: 800, height: 600};
+    ui.renderer = { pixelToHex: function (col, row) { return { col: col, row: row }; },
+      hexSize: 20, zoom: 1, hexCenter: function () { return { x: 400, y: 300 }; } };
     // Factory behavior uses no canvas; action layout is covered by combat-ui-tests.
     ui.positionFactoryPanel = ui.positionActionMenu = ui.draw = ui.refreshStatus = ui.checkGameOver = ui.toast = ui.updateHoverInfo = function () {};
     return ui;
   }
   function click(ui, col, row) { ui.onMouseUp({ button: 0, offsetX: col, offsetY: row }); }
+  function hover(ui, col, row) {
+    var card = nodes["unit-hover"];
+    card.offsetWidth = 120; card.offsetHeight = 40;
+    ui.renderer.hoverHex = { col: col, row: row };
+    UI.GameUI.prototype.updateHoverInfo.call(ui);
+    return card;
+  }
   global.RENDER = RENDER;
   global.document = {
     getElementById: function (id) { return nodes[id] || (nodes[id] = element("div")); },
@@ -114,11 +122,12 @@ module.exports = function (ok) {
       nodes["factory-panel"].classList.contains("hidden"),
       "an unreachable unowned factory does not interrupt play with an inspection popup");
     ui.onCancel();
-    ui.showHexInfo(2, 1);
-    ok(nodes["hex-info"].innerHTML.includes("Bison") && nodes["hex-info"].innerHTML.includes("Lynx") && nodes["hex-info"].innerHTML.includes("data-unit-type"), "hover reveals neutral inventory names");
+    var card = hover(ui, 2, 1);
+    ok(card.innerHTML.includes("Lynx") && card.innerHTML.includes("data-unit-type"), "hover reveals neutral inventory names");
     tank.col = 2; tank.row = 1;
-    ui.showHexInfo(2, 1);
-    ok(nodes["hex-info"].innerHTML.includes("Bison") && nodes["hex-info"].innerHTML.includes("Lynx") && nodes["hex-info"].innerHTML.includes("data-unit-type"), "hover reveals inventory even under a unit");
+    card = hover(ui, 2, 1);
+    ok(card.innerHTML.includes("Ground ATK") && card.innerHTML.includes("Factory · 2 stored") && card.innerHTML.includes("Lynx"),
+      "hovering a unit on a factory shows the unit and the factory's stored units");
     click(ui, 2, 1);
     ok(ui.mode === "unitSelected" && ui.selected === tank, "an occupying unit still receives the normal selection click");
 
@@ -203,9 +212,12 @@ module.exports = function (ok) {
       click(ui, 1, 1); click(ui, 2, 1);
       ok(tank.inFactory && !ui.game.unitAt(2, 1) && ui.mode === "idle" && !tank.attacked && !ui.pendingMoveFrom,
         kind + ": clicking a friendly building immediately stores a tank even beside an enemy");
+      ui.updateHoverInfo = UI.GameUI.prototype.updateHoverInfo;
+      nodes["unit-hover"].offsetWidth = 120; nodes["unit-hover"].offsetHeight = 40;
       ui.renderer.hoverHex = { col: 2, row: 1 };
       UI.GameUI.prototype.refreshStatus.call(ui);
-      ok(nodes["hex-info"].innerHTML.includes("3 stored"), kind + ": sidebar inventory refreshes immediately after storage");
+      ok(nodes["unit-hover"].innerHTML.includes("3 stored"), kind + ": the hover card's inventory refreshes immediately after storage");
+      ui.updateHoverInfo = function () {};
       click(ui, 2, 1);
       ok(ui.mode === "factory" && textContent(nodes["factory-list"]).includes("Next turn"),
         kind + ": stored tank is visible in the building inventory");

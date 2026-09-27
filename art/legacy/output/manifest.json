@@ -2,7 +2,7 @@
   "source": "https://anka.sakura.ne.jp/nectaris/image/d2-01.jpg",
   "sourcePage": "https://anka.sakura.ne.jp/nectaris/d2.html",
   "sha256": "bcc5f5a34670a9b6049c738e6b0b6ade1157c99688bd482a2bbb0e178cd199f5",
-  "method": "JPEG-derived crops; background removal, shared-palette quantization, nearest-neighbor normalization",
+  "method": "2x2 chart blocks averaged into art pixels; card background removed by flood fill; brightness-weighted nearest of seven chart colours; no resampling",
   "frame": 32,
   "leftFacing": "mirrored source shading",
   "unitCount": 23,
@@ -10,385 +10,431 @@
     {
       "id": "CHARLIE",
       "japaneseName": "ムンクス",
-      "sourceCrop": [
-        492,
-        92,
-        34,
-        34
+      "chartOrigin": [
+        498,
+        98
+      ],
+      "artPixels": [
+        13,
+        12
       ],
       "visibleBounds": [
-        8,
-        7,
-        24,
-        24
-      ],
-      "opaquePixels": 153
-    },
-    {
-      "id": "KILROY",
-      "japaneseName": "ダーベック",
-      "sourceCrop": [
-        492,
-        187,
-        34,
-        34
-      ],
-      "visibleBounds": [
-        7,
-        7,
-        25,
-        24
-      ],
-      "opaquePixels": 177
-    },
-    {
-      "id": "PANTHER",
-      "japaneseName": "ドレイパー",
-      "sourceCrop": [
-        492,
-        282,
-        34,
-        34
-      ],
-      "visibleBounds": [
-        6,
-        7,
-        26,
-        24
-      ],
-      "opaquePixels": 239
-    },
-    {
-      "id": "BISON",
-      "japaneseName": "バイソン",
-      "sourceCrop": [
-        62,
-        101,
-        34,
-        34
-      ],
-      "visibleBounds": [
-        2,
-        5,
-        30,
-        26
+        3,
+        4,
+        29,
+        28
       ],
       "opaquePixels": 416
     },
     {
-      "id": "LENET",
-      "japaneseName": "レネット",
-      "sourceCrop": [
-        62,
-        291,
-        34,
-        34
+      "id": "KILROY",
+      "japaneseName": "ダーベック",
+      "chartOrigin": [
+        497,
+        191
+      ],
+      "artPixels": [
+        14,
+        14
       ],
       "visibleBounds": [
         2,
-        4,
+        2,
         30,
-        27
+        30
       ],
-      "opaquePixels": 467
+      "opaquePixels": 496
+    },
+    {
+      "id": "PANTHER",
+      "japaneseName": "ドレイパー",
+      "chartOrigin": [
+        493,
+        284
+      ],
+      "artPixels": [
+        16,
+        14
+      ],
+      "visibleBounds": [
+        0,
+        2,
+        32,
+        30
+      ],
+      "opaquePixels": 748
+    },
+    {
+      "id": "BISON",
+      "japaneseName": "バイソン",
+      "chartOrigin": [
+        65,
+        107
+      ],
+      "artPixels": [
+        15,
+        12
+      ],
+      "visibleBounds": [
+        1,
+        4,
+        31,
+        28
+      ],
+      "opaquePixels": 660
+    },
+    {
+      "id": "LENET",
+      "japaneseName": "レネット",
+      "chartOrigin": [
+        65,
+        295
+      ],
+      "artPixels": [
+        16,
+        14
+      ],
+      "visibleBounds": [
+        0,
+        2,
+        32,
+        30
+      ],
+      "opaquePixels": 800
     },
     {
       "id": "POLAR",
       "japaneseName": "アルマジロ",
-      "sourceCrop": [
-        158,
-        196,
-        34,
-        34
+      "chartOrigin": [
+        159,
+        198
+      ],
+      "artPixels": [
+        16,
+        15
       ],
       "visibleBounds": [
-        3,
-        4,
-        29,
-        27
+        0,
+        1,
+        32,
+        31
       ],
-      "opaquePixels": 484
+      "opaquePixels": 904
     },
     {
       "id": "GRIZZLY",
       "japaneseName": "グリズリー",
-      "sourceCrop": [
+      "chartOrigin": [
         158,
-        101,
-        34,
-        34
+        103
+      ],
+      "artPixels": [
+        16,
+        14
       ],
       "visibleBounds": [
+        0,
         2,
-        4,
-        30,
-        28
+        32,
+        30
       ],
-      "opaquePixels": 459
+      "opaquePixels": 812
     },
     {
       "id": "SLAGGER",
       "japaneseName": "スラッガー",
-      "sourceCrop": [
-        62,
-        195,
-        34,
-        34
+      "chartOrigin": [
+        63,
+        201
+      ],
+      "artPixels": [
+        16,
+        13
       ],
       "visibleBounds": [
-        2,
-        5,
-        30,
-        27
+        0,
+        3,
+        32,
+        29
       ],
-      "opaquePixels": 437
+      "opaquePixels": 760
     },
     {
       "id": "TITAN",
       "japaneseName": "モンスター",
-      "sourceCrop": [
+      "chartOrigin": [
         158,
-        291,
-        34,
-        34
+        295
+      ],
+      "artPixels": [
+        16,
+        13
       ],
       "visibleBounds": [
+        0,
         3,
-        6,
-        29,
-        26
+        32,
+        29
       ],
-      "opaquePixels": 365
+      "opaquePixels": 728
     },
     {
       "id": "GIANT",
       "japaneseName": "ギガント",
-      "sourceCrop": [
+      "chartOrigin": [
         254,
-        101,
-        34,
-        34
+        103
+      ],
+      "artPixels": [
+        16,
+        15
       ],
       "visibleBounds": [
-        3,
-        4,
-        29,
-        28
+        0,
+        1,
+        32,
+        31
       ],
-      "opaquePixels": 529
+      "opaquePixels": 928
     },
     {
       "id": "EAGLE",
       "japaneseName": "ジャビイ",
-      "sourceCrop": [
-        376,
-        187,
-        34,
-        34
+      "chartOrigin": [
+        377,
+        194
+      ],
+      "artPixels": [
+        16,
+        11
       ],
       "visibleBounds": [
-        2,
+        0,
         5,
-        30,
-        26
+        32,
+        27
       ],
-      "opaquePixels": 327
+      "opaquePixels": 496
     },
     {
       "id": "FALCON",
       "japaneseName": "ファルコ",
-      "sourceCrop": [
-        376,
-        92,
-        34,
-        34
+      "chartOrigin": [
+        379,
+        101
+      ],
+      "artPixels": [
+        15,
+        10
       ],
       "visibleBounds": [
-        3,
-        7,
-        29,
-        25
+        1,
+        6,
+        31,
+        26
       ],
-      "opaquePixels": 308
+      "opaquePixels": 460
     },
     {
       "id": "HUNTER",
       "japaneseName": "ハンター",
-      "sourceCrop": [
-        376,
-        282,
-        34,
-        34
+      "chartOrigin": [
+        377,
+        288
+      ],
+      "artPixels": [
+        16,
+        12
       ],
       "visibleBounds": [
-        2,
-        5,
-        30,
-        26
+        0,
+        4,
+        32,
+        28
       ],
-      "opaquePixels": 341
+      "opaquePixels": 556
     },
     {
       "id": "HADRIAN",
       "japaneseName": "ナスホルン",
-      "sourceCrop": [
-        154,
-        550,
-        34,
-        34
+      "chartOrigin": [
+        155,
+        555
+      ],
+      "artPixels": [
+        16,
+        13
       ],
       "visibleBounds": [
-        2,
-        5,
-        30,
-        26
+        0,
+        3,
+        32,
+        29
       ],
-      "opaquePixels": 408
+      "opaquePixels": 740
     },
     {
       "id": "OCTOPUS",
       "japaneseName": "エストール",
-      "sourceCrop": [
-        154,
-        455,
-        34,
-        34
+      "chartOrigin": [
+        156,
+        458
+      ],
+      "artPixels": [
+        16,
+        14
       ],
       "visibleBounds": [
+        0,
         2,
-        4,
-        30,
-        28
+        32,
+        30
       ],
-      "opaquePixels": 519
+      "opaquePixels": 800
     },
     {
       "id": "ATLAS",
       "japaneseName": "モノケロス",
-      "sourceCrop": [
-        386,
-        550,
-        34,
-        34
+      "chartOrigin": [
+        389,
+        550
+      ],
+      "artPixels": [
+        16,
+        15
       ],
       "visibleBounds": [
-        4,
-        5,
-        28,
-        26
+        0,
+        1,
+        32,
+        31
       ],
-      "opaquePixels": 278
+      "opaquePixels": 608
     },
     {
       "id": "RABBIT",
       "japaneseName": "ラビット",
-      "sourceCrop": [
-        38,
-        455,
-        34,
-        34
+      "chartOrigin": [
+        41,
+        459
+      ],
+      "artPixels": [
+        15,
+        13
       ],
       "visibleBounds": [
-        2,
+        1,
         3,
-        30,
-        28
+        31,
+        29
       ],
-      "opaquePixels": 440
+      "opaquePixels": 692
     },
     {
       "id": "LYNX",
       "japaneseName": "リンクス",
-      "sourceCrop": [
-        38,
-        550,
-        34,
-        34
+      "chartOrigin": [
+        42,
+        552
+      ],
+      "artPixels": [
+        15,
+        14
       ],
       "visibleBounds": [
+        1,
         2,
-        4,
-        30,
-        28
+        31,
+        30
       ],
-      "opaquePixels": 429
+      "opaquePixels": 640
     },
     {
       "id": "SEEKER",
       "japaneseName": "シーカー",
-      "sourceCrop": [
-        268,
-        455,
-        34,
-        34
+      "chartOrigin": [
+        270,
+        456
+      ],
+      "artPixels": [
+        16,
+        16
       ],
       "visibleBounds": [
-        4,
-        4,
-        28,
-        27
+        0,
+        0,
+        32,
+        32
       ],
-      "opaquePixels": 406
+      "opaquePixels": 892
     },
     {
       "id": "HAWKEYE",
       "japaneseName": "ホークアイ",
-      "sourceCrop": [
+      "chartOrigin": [
         268,
-        550,
-        34,
-        34
+        551
+      ],
+      "artPixels": [
+        16,
+        16
       ],
       "visibleBounds": [
-        3,
-        3,
-        29,
-        28
+        0,
+        0,
+        32,
+        32
       ],
-      "opaquePixels": 448
+      "opaquePixels": 888
     },
     {
       "id": "MULE",
       "japaneseName": "ミュール",
-      "sourceCrop": [
-        502,
-        455,
-        34,
-        34
+      "chartOrigin": [
+        505,
+        458
+      ],
+      "artPixels": [
+        16,
+        15
       ],
       "visibleBounds": [
-        3,
-        5,
-        29,
-        27
+        0,
+        1,
+        32,
+        31
       ],
-      "opaquePixels": 488
+      "opaquePixels": 856
     },
     {
       "id": "PELICAN",
       "japaneseName": "ペリカン",
-      "sourceCrop": [
-        502,
-        550,
-        34,
-        34
+      "chartOrigin": [
+        505,
+        550
+      ],
+      "artPixels": [
+        16,
+        16
       ],
       "visibleBounds": [
-        2,
-        3,
-        30,
-        29
+        0,
+        0,
+        32,
+        32
       ],
-      "opaquePixels": 513
+      "opaquePixels": 808
     },
     {
       "id": "TRIGGER",
       "japaneseName": "ヤマアラシ",
-      "sourceCrop": [
-        386,
-        455,
-        34,
-        34
+      "chartOrigin": [
+        388,
+        460
+      ],
+      "artPixels": [
+        14,
+        12
       ],
       "visibleBounds": [
         2,
@@ -396,7 +442,7 @@
         30,
         28
       ],
-      "opaquePixels": 375
+      "opaquePixels": 400
     }
   ]
 }

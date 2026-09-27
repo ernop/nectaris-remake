@@ -123,12 +123,22 @@ traces; direct PCE confirmation and the transient factory-capture bug remain ope
 
 - Attack support sums relevant base attack × supporter strength; defense
   support sums base defense × supporter strength. Both divide by **twice the
-  initiating squad's strength**. Supporters stand adjacent to the opposing unit.
+  initiating squad's strength**. Supporters stand adjacent to the opposing unit:
+  attack supporters touch the defender, defense supporters touch the attacker.
+  A defense supporter need not touch the unit it protects.
+- A supporter needs only a base attack value against the defender's domain
+  (ground or air); range is not checked. Artillery and Hawkeyes beside the target
+  support; a Bison beside an aircraft adds 0. Field transports support with their
+  own stats; cargo and stored units never support. Mines give defense support.
 - Attack receives attack support. Defense receives terrain and, on the defending
   side, defense support. Air terrain is zero.
+- Surround holds when every hex around the defender lies in the attacking side's
+  ZOC (adjacent to, or occupied by, any of its field units, including mines,
+  aircraft and transports). Two units on opposite sides suffice. A ring hex
+  holding the defender's own ally still counts. Map edges prevent surround.
 - Surround halves the defender's base attack and its defense after terrain and
-  support. Then modified stats cap at 100. Map edges prevent surround; an
-  initiating squad is not penalized for being surrounded.
+  support. Then modified stats cap at 100. An initiating squad is not penalized
+  for being surrounded.
 - Unit damage is `floor(attack × (100 − defense) / 100)`. Our implementation
   next floors the experience-adjusted unit damage, then floors multiplication
   by squad strength and the random coefficient.
@@ -137,8 +147,13 @@ traces; direct PCE confirmation and the transient factory-capture bug remain ope
 
 The published reconstruction suppresses some integer-operation ordering.
 The 1997 Windows executable confirms these floor stages at `0x41bb32` and
-`0x420cf6` (see `ORIGINAL_EXECUTABLE_NOTES.md`); direct PCE instruction-level
-verification remains outstanding. Adjacent
+`0x420cf6`. Its battle-effect routine `0x41b810` confirms the support, surround
+and counter rules above; 40 executed cases in `test/fixtures/windows-combat.json`
+match our engine through survivors and cargo (`test/combat-original-tests.js`,
+[notes](ORIGINAL_EXECUTABLE_NOTES.md#battle-effects-casualties-and-cargo--2026-09-26)).
+Two English guides (GameFAQs TG-16 FAQ; nectaris.tg-16.com strategy page) require
+defense supporters to touch both combatants; the executable does not. Direct
+PCE instruction-level verification remains outstanding. Adjacent
 exchanges use both pre-battle strengths. A counter requires the defender's
 range band to include distance one against that target domain. Indirect bands
 start at two; indirect exchanges have no support, surround or counterattack.
@@ -165,6 +180,11 @@ It does not increase defense. Initiating combat earns +0 for no casualties,
 +1 for damage, +2 for a kill; a surviving defender earns +2 when unhurt and +1
 when hurt, including a counter-kill. Factory capture earns infantry +4. Cap 8.
 The old additional counter-kill award was removed in this audit.
+The Windows executable stores 4 points per star in a 5-bit counter capped at
+31 (awards of 4, 8 and 16 points at `0x415850` and `0x402472`). It draws
+(points + 1) ÷ 4 stars and uses points ÷ 4 as the damage level, so the eighth
+star, the big General star, is the cap and deals the same 200% as the seventh.
+This is our 0–8 scale.
 
 Forecasts use 100,000 independently seeded trials, the same weighted damage
 model and simultaneous strengths. They never read or advance the match RNG.
@@ -187,7 +207,17 @@ until next turn. This applies to Pelican, Mule and custom transports. The limit
 survives save/reload and is restored by undo. Unloading allows plains, roads and bridges,
 plus direct storage in an owned factory in PCE. It never captures a prison base
 by dropping onto it. Carrier casualties reduce cargo to at most the carrier's
-remaining strength; cargo never increases. See the PCE supplement above.
+remaining strength; cargo never increases. A destroyed carrier destroys its
+cargo in the same battle: eight Giants in a three-machine Pelican drop to two
+when one Pelican falls and vanish when the last does. The Windows routine
+`0x420ff0` does exactly this, and those machines count in the loser's losses.
+StrategyWiki's TG-16 claim (no loss until the carrier dies) and the Military
+Madness Let's Play's proportional guess are contradicted. See the PCE supplement above.
+
+A loaded transport cannot start a battle. The Windows executable refuses with
+"搭載中は攻撃できません" ("cannot attack while loaded"), and its Mule description
+says it "cannot attack while transporting". A loaded Mule still counterattacks.
+The remake allowed loaded Mule attacks until 2026-09-26.
 
 Factories store and repair all chassis. Loaded carrier entry separates and
 repairs both units; experience is retained. Storing and redeploying each spend

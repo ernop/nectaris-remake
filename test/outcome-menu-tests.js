@@ -69,23 +69,17 @@ module.exports = function (ok) {
   listeners.DOMContentLoaded();
   ok(cards("mission-list").length===16 && cards("advanced-mission-list").length===16,
     "both original campaigns use their complete sixteen-level collections");
-  ok(get("map-jump").children[1].children.length===32,"map jump retains all original campaign indices");
   var aiLevels=context.AI_MADE_LEVELS;
   ok(cards("ai-made-list").length===aiLevels.length && aiLevels.every(function(level,i){
     return find(cards("ai-made-list")[i],"level-card-heading").textContent===level.name;
   }),"AI-made cards retain every separately named level in data order");
-  var aiGroup=get("map-jump").children.find(function(g){return g.label==="AI-made";});
-  ok(aiGroup.children.length===aiLevels.length && aiLevels.every(function(level,i){return aiGroup.children[i].value==="a:"+i;}),
-    "map jump retains stable AI-made pack indices");
   ok(aiLevels.every(function(level,i){return PROFILES.levelKey(level,{aiMadeIndex:i})==="ai-made:"+i;}),
     "AI-made results retain their pack identity");
   context.ENVIRONMENT_CAMPAIGNS.forEach(function(campaign){
-    var group=get("map-jump").children.find(function(g){return g.label===campaign.name;});
-    ok(cards(campaign.id+"-list").length===16 && group.children.length===16 && campaign.levels.every(function(level,i){
+    ok(cards(campaign.id+"-list").length===16 && campaign.levels.every(function(level,i){
       return find(cards(campaign.id+"-list")[i],"level-card-heading").textContent===level.name &&
-        group.children[i].value==="t:"+campaign.id+":"+i &&
         PROFILES.levelKey(level,{environmentCampaign:campaign.id,environmentIndex:i})==="environment:"+campaign.id+":"+i;
-    }),campaign.name+": sixteen ordered cards, jump options and independent progress keys");
+    }),campaign.name+": sixteen ordered cards and independent progress keys");
   });
   ok(get("level-groups").children.map(function(s){return s.id;}).join(",")===
     "normal-section,advanced-section,basenec-section,open-horizons-section,knotted-heart-section,broken-ground-section,"+
@@ -239,11 +233,11 @@ module.exports = function (ok) {
   find(cards("open-horizons-list")[0],"level-play").onclick();
   var saved=store.active().savedMatch;
   ok(saved.options.environmentCampaign==="open-horizons" && saved.options.environmentIndex===0 &&
-    saved.state.map.name===context.ENVIRONMENT_CAMPAIGNS[0].levels[0].name && get("map-jump").value==="t:open-horizons:0",
-    "terrain campaign Play starts the selected mission and saves its campaign identity");
+    saved.state.map.name===context.ENVIRONMENT_CAMPAIGNS[0].levels[0].name && get("map-title").textContent===saved.state.map.name,
+    "terrain campaign Play starts the selected mission, names it in the panel and saves its campaign identity");
   liveUI.options.onMenu();get("continue-button").onclick();
-  ok(store.active().savedMatch.id===saved.id && get("map-jump").value==="t:open-horizons:0",
-    "Continue restores the same terrain-campaign match and map selector");
+  ok(store.active().savedMatch.id===saved.id && get("map-title").textContent===saved.state.map.name,
+    "Continue restores the same terrain-campaign match and its level name");
   liveUI.game.winner=0;liveUI.game.winReason="base";liveUI.options.onGameOver(0);
   ok(!get("gameover-next").classList.contains("hidden"),"terrain campaign completion offers the next mission");
   get("gameover-next").onclick();
@@ -254,9 +248,9 @@ module.exports = function (ok) {
     find(get("knotted-heart-section"),"group-progress").textContent==="0 / 16 won" &&
     find(get("broken-ground-section"),"group-progress").textContent==="0 / 16 won",
     "a terrain-campaign victory never leaks into another campaign's progress");
-  get("map-jump").value="t:broken-ground:15";get("map-jump").onchange();
+  find(cards("broken-ground-list")[15],"level-play").onclick();
   ok(store.active().savedMatch.options.environmentCampaign==="broken-ground" && store.active().savedMatch.options.environmentIndex===15,
-    "map jump switches directly to another terrain campaign's final mission");
+    "another terrain campaign's final mission starts from its menu card");
   liveUI.game.winner=0;liveUI.game.winReason="base";liveUI.options.onGameOver(0);
   ok(get("gameover-next").classList.contains("hidden") && !get("gameover-next").onclick,
     "mission sixteen ends its campaign instead of advancing into an unrelated collection");

@@ -6,7 +6,10 @@ with mirrored source shading, plus reconstructed original-style terrain and
 buildings. Legacy's 48×32 flattened geometry is integrated in production;
 Remake's terrain migration remains pending. Both sets use native 32×32 unit
 sources, scaled with map zoom; panel and review icons stay native-sized.
-Horizontal centering and small infantry remain required. See `art/legacy/README.md`.
+Horizontal centering is required in both sets. Small infantry and the safe-hex
+envelope below govern Remake only: Legacy draws every chart art pixel as an
+unscaled 2×2 block, at the original map's proportions with full-size infantry
+(user decision, 2026-09-26). See `art/legacy/README.md`.
 
 
 **Complete unit roster implemented:** all 23 stock types now use the approved

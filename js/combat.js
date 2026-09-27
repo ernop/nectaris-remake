@@ -1,9 +1,11 @@
 /* Nectaris remake — combat resolution.
  *
  * Implements the Japanese community reconstruction of the original combat
- * arithmetic. Support is divided by twice the attacker's strength; terrain
- * adds directly to per-machine defense; surround halves the defender after
- * support and terrain; modified attack and defense cap at 100. Damage is:
+ * arithmetic, confirmed against the 1997 Windows executable
+ * (test/fixtures/windows-combat.json). Support is divided by twice the
+ * attacker's strength; terrain adds directly to per-machine defense; surround
+ * halves the defender after support and terrain; modified attack and defense
+ * cap at 100. Damage is:
  *
  *   unit damage = attack × (100 - defense) / 100
  *   total damage = unit damage × experience × strength × random coefficient
@@ -120,19 +122,22 @@ var COMBAT = (function () {
     var supportedAttack = baseAttack + supportAttack;
     var supportedDefense = baseDefense + supportDefense;
     var terrainDefense = supportedDefense + terrain;
-    var finalAttack = attackDisabled ? 0 :
-      (surrounded ? Math.floor(baseAttack / 2) : supportedAttack);
-    var finalDefense = surrounded ?
-      Math.floor(terrainDefense / 2) : terrainDefense;
-    finalAttack = capStat(finalAttack);
-    finalDefense = capStat(finalDefense);
+    var steps = [
+      { ap: baseAttack, da: baseDefense, label: "BASE" },
+      { ap: supportedAttack, da: supportedDefense, label: "SUPPORT" },
+      { ap: supportedAttack, da: terrainDefense, label: "TERRAIN" },
+    ];
+    var attack = supportedAttack, defense = terrainDefense;
+    if (surrounded) {
+      attack = Math.floor(baseAttack / 2);
+      defense = Math.floor(terrainDefense / 2);
+      steps.push({ ap: attack, da: defense, label: "SURROUNDED" });
+    }
+    var finalAttack = attackDisabled ? 0 : capStat(attack);
+    var finalDefense = capStat(defense);
+    steps.push({ ap: finalAttack, da: finalDefense, label: "FINAL" });
     return {
-      steps: [
-        { ap: baseAttack, da: baseDefense, label: "BASE" },
-        { ap: supportedAttack, da: supportedDefense, label: "SUPPORT" },
-        { ap: supportedAttack, da: terrainDefense, label: "TERRAIN" },
-        { ap: finalAttack, da: finalDefense, label: "FINAL" },
-      ],
+      steps: steps,
       ap: finalAttack,
       da: finalDefense,
       modifiers: { supportAttack: supportAttack, supportDefense: supportDefense,
@@ -163,11 +168,14 @@ var COMBAT = (function () {
         attackerInZOC: game.inEnemyZOC(attacker.col, attacker.row, attacker.player),
         defenderInZOC: game.inEnemyZOC(defender.col, defender.row, defender.player),
         attackSupporters: ranged ? [] : game.adjacentAllies(defender.col, defender.row, attacker.player, attacker).map(function (u) {
-          return {name: u.type.name, typeId:u.typeId, player:u.player, exp:u.exp, strength: u.strength, value: atkStat(u.type, isAir(defender))};
+          return {name: u.type.name, typeId:u.typeId, player:u.player, exp:u.exp, strength: u.strength,
+            value: atkStat(u.type, isAir(defender)), col: u.col, row: u.row};
         }),
         defenseSupporters: ranged ? [] : game.adjacentAllies(attacker.col, attacker.row, defender.player, defender).map(function (u) {
-          return {name: u.type.name, typeId:u.typeId, player:u.player, exp:u.exp, strength: u.strength, value: u.type.def};
+          return {name: u.type.name, typeId:u.typeId, player:u.player, exp:u.exp, strength: u.strength,
+            value: u.type.def, col: u.col, row: u.row};
         }),
+        ring: ranged ? [] : game.surroundRing(defender),
       } };
   }
 
