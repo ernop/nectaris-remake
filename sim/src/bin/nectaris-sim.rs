@@ -1,11 +1,15 @@
 //! nectaris-sim replay [CORPUS]
-//!   Replays every corpus game from its board and seed and compares the state
-//!   fingerprint after every command with the recorded one.
+//!   Checks the math port against V8's fingerprint, then replays every corpus
+//!   game from its board and seed and compares the state fingerprint after
+//!   every command with the recorded one.
+//! nectaris-sim decide [CORPUS]
+//!   Plays every corpus game again with its bots from its board and seed and
+//!   compares every command they choose with the recorded one.
 //! nectaris-sim bench [CORPUS]
 //!   Times the rules alone: replays every game without per-command
 //!   fingerprints, checking only each game's final state.
 
-use nectaris_sim::{corpus, data::Data, game::Game, hash};
+use nectaris_sim::{corpus, data::Data, fdlibm, game::Game, hash, play};
 use std::path::PathBuf;
 use std::time::Instant;
 
@@ -15,6 +19,13 @@ fn repo() -> PathBuf {
 
 fn replay(path: &str) -> bool {
     let data = Data::load(repo().join("sim/data/game-data.json").to_str().unwrap());
+    let m = &data.math;
+    let (log, tanh) = fdlibm::fingerprint(m.samples, m.seed);
+    if (log, tanh) != (m.log, m.tanh) {
+        println!("Math.log/Math.tanh port differs from V8: log {log} (V8 {}), tanh {tanh} (V8 {})", m.log, m.tanh);
+        return false;
+    }
+    println!("log and tanh match V8 on {} generated inputs", m.samples);
     let corpus = corpus::load(path);
     let started = Instant::now();
     let (mut commands, mut failed) = (0usize, 0usize);
@@ -53,6 +64,47 @@ fn replay(path: &str) -> bool {
     failed == 0
 }
 
+fn decide(path: &str) -> bool {
+    let data = Data::load(repo().join("sim/data/game-data.json").to_str().unwrap());
+    let corpus = corpus::load(path);
+    let started = Instant::now();
+    let mut failed = 0;
+    for (n, game) in corpus.games.iter().enumerate() {
+        let t = Instant::now();
+        let players = [game.players[0].as_str(), game.players[1].as_str()];
+        let out = play::play(&data, game.board, game.seed, players, game.max_rounds, &game.work);
+        let got: Vec<(String, Vec<serde_json::Value>)> = out.commands.iter().map(|c| c.to_json()).collect();
+        let first = (0..got.len().max(game.commands.len())).find(|&i| got.get(i) != game.commands.get(i));
+        let label = format!("game {n} ({}, {}, seed {})", game.name, game.players.join(" v "), game.seed);
+        match first {
+            Some(i) => {
+                failed += 1;
+                let show = |c: Option<&(String, Vec<serde_json::Value>)>| c.map_or("(none)".to_string(), |(name, args)| format!("{name} {}", serde_json::Value::from(args.clone())));
+                println!("{label}: command {i} of {} chose {}, recorded {}", game.commands.len(), show(got.get(i)), show(game.commands.get(i)));
+                for j in i.saturating_sub(3)..i {
+                    println!("    before: {j} {}", show(game.commands.get(j)));
+                }
+            }
+            None => {
+                let winner = if out.winner < 0 { None } else { Some(out.winner) };
+                if winner != game.winner || out.reason != game.reason || out.rounds != game.rounds {
+                    failed += 1;
+                    println!("{label}: same commands but ended {winner:?} {} round {} (recorded {:?} {} round {})", out.reason, out.rounds, game.winner, game.reason, game.rounds);
+                } else {
+                    println!("{label}: {} commands match in {:.2} s", got.len(), t.elapsed().as_secs_f64());
+                }
+            }
+        }
+    }
+    println!(
+        "{} games played in {:.1} s; {}",
+        corpus.games.len(),
+        started.elapsed().as_secs_f64(),
+        if failed == 0 { "every command matches".to_string() } else { format!("{failed} games DIFFER") }
+    );
+    failed == 0
+}
+
 fn bench(path: &str) -> bool {
     let data = Data::load(repo().join("sim/data/game-data.json").to_str().unwrap());
     let corpus = corpus::load(path);
@@ -87,9 +139,10 @@ fn main() {
     let path = args.get(2).map(String::as_str).unwrap_or(default.to_str().unwrap());
     let ok = match args.get(1).map(String::as_str) {
         Some("replay") => replay(path),
+        Some("decide") => decide(path),
         Some("bench") => bench(path),
         _ => {
-            eprintln!("usage: nectaris-sim replay|bench [CORPUS]");
+            eprintln!("usage: nectaris-sim replay|decide|bench [CORPUS]");
             false
         }
     };

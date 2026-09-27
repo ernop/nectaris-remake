@@ -60,6 +60,7 @@ pub struct UnitTypeDef {
     pub move_or_fire: bool,
     #[serde(default)]
     pub move_after_attack: bool,
+    pub ai_deployment_enemies: Option<i32>,
     /// `JSON.stringify` of the type, which the search seed hashes.
     pub json: String,
 }
@@ -81,6 +82,7 @@ pub struct UnitType {
     pub cannot_enter: Vec<usize>,
     pub move_or_fire: bool,
     pub move_after_attack: bool,
+    pub ai_deployment_enemies: Option<i32>,
     pub json: String,
 }
 
@@ -129,12 +131,22 @@ pub struct CombatTables {
     pub random_weights: Vec<[i32; 2]>,
 }
 
+/// V8's `Math.log` and `Math.tanh` fingerprinted over generated inputs.
+#[derive(Deserialize)]
+pub struct MathCheck {
+    pub samples: u32,
+    pub seed: u32,
+    pub log: u32,
+    pub tanh: u32,
+}
+
 #[derive(Deserialize)]
 struct Raw {
     terrain: Vec<Terrain>,
     units: Vec<UnitTypeDef>,
     boards: Vec<Board>,
     combat: CombatTables,
+    math: MathCheck,
 }
 
 pub struct Data {
@@ -146,6 +158,7 @@ pub struct Data {
     pub combat: CombatTables,
     /// Damage percentages, one entry per percent of probability.
     pub buckets: Vec<i32>,
+    pub math: MathCheck,
 }
 
 fn move_type(name: &str) -> MoveType {
@@ -195,6 +208,7 @@ impl Data {
                     .collect(),
                 move_or_fire: t.move_or_fire,
                 move_after_attack: t.move_after_attack,
+                ai_deployment_enemies: t.ai_deployment_enemies,
                 json: t.json.clone(),
             })
             .collect();
@@ -204,7 +218,7 @@ impl Data {
                 buckets.push(w[0]);
             }
         }
-        Data { terrain: raw.terrain, terrain_by_char, types, type_index, boards: raw.boards, combat: raw.combat, buckets }
+        Data { terrain: raw.terrain, terrain_by_char, types, type_index, boards: raw.boards, combat: raw.combat, buckets, math: raw.math }
     }
 
     /// `terrainCost`: the cost for this chassis to enter the terrain, or None.

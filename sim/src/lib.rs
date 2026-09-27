@@ -2,9 +2,14 @@
 //! game exactly; `test/fixtures/sim-corpus.json.gz` and `nectaris-sim replay`
 //! check it command by command.
 
+pub mod classic;
 pub mod corpus;
 pub mod data;
+pub mod fdlibm;
 pub mod game;
 pub mod hash;
 pub mod hex;
+pub mod model;
+pub mod play;
 pub mod rng;
+pub mod search;

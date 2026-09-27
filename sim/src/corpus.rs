@@ -53,7 +53,7 @@ fn int(v: &Value) -> Result<i32, String> {
 /// Apply one recorded engine command (`AI_TOURNAMENT`'s seven methods).
 pub fn apply(g: &mut Game, name: &str, args: &[Value]) -> Result<(), String> {
     match (name, args.len()) {
-        ("moveUnit", 3) => g.move_unit(unit(g, &args[0])?, int(&args[1])?, int(&args[2])?),
+        ("moveUnit", 3) => g.move_unit(unit(g, &args[0])?, int(&args[1])?, int(&args[2])?).map(|_| ()),
         ("finishUnit", 1) => {
             let u = unit(g, &args[0])?;
             g.finish_unit(u);

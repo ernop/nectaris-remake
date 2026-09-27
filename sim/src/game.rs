@@ -40,7 +40,6 @@ pub struct Building {
     pub stored: Vec<usize>,
 }
 
-#[derive(Clone)]
 pub struct Game<'d> {
     pub d: &'d Data,
     pub board: usize,
@@ -61,6 +60,21 @@ pub struct Game<'d> {
     pub winner: i32,
     pub reason: &'static str,
     pub rng: Rng,
+    /// Commands issued through the `do_` methods, as the tournament records
+    /// them: only outermost calls, never the engine's own nested ones.
+    pub log: Option<Vec<Command>>,
+}
+
+/// One recorded engine command; units by id, buildings by position.
+#[derive(Clone, Debug, PartialEq)]
+pub enum Command {
+    Move(u32, i32, i32),
+    Finish(u32),
+    Attack(u32, u32),
+    Unload(u32, u32, i32, i32),
+    Deploy((i32, i32), u32, i32, i32),
+    LoadFromFactory((i32, i32), u32, u32),
+    EndTurn,
 }
 
 pub const STOP: u8 = 1;
@@ -147,6 +161,7 @@ impl<'d> Game<'d> {
             winner: -1,
             reason: "",
             rng: Rng::new(seed),
+            log: None,
         };
         for def in &b.buildings {
             let cell = g.cell(def.col, def.row);
@@ -184,6 +199,29 @@ impl<'d> Game<'d> {
         g
     }
 
+    /// `AI_MODEL.clone`: the same position with its own generator and no log.
+    pub fn sim_clone(&self, rng: Rng) -> Game<'d> {
+        Game {
+            d: self.d,
+            board: self.board,
+            w: self.w,
+            h: self.h,
+            cells: self.cells.clone(),
+            units: self.units.clone(),
+            field: self.field.clone(),
+            buildings: self.buildings.clone(),
+            building_at: self.building_at.clone(),
+            turn: self.turn,
+            turn_limit: self.turn_limit,
+            current: self.current,
+            first: self.first,
+            winner: self.winner,
+            reason: self.reason,
+            rng,
+            log: None,
+        }
+    }
+
     fn make_unit(&mut self, type_id: &str, player: i32, col: i32, row: i32, strength: Option<i32>, exp: Option<i32>) -> usize {
         let t = *self.d.type_index.get(type_id).unwrap_or_else(|| panic!("Unknown unit type: {type_id}"));
         let index = self.units.len();
@@ -216,6 +254,24 @@ impl<'d> Game<'d> {
     }
     pub fn cell(&self, col: i32, row: i32) -> usize {
         (row * self.w + col) as usize
+    }
+    pub fn terrain_at(&self, col: i32, row: i32) -> &'d crate::data::Terrain {
+        &self.d.terrain[self.cells[self.cell(col, row)]]
+    }
+    /// `playerUnits`: field units of the player, not carried, in board order.
+    pub fn player_units(&self, player: i32) -> Vec<usize> {
+        self.field
+            .iter()
+            .copied()
+            .filter(|&i| {
+                let u = &self.units[i];
+                u.player == player && u.carried_by == 0 && !u.in_factory
+            })
+            .collect()
+    }
+    /// `playerFactories`: every building the player owns, bases included.
+    pub fn player_factories(&self, player: i32) -> Vec<usize> {
+        (0..self.buildings.len()).filter(|&b| self.buildings[b].owner == player).collect()
     }
     pub fn in_bounds(&self, col: i32, row: i32) -> bool {
         col >= 0 && col < self.w && row >= 0 && row < self.h
@@ -309,6 +365,11 @@ impl<'d> Game<'d> {
     /// The Dijkstra search behind `movementRange`, with the verified ZOC exit
     /// rule and FIFO ties, stopping once `dest` is settled.
     pub fn search_moves(&self, u: usize, dest: Option<usize>) -> MoveSearch {
+        self.search_moves_as(u, self.units[u].mp, self.units[u].shifted, dest)
+    }
+    /// The search for the unit with the given movement allowance and shift
+    /// flag; AI_MODEL's `fresh(unit)` searches with a full, unspent budget.
+    pub fn search_moves_as(&self, u: usize, mp: i32, shifted: bool, dest: Option<usize>) -> MoveSearch {
         let unit = &self.units[u];
         assert!(self.in_bounds(unit.col, unit.row), "Unit at {},{} is outside the map", unit.col, unit.row);
         let size = (self.w * self.h) as usize;
@@ -316,12 +377,12 @@ impl<'d> Game<'d> {
         let mut s = MoveSearch { order: vec![start], cost: vec![i32::MAX; size], flags: vec![0; size], prev: vec![-1; size] };
         s.cost[start] = 0;
         s.flags[start] = CAN_STOP;
-        if unit.shifted || unit.mp <= 0 {
+        if shifted || mp <= 0 {
             return s;
         }
         let t = self.typ(u);
         let air = t.move_type == MoveType::Air;
-        let budget = unit.mp;
+        let budget = mp;
         let mut occupant = vec![-1i32; size];
         for &i in &self.field {
             let o = &self.units[i];
@@ -416,6 +477,37 @@ impl<'d> Game<'d> {
         s
     }
 
+    /// `stoppingCells`: reached cells where the move may end without boarding
+    /// or entering a building, in search order; `fresh` searches as
+    /// AI_MODEL's `fresh(unit)`.
+    pub fn stopping_cells(&self, u: usize, fresh: bool) -> Vec<usize> {
+        let s = if fresh { self.search_moves_as(u, self.typ(u).mv, false, None) } else { self.search_moves(u, None) };
+        s.order.into_iter().filter(|&c| s.flags[c] & CAN_STOP != 0 && s.flags[c] & (LOAD | ENTER) == 0).collect()
+    }
+
+    /// `attackCells`: cells from which the unit could fire on one of `among`.
+    pub fn attack_cells(&self, u: usize, among: &[usize]) -> Vec<u8> {
+        let (w, h) = (self.w, self.h);
+        let mut cells = vec![0u8; (w * h) as usize];
+        let t = self.typ(u);
+        for &e in among {
+            let o = &self.units[e];
+            if o.player == self.units[u].player || o.carried_by != 0 || o.in_factory {
+                continue;
+            }
+            let Some((min, max)) = range_band(t, self.is_air(e)) else { continue };
+            for r in (o.row - max - 1).max(0)..=(o.row + max + 1).min(h - 1) {
+                for c in (o.col - max).max(0)..=(o.col + max).min(w - 1) {
+                    let d = hex::distance(c, r, o.col, o.row);
+                    if d >= min && d <= max {
+                        cells[(r * w + c) as usize] = 1;
+                    }
+                }
+            }
+        }
+        cells
+    }
+
     pub fn attack_targets(&self, u: usize) -> Vec<usize> {
         let t = self.typ(u);
         let unit = &self.units[u];
@@ -464,7 +556,8 @@ impl<'d> Game<'d> {
         }
     }
 
-    pub fn move_unit(&mut self, u: usize, col: i32, row: i32) -> Result<(), String> {
+    /// Returns whether the unit boarded a transport.
+    pub fn move_unit(&mut self, u: usize, col: i32, row: i32) -> Result<bool, String> {
         if !self.can_move_now(u) {
             return Err("Unit cannot move now".into());
         }
@@ -500,7 +593,7 @@ impl<'d> Game<'d> {
             unit.row = row;
             unit.moved = true;
             unit.mp = 0;
-            return Ok(());
+            return Ok(true);
         }
         let unit = &mut self.units[u];
         unit.col = col;
@@ -508,10 +601,10 @@ impl<'d> Game<'d> {
         if flags & STOP != 0 && (!t.move_after_attack || unit.attacked) {
             unit.mp = 0;
         }
-        Ok(())
+        Ok(false)
     }
 
-    fn enemy_base_captured(&self, player: i32, b: usize) -> bool {
+    pub fn enemy_base_captured(&self, player: i32, b: usize) -> bool {
         let (col, row) = (self.buildings[b].col, self.buildings[b].row);
         for def in &self.d.boards[self.board].buildings {
             if def.col == col && def.row == row {
@@ -777,6 +870,27 @@ impl<'d> Game<'d> {
             && self.unit_at(tu.col, tu.row) == Some(transport)
             && hex::distance(bd.col, bd.row, tu.col, tu.row) == 1
     }
+    /// `deployTargets`: open neighbouring hexes, in neighbour order.
+    pub fn deploy_targets(&self, b: usize, u: usize) -> Vec<(i32, i32)> {
+        if !self.can_deploy_now(b, u) {
+            return Vec::new();
+        }
+        let bd = &self.buildings[b];
+        hex::neighbors(bd.col, bd.row).into_iter().filter(|&(c, r)| self.can_deploy_at(b, u, c, r)).collect()
+    }
+    /// `transportDeployTargets`: neighbouring transports it can board directly.
+    pub fn transport_deploy_targets(&self, b: usize, u: usize) -> Vec<usize> {
+        if !self.can_deploy_now(b, u) {
+            return Vec::new();
+        }
+        let bd = &self.buildings[b];
+        hex::neighbors(bd.col, bd.row)
+            .into_iter()
+            .filter(|&(c, r)| self.in_bounds(c, r))
+            .filter_map(|(c, r)| self.unit_at(c, r))
+            .filter(|&t| self.can_deploy_into(b, u, t))
+            .collect()
+    }
 
     pub fn deploy_from_factory(&mut self, b: usize, u: usize, col: i32, row: i32) -> Result<(), String> {
         if !self.can_deploy_at(b, u, col, row) {
@@ -849,5 +963,61 @@ impl<'d> Game<'d> {
             }
         }
         self.current = 1 - self.current;
+    }
+
+    fn record(&mut self, c: Command) {
+        if let Some(log) = &mut self.log {
+            log.push(c);
+        }
+    }
+    pub fn do_move(&mut self, u: usize, col: i32, row: i32) -> bool {
+        let loaded = self.move_unit(u, col, row).unwrap_or_else(|e| panic!("moveUnit {} to {col},{row}: {e}", self.units[u].id));
+        self.record(Command::Move(self.units[u].id, col, row));
+        loaded
+    }
+    pub fn do_finish(&mut self, u: usize) {
+        self.finish_unit(u);
+        self.record(Command::Finish(self.units[u].id));
+    }
+    pub fn do_attack(&mut self, a: usize, d: usize) -> Battle {
+        let result = self.attack(a, d).unwrap_or_else(|e| panic!("attack {} on {}: {e}", self.units[a].id, self.units[d].id));
+        self.record(Command::Attack(self.units[a].id, self.units[d].id));
+        result
+    }
+    pub fn do_unload(&mut self, t: usize, c: usize, col: i32, row: i32) {
+        self.unload(t, c, col, row).unwrap_or_else(|e| panic!("unload {} to {col},{row}: {e}", self.units[c].id));
+        self.record(Command::Unload(self.units[t].id, self.units[c].id, col, row));
+    }
+    pub fn do_deploy(&mut self, b: usize, u: usize, col: i32, row: i32) {
+        self.deploy_from_factory(b, u, col, row).unwrap_or_else(|e| panic!("deploy {} to {col},{row}: {e}", self.units[u].id));
+        let at = (self.buildings[b].col, self.buildings[b].row);
+        self.record(Command::Deploy(at, self.units[u].id, col, row));
+    }
+    pub fn do_load_from_factory(&mut self, b: usize, u: usize, t: usize) {
+        self.load_from_factory(b, u, t).unwrap_or_else(|e| panic!("loadFromFactory {} into {}: {e}", self.units[u].id, self.units[t].id));
+        let at = (self.buildings[b].col, self.buildings[b].row);
+        self.record(Command::LoadFromFactory(at, self.units[u].id, self.units[t].id));
+    }
+    pub fn do_end_turn(&mut self) {
+        self.end_turn();
+        self.record(Command::EndTurn);
+    }
+}
+
+impl Command {
+    /// The tournament record's form, `[name, args]`.
+    pub fn to_json(&self) -> (String, Vec<serde_json::Value>) {
+        use serde_json::json;
+        let unit = |id: &u32| json!({ "unit": id });
+        let building = |at: &(i32, i32)| json!({ "building": [at.0, at.1] });
+        match self {
+            Command::Move(u, c, r) => ("moveUnit".into(), vec![unit(u), json!(c), json!(r)]),
+            Command::Finish(u) => ("finishUnit".into(), vec![unit(u)]),
+            Command::Attack(a, d) => ("attack".into(), vec![unit(a), unit(d)]),
+            Command::Unload(t, u, c, r) => ("unload".into(), vec![unit(t), unit(u), json!(c), json!(r)]),
+            Command::Deploy(b, u, c, r) => ("deployFromFactory".into(), vec![building(b), unit(u), json!(c), json!(r)]),
+            Command::LoadFromFactory(b, u, t) => ("loadFromFactory".into(), vec![building(b), unit(u), unit(t)]),
+            Command::EndTurn => ("endTurn".into(), vec![]),
+        }
     }
 }

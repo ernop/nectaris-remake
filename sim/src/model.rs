@@ -1,0 +1,1052 @@
+//! AI_MODEL (js/ai-model.js): the capability-based action model the search
+//! bots share, operation for operation. JavaScript caches the routes, the
+//! enemy stopping cells and each position's analysis; every cached value is a
+//! pure function of its key, so this port recomputes or caches them as it
+//! likes. Float sums keep JavaScript's order, which fixes their rounding.
+
+use crate::data::{MoveType, UnitType};
+use crate::game::{atk_stat, can_attack_at, range_band, Game, MoveSearch, CAN_STOP, ENTER, LOAD};
+use crate::hex;
+use crate::rng::Rng;
+use std::cmp::Ordering;
+use std::collections::{BTreeMap, BinaryHeap, HashMap};
+use std::fmt::Write;
+use std::rc::Rc;
+
+/// `ENGINE.CostQueue` on float costs: lowest cost first, FIFO among equals.
+struct Entry(f64, u64, usize);
+impl PartialEq for Entry {
+    fn eq(&self, o: &Self) -> bool {
+        self.cmp(o) == Ordering::Equal
+    }
+}
+impl Eq for Entry {}
+impl PartialOrd for Entry {
+    fn partial_cmp(&self, o: &Self) -> Option<Ordering> {
+        Some(self.cmp(o))
+    }
+}
+impl Ord for Entry {
+    fn cmp(&self, o: &Self) -> Ordering {
+        o.0.partial_cmp(&self.0).expect("finite queue costs").then(o.1.cmp(&self.1))
+    }
+}
+#[derive(Default)]
+struct CostQueue {
+    heap: BinaryHeap<Entry>,
+    order: u64,
+}
+impl CostQueue {
+    fn push(&mut self, cost: f64, cell: usize) {
+        self.heap.push(Entry(cost, self.order, cell));
+        self.order += 1;
+    }
+    fn pop(&mut self) -> Option<(f64, usize)> {
+        self.heap.pop().map(|Entry(c, _, cell)| (c, cell))
+    }
+}
+
+pub struct Target {
+    pub goals: Rc<Vec<(i32, i32)>>,
+    pub worth: f64,
+    pub field: Rc<Vec<f64>>,
+}
+pub struct Plan {
+    field: Rc<Vec<f64>>,
+    foot: Rc<Vec<f64>>,
+    worth: f64,
+}
+
+#[derive(Default)]
+pub struct Ctx {
+    routes: HashMap<(usize, Vec<(i32, i32)>), Rc<Vec<f64>>>,
+    deliveries: HashMap<(usize, usize, Vec<(i32, i32)>), Rc<Vec<f64>>>,
+    /// `evaluationGoals`: each field unit's objectives at the decision's root.
+    pub goals: HashMap<usize, Rc<Vec<Target>>>,
+}
+
+#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
+pub enum Kind {
+    Act,
+    Deploy,
+    End,
+}
+
+/// A planner action. Units by index (id - 1).
+#[derive(Clone, Debug)]
+pub struct Action {
+    pub kind: Kind,
+    pub unit: usize,
+    pub to: Option<(i32, i32)>,
+    pub target: Option<usize>,
+    pub cargo: Option<usize>,
+    pub drop: Option<(i32, i32)>,
+    pub before: bool,
+    pub into: Option<usize>,
+    pub building: Option<(i32, i32)>,
+    pub score: f64,
+}
+impl Action {
+    fn act(unit: usize, to: Option<(i32, i32)>) -> Action {
+        Action { kind: Kind::Act, unit, to, target: None, cargo: None, drop: None, before: false, into: None, building: None, score: 0.0 }
+    }
+    pub fn end(score: f64) -> Action {
+        Action { kind: Kind::End, unit: usize::MAX, to: None, target: None, cargo: None, drop: None, before: false, into: None, building: None, score }
+    }
+    /// `AI_MODEL.key`: equal exactly when the action fields are equal.
+    pub fn key(&self) -> Key {
+        Key(self.kind, self.unit, self.to, self.target, self.cargo, self.drop, self.before, self.into, self.building)
+    }
+}
+#[derive(Clone, PartialEq, Eq, Hash, Debug)]
+pub struct Key(Kind, usize, Option<(i32, i32)>, Option<usize>, Option<usize>, Option<(i32, i32)>, bool, Option<usize>, Option<(i32, i32)>);
+
+/// Stable sort by score, highest first (`sort((a, b) => b.score - a.score)`).
+pub fn sort_desc<T>(list: &mut [T], score: impl Fn(&T) -> f64) {
+    list.sort_by(|a, b| score(b).partial_cmp(&score(a)).unwrap_or(Ordering::Equal));
+}
+
+fn is_air_type(t: &UnitType) -> bool {
+    t.move_type == MoveType::Air
+}
+
+pub fn base_value(t: &UnitType) -> f64 {
+    let attack = t.atk_g.max(t.atk_a);
+    18.0 + f64::from(attack.min(100)) * 0.7
+        + f64::from(t.def.min(100)) * 0.65
+        + f64::from(t.atk_g.min(t.atk_a).min(100)) * 0.15
+        + f64::from(t.mv) * 2.0
+        + f64::from(t.rng_g.max(t.rng_a)) * 7.0
+        + if t.capture { 65.0 } else { 0.0 }
+        + f64::from(t.cargo) * 25.0
+}
+fn value_at(g: &Game, t: &UnitType, strength: i32, exp: i32) -> f64 {
+    if strength <= 0 {
+        return 0.0;
+    }
+    let c = &g.d.combat;
+    base_value(t) * (0.2 + 0.8 * f64::from(strength) / f64::from(c.max_strength)) * (0.75 + 0.25 * f64::from(c.exp_damage[exp as usize]) / 100.0)
+}
+pub fn value(g: &Game, u: usize) -> f64 {
+    value_at(g, g.typ(u), g.units[u].strength, g.units[u].exp)
+}
+fn full_value(g: &Game, u: usize) -> f64 {
+    value_at(g, g.typ(u), g.d.combat.max_strength, g.units[u].exp)
+}
+
+fn step_costs(g: &Game, t: &UnitType) -> Vec<i32> {
+    g.cells.iter().map(|&terrain| g.d.terrain_cost(terrain, t).unwrap_or(-1)).collect()
+}
+fn neighbor_cells<'a>(g: &'a Game<'_>, cell: usize) -> impl Iterator<Item = usize> + 'a {
+    let (col, row) = (cell as i32 % g.w, cell as i32 / g.w);
+    hex::neighbors(col, row).into_iter().filter(|&(c, r)| g.in_bounds(c, r)).map(|(c, r)| g.cell(c, r))
+}
+
+/// Reverse multi-source walking distances to the goals over chassis terrain.
+fn distances(g: &Game, t_index: usize, goals: &[(i32, i32)], ctx: &mut Ctx) -> Rc<Vec<f64>> {
+    let key = (t_index, goals.to_vec());
+    if let Some(f) = ctx.routes.get(&key) {
+        return f.clone();
+    }
+    let t = &g.d.types[t_index];
+    let costs = step_costs(g, t);
+    let air = is_air_type(t);
+    let mut result = vec![f64::INFINITY; g.cells.len()];
+    let mut open = CostQueue::default();
+    for &(c, r) in goals {
+        if !g.in_bounds(c, r) || costs[g.cell(c, r)] < 0 {
+            continue;
+        }
+        let at = g.cell(c, r);
+        result[at] = 0.0;
+        open.push(0.0, at);
+    }
+    while let Some((cost, c)) = open.pop() {
+        if cost != result[c] {
+            continue;
+        }
+        let step = if g.d.terrain[g.cells[c]].costs_all_movement && !air { f64::from(t.mv.max(1)) } else { f64::from(costs[c]) };
+        for n in neighbor_cells(g, c) {
+            if costs[n] < 0 {
+                continue;
+            }
+            let next = cost + step;
+            if next < result[n] {
+                result[n] = next;
+                open.push(next, n);
+            }
+        }
+    }
+    if ctx.routes.len() > 4096 {
+        ctx.routes.clear();
+    }
+    let field = Rc::new(result);
+    ctx.routes.insert(key, field.clone());
+    field
+}
+
+pub fn objectives(g: &Game, u: usize, ctx: &mut Ctx) -> Vec<Target> {
+    let unit = &g.units[u];
+    let t = g.typ(u);
+    let player = unit.player;
+    let mut targets: Vec<(Vec<(i32, i32)>, f64)> = Vec::new();
+    if t.capture {
+        for b in &g.buildings {
+            if b.owner == player {
+                continue;
+            }
+            let worth = if b.base { 160.0 } else { 65.0 + b.stored.iter().fold(0.0, |s, &v| s + value(g, v) * 0.4) };
+            targets.push((vec![(b.col, b.row)], worth));
+        }
+    }
+    if t.atk_g != 0 || t.atk_a != 0 {
+        let mut enemies: Vec<usize> = g.player_units(1 - player).into_iter().filter(|&e| range_band(t, g.is_air(e)).is_some()).collect();
+        enemies.sort_by_key(|&e| hex::distance(unit.col, unit.row, g.units[e].col, g.units[e].row));
+        for &e in enemies.iter().take(3) {
+            let (min, max) = range_band(t, g.is_air(e)).unwrap();
+            let enemy = &g.units[e];
+            let mut goals = Vec::new();
+            for r in (enemy.row - max - 1).max(0)..=(enemy.row + max + 1).min(g.h - 1) {
+                for c in (enemy.col - max).max(0)..=(enemy.col + max).min(g.w - 1) {
+                    let d = hex::distance(c, r, enemy.col, enemy.row);
+                    if d >= min && d <= max && g.can_stop_at_building(u, c, r) {
+                        goals.push((c, r));
+                    }
+                }
+            }
+            targets.push((goals, (if t.capture { 15.0 } else { 65.0 }) + value(g, e) * 0.08));
+        }
+    }
+    for b in &g.buildings {
+        if !b.base || b.owner != player {
+            continue;
+        }
+        let mut urgency: f64 = 0.0;
+        for e in g.player_units(1 - player) {
+            let et = g.typ(e);
+            if !et.capture || et.mv == 0 {
+                continue;
+            }
+            let field = distances(g, g.units[e].t, &[(b.col, b.row)], ctx);
+            let turns = field[g.cell(g.units[e].col, g.units[e].row)] / f64::from(et.mv);
+            if turns <= 2.0 {
+                urgency = urgency.max(180.0 / (0.5 + turns));
+            }
+        }
+        if urgency != 0.0 {
+            targets.push((vec![(b.col, b.row)], urgency));
+        }
+    }
+    if targets.is_empty() {
+        let allies: Vec<usize> = g.player_units(player).into_iter().filter(|&a| a != u && g.typ(a).capture).collect();
+        for &a in allies.iter().take(2) {
+            targets.push((hex::neighbors(g.units[a].col, g.units[a].row).to_vec(), 30.0));
+        }
+    }
+    targets
+        .into_iter()
+        .map(|(goals, worth)| {
+            let field = distances(g, unit.t, &goals, ctx);
+            Target { goals: Rc::new(goals), worth, field }
+        })
+        .collect()
+}
+
+fn potential(g: &Game, mv: i32, targets: &[Target], col: i32, row: i32) -> f64 {
+    let (mut best, mv, at) = (0.0f64, f64::from(mv.max(1)), g.cell(col, row));
+    for t in targets {
+        let d = t.field[at];
+        if d.is_finite() {
+            best = best.max(t.worth / (1.5 + d / mv));
+        }
+    }
+    best
+}
+
+fn delivery_plans(g: &Game, carrier: usize, cargo: usize, ctx: &mut Ctx) -> Vec<Plan> {
+    let (ct, pt) = (g.typ(carrier), g.typ(cargo));
+    objectives(g, cargo, ctx)
+        .into_iter()
+        .map(|target| {
+            let key = (g.units[carrier].t, g.units[cargo].t, target.goals.to_vec());
+            let field = match ctx.deliveries.get(&key) {
+                Some(f) => f.clone(),
+                None => {
+                    let mut field = vec![f64::INFINITY; g.cells.len()];
+                    let mut queue = CostQueue::default();
+                    let speed = f64::from(ct.mv.max(1));
+                    for row in 0..g.h {
+                        for col in 0..g.w {
+                            let at = g.cell(col, row);
+                            if g.d.terrain_cost(g.cells[at], ct).is_none() {
+                                continue;
+                            }
+                            let mut best = f64::INFINITY;
+                            for (c, r) in hex::neighbors(col, row) {
+                                if !g.in_bounds(c, r) || g.building(c, r).is_some() {
+                                    continue;
+                                }
+                                best = best.min(1.0 + target.field[g.cell(c, r)] / f64::from(pt.mv.max(1)));
+                            }
+                            if best.is_finite() {
+                                field[at] = best;
+                                queue.push(best, at);
+                            }
+                        }
+                    }
+                    while let Some((cost, cur)) = queue.pop() {
+                        if cost != field[cur] {
+                            continue;
+                        }
+                        let terrain = &g.d.terrain[g.cells[cur]];
+                        let mut step = f64::from(g.d.terrain_cost(g.cells[cur], ct).expect("queued cells are passable"));
+                        if terrain.costs_all_movement && !is_air_type(ct) {
+                            step = speed;
+                        }
+                        for n in neighbor_cells(g, cur) {
+                            if g.d.terrain_cost(g.cells[n], ct).is_none() {
+                                continue;
+                            }
+                            let next = cost + step / speed;
+                            if next < field[n] {
+                                field[n] = next;
+                                queue.push(next, n);
+                            }
+                        }
+                    }
+                    if ctx.deliveries.len() > 4096 {
+                        ctx.deliveries.clear();
+                    }
+                    let field = Rc::new(field);
+                    ctx.deliveries.insert(key, field.clone());
+                    field
+                }
+            };
+            Plan { field, foot: target.field, worth: target.worth }
+        })
+        .collect()
+}
+fn delivery_value(g: &Game, plans: &[Plan], col: i32, row: i32, landed: Option<i32>) -> f64 {
+    let (mut best, at) = (0.0f64, g.cell(col, row));
+    for p in plans {
+        let turns = match landed {
+            Some(mv) => 1.0 + p.foot[at] / f64::from(mv.max(1)),
+            None => p.field[at],
+        };
+        if turns.is_finite() {
+            best = best.max(p.worth / (1.5 + turns));
+        }
+    }
+    best
+}
+
+/// `analysis`: the threat of the side not to move, the unit on each cell and
+/// the mover's bases a capturer can reach this turn.
+pub struct Info {
+    threat_player: i32,
+    threat: [Vec<f64>; 2],
+    cells: Vec<i32>,
+    emergencies: Vec<usize>,
+}
+
+fn offsets(min: i32, max: i32, parity: i32) -> Vec<(i32, i32)> {
+    let mut out = Vec::new();
+    for r in -max - 1..=max + 1 {
+        for c in -max..=max {
+            let d = hex::distance(parity, 0, parity + c, r);
+            if d >= min && d <= max {
+                out.push((c, r));
+            }
+        }
+    }
+    out
+}
+
+pub fn analysis(g: &Game) -> Info {
+    let size = g.cells.len();
+    let mut cells = vec![-1i32; size];
+    for &u in &g.field {
+        let unit = &g.units[u];
+        if unit.carried_by == 0 && !unit.in_factory && g.in_bounds(unit.col, unit.row) {
+            cells[g.cell(unit.col, unit.row)] = u as i32;
+        }
+    }
+    let player = 1 - g.current;
+    let mut threat = [vec![0.0f64; size], vec![0.0f64; size]];
+    let mut marks = vec![0u32; size];
+    let mut mark = 0u32;
+    for e in g.player_units(player) {
+        let t = g.typ(e);
+        if t.atk_g == 0 && t.atk_a == 0 {
+            continue;
+        }
+        let positions = if t.move_or_fire { vec![g.cell(g.units[e].col, g.units[e].row)] } else { g.stopping_cells(e, true) };
+        for air in [false, true] {
+            let Some((min, max)) = range_band(t, air) else { continue };
+            mark += 1;
+            let array = &mut threat[usize::from(air)];
+            let power = f64::from(atk_stat(t, air).min(100)) * f64::from(g.units[e].strength) / 8.0 * f64::from(g.d.combat.exp_damage[g.units[e].exp as usize]) / 100.0;
+            if min == 1 && max == 1 {
+                for &p in &positions {
+                    for at in neighbor_cells(g, p) {
+                        if marks[at] != mark {
+                            marks[at] = mark;
+                            array[at] += power;
+                        }
+                    }
+                }
+                continue;
+            }
+            let steps = [offsets(min, max, 0), offsets(min, max, 1)];
+            for &p in &positions {
+                let (col, row) = (p as i32 % g.w, p as i32 / g.w);
+                for &(dc, dr) in &steps[(col & 1) as usize] {
+                    let (c, r) = (col + dc, row + dr);
+                    if g.in_bounds(c, r) {
+                        let at = g.cell(c, r);
+                        if marks[at] != mark {
+                            marks[at] = mark;
+                            array[at] += power;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    let mut emergencies = Vec::new();
+    for (i, b) in g.buildings.iter().enumerate() {
+        if !b.base || b.owner != g.current {
+            continue;
+        }
+        if g.player_units(1 - b.owner).into_iter().any(|e| g.typ(e).capture && hex::distance(g.units[e].col, g.units[e].row, b.col, b.row) <= g.typ(e).mv) {
+            emergencies.push(i);
+        }
+    }
+    Info { threat_player: player, threat, cells, emergencies }
+}
+
+fn danger(g: &Game, u: usize, col: i32, row: i32, info: &Info) -> f64 {
+    let unit = &g.units[u];
+    assert_eq!(1 - unit.player, info.threat_player, "danger is only known for the side to move");
+    let t = g.typ(u);
+    let air = is_air_type(t);
+    let defense = (t.def + if air { 0 } else { g.terrain_at(col, row).def }).min(100);
+    let power = info.threat[usize::from(air)][g.cell(col, row)];
+    let losses = f64::from(unit.strength).min(power * f64::from(100 - defense) / 100.0 * 0.085);
+    full_value(g, u) * losses / 8.0
+}
+
+pub fn base_danger(g: &Game, player: i32) -> f64 {
+    let mut result = 0.0;
+    for b in &g.buildings {
+        if !b.base || b.owner != player || g.unit_at(b.col, b.row).is_some() {
+            continue;
+        }
+        let at = g.cell(b.col, b.row);
+        for u in g.player_units(1 - player) {
+            let t = g.typ(u);
+            if !t.capture || hex::distance(g.units[u].col, g.units[u].row, b.col, b.row) > t.mv {
+                continue;
+            }
+            let s = g.search_moves_as(u, t.mv, false, Some(at));
+            if s.cost[at] != i32::MAX && s.flags[at] & CAN_STOP != 0 {
+                result = 1800.0;
+            }
+        }
+    }
+    result
+}
+
+/// `allUnits`: board order, each unit followed by its cargo, then reserves.
+pub fn all_units(g: &Game) -> Vec<usize> {
+    fn add(g: &Game, u: usize, seen: &mut [bool], out: &mut Vec<usize>) {
+        if seen[u] {
+            return;
+        }
+        seen[u] = true;
+        out.push(u);
+        for &c in &g.units[u].cargo {
+            add(g, c, seen, out);
+        }
+    }
+    let mut seen = vec![false; g.units.len()];
+    let mut out = Vec::new();
+    for &u in &g.field {
+        add(g, u, &mut seen, &mut out);
+    }
+    for b in &g.buildings {
+        for &s in &b.stored {
+            add(g, s, &mut seen, &mut out);
+        }
+    }
+    out
+}
+
+/// `signature`'s fields in the same order, length-prefixed: two positions get
+/// equal vectors exactly when JavaScript gives them equal signatures.
+pub fn signature(g: &Game) -> Vec<i32> {
+    let units = all_units(g);
+    let mut s = Vec::with_capacity(8 + units.len() * 18 + g.buildings.len() * 6);
+    s.extend([g.current, g.turn, g.winner, units.len() as i32]);
+    for u in units {
+        let x = &g.units[u];
+        s.extend([
+            x.id as i32,
+            x.player,
+            x.t as i32,
+            x.col,
+            x.row,
+            x.strength,
+            x.exp,
+            i32::from(x.moved),
+            i32::from(x.shifted),
+            i32::from(x.attacked),
+            i32::from(x.attack_spent),
+            x.mp,
+            i32::from(x.transfer_used),
+            x.carried_by as i32,
+            i32::from(x.in_factory),
+            x.cargo.len() as i32,
+        ]);
+        s.extend(x.cargo.iter().map(|&c| g.units[c].id as i32));
+    }
+    s.push(g.buildings.len() as i32);
+    for b in &g.buildings {
+        s.extend([b.col, b.row, b.owner, b.stored.len() as i32]);
+        for &st in &b.stored {
+            let x = &g.units[st];
+            s.extend([x.id as i32, x.strength, x.exp, i32::from(x.moved)]);
+        }
+    }
+    s
+}
+
+fn json_string(text: &str, out: &mut String) {
+    out.push('"');
+    for ch in text.chars() {
+        match ch {
+            '"' => out.push_str("\\\""),
+            '\\' => out.push_str("\\\\"),
+            c if (c as u32) < 0x20 => panic!("control character in board text {text:?}"),
+            c => out.push(c),
+        }
+    }
+    out.push('"');
+}
+
+/// `seedFor`: FNV-1a over the UTF-16 of the public position's JSON text.
+pub fn seed_for(g: &Game) -> u32 {
+    let mut s = String::with_capacity(4096);
+    write!(s, "[{},{},[", g.turn, g.current).unwrap();
+    for (i, row) in g.d.boards[g.board].grid.iter().enumerate() {
+        if i > 0 {
+            s.push(',');
+        }
+        json_string(row, &mut s);
+    }
+    s.push_str("],[");
+    for (i, u) in all_units(g).into_iter().enumerate() {
+        let x = &g.units[u];
+        if i > 0 {
+            s.push(',');
+        }
+        write!(s, "[{},{},{},{},{},{},{},{},{}]", x.col, x.row, x.player, x.strength, x.exp, x.moved, x.in_factory, x.carried_by != 0, g.typ(u).json).unwrap();
+    }
+    s.push_str("],[");
+    for (i, b) in g.buildings.iter().enumerate() {
+        if i > 0 {
+            s.push(',');
+        }
+        write!(s, "{}", b.owner).unwrap();
+    }
+    s.push_str("]]");
+    let mut h: u32 = 2_166_136_261;
+    for unit in s.encode_utf16() {
+        h = (h ^ u32::from(unit)).wrapping_mul(16_777_619);
+    }
+    h
+}
+
+pub fn prepare_evaluation(g: &Game, ctx: &mut Ctx) {
+    ctx.goals.clear();
+    for &u in &g.field {
+        if !g.units[u].in_factory {
+            let goals = objectives(g, u, ctx);
+            ctx.goals.insert(u, Rc::new(goals));
+        }
+    }
+}
+
+pub fn evaluate(g: &Game, player: i32, ctx: &mut Ctx) -> f64 {
+    if g.winner >= 0 {
+        return if g.winner == player { 100000.0 } else { -100000.0 };
+    }
+    let mut scores = [0.0f64; 2];
+    let mut capturers: [Vec<usize>; 2] = [Vec::new(), Vec::new()];
+    for u in all_units(g) {
+        let x = &g.units[u];
+        if x.player < 0 {
+            continue;
+        }
+        let p = x.player as usize;
+        let t = g.typ(u);
+        scores[p] += value(g, u) * if x.in_factory { 0.86 } else if x.carried_by != 0 { 0.9 } else { 1.0 };
+        if t.capture && !x.in_factory && x.carried_by == 0 {
+            capturers[p].push(u);
+        }
+        if !x.in_factory && x.carried_by == 0 && !is_air_type(t) {
+            scores[p] += f64::from(g.terrain_at(x.col, x.row).def) * 0.14 * f64::from(x.strength) / 8.0;
+        }
+        if !x.in_factory && x.carried_by == 0 {
+            if let Some(goals) = ctx.goals.get(&u) {
+                if !t.capture {
+                    scores[p] += potential(g, t.mv, goals, x.col, x.row) * 0.9;
+                }
+            }
+            for &c in &x.cargo {
+                if let Some(goals) = ctx.goals.get(&c) {
+                    scores[p] += potential(g, g.typ(c).mv, goals, x.col, x.row) * 0.7;
+                }
+            }
+        }
+    }
+    for b in &g.buildings {
+        if !b.base && b.owner >= 0 {
+            scores[b.owner as usize] += 45.0;
+        }
+        for p in 0..2 {
+            if b.owner == p as i32 {
+                continue;
+            }
+            let mut best = 0.0f64;
+            for &u in &capturers[p] {
+                let x = &g.units[u];
+                let d = distances(g, x.t, &[(b.col, b.row)], ctx)[g.cell(x.col, x.row)];
+                let worth = if b.base { 120.0 } else { 45.0 + b.stored.iter().fold(0.0, |n, &v| n + value(g, v) * 0.35) };
+                if d.is_finite() {
+                    best = best.max(worth / (2.0 + d / f64::from(g.typ(u).mv.max(1))));
+                }
+            }
+            scores[p] += best;
+        }
+    }
+    scores[0] -= base_danger(g, 0);
+    scores[1] -= base_danger(g, 1);
+    let left = g.turn_limit - g.turn;
+    if left < 8 {
+        scores[1] += f64::from((8 - left) * 35);
+    }
+    scores[player as usize] - scores[1 - player as usize]
+}
+
+fn support_score(g: &Game, u: usize, col: i32, row: i32, info: &Info) -> f64 {
+    let mut result = 0.0;
+    let me = &g.units[u];
+    for n in neighbor_cells(g, g.cell(col, row)) {
+        let e = info.cells[n];
+        if e < 0 || g.units[e as usize].player == me.player {
+            continue;
+        }
+        let e = e as usize;
+        for m in neighbor_cells(g, g.cell(g.units[e].col, g.units[e].row)) {
+            let ally = info.cells[m];
+            if ally >= 0 && g.units[ally as usize].player == me.player && ally as usize != u && !g.units[ally as usize].moved {
+                result += (f64::from(atk_stat(g.typ(u), g.is_air(e)) * me.strength) / 80.0).min(12.0);
+            }
+        }
+    }
+    result
+}
+
+/// A movement-range record: where, at what cost, and its flags.
+#[derive(Clone, Copy)]
+pub struct Rec {
+    pub col: i32,
+    pub row: i32,
+    pub cost: i32,
+    pub flags: u8,
+}
+impl Rec {
+    pub fn can_stop(&self) -> bool {
+        self.flags & CAN_STOP != 0
+    }
+    pub fn load(&self) -> bool {
+        self.flags & LOAD != 0
+    }
+    pub fn enter(&self) -> bool {
+        self.flags & ENTER != 0
+    }
+}
+/// `movementRange`'s records in key order: the start, then first-reached order.
+pub fn records(g: &Game, s: &MoveSearch) -> Vec<Rec> {
+    s.order.iter().map(|&c| Rec { col: c as i32 % g.w, row: c as i32 / g.w, cost: s.cost[c], flags: s.flags[c] }).collect()
+}
+
+fn score_position(g: &Game, u: usize, rec: &Rec, targets: &[Target], info: &Info) -> f64 {
+    let x = &g.units[u];
+    let t = g.typ(u);
+    let mut score = potential(g, t.mv, targets, rec.col, rec.row) - potential(g, t.mv, targets, x.col, x.row);
+    score += (danger(g, u, x.col, x.row, info) - danger(g, u, rec.col, rec.row, info)) * 0.6;
+    if !is_air_type(t) {
+        score += f64::from(g.terrain_at(rec.col, rec.row).def - g.terrain_at(x.col, x.row).def) * 0.1;
+    }
+    score += support_score(g, u, rec.col, rec.row, info) - support_score(g, u, x.col, x.row, info);
+    if rec.cost > 0 {
+        score -= 0.35;
+    }
+    if let Some(bi) = g.building(rec.col, rec.row) {
+        let b = &g.buildings[bi];
+        if t.capture && b.owner != x.player {
+            if b.base && g.enemy_base_captured(x.player, bi) {
+                return 1000000.0;
+            }
+            score += 65.0 + b.stored.iter().fold(0.0, |v, &s| v + value(g, s) * 0.9);
+        } else if !b.base && b.owner == x.player {
+            score += (full_value(g, u) - value(g, u)) * 0.95 - 18.0;
+            for &c in &x.cargo {
+                score += (full_value(g, c) - value(g, c)) * 0.9;
+            }
+        }
+    }
+    for &bi in &info.emergencies {
+        let b = &g.buildings[bi];
+        if rec.col == b.col && rec.row == b.row && (x.col != b.col || x.row != b.row) {
+            score += 800.0;
+        }
+        if x.col == b.col && x.row == b.row && (rec.col != b.col || rec.row != b.row) {
+            score -= 800.0;
+        }
+    }
+    score
+}
+
+/// `COMBAT.marginal`: one shot's loss distribution, losses ascending.
+fn marginal(g: &Game, shooter: usize, target: usize, ap: i32, da: i32, enabled: bool) -> Vec<(i32, f64)> {
+    if !enabled {
+        return vec![(0, 1.0)];
+    }
+    let (s, t, c) = (&g.units[shooter], &g.units[target], &g.d.combat);
+    assert!(
+        s.exp >= 0 && s.exp <= c.max_exp && s.strength >= 0 && s.strength <= c.max_strength && t.strength >= 0 && t.strength <= c.max_strength && (0..=100).contains(&ap) && (0..=100).contains(&da),
+        "Battle values out of range: exp {}, strengths {}/{}, attack {ap}, defense {da}",
+        s.exp,
+        s.strength,
+        t.strength
+    );
+    let mut losses: BTreeMap<i32, f64> = BTreeMap::new();
+    for w in &c.random_weights {
+        let loss = g.casualties(shooter, target, ap, da, w[0]);
+        let p = losses.entry(loss).or_insert(0.0);
+        *p += f64::from(w[1]) / 100.0;
+    }
+    losses.into_iter().collect()
+}
+/// `COMBAT.distribution`'s expected losses and kill chances.
+fn distribution(g: &Game, a: usize, d: usize) -> (f64, f64, f64, f64) {
+    let pv = g.battle_stats(a, d);
+    let outgoing = marginal(g, a, d, pv.a_ap, pv.d_da, true);
+    let incoming = marginal(g, d, a, pv.d_ap, pv.a_da, pv.counter);
+    let (mut out, mut in_, mut kill, mut death) = (0.0, 0.0, 0.0, 0.0);
+    for &(loss, p) in &outgoing {
+        out += f64::from(loss) * p;
+        if loss == g.units[d].strength {
+            kill += p;
+        }
+    }
+    for &(loss, p) in &incoming {
+        in_ += f64::from(loss) * p;
+        if loss == g.units[a].strength {
+            death += p;
+        }
+    }
+    (out, in_, kill, death)
+}
+
+fn trade_score(g: &Game, u: usize, target: usize) -> f64 {
+    let (out, in_, kill, death) = distribution(g, u, target);
+    let out = full_value(g, target) * out / 8.0;
+    let incoming = full_value(g, u) * in_ / 8.0;
+    let kill_value = 25.0 + value(g, target) * 0.2 + g.units[target].cargo.iter().fold(0.0, |v, &c| v + value(g, c));
+    let death_value = 20.0 + value(g, u) * 0.2 + g.units[u].cargo.iter().fold(0.0, |v, &c| v + value(g, c));
+    let tt = g.typ(target);
+    let (tc, tr) = (g.units[target].col, g.units[target].row);
+    let emergency = tt.capture && g.buildings.iter().any(|b| b.base && b.owner == g.units[u].player && hex::distance(tc, tr, b.col, b.row) <= tt.mv.max(1));
+    out - incoming + kill * (kill_value + if emergency { 500.0 } else { 0.0 }) - death * death_value
+}
+
+fn add(actions: &mut Vec<Action>, mut a: Action, score: f64) {
+    a.score = score;
+    actions.push(a);
+}
+
+/// `unitActions`: one unit's best activations, deduplicated by key (first
+/// position, best score), highest score first.
+pub fn unit_actions(g: &mut Game, u: usize, ctx: &mut Ctx, info: &Info, limit: usize) -> Vec<Action> {
+    let mut actions: Vec<Action> = Vec::new();
+    let targets = objectives(g, u, ctx);
+    let origin = (g.units[u].col, g.units[u].row);
+    let cargo_plans: Vec<(usize, Vec<Plan>)> = g.units[u].cargo.clone().into_iter().map(|c| (c, delivery_plans(g, u, c, ctx))).collect();
+    let ready = !g.units[u].moved;
+    let mut recs = if g.can_move_now(u) { records(g, &g.search_moves(u, None)) } else { Vec::new() };
+    if ready && recs.is_empty() {
+        recs.push(Rec { col: origin.0, row: origin.1, cost: 0, flags: CAN_STOP });
+    }
+    let player = g.units[u].player;
+    let foes: Vec<usize> = g.field.iter().copied().filter(|&e| {
+        let o = &g.units[e];
+        o.player != player && o.carried_by == 0 && !o.in_factory
+    }).collect();
+    let fire_from = g.attack_cells(u, &foes);
+    let (mv, move_or_fire) = (g.typ(u).mv, g.typ(u).move_or_fire);
+    for rec in recs.iter().filter(|r| r.can_stop()) {
+        let moved = (rec.col, rec.row) != origin;
+        let base = Action::act(u, if moved { Some((rec.col, rec.row)) } else { None });
+        if rec.load() {
+            let carrier = g.unit_at(rec.col, rec.row).expect("a transport on a load record");
+            let speed = g.typ(carrier).mv - mv;
+            let here = potential(g, mv, &targets, origin.0, origin.1);
+            add(&mut actions, base, f64::from(speed.max(0)) * 1.2 + if here < 1.0 { 12.0 } else { 0.0 } - 5.0);
+            continue;
+        }
+        let mut score = score_position(g, u, rec, &targets, info);
+        for (_, plans) in &cargo_plans {
+            score += (delivery_value(g, plans, rec.col, rec.row, None) - delivery_value(g, plans, origin.0, origin.1, None)) * 1.4;
+        }
+        add(&mut actions, base.clone(), score);
+        if rec.enter() {
+            continue;
+        }
+        let can_fire = fire_from[g.cell(rec.col, rec.row)] == 1;
+        let spent = g.units[u].attack_spent;
+        g.units[u].col = rec.col;
+        g.units[u].row = rec.row;
+        if move_or_fire && moved {
+            g.units[u].attack_spent = true;
+        }
+        if can_fire {
+            for enemy in g.legal_attack_targets(u) {
+                let mut a = base.clone();
+                a.target = Some(enemy);
+                let s = score + trade_score(g, u, enemy);
+                add(&mut actions, a, s);
+            }
+        }
+        for (cargo, plans) in &cargo_plans {
+            for drop in g.unload_targets(u, *cargo) {
+                let gain = delivery_value(g, plans, drop.0, drop.1, Some(g.typ(*cargo).mv));
+                let carry = delivery_value(g, plans, rec.col, rec.row, None);
+                let unload_score = 2.0 + (gain - carry) * 1.4 - danger(g, *cargo, drop.0, drop.1, info) * 0.5;
+                let mut action = base.clone();
+                action.cargo = Some(*cargo);
+                action.drop = Some(drop);
+                add(&mut actions, action.clone(), score + unload_score);
+                if can_fire {
+                    for enemy in g.legal_attack_targets(u) {
+                        let mut a = action.clone();
+                        a.target = Some(enemy);
+                        let s = score + unload_score + trade_score(g, u, enemy);
+                        add(&mut actions, a, s);
+                    }
+                }
+            }
+        }
+        g.units[u].col = origin.0;
+        g.units[u].row = origin.1;
+        g.units[u].attack_spent = spent;
+    }
+    if !g.units[u].cargo.is_empty() && !g.units[u].transfer_used {
+        let mut prefixes: Vec<Action> = Vec::new();
+        for (cargo, plans) in &cargo_plans {
+            for drop in g.unload_targets(u, *cargo) {
+                let s = 2.0 + (delivery_value(g, plans, drop.0, drop.1, Some(g.typ(*cargo).mv)) - delivery_value(g, plans, origin.0, origin.1, None)) * 1.4
+                    - danger(g, *cargo, drop.0, drop.1, info) * 0.5;
+                let mut p = Action::act(u, None);
+                p.cargo = Some(*cargo);
+                p.drop = Some(drop);
+                p.before = true;
+                p.score = s;
+                prefixes.push(p);
+            }
+        }
+        sort_desc(&mut prefixes, |a| a.score);
+        for prefix in prefixes.into_iter().take(2) {
+            let prefix_score = prefix.score;
+            add(&mut actions, prefix.clone(), prefix_score);
+            if !ready {
+                continue;
+            }
+            let mut sim = g.sim_clone(Rng::new(0));
+            let (cargo, drop) = (prefix.cargo.unwrap(), prefix.drop.unwrap());
+            sim.unload(u, cargo, drop.0, drop.1).expect("a listed unload is legal");
+            for next in unit_actions(&mut sim, u, ctx, info, 3).into_iter().take(3) {
+                let s = prefix_score + next.score;
+                let mut a = next;
+                a.cargo = Some(cargo);
+                a.drop = Some(drop);
+                a.before = true;
+                add(&mut actions, a, s);
+            }
+        }
+    }
+    let mut unique: Vec<Action> = Vec::new();
+    let mut at: HashMap<Key, usize> = HashMap::new();
+    for a in actions {
+        match at.get(&a.key()) {
+            None => {
+                at.insert(a.key(), unique.len());
+                unique.push(a);
+            }
+            Some(&i) => {
+                if unique[i].score < a.score {
+                    unique[i] = a;
+                }
+            }
+        }
+    }
+    sort_desc(&mut unique, |a| a.score);
+    unique.truncate(limit);
+    unique
+}
+
+pub fn candidates(g: &mut Game, ctx: &mut Ctx, limit: usize, per_unit: usize, unit_limit: usize) -> Vec<Action> {
+    if g.winner >= 0 {
+        return Vec::new();
+    }
+    let info = analysis(g);
+    let current = g.current;
+    let mut units: Vec<usize> = g
+        .player_units(current)
+        .into_iter()
+        .filter(|&u| !g.units[u].moved || g.units[u].cargo.iter().any(|&c| !g.unload_targets(u, c).is_empty()))
+        .collect();
+    if unit_limit > 0 && units.len() > unit_limit {
+        let rank = |u: usize| {
+            let x = &g.units[u];
+            let nearest = g
+                .player_units(1 - x.player)
+                .into_iter()
+                .map(|e| f64::from(hex::distance(x.col, x.row, g.units[e].col, g.units[e].row)))
+                .fold(f64::INFINITY, f64::min);
+            (if g.typ(u).capture { 15.0 } else { 0.0 }) + value(g, u) * 0.06 - nearest + if x.cargo.is_empty() { 0.0 } else { 10.0 }
+        };
+        units.sort_by(|&a, &b| (rank(b) - rank(a)).partial_cmp(&0.0).unwrap_or(Ordering::Equal));
+        units.truncate(unit_limit);
+    }
+    let mut actions = Vec::new();
+    for u in units {
+        actions.extend(unit_actions(g, u, ctx, &info, per_unit));
+    }
+    for b in g.player_factories(current) {
+        for s in g.buildings[b].stored.clone() {
+            if !g.can_deploy_now(b, s) {
+                continue;
+            }
+            let goals = objectives(g, s, ctx);
+            let st = g.typ(s);
+            let at = (g.buildings[b].col, g.buildings[b].row);
+            for n in g.deploy_targets(b, s) {
+                let mut score = 6.0 + value(g, s) * 0.1 + potential(g, st.mv, &goals, n.0, n.1) * 0.2 - danger(g, s, n.0, n.1, &info) * 0.45;
+                if st.mv == 0 && (st.atk_g != 0 || st.atk_a != 0) {
+                    let firing = g.player_units(1 - g.units[s].player).into_iter().any(|e| can_attack_at(st, g.is_air(e), hex::distance(n.0, n.1, g.units[e].col, g.units[e].row)));
+                    score += if firing { 30.0 } else { -10.0 };
+                }
+                actions.push(Action { kind: Kind::Deploy, unit: s, to: Some(n), building: Some(at), score, ..Action::end(0.0) });
+            }
+            for carrier in g.transport_deploy_targets(b, s) {
+                let score = 5.0 + value(g, s) * 0.1 + f64::from((g.typ(carrier).mv - st.mv).max(0)) * 1.2;
+                actions.push(Action { kind: Kind::Deploy, unit: s, into: Some(carrier), building: Some(at), score, ..Action::end(0.0) });
+            }
+        }
+    }
+    sort_desc(&mut actions, |a| a.score);
+    if actions.is_empty() {
+        return vec![Action::end(0.0)];
+    }
+    actions.truncate(limit);
+    actions.push(Action::end(-20.0));
+    actions
+}
+
+fn retreat(g: &Game, u: usize, ctx: &mut Ctx) -> Option<(i32, i32)> {
+    if !g.can_move_now(u) || !g.units[u].attacked {
+        return None;
+    }
+    let info = analysis(g);
+    let goals = objectives(g, u, ctx);
+    let (mut best, mut score) = (None, 0.0);
+    for rec in records(g, &g.search_moves(u, None)) {
+        if !rec.can_stop() || rec.load() || rec.cost == 0 {
+            continue;
+        }
+        let s = score_position(g, u, &rec, &goals, &info);
+        if s > score {
+            score = s;
+            best = Some((rec.col, rec.row));
+        }
+    }
+    best
+}
+
+/// `execute`: one action's engine commands, through the recording methods.
+pub fn execute(g: &mut Game, action: &Action, ctx: &mut Ctx) {
+    if action.kind == Kind::End {
+        g.do_end_turn();
+        return;
+    }
+    let u = action.unit;
+    if action.kind == Kind::Deploy {
+        let (c, r) = action.building.expect("deploy from a building");
+        let b = g.building(c, r).expect("a building at the deploy site");
+        match action.into {
+            Some(t) => g.do_load_from_factory(b, u, t),
+            None => {
+                let (c, r) = action.to.expect("a deploy exit");
+                g.do_deploy(b, u, c, r);
+            }
+        }
+        return;
+    }
+    let unload = |g: &mut Game| {
+        let (c, r) = action.drop.expect("an unload site");
+        g.do_unload(u, action.cargo.unwrap(), c, r);
+    };
+    if action.cargo.is_some() && action.before {
+        unload(g);
+    }
+    if let Some((c, r)) = action.to {
+        let loaded = g.do_move(u, c, r);
+        if !loaded && g.enters_building(u, c, r) {
+            g.do_finish(u);
+        }
+        if loaded || g.units[u].in_factory || g.winner >= 0 {
+            return;
+        }
+    }
+    if action.cargo.is_some() && !action.before {
+        unload(g);
+    }
+    if let Some(enemy) = action.target {
+        if g.winner < 0 {
+            g.do_attack(u, enemy);
+            if g.winner >= 0 || !g.field.contains(&u) {
+                return;
+            }
+            if let Some((c, r)) = retreat(g, u, ctx) {
+                g.do_move(u, c, r);
+                g.do_finish(u);
+            }
+        }
+    }
+    let x = &g.units[u];
+    if !x.moved && x.carried_by == 0 && !x.in_factory {
+        g.do_finish(u);
+    }
+}
+
+/// `simulate`: the action applied to a copy with its own dice, or with every
+/// roll at 0.5 for a representative outcome.
+pub fn simulate<'d>(g: &Game<'d>, action: &Action, ctx: &mut Ctx, seed: u32, representative: bool) -> Game<'d> {
+    let mut state = g.sim_clone(if representative { Rng::half() } else { Rng::new(seed) });
+    execute(&mut state, action, ctx);
+    state
+}
