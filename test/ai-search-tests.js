@@ -101,4 +101,21 @@ module.exports = function (ok) {
   }finally{
     Object.keys(UNIT_TYPES).forEach(function(k){delete UNIT_TYPES[k];});Object.assign(UNIT_TYPES,roster);
   }
+
+  // A mine never moves once placed. With a carrier standing on the factory's
+  // only exit, search may load it or keep it stored, never seal that exit.
+  var rows=[];for(var r=0;r<9;r++)rows.push("..............".split(""));
+  HEX.neighbors(3,3).forEach(function(n){if(n.col!==4||n.row!==3)rows[n.row][n.col]="M";});
+  rows[3][3]="F";rows[4][0]="B";rows[4][13]="B";
+  ["MULE","PELICAN"].forEach(function(carrier){
+    var sealed={name:"Single exit",grid:rows.map(function(row){return row.join("");}),
+      buildings:[{col:3,row:3,owner:0,stored:["TRIGGER"]},{col:0,row:4,owner:0},{col:13,row:4,owner:1}],
+      units:[{t:carrier,o:0,x:4,y:3},{t:"CHARLIE",o:1,x:5,y:6},{t:"CHARLIE",o:1,x:6,y:6}]};
+    S.modes.filter(function(m){return m.id!=="classic";}).forEach(function(mode){
+      var g=new ENGINE.Game(sealed,{seed:7});AI.playTurn(g,0,{id:mode.id});
+      var mine=g.units.concat(g.buildingAt(3,3).stored).find(function(u){return u.typeId==="TRIGGER";});
+      ok(mine.inFactory||mine.carriedBy||mine.col!==4||mine.row!==3,
+        mode.id+" never seals its factory's only exit with a mine ("+carrier+" beside the factory)");
+    });
+  });
 };

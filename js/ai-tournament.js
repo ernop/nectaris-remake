@@ -9,8 +9,8 @@ var AI_TOURNAMENT = (function () {
   var model=typeof module!=="undefined"?require("./ai-model.js"):AI_MODEL;
   var balance=typeof module!=="undefined"?require("./balance.js"):BALANCE;
   var openingAI=typeof module!=="undefined"?require("./ai-opening.js"):AI_OPENING;
-  var VERSION="2026-09-25.2";
-  function canResume(run){return run.version===VERSION || run.version==="2026-09-25.1"&&run.config.opening==="original";}
+  var VERSION="2026-09-26.1";
+  function canResume(run){return run.version===VERSION;}
   function integer(v,min,max,label){if(!Number.isInteger(v)||v<min||v>max)throw new Error(label+" must be an integer from "+min+" to "+max+".");return v;}
   function normalize(input){
     var c=Object.assign({cycles:1,seed:42,maxRounds:0,k:24,selfPlay:false,workers:2,work:"standard",opening:"original",noDeal:"skip"},input);
@@ -131,7 +131,7 @@ var AI_TOURNAMENT = (function () {
       game.endTurn();yield;
       if(turns>2*game.turnLimit+2)throw new Error("Tournament game exceeded the engine turn budget.");
     }
-    return {version:spec.protocol==="2026-09-25.1"&&spec.opening==="original"?spec.protocol:VERSION,index:spec.index,players:spec.players,map:spec.map.name,mapIndex:spec.mapIndex,
+    return {version:VERSION,index:spec.index,players:spec.players,map:spec.map.name,mapIndex:spec.mapIndex,
       seed:spec.seed,cycle:spec.cycle,leg:spec.leg,tieSecond:spec.tieSecond,work:spec.work||"standard",opening:opening,requestedOpening:spec.opening||"original",negotiation:negotiation,
       balance:game.balance||null,firstPlayer:game.firstPlayer,skipped:skipped,
       winner:game.winner,reason:skipped?"opening-"+negotiation.status:game.winner===null?"round-cap":game.winReason,
