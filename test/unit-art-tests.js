@@ -102,25 +102,23 @@ module.exports = function (ok) {
     var neutral=canvas(32,32);RENDER.drawUnitIcon(neutral,{typeId:id,type:types[id],player:-1});
     ok(raster(neutral)===expected(art.frames[id].right,art.palettes.neutral,0,0),id+" neutral factory inventory uses grey faction art");
   });
-  // Inspection icons draw the 3/2/3 stars and General emblem; map sprites draw none.
+  // Inspection icons draw the original's star box over the whole icon; map sprites draw none.
   function starCanvas() {
-    var paths = [], points;
-    var ctx = new Proxy({
-      beginPath: function () { points = []; },
-      moveTo: function (x,y) { points.push([x,y]); },
-      lineTo: function (x,y) { points.push([x,y]); },
-      arc: function (x,y,r) { points.push([x,y,r]); },
-      fill: function () { paths.push(points); },
-    }, { get: function (target,key) { return target[key] || function () {}; } });
-    return { width:32, height:32, paths:paths, getContext:function () { return ctx; } };
+    var gold = [];
+    var target = { fillRect: function (x,y,w,h) { if (target.fillStyle === RENDER.RANK_COLORS.Y) gold.push([x,y,w,h]); } };
+    var ctx = new Proxy(target, { get: function (t,key) { return key in t ? t[key] : function () {}; } });
+    return { width:32, height:32, gold:gold, getContext:function () { return ctx; } };
   }
+  var generalGold = RENDER.rankRuns(RENDER.RANK_GENERAL).filter(function (r) { return r[3] === "Y"; }).length;
   for (var level=0; level<=8; level++) {
     var unit={id:1,typeId:"BISON",type:types.BISON,player:0,col:0,row:0,strength:8,exp:level};
     var icon=starCanvas(), map=starCanvas();
     RENDER.drawUnitIcon(icon,unit,{experience:true});
     new RENDER.Renderer(map,{currentPlayer:0}).drawUnit(unit);
-    ok(icon.paths.length === (level===8 ? 3 : level) && map.paths.length === 0,
-      pack.id+": experience "+level+" draws stars on the inspection icon, including the General emblem, and none on the map");
+    var lastStar = level && level < 8 ? RENDER.RANK_STAR_AT[level-1] : null;
+    ok(icon.gold.length === (level===8 ? generalGold : level*6) && map.gold.length === 0 &&
+      (!lastStar || icon.gold.some(function (r) { return r[0]===(lastStar[0]+2)*2 && r[1]===lastStar[1]*2; })),
+      pack.id+": experience "+level+" draws the original's stars at their places on the inspection icon, and none on the map");
   }
   var small=new RENDER.Renderer(canvas(240,160),{width:30,height:20});small.fitToMap();
   ok(small.zoom<0.65 && !small.panAxes().x && !small.panAxes().y,"large maps fit completely below the former minimum zoom");

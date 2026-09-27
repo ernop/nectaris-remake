@@ -185,6 +185,41 @@ So the screen differs from the calculation. Experience appears as attack and
 defense, surround is shown before support and terrain, terrain multiplies, and
 squad size scales defense. Magia Laboratory lists the same discrepancies.
 
+## Experience stars — 2026-09-26
+
+Read at the user's request to copy the original's stars. Bits 3–7 of the unit
+byte at `0x4957e0` hold experience points: 4 per award, 8 for the doubled
+awards (`0x415850`), capped at 31 (`0x40a460`). Routine `0x41d4f0` draws the EXP
+box. It puts the two-tile "EXP" label (tiles base+0x0f and +0x10), then a 2×2
+block of 8-pixel tiles under it: a 16×16-pixel box, the size of a unit sprite.
+The star count is `(points + 1) >> 2` (0–8). It indexes a table at `0x46ba68`
+holding four tile slots per count (top-left, top-right, bottom-left,
+bottom-right; `0xff` is blank).
+
+Callers:
+- the battle header for both units (`0x419022`, `0x41903d`);
+- the redraw after experience is awarded (`0x4158e8`, `0x415911`);
+- the map's bottom bar for the unit under the cursor (`0x41d45e`);
+- the factory panel for the selected reserve (`0x422305`).
+
+No routine draws stars on a unit sprite. The battle tiles are graphics block 53
+of the table at `0x4324d0`, which scene entry 30 (`0x42bb88`) loads at VRAM tile
+`0x480`. The blocks use LZSS (`0x418bb0`/`0x418bf0`): a 256-byte ring filled
+with spaces, writing from `0xef`; a 1 bit introduces an 8-bit literal, a 0 bit an
+8-bit ring position and a 4-bit length plus 2. The port's VRAM holds 4-bit packed
+rows: byte high nibbles are pixels 0–3 and low nibbles pixels 4–7 (`0x412680`,
+which also draws every pixel 2×2). Colours are palette 2 of battle palette set
+5 (`0x46c8d0`, loaded at `0x4155f4`). Its 9-bit values go through `0x41bdc0`
+with the level table `0, 7, 11, 15, 19, 23, 27, 31`.
+
+`tools/read-original-stars.py` prints all nine boxes and the palette. The
+resulting geometry and colours are recorded in PRODUCT's battle review section
+and copied in `js/render.js` (`RANK_STAR`, `RANK_STAR_AT`, `RANK_GENERAL`).
+
+```sh
+python tools/read-original-stars.py /path/to/Nec.exe
+```
+
 ## Randomness — located, but not transplanted as an alleged exact stream
 
 The byte generator is at `0x40cb50`. Ignoring its fixed-return override, with

@@ -104,6 +104,7 @@ PCE/Windows in-game manuals are identified in [Anka's supplement](https://anka.s
 | Additional scenario packs | Lunar Frontiers and the remake rosters on Base Nectaris terrain are not original campaign missions. | Added playable content; they do not replace the missing advanced campaign. |
 | Profiles, detailed result history and per-action browser autosaves | Our particular persistence and reporting system is new. Saving itself is not inherently unofficial across all ports. | Explicit product features for continuing browser sessions and tracking results. |
 | Modern control and display options | Mouse flow, zoom/pan, themes and AI animation controls differ from the original interface. | Browser usability and requested presentation choices. |
+| Experience stars over unit icons | The original draws its 16×16 star box under an EXP label beside the unit (battle header, map bar, factory panel), never on a sprite. We draw the same pixels over the enlarged icon, without its navy box or grey plate. | User requests of 2026-09-26: stars on the enlarged icon, then the original's star art and layout ([evidence](ORIGINAL_EXECUTABLE_NOTES.md#experience-stars--2026-09-26)). |
 ### Real release differences, not evidence of invented rules
 
 - An editor is present in Windows and PlayStation releases. Two-player play is

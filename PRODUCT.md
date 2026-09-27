@@ -117,8 +117,8 @@ After fighting ends, actual earned stars appear one by one and glow on the
 header icons, ending at the awarded rank (including the General emblem).
 The user's 2026-09-26 corrections remove the "Experience gained" row, which
 shifted the header layout, and enlarge the header unit icon to 96 px (64 px on
-narrow screens) with the standard rank stars drawn on top: columns of 3, 2 and
-3, replaced by the General star at rank 8, as on every other icon. Ranks start
+narrow screens) with the original's star box drawn over it (below), as on every
+other icon. Ranks start
 at 0 and follow the published awards (+1 per battle; +2 for destroying the
 enemy squad or, as defender, taking no damage). Each newly earned star fades in,
 holds a bright glow, then settles to the normal star colour over 1.2 s; Pause
@@ -130,6 +130,30 @@ This supersedes the single large star overlay tried earlier the same day, and
 applies to live, watched and replayed battles alike.
 This supersedes numeric battle EXP and separate inspector rank badges.
 Damage bonuses and calculation multipliers remain ordinary numeric stats.
+
+**Star art and layout copied from the original (user request, 2026-09-26):**
+the user asked for the original's stars: their style, their layout, and the
+space they fill as they grow. Hudson's 1997 Windows port (PCE art; re-derive
+with `tools/read-original-stars.py`) never draws stars on a unit sprite. The
+battle header (both units), the map's bottom bar for the unit under the cursor
+and the factory panel for the selected reserve each print an EXP label over a
+16×16-pixel box, the size of a unit sprite:
+- each small star is 5×4 pixels, yellow `#ffde00` with one light-grey
+  `#dedede` centre pixel, on the box's navy background;
+- stars 1–3 run down the left column (x 0; y 1, 6, 11), 4–5 form a middle
+  column 2 pixels lower (x 5; y 3, 8), and 6–7 the right column (x 10; y 1, 6);
+- the eighth replaces them with one large star that fills the box, lit white
+  and yellow on the left, orange `#de9c00` and brown `#bd7b00` on the right,
+  on a grey plate.
+
+Our icons copy this box pixel for pixel, laid over the whole unit icon (the box
+and a Legacy sprite share one pixel grid), replacing the earlier text-glyph
+stars. Two adaptations: the navy box and the grey plate are left out so the unit
+stays visible, and a thin dark edge keeps the stars legible on unit art. The
+stars appear on the map hover card, factory, base and cargo lists, battle
+headers and list icons; map sprites still carry none. The pattern is
+third-party-derived art imported at the user's request; the executable stays
+outside the repo.
 
 **Pause / Resume** freezes the current battle phase, including the automatic
 advance to the next action, in human combat, watched AI and replays. A paused
@@ -409,8 +433,9 @@ longer, retain an aircraft range of 1 to make mixed ranges unambiguous (Lynx).
 Keep terrain and its defense bonus in the footer, adding damage bonus only
 when experience grants one. Show remaining/total Shift only when a friendly
 buggy has spent movement. As corrected on 2026-09-26, experience stars sit
-on the unit icon, using the traditional 3/2/3 arrangement and one large
-General star. Zero experience has no stars. No numeric rank or separate badge.
+on the unit icon, using the original's star box (see the battle review
+section) and its one large General star. Zero experience has no stars. No
+numeric rank or separate badge.
 Map sprites themselves carry no stars (user, 2026-09-26). Stars appear where a
 unit is inspected: hover cards, factory, base and cargo lists, and battle
 headers.
@@ -797,15 +822,16 @@ roster reopens only if a remaining reserve has a legal deployment destination,
 including a compatible carrier. Otherwise close it immediately, even if reserves
 remain. Clicking again while all reserves are blocked, spent or absent stays
 silent; inspect them through the hover card. Experience
-uses the map's traditional 3/2/3 star overlay (General at 8) on the icon, with
+uses the original's star box (General at 8) over the icon, with
 an accessible label; there is no separate numeric experience row.
 Since 2026-09-26 (user request: stars were invisible when hovering a factory's
 stored units), every inventory list draws each unit on a 64-pixel icon with
 legible overlay stars: factory, base and cargo lists, including under a unit
 standing on a factory. The stars use the battle header's layout and the same
 code: they fill the left column up to 3, then the offset middle column up to
-2, then the right column up to 3, and the eighth turns them into one large
-General star, as in the original.
+2, then the right column up to 2, and the eighth turns them into one large
+General star, as in the original. A damaged reserve's machine count sits above
+the stars.
 The user reaffirmed on 2026-09-26 that a missing-star mouseover is a rendering
 bug to investigate within this design, not authorization to add separate badges
 or numeric experience labels. Preserve the existing compact roster.

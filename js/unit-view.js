@@ -23,33 +23,50 @@ var UNIT_VIEW = (function () {
   function html(unit) {
     return "<span class='unit-label'>" + iconHtml(unit) + "<span>" + esc(name(unit)) + "</span></span>";
   }
-  // The rank layout over a large icon, as in the original: stars fill the left
-  // column up to 3, then the offset middle column up to 2, then the right
-  // column up to 3; the eighth replaces them with one large General star.
-  // Stars above `before` are new and glow; each starts `stepMs` per rank later.
-  var MAX_EXP = 8;
-  function rankHtml(before, shown, stepMs) {
-    var html = "", rank = 0;
-    function star(value, className) {
-      var fresh = value > before;
-      return "<span class='" + className + (fresh ? " battle-rank-new" : "") + "'" +
-        (fresh ? " style='animation-delay:-" + (shown - value) * stepMs + "ms'" : "") + ">★</span>";
-    }
-    if (shown >= MAX_EXP) html = star(MAX_EXP, "battle-rank-general");
-    else [3, 2, 3].forEach(function (capacity, column) {
-      var stars = "";
-      for (var row = 0; row < capacity && rank < shown; row++) stars += star(++rank, "battle-rank-star");
-      if (stars) html += "<span class='battle-rank-col battle-rank-col-" + column + "'>" + stars + "</span>";
+  // The renderer's copy of the original star box, laid over a large icon as
+  // pixel art: the box spans the icon, and each star sits at its original
+  // place. Stars above `before` are new and glow; each starts `stepMs` per rank later.
+  var MAX_EXP = 8, starArt = null;
+  function pixelSvg(pattern) {
+    var r = renderer(), paths = {};
+    r.rankRuns(pattern).forEach(function (run) {
+      paths[run[3]] = (paths[run[3]] || "") + "M" + run[0] + " " + run[1] + "h" + run[2] + "v1h-" + run[2] + "z";
     });
+    return "<svg viewBox='0 0 " + pattern[0].length + " " + pattern.length +
+      "' preserveAspectRatio='none' shape-rendering='crispEdges' aria-hidden='true' focusable='false'>" +
+      Object.keys(paths).map(function (code) { return "<path fill='" + r.RANK_COLORS[code] + "' d='" + paths[code] + "'/>"; }).join("") +
+      "</svg>";
+  }
+  function rankHtml(before, shown, stepMs) {
+    var r = renderer(), html = "", columns = [];
+    if (!starArt) starArt = {star: pixelSvg(r.RANK_STAR), general: pixelSvg(r.RANK_GENERAL)};
+    function star(value, className, place, art) {
+      var fresh = value > before, style = place + (fresh ? "animation-delay:-" + (shown - value) * stepMs + "ms" : "");
+      return "<span class='" + className + (fresh ? " battle-rank-new" : "") + "'" +
+        (style ? " style='" + style + "'" : "") + ">" + art + "</span>";
+    }
+    if (shown >= MAX_EXP) html = star(MAX_EXP, "battle-rank-general", "", starArt.general);
+    else {
+      for (var rank = 1; rank <= shown; rank++) {
+        var at = r.RANK_STAR_AT[rank - 1], column = at[0] / 5;
+        columns[column] = (columns[column] || "") + star(rank, "battle-rank-star",
+          "left:" + at[0] / 16 * 100 + "%;top:" + at[1] / 16 * 100 + "%;", starArt.star);
+      }
+      columns.forEach(function (stars, column) {
+        html += "<span class='battle-rank-col battle-rank-col-" + column + "'>" + stars + "</span>";
+      });
+    }
     var label = rankLabel({exp: shown}) + (shown > before ? ", " + (shown - before) + " newly earned" : "");
     return "<span class='battle-rank' role='img' aria-label='" + label + "' data-exp='" + shown + "'" +
       (shown > before ? " data-exp-glow-from='" + before + "'" : "") + ">" + html + "</span>";
   }
-  // A 64-pixel icon with the rank stars drawn over it, for inventories.
+  // A 64-pixel icon with the rank stars drawn over it, for inventories. The
+  // remaining-machine count sits above the stars so a star never hides it.
   function rankIconHtml(unit) {
-    var exp = unit.exp || 0;
-    return "<span class='battle-rank-icon rank-icon-inventory'>" + iconHtml(Object.assign({}, unit, {exp: 0})) +
-      rankHtml(exp, exp, 0) + "</span>";
+    var exp = unit.exp || 0, strength = unit.strength === undefined ? 8 : unit.strength;
+    return "<span class='battle-rank-icon rank-icon-inventory'>" + iconHtml(Object.assign({}, unit, {exp: 0, strength: 8})) +
+      rankHtml(exp, exp, 0) + (strength < 8 ? "<span class='unit-strength' role='img' aria-label='" + strength +
+      " machines remaining'>" + strength + "</span>" : "") + "</span>";
   }
   function paint(container) {
     if (!container.querySelectorAll) return;

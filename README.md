@@ -282,8 +282,8 @@ the page or list scrolls or resizes.
   formations with Union on the left and Xenon on the right, each on its own
   terrain. A one-way arrow marks attacks without a counter. Ready, Fighting and
   Result mark the approach, combat and summary. Each side's unit icon in
-  the battle header is enlarged, with its rank stars on top (columns of 3, 2 and
-  3, then the General star); newly earned stars fade in, glow brightly, then
+  the battle header is enlarged, with the original's rank stars on top; newly
+  earned stars fade in, glow brightly, then
   settle to the normal colour. Formation machines have no stars. **Pause / Resume** freezes the battle and its automatic advance.
   Replay **Pause on battle screens** starts on; click anywhere on the paused
   battle to continue. **Skip battle scenes** starts off and bypasses the scenes,
@@ -295,9 +295,10 @@ the page or list scrolls or resizes.
   Replay **Follow action** starts off and only follows when you enable it.
 - The factory panel shows each stored unit's map icon with experience stars,
   damage when present, and a full-row deployment button.
-- Experience appears on units in three star columns holding 3, 2, and 3 stars.
-  Selecting a unit shows the exact damage bonus; level 8 replaces
-  the columns with the large **GENERAL** star.
+- Experience appears as the original's star art over the unit icon: up to 3
+  small stars down the left column, 2 in a lower-set middle column and 2 in the
+  right column. Selecting a unit shows the exact damage bonus; level 8 replaces
+  them with one large **GENERAL** star.
 - Union silhouettes face right and Xenon silhouettes face left, so opposing
   units visibly confront one another.
 - Units that have completed their activation this turn appear fully greyscale

@@ -39,7 +39,7 @@ var RENDER = (function () {
       chrome: {
         stencilBg: "rgba(18,18,16,0.92)", stencilText: "#f2eddc",
         strengthBg: "#111", strengthLow: "#ff8f6f", strengthOk: "#ffe9a0",
-        pip: "#ffd94a", select: "#ffe9a0",
+        select: "#ffe9a0",
       },
     },
     neon: {
@@ -56,7 +56,7 @@ var RENDER = (function () {
       chrome: {
         stencilBg: "rgba(14,11,20,0.92)", stencilText: "#dcdce6",
         strengthBg: "#0e0b14", strengthLow: "#ff3d4d", strengthOk: "#eaff3d",
-        pip: "#eaff3d", select: "#eaff3d",
+        select: "#eaff3d",
       },
     },
     pixel: {
@@ -69,7 +69,7 @@ var RENDER = (function () {
       chrome: {
         stencilBg: "rgba(15,11,18,0.92)", stencilText: "#e8e4d8",
         strengthBg: "#0f0b12", strengthLow: "#ff6a4a", strengthOk: "#ffd23d",
-        pip: "#ffd23d", select: "#ffffff",
+        select: "#ffffff",
       },
     },
   };
@@ -1208,50 +1208,75 @@ var RENDER = (function () {
     ctx.restore();
   };
 
-  // Shared by map, inspector and inventory: 3/2/3 columns, then General.
-  function drawExperience(ctx, unit, u) {
-    if (unit.exp > 0) {
-      ctx.save();
-      ctx.fillStyle = theme.chrome.pip;
-      if (unit.exp >= 8) {
-        ctx.fillStyle = "#321a0d";
-        drawStar(ctx, 10 * u, -10 * u, 7 * u);
-        ctx.fillStyle = theme.chrome.pip;
-        drawStar(ctx, 10 * u, -10 * u, 5.6 * u);
-        ctx.fillStyle = theme.chrome.stencilText;
-        ctx.beginPath(); ctx.arc(10 * u, -10 * u, 1.4 * u, 0, Math.PI * 2); ctx.fill();
-      } else {
-        var capacities = [3, 2, 3];
-        var starIndex = 0;
-        ctx.fillStyle = theme.chrome.pip;
-        for (var column = 0; column < capacities.length; column++) {
-          var count = capacities[column];
-          var top = count === 3 ? -14 : -12;
-          for (var row = 0; row < count && starIndex < unit.exp; row++, starIndex++) {
-            drawStar(ctx, (6 + column * 4) * u, (top + row * 4) * u, 1.65 * u);
-          }
-        }
+  // Experience stars copied from the original's star box (the PCE art in
+  // Hudson's 1997 Windows port): a box the size of a unit sprite, 16 art
+  // pixels square, laid over the whole icon. Small stars are 5 by 4 art pixels
+  // at RANK_STAR_AT: 1-3 down the left column, 4-5 in an offset middle column,
+  // 6-7 in the right column; the eighth replaces them with one large star.
+  // The original's navy box and the grey plate behind its large star are left
+  // out so the unit stays visible, and a dark edge keeps the stars legible.
+  var RANK_COLORS = { Y: "#ffde00", W: "#dedede", o: "#de9c00", O: "#bd7b00" };
+  var RANK_EDGE = "#140c00";
+  var RANK_STAR = ["..Y..", "YYWYY", ".YYY.", ".Y.Y."];
+  var RANK_STAR_AT = [[0, 1], [0, 6], [0, 11], [5, 3], [5, 8], [10, 1], [10, 6]];
+  var RANK_GENERAL = [
+    ".......OO.......",
+    "......OWYO......",
+    "......OWYo......",
+    "......WWYo......",
+    ".....OWWYoO.....",
+    "WWWYYYYWYooOOOOO",
+    ".YWWWWYWYoYoooO.",
+    "..OYYWWWYYoooO..",
+    "....YYWWYoooO...",
+    "....YWWWYoooO...",
+    "...oWWWoOYooo...",
+    "...YWYoOOoYooO..",
+    "..oWYoO..OoYoo..",
+    "..WYoO.....OYoO.",
+    ".WYo.........YoO",
+    "................"];
+  // Horizontal runs of one colour code: [x, y, width, code].
+  function rankRuns(pattern) {
+    var runs = [];
+    pattern.forEach(function (row, y) {
+      for (var x = 0; x < row.length;) {
+        var end = x + 1;
+        while (end < row.length && row[end] === row[x]) end++;
+        if (row[x] !== ".") runs.push([x, y, end - x, row[x]]);
+        x = end;
       }
-      ctx.restore();
-    }
-
+    });
+    return runs;
   }
+  var STAR_RUNS = rankRuns(RANK_STAR), GENERAL_RUNS = rankRuns(RANK_GENERAL);
 
-  // Standalone star renderer for art previews; game UI puts stars on unit icons.
-  function drawExperienceIcon(canvas, unit) {
-    var ctx = canvas.getContext("2d");
-    var u = Math.min(canvas.width, canvas.height) / 16;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  // Draws `exp` stars into the unit-sized box at (x, y), `px` canvas pixels per art pixel.
+  function drawRankStars(ctx, exp, x, y, px) {
+    if (!(exp > 0)) return;
+    var glyphs = exp >= 8 ? [[GENERAL_RUNS, 0, 0]] :
+      RANK_STAR_AT.slice(0, exp).map(function (at) { return [STAR_RUNS, at[0], at[1]]; });
+    var edge = Math.max(1, Math.round(px / 2));
     ctx.save();
-    ctx.translate(canvas.width / 2 - 10 * u, canvas.height / 2 + 10 * u);
-    drawExperience(ctx, unit, u);
+    ctx.fillStyle = RANK_EDGE;
+    glyphs.forEach(function (g) {
+      g[0].forEach(function (r) {
+        ctx.fillRect(x + (g[1] + r[0]) * px - edge, y + (g[2] + r[1]) * px - edge, r[2] * px + 2 * edge, px + 2 * edge);
+      });
+    });
+    glyphs.forEach(function (g) {
+      g[0].forEach(function (r) {
+        ctx.fillStyle = RANK_COLORS[r[3]];
+        ctx.fillRect(x + (g[1] + r[0]) * px, y + (g[2] + r[1]) * px, r[2] * px, px);
+      });
+    });
     ctx.restore();
   }
 
   /* Standalone unit icon (factory panel, tools/unit-sheet.html). `opts` is
    * optional: { attacking: true } uses the attack palette, { spent: true }
-   * applies the completed-activation greyscale. { experience: true } includes
-   * the same star overlay as the map. Pixel UI icons use their native frame. */
+   * applies the completed-activation greyscale. { experience: true } adds the
+   * rank stars over the whole icon. Pixel UI icons use their native frame. */
   function drawUnitIcon(canvas, unit, opts) {
     var ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("Factory unit icon requires a 2D canvas context");
@@ -1263,19 +1288,11 @@ var RENDER = (function () {
     if (opts && opts.spent) ctx.filter = "grayscale(1)";
     ctx.translate(Math.round(canvas.width / 2), Math.round(canvas.height / 2));
     drawUnitBody(ctx, unit, u, base);
-    if (opts && opts.experience) drawExperience(ctx, unit, u);
-    ctx.restore();
-  }
-
-  function drawStar(ctx, cx, cy, r) {
-    ctx.beginPath();
-    for (var i = 0; i < 10; i++) {
-      var ang = -Math.PI / 2 + i * Math.PI / 5;
-      var rad = i % 2 === 0 ? r : r * 0.45;
-      var x = cx + Math.cos(ang) * rad, y = cy + Math.sin(ang) * rad;
-      if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+    if (opts && opts.experience) {
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      drawRankStars(ctx, unit.exp, 0, 0, Math.min(canvas.width, canvas.height) / 16);
     }
-    ctx.closePath(); ctx.fill();
+    ctx.restore();
   }
 
   Renderer.prototype.drawExplosion = function (effect) {
@@ -1667,7 +1684,12 @@ var RENDER = (function () {
     Renderer: Renderer,
     PLAYER_COLORS: PLAYER_COLORS,
     drawUnitIcon: drawUnitIcon,
-    drawExperienceIcon: drawExperienceIcon,
+    drawRankStars: drawRankStars,
+    rankRuns: rankRuns,
+    RANK_COLORS: RANK_COLORS,
+    RANK_STAR: RANK_STAR,
+    RANK_STAR_AT: RANK_STAR_AT,
+    RANK_GENERAL: RANK_GENERAL,
     setStyle: setStyle,
     getStyle: getStyle,
     styleIds: Object.keys(THEMES),

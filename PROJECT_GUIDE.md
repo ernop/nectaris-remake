@@ -110,6 +110,12 @@ Release first, verify later (user decision). Examine together later:
     selecting units, aiming, during AI turns and after battles; the middle
     section scrolls on short windows; the forecast's heatmap is visible
     without scrolling on a 1080-pixel screen.
+17. The original's star art over icons:
+    - ranks 0–8 on the map hover card, factory and cargo lists, battle headers
+      and small list icons, on each art set and style;
+    - whether the dark edge keeps stars legible on light unit art;
+    - the glow of new stars, the General included;
+    - a damaged cargo unit's count above its stars.
 
 Research rather than a check: direct PC Engine confirmation of the Windows
 combat traces.

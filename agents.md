@@ -220,8 +220,9 @@ Facts we need across sessions:
   pause before battles on, skip scenes off; click a paused scene to resume.
   Experience ranks are stars on unit icons everywhere, never numeric or separate
   badges. Only battle header icons have stars, not individual formation machines. The
-  header icon is enlarged (96 px) with the standard 3/2/3 stars, or the General
-  star, on top; newly earned stars fade in, glow, then settle to the normal
+  header icon is enlarged (96 px) with the original's star box on top (pixel
+  copy in `js/render.js`, re-derived by `tools/read-original-stars.py`; see
+  PRODUCT); newly earned stars fade in, glow, then settle to the normal
   colour. No "Experience gained" row (2026-09-26). The opponent's last unit is
   deselected when its turn ends. See PRODUCT's battle review
   record and `test/board-playback.html` / `test/battle-replay.html` browser fixtures.
