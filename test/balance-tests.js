@@ -65,7 +65,7 @@ module.exports=function(ok){
   ok(B.question(revised)===null&&revised.choice===2,"revised answers still converge to a consistent boundary");
   ok(fails(function(){B.settle(p,[B.begin(p),surveys[3]]);})&&fails(function(){B.answer(p,B.begin(p),31);}),
     "unfinished surveys and answers outside the current menu cannot form an agreement");
-  var draft=JSON.stringify(g.snapshot()),bot=B.cpuSurvey(p,1);
+  var draft=JSON.stringify(g.snapshot()),bot=B.cpuSurvey(p,1,"classic");
   ok(B.question(bot)===null&&JSON.stringify(g.snapshot())===draft,"CPU locks its full survey without changing map or combat randomness");
   var guidedGame=new E.Game(maps[9]),guidedPlan=B.plan(guidedGame),guidedResult=B.settle(guidedPlan,[surveys[2],surveys[8]]);
   B.apply(guidedGame,guidedPlan,guidedResult);
@@ -115,7 +115,7 @@ module.exports=function(ok){
   restored.endTurn();ok(restored.turn===1&&restored.currentPlayer===0,"Xenon's first move does not prematurely increment the round");
   restored.endTurn();ok(restored.turn===2&&restored.currentPlayer===1,"a reversed opening increments the round after both armies act");
   var legacy=g.snapshot();delete legacy.firstPlayer;delete legacy.balance;
-  ok(E.Game.restore(legacy).firstPlayer===0,"older saves retain the original Union-first order");
+  ok(fails(function(){E.Game.restore(legacy);}),"a save without a recorded first player is refused, not assumed Union-first");
   var short=new E.Game(maps[9],{firstPlayer:1});short.turnLimit=1;short.endTurn();
   ok(short.winner===null,"turn limit waits until both sides receive the final round");short.endTurn();
   ok(short.winner===1&&short.winReason==="turnlimit","original Xenon timeout rule remains explicit and unchanged");

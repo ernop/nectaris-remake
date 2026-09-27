@@ -8,7 +8,7 @@ module.exports = function (ok) {
   var MARKUP = "0'><meta http-equiv='refresh' content='0;url=https://example.com/'>";
 
   function level(overrides) {
-    return Object.assign({name: "Import check", grid: [".B..", "...."],
+    return Object.assign({name: "Import check", grid: [".F..", "...."],
       buildings: [{col: 1, row: 0, owner: 0, stored: ["CHARLIE"]}],
       units: [{t: "CHARLIE", o: 0, x: 0, y: 0}, {t: "BISON", o: 1, x: 3, y: 1}]}, overrides);
   }
@@ -44,6 +44,8 @@ module.exports = function (ok) {
     /grid must be rows of terrain letters/, "grid rows that are not text");
   rejects(function () { new ENGINE.Game(level({turnLimit: "50"})); },
     /turn limit/, "a turn limit given as text");
+  rejects(function () { new ENGINE.Game(level({grid: [".B..", "...."]})); },
+    /only factories can/, "units stored in a base");
 
   rejects(function () { UNITS.mergeUnitTypes({IMPORTGOOD: {name: "Good", move: 3}, IMPORTBAD: {def: "10<b>"}}); },
     /Custom unit IMPORTBAD field def must be a whole number/, "markup in a custom unit's defense");
@@ -71,5 +73,5 @@ module.exports = function (ok) {
   rejects(function () { ENGINE.Game.restore(tampered); }, /Saved match contains invalid buildings/, "markup in a recorded building's owner");
   tampered = JSON.parse(JSON.stringify(snapshot));
   tampered.turnLimit = MARKUP;
-  rejects(function () { ENGINE.Game.restore(tampered); }, /invalid or from an unsupported version/, "markup in a recorded turn limit");
+  rejects(function () { ENGINE.Game.restore(tampered); }, /invalid or from an older version/, "markup in a recorded turn limit");
 };

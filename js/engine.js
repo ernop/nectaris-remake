@@ -167,6 +167,7 @@ var ENGINE = (function () {
       var b = bdefs[i];
       var terr = this.terrain[b.row] && this.terrain[b.row][b.col];
       if (!terr || !terr.building) throw new Error("Building at " + b.col + "," + b.row + " is not on F/B terrain");
+      if (terr.id === "base" && b.stored && b.stored.length) throw new Error("Base at " + b.col + "," + b.row + " stores units; only factories can.");
       var owner = b.owner === undefined ? -1 : b.owner;
       var stored = [];
       for (var s = 0; s < (b.stored || []).length; s++) {
@@ -242,14 +243,9 @@ var ENGINE = (function () {
         !wholeNumber(data.turnLimit, 1, Number.MAX_SAFE_INTEGER) ||
         (data.winner !== null && data.winner !== 0 && data.winner !== 1) ||
         (data.currentPlayer !== 0 && data.currentPlayer !== 1) ||
-        (data.firstPlayer !== undefined && data.firstPlayer !== 0 && data.firstPlayer !== 1)) {
-      throw new Error("This saved match is invalid or from an unsupported version.");
-    }
-    // Saves made before the fidelity audit have no Mule passenger policy.
-    // Migrate only missing fields; explicit custom transport policies survive.
-    if (data.types.MULE && !data.types.MULE.cargoTypes) {
-      data.types.MULE.cargoTypes = ["CHARLIE", "KILROY", "ATLAS", "TRIGGER"];
-      data.types.MULE.cargoFactoryTypes = ["PANTHER"];
+        (data.firstPlayer !== 0 && data.firstPlayer !== 1) ||
+        (data.types.MULE && !Array.isArray(data.types.MULE.cargoTypes))) {
+      throw new Error("This saved match is invalid or from an older version and cannot be loaded.");
     }
     mergeUnitTypes(data.types);
     var game = new Game(data.map, {seed: data.rngState, firstPlayer:data.firstPlayer});
@@ -273,7 +269,8 @@ var ENGINE = (function () {
     data.units.forEach(function (u) { u.cargo = u.cargo.map(resolve); });
     Object.keys(data.buildings).forEach(function (key) {
       var building = data.buildings[key];
-      if (!building || !wholeNumber(building.owner, -1, 1) || !Array.isArray(building.stored)) {
+      if (!building || !wholeNumber(building.owner, -1, 1) || !Array.isArray(building.stored) ||
+          (building.kind === "base" && building.stored.length)) {
         throw new Error("Saved match contains invalid buildings.");
       }
       building.stored = building.stored.map(resolve);

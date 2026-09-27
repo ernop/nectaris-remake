@@ -616,8 +616,8 @@ var UI = (function () {
     var remainingShift = t.moveAfterAttack && unit.player === game.currentPlayer && unit.movePointsLeft < t.move;
     var shift = remainingShift ? unit.movePointsLeft + "<small>/" + t.move + "</small>" : t.move;
     var experience = COMBAT.experienceBonus(unit.exp), damage = experience.damage;
-    return "<div class='unit-card-head'><span class='unit-card-portrait'><canvas class='unit-card-icon' width='32' height='32' role='img' aria-label='" +
-      esc(unitView.name(t) + " · " + unitView.rankLabel(unit)) + "'></canvas>" +
+    return "<div class='unit-card-head'><span class='unit-card-portrait rank-icon-inventory'><canvas class='unit-card-icon' width='32' height='32' role='img' aria-label='" +
+      esc(unitView.name(t) + " · " + unitView.rankLabel(unit)) + "'></canvas>" + unitView.rankHtml(unit.exp, unit.exp, 0) +
       (strCap ? "<span class='unit-strength' role='img' aria-label='" + strCap + " machines remaining'>" + strCap + "</span>" : "") + "</span>" +
       "<strong class='ui-name' style='color:" + factionTextColor(unit.player) + "'>" + esc(unitView.name(t)) + "</strong>" +
       "</div>" +
@@ -666,7 +666,7 @@ var UI = (function () {
     unitView.paint(container);
     if (unit) {
       RENDER.drawUnitIcon(container.querySelector(".unit-card-icon"), unit,
-        { attacking: attacking, spent: spent, experience: true });
+        { attacking: attacking, spent: spent });
     }
   };
 

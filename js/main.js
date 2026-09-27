@@ -93,7 +93,7 @@
         (result.hotseat ? "Hotseat" : "Solo") + " · Turn " + result.turn + " · " +
         new Date(result.endedAt).toLocaleString() + (result.balance ? " · Offers: "+
           (result.balance.secondPlayer===0?"Union":"Xenon")+" second · "+result.balance.label : "") + (!result.hotseat && result.opponent ?
-          " · " + AI_SEARCH.get(result.opponent).label + (result.opponentChanges && result.opponentChanges.length ? " (changed during match)" : "") : "");
+          " · " + AI_SEARCH.get(result.opponent).label : "");
       row.appendChild(title); row.appendChild(detail);
       history.appendChild(row);
     });
@@ -135,11 +135,13 @@
 
   function startGame(mapDef, opts, saved) {
     opts = Object.assign({}, opts || {});
-    opts.opening = saved ? (opts.opening || "original") : openingMode(opts);
-    if (!saved) delete opts.balance;
+    if (saved && (!opts.opponent || (opts.opening !== "original" && opts.opening !== "offers"))) {
+      throw new Error("This saved match is from an older version and cannot be loaded.");
+    }
+    if (!saved) { opts.opening = openingMode(opts); delete opts.balance; }
     var preferredOpponent = $("menu-opponent").value || "apex";
     try { preferredOpponent = localStorage.getItem("nectaris-opponent") || preferredOpponent; } catch (e) { /* optional preference */ }
-    opts.opponent = AI_SEARCH.get(opts.opponent || (saved ? "classic" : preferredOpponent)).id;
+    opts.opponent = AI_SEARCH.get(saved ? opts.opponent : opts.opponent || preferredOpponent).id;
     if (!activeProfile) { openProfileForm(); return; }
     if (!saveMatch(currentUI)) return;
     var profile;

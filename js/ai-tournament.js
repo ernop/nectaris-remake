@@ -9,7 +9,7 @@ var AI_TOURNAMENT = (function () {
   var model=typeof module!=="undefined"?require("./ai-model.js"):AI_MODEL;
   var balance=typeof module!=="undefined"?require("./balance.js"):BALANCE;
   var openingAI=typeof module!=="undefined"?require("./ai-opening.js"):AI_OPENING;
-  var VERSION="2026-09-26.1";
+  var VERSION="2026-09-26.2";
   function canResume(run){return run.version===VERSION;}
   function integer(v,min,max,label){if(!Number.isInteger(v)||v<min||v>max)throw new Error(label+" must be an integer from "+min+" to "+max+".");return v;}
   function normalize(input){

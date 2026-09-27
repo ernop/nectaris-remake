@@ -21,10 +21,14 @@ module.exports = function (ok) {
   ok(restored.units[1].carriedBy === restored.units[0].id, "transport ownership survives reload");
   var legacy = JSON.parse(JSON.stringify(saved));
   delete legacy.types.MULE.cargoTypes; delete legacy.types.MULE.cargoFactoryTypes;
-  var migrated = ENGINE.Game.restore(legacy);
-  ok(migrated.units[0].type.cargoTypes.join(",") === "CHARLIE,KILROY,ATLAS,TRIGGER" &&
-    migrated.units[0].type.cargoFactoryTypes[0] === "PANTHER",
-    "old saved Mule definitions acquire the original passenger restrictions");
+  var legacyError = "";
+  try { ENGINE.Game.restore(legacy); } catch (e) { legacyError = e.message; }
+  ok(/older version/.test(legacyError), "a save whose Mule lacks passenger rules is refused, not migrated");
+  var baseSave = JSON.parse(JSON.stringify(saved));
+  Object.keys(baseSave.buildings).forEach(function (key) { if (baseSave.buildings[key].stored.length) baseSave.buildings[key].kind = "base"; });
+  var baseError = "";
+  try { ENGINE.Game.restore(baseSave); } catch (e) { baseError = e.message; }
+  ok(/invalid buildings/.test(baseError), "a save with units stored in a base is refused");
   ok(restored.buildingAt(0,0).stored.length === 2, "factory inventories survive reload");
   ok(restored.units[2].attacked && restored.units[2].movePointsLeft === rabbit.movePointsLeft, "post-attack movement and spent attack survive reload");
   ok(restored.rng() === game.rng() && restored.rng() === game.rng(), "random stream resumes exactly");
@@ -90,7 +94,7 @@ module.exports = function (ok) {
   storage.setItem("nectaris-progress", JSON.stringify({cleared: 3}));
   ok(store.active() === null, "first visit has no selected profile");
   var alice = store.create(" Alice ");
-  ok(alice.name === "Alice" && alice.cleared.length === 3, "first profile inherits legacy stars once");
+  ok(alice.name === "Alice" && alice.cleared.length === 0, "the pre-profile progress record is not imported");
   ok(throws(function () { store.create("alice"); }), "duplicate usernames are rejected case-insensitively");
   ok(throws(function () { store.create("   "); }), "blank usernames are rejected");
   var match = {id: "match-1", options: {campaignIndex: 5}, state: saved};

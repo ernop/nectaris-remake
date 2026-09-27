@@ -23,13 +23,12 @@ function setup(){
 document.getElementById("hover").onclick=function(){
   checks=0;document.getElementById("results").textContent="";
   try{
-    var x=setup(),unit=x.g.units[0],before;
+    var x=setup(),unit=x.g.units[0];
     ui.renderer.hoverHex={col:unit.col,row:unit.row};
     for(var rank of [0,1,2,8]){
       unit.exp=rank;ui.updateHoverInfo();
-      var canvas=x.d.querySelector("#unit-hover .unit-card-icon"),pixels=canvas.getContext("2d").getImageData(0,0,32,32).data;
-      if(before)check(pixels.some(function(v,i){return v!==before[i];}),"mini unit popup refreshes its icon stars at "+x.w.UNIT_VIEW.rankLabel(unit));
-      before=pixels;
+      var overlay=x.d.querySelector("#unit-hover .unit-card-portrait .battle-rank");
+      check(overlay&&overlay.dataset.exp===String(rank),"mini unit popup shows the stars for "+x.w.UNIT_VIEW.rankLabel(unit));
     }
     document.getElementById("status").textContent=checks+" checks passed";
   }catch(e){document.getElementById("status").textContent="FAIL: "+e.message;console.error(e);}
@@ -84,32 +83,27 @@ document.getElementById("run").onclick=async function(){
     ui.showWatchMove({t:"move",unit:g.units[1],from:{col:10,row:6},to:{col:11,row:6}});ui.draw();
     check([ui.renderer.zoom,ui.renderer.originX,ui.renderer.originY].join()===camera,"watched opponent selection preserves the chosen camera");
     ui.closeWarDock();
-    // Inspect real hover canvases: data-exp alone cannot prove the stars were painted.
+    // Stars are drawn over the hover and inventory icons, never painted into the canvas.
+    function stars(rank){return rank?Array.from(rank.querySelectorAll(".battle-rank-star")).length+(rank.querySelector(".battle-rank-general")?"G":""):"none";}
     var style=w.RENDER.getStyle(),iconSet=w.RENDER.getIconSet();
     try{
       for(var look of [["pixel","remake"],["pixel","legacy"],["classic","remake"],["neon","remake"]]){
         w.RENDER.setStyle(look[0]);w.RENDER.setIconSet(look[1]);
         ui.game=g;ui.renderer.game=g;ui.mode="idle";ui.renderer.hoverHex={col:unit.col,row:unit.row};
-        var oldExp=unit.exp,hoverPixels=[];
+        var oldExp=unit.exp,shown=[];
         for(var rank of [0,1,2,8]){
           unit.exp=rank;ui.updateHoverInfo();
-          var icon=d.querySelector("#unit-hover .unit-card-icon");
-          hoverPixels.push(icon.getContext("2d").getImageData(0,0,32,32).data);
+          shown.push(stars(d.querySelector("#unit-hover .unit-card-portrait .battle-rank")));
         }
-        check(hoverPixels.slice(1).every(function(p,i){return p.some(function(v,k){return v!==hoverPixels[i][k];});}),
-          look.join("/")+": mini unit hover paints and refreshes each star rank, including unchanged damage bonus tiers");
+        check(shown.join()==="0,1,2,0G",look.join("/")+": the hover portrait shows each rank's stars and the General star ("+shown.join()+")");
         unit.exp=oldExp;await wait(0);
         for(var owner of [-1,0,1]){
           ui.game=new w.ENGINE.Game({name:"Factory stars",grid:Array(7).fill("............").map(function(row,i){return i===3?"....F.......":row;}),
             buildings:[{col:4,row:3,owner:owner,stored:[{t:"BISON",exp:0},{t:"BISON",exp:3},{t:"BISON",exp:8}]}],
             units:[{t:"CHARLIE",o:0,x:0,y:0},{t:"BISON",o:1,x:11,y:6}]},{seed:7});
           ui.renderer.game=ui.game;ui.renderer.fitToMap();ui.mode="idle";ui.renderer.hoverHex={col:4,row:3};ui.updateHoverInfo();
-          for(var id of ["unit-hover"]){
-            var icons=Array.from(d.getElementById(id).querySelectorAll("canvas[data-unit-type]"));
-            var pixels=icons.map(function(c){return c.getContext("2d").getImageData(0,0,32,32).data;});
-            check(icons.length===3&&pixels[1].some(function(value,i){return value!==pixels[0][i];})&&pixels[2].some(function(value,i){return value!==pixels[0][i];}),
-              look.join("/")+" owner "+owner+" "+id+": rank stars and General are visible on the existing icons");
-          }
+          var inventory=Array.from(d.querySelectorAll("#unit-hover .rank-icon-inventory .battle-rank")).map(stars);
+          check(inventory.join()==="0,3,0G",look.join("/")+" owner "+owner+": stored units show their stars and the General star ("+inventory.join()+")");
           await wait(0);
         }
       }

@@ -13,7 +13,11 @@ var AI_SEARCH = (function () {
     {id:"monte-carlo",label:"Simulation · Monte Carlo",description:"Chance-sampled tree search and adversarial continuations",algorithm:"mcts",iterations:36,horizon:8,branches:10},
     {id:"apex",label:"Apex · hybrid search",description:"Beam-guided Monte Carlo search with paired full-turn verification",algorithm:"hybrid",width:5,depth:3,branches:12,iterations:64,horizon:12,verification:4}
   ];
-  function get(id) { return modes.find(function (m) { return m.id===id; }) || modes[0]; }
+  function get(id) {
+    var mode = modes.find(function (m) { return m.id===id; });
+    if (!mode) throw new Error("Unknown AI opponent: " + id);
+    return mode;
+  }
   function randomSeed(rng) { return Math.floor(rng()*4294967296)>>>0; }
   function readyCount(g) {
     return g.playerUnits(g.currentPlayer).filter(function(u){return !u.moved;}).length+
@@ -272,7 +276,7 @@ var AI_SEARCH = (function () {
     }
     if(async&&typeof Worker!=="undefined"){
       try{
-        worker=new Worker("js/ai-worker.js?v=20260926-exits");
+        worker=new Worker("js/ai-worker.js?v=20260926-no-special-rules");
         worker.onmessage=function(e){
           if(ended||e.data.sequence!==sequence)return;
           if(e.data.error){error=new Error(e.data.error);pending=false;return;}

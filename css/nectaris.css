@@ -295,8 +295,8 @@ select, input[type="url"] {
    nearby card and selection inspector so both disclose the same details. */
 .unit-card-head { display: flex; align-items: center; gap: 8px;
   min-height: 32px; margin-bottom: 8px; }
-.unit-card-icon { width: 32px; height: 32px; image-rendering: pixelated; }
-.unit-card-portrait { position: relative; display: block; flex: 0 0 32px; height: 32px; }
+.unit-card-icon { width: 64px; height: 64px; image-rendering: pixelated; }
+.unit-card-portrait { position: relative; display: block; flex: 0 0 64px; height: 64px; }
 .unit-card-portrait .unit-card-icon { display: block; }
 .unit-card-rank { flex: 0 0 32px; width: 32px; height: 32px; }
 .unit-card-head .ui-name { font-size: 14px; line-height: 18px; margin: 0;

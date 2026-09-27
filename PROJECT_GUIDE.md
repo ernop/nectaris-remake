@@ -50,7 +50,7 @@ retuned. These themes do not authorize extra features or unsourced rule changes.
 | Gemini 3.8 tactical gap-filling units | Experimental 15-unit proposal designed by Gemini 3.8 addressing operational gaps (Alpine infantry, frontline flak, heavy assault guns, static SAMs, tank destroyers, and attack gunships). Complete with 30 native 32×32 sprites, verified engine definitions and fluid zero-gray UI. [Dossiers and specifications](gemini38/README.md), [interactive overview](gemini38/gallery.html), [record](PRODUCT.md#gemini-38-15-tactical-gap-filling-units-study-2026-09-23). |
 | Claude Opus 5.5 gap-filling units | Experimental 15-unit proposal, not additions to the playable roster. Each unit fills one rule combination the stock roster leaves empty, checked as a test over the stock data; every printed exchange is computed by the engine and asserted by the pack's `verify.js`. In-game sprites remain stock placeholders. [Overview](opus55/index.html), [design and review](opus55/README.md), [record](PRODUCT.md#claude-opus-55-gap-filling-units-study-2026-09-23). |
 | Exact original CPU, random stream and PCE boundary cases | Unverified research gaps, not established rules or a claim of full fidelity. [Remaining gaps](FIDELITY_AUDIT.md#remaining-gaps-in-priority-order). |
-| Search opponents and self-play tournaments | Implemented from the subsequent 2026-09-23 request: opponent picker (since 2026-09-26 chosen in the menu and fixed for the whole match), greedy/beam/MCTS/hybrid algorithms, generic existing capabilities, background workers, mirrored tournaments, durable out-of-order results, per-run Elo, reload/Resume, indexed map/pair history and full-window replays with checkpoint seeking. No personalities. Protocol 2026-09-26.1 keeps immobile units off a factory's last exit. [Implementation, usage and limits](AI_OPPONENTS.md); [earlier analysis](AI_DESIGN_RESEARCH.md). |
+| Search opponents and self-play tournaments | Implemented from the subsequent 2026-09-23 request: opponent picker (since 2026-09-26 chosen in the menu and fixed for the whole match), greedy/beam/MCTS/hybrid algorithms, generic existing capabilities, background workers, mirrored tournaments, durable out-of-order results, per-run Elo, reload/Resume, indexed map/pair history and full-window replays with checkpoint seeking. No personalities. Protocol 2026-09-26.2 removed the factory-exit special rules: search bots use general methods, not invented rules (user, 2026-09-26). [Implementation, usage and limits](AI_OPPONENTS.md); [earlier analysis](AI_DESIGN_RESEARCH.md). |
 | Battle review in matches and replays | Updated 2026-09-26: fixed faction sides, per-side terrain, one-way fire cues, Ready/Fighting/Result stages, glowing earned stars on header icons only, pause/resume, default replay battle pause and optional skip. Experience ranks use icon stars throughout. Fixed left reports and board camera, exact hex routes, and no per-unit End remain. [Readout and replay controls](PRODUCT.md#battle-review-2026-09-25). |
 | Soundtrack, Manual and Surrender | Excluded from the recorded fidelity implementation pass; original-style battle presentation was subsequently requested and is covered above; do not silently turn them into scheduled work. [Scope](FIDELITY_AUDIT.md#requested-implementation-pass--2026-09-20). |
 | Public deployment target | Not selected in the records. The repository and local endpoint exist; neither establishes a hosted production site. [Working notes](agents.md). |
@@ -99,6 +99,13 @@ Release first, verify later (user decision). Examine together later:
     - `test/tournament-storage.html` passes;
     - importing an older replay file shows the version error;
     - map sprites show no stars while hover cards and factory lists do.
+15. After the save compatibility removal and the factory-exit rule removal:
+    - the 64 px hover-card portrait and its star overlay at 0, 3, 5 and 8
+      stars;
+    - "Continue" on a save made before this build shows the older-version
+      error rather than a blank screen;
+    - `test/board-playback.html` hover and factory star checks pass;
+    - how often search bots now strand their own factory with a mine.
 
 Research rather than a check: direct PC Engine confirmation of the Windows
 combat traces.

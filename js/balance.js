@@ -166,7 +166,7 @@ var BALANCE = (function () {
       if (!passable(game,at) || game.unitAt(at.col,at.row) || game.buildingAt(at.col,at.row)) throw new Error("A reinforcement hex is no longer available.");
     });
     game.firstPlayer=result.firstPlayer;game.currentPlayer=result.firstPlayer;
-    game.balance={version:result.version||1,firstPlayer:result.firstPlayer,secondPlayer:result.secondPlayer,offer:result.offer,
+    game.balance={version:result.version,firstPlayer:result.firstPlayer,secondPlayer:result.secondPlayer,offer:result.offer,
       step:result.step,tied:result.tied,label:p.offers[result.offer].label,placements:units};
     if(result.thresholds)game.balance.thresholds=result.thresholds.slice();
     if(result.policies)game.balance.policies=JSON.parse(JSON.stringify(result.policies));
@@ -174,11 +174,7 @@ var BALANCE = (function () {
     units.forEach(function(at){game.units.push(engine.makeUnit(at.typeId,result.secondPlayer,at.col,at.row,8,0));});
     return game.balance;
   }
-  function cpuChoice(p,step,player,id,options) {
-    var survey=cpuSurvey(p,player,id,options);
-    return survey.high<=step?survey.choice:null;
-  }
-  return {plan:plan,label:label,placements:placements,resolve:resolve,apply:apply,cpuChoice:cpuChoice,
+  return {plan:plan,label:label,placements:placements,resolve:resolve,apply:apply,
     begin:begin,question:question,answer:answer,back:back,cpuSurvey:cpuSurvey,settle:settle,
     packages:PACKAGES,MAX_DISTANCE:MAX_DISTANCE};
 })();

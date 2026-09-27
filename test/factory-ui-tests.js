@@ -41,7 +41,7 @@ module.exports = function (ok) {
   }
   function fixture(owner, type, kind) {
     var game = new ENGINE.Game({ name: "Factory inspection", grid: ["........", ".." + (kind || "F") + ".F...", "........"],
-      buildings: [{ col: 2, row: 1, owner: owner, stored: ["BISON", { t: "LYNX", str: 5, exp: 3 }] }],
+      buildings: [{ col: 2, row: 1, owner: owner, stored: kind === "B" ? [] : ["BISON", { t: "LYNX", str: 5, exp: 3 }] }],
       units: [{ t: type || "CHARLIE", o: 0, x: 1, y: 1 }, { t: "POLAR", o: 1, x: 7, y: 2 }],
     }, { seed: 7 });
     var ui = Object.create(UI.GameUI.prototype);

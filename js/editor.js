@@ -228,10 +228,10 @@
   function editStored(col, row) {
     var b = state.buildings[HEX.key(col, row)];
     if (!b) return false;
+    if (state.grid[row][col] === "B") { msg("Only factories store units; bases cannot."); return true; }
     var cur = b.stored.join(",");
     var input = prompt(
-      "Stored units for this " + (state.grid[row][col] === "B" ? "base" : "factory") +
-      " (comma-separated type IDs, e.g. BISON,KILROY,ATLAS).\nOwner: " +
+      "Stored units for this factory (comma-separated type IDs, e.g. BISON,KILROY,ATLAS).\nOwner: " +
       (b.owner < 0 ? "neutral" : "player " + (b.owner + 1)), cur);
     if (input === null) return true;
     var ids = input.split(",").map(function (s) { return s.trim().toUpperCase(); }).filter(Boolean);

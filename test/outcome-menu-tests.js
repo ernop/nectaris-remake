@@ -9,7 +9,7 @@ module.exports = function (ok) {
   for (var i=0;i<15;i++) store.checkpoint(first.id,{id:"menu-"+i,options:{campaignIndex:0},
     state:{map:campaign[0],winner:i%2,winReason:"base",turn:3}});
   var second = store.create("New player"); store.switchTo(first.id);
-  var custom = {name:"<b>Custom field</b>",grid:["BF.","..B"],
+  var custom = {name:"<b>Custom field</b>",grid:["FF.","..B"],
     units:[{t:"CHARLIE",o:0,x:0,y:1},{t:"CHARLIE",o:1,x:2,y:0}],
     buildings:[{col:0,row:0,owner:0,stored:["BISON","BISON"]},
       {col:1,row:0,owner:-1,stored:["BISON","BISON","BISON"]},{col:2,row:1,owner:1}],

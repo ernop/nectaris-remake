@@ -64,7 +64,7 @@ module.exports=function(ok){
     ok(noDeal.skipped&&noDeal.reason==="opening-no-deal"&&noDeal.commands.length===0,"two policy refusals produce an explicit saved no-deal result");
   }finally{openingAI.analyze=analyze;}
   ok(T.canResume({version:T.version,config:{opening:"original"}})&&!T.canResume({version:"2026-09-25.2",config:{opening:"original"}})&&
-    !T.canResume({version:"2026-09-25.1",config:{opening:"original"}}),"runs recorded before the 2026-09-26.1 search change stay viewable but cannot resume");
+    !T.canResume({version:"2026-09-25.1",config:{opening:"original"}}),"runs recorded under another protocol cannot resume");
   var offerLegs=Array.from({length:4},function(_,i){return T.fixture(offerConfig,i);});
   ok(offerConfig.total===4&&offerLegs.map(function(s){return s.tieSecond;}).join()==="0,0,1,1"&&offerLegs.every(function(s){return s.seed===offerLegs[0].seed;}),
     "offers mirror both tie recipients and both faction assignments with a common combat seed");

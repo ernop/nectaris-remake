@@ -63,8 +63,9 @@ a map-view opponent picker, support for combinations of existing numerical unit
 capabilities, and large configurable self-play tournaments with Elo and replays.
 Personality presets are explicitly excluded. Implemented policies are Classic,
 Tactical (greedy), Sequence (beam), Simulation (MCTS) and Apex (hybrid search
-with complete-turn verification). The new-match default is Apex; older saves
-without a policy retain Classic. All play under the same engine rules and cannot
+with complete-turn verification). The new-match default is Apex; a save without
+a recorded policy is refused as an older format. All play under the same engine
+rules and cannot
 read future match randomness.
 
 **The opponent is fixed for the whole match** (user instruction, 2026-09-26): it
@@ -716,12 +717,14 @@ use four games covering both faction assignments and both equal-offer tie
 recipients. Private commitments remove response-order advantage; unequal bids
 still decide roles. Seeds are shared within the mirrored set and change by repeat.
 Saved results include policies, role scores, both switch points, questions, bonus
-and first player. CSV and archives identify effective/requested openings. Prior
-normal runs from 2026-09-25.1 can resume with unchanged rules/move selection;
-prior offer runs remain reviewable but cannot mix the updated bidding policies.
-Protocol 2026-09-26.1 (search opponents no longer seal their own factory exits
-with immobile units; see AI_OPPONENTS.md) supersedes that resume allowance: runs
-from earlier versions remain reviewable but cannot resume.
+and first player. CSV and archives identify effective/requested openings. A run
+recorded under another protocol cannot resume, and its games cannot be watched.
+Protocol 2026-09-26.2 removed the factory-exit rules that 26.1 had added; see
+AI_OPPONENTS.md.
+
+The user decided on 2026-09-26 that the search bots (Tactical, Sequence,
+Simulation, Apex) use general, adaptable methods, not invented special-case
+rules or hand-picked penalties for particular situations.
 
 The same follow-up requires durable long runs, visible progress, intelligible
 controls, map/pair history, efficient replay and a fullscreen board for review.
@@ -1046,7 +1049,9 @@ Rename, New profile and Switch to. Each browser-local profile has its own campai
 match-result history (ten per page, with Show older matches), and one unfinished match. Solo results
 are wins/losses from Union's perspective; hotseat records name the winning side
 and are counted separately. A later campaign win marks only that mission.
-The first profile inherits old `nectaris-progress` stars once.
+No backward compatibility (user, 2026-09-26): a saved match from an older
+format is refused with an error rather than migrated. The one-time import of
+pre-profile `nectaris-progress` stars is gone.
 
 Committed human actions save automatically, including during combat animation.
 Save & Menu, page hiding, and navigation also checkpoint. Uncommitted moves are
@@ -1099,7 +1104,9 @@ See `FIDELITY_AUDIT.md` and `MECHANICS.md`. The PCE rules supersede earlier
 custom behavior where it conflicts: bases no longer repair/store incoming
 units, mines do not prevent elimination, and Atlas still in storage does not
 prevent elimination. Other owned reserves count even when exits are blocked.
-Existing custom or saved base inventories remain accessible. Loading and
+Bases never store units. Since the user removed save compatibility on
+2026-09-26, maps, custom levels and saves with base inventories are refused,
+and the editor cannot add them. Loading and
 unloading consume the passenger's turn; unloading a ready passenger remains
 available after its carrier acts. Modern profiles, saves, editor and forecasts
 remain product features and are identified as extras, not original PCE rules.

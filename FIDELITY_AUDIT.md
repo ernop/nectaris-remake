@@ -104,8 +104,6 @@ PCE/Windows in-game manuals are identified in [Anka's supplement](https://anka.s
 | Additional scenario packs | Lunar Frontiers and the remake rosters on Base Nectaris terrain are not original campaign missions. | Added playable content; they do not replace the missing advanced campaign. |
 | Profiles, detailed result history and per-action browser autosaves | Our particular persistence and reporting system is new. Saving itself is not inherently unofficial across all ports. | Explicit product features for continuing browser sessions and tracking results. |
 | Modern control and display options | Mouse flow, zoom/pan, themes and AI animation controls differ from the original interface. | Browser usability and requested presentation choices. |
-| Base inventories in old saves/custom maps | Those reserves can still be inspected and deployed even though fresh factory-style storage in bases is now disabled. | Compatibility preserves units already stored by the previous rule instead of deleting them. |
-
 ### Real release differences, not evidence of invented rules
 
 - An editor is present in Windows and PlayStation releases. Two-player play is

@@ -69,14 +69,6 @@ var PROFILES = (function () {
     var data = this.read();
     name = checkedName(data, name);
     var profile = {id: id(), name: name, results: [], cleared: [], savedMatch: null};
-    if (!data.profiles.length) {
-      // Preserve old campaign stars once, without inventing match history.
-      try {
-        var legacy = JSON.parse(this.storage.getItem("nectaris-progress"));
-        var count = legacy && Number.isInteger(legacy.cleared) ? Math.min(16, legacy.cleared) : 0;
-        for (var i = 0; i < count; i++) profile.cleared.push(i);
-      } catch (e) { /* Older progress was optional. */ }
-    }
     data.profiles.push(profile); data.activeId = profile.id;
     this.write(data);
     return profile;

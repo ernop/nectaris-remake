@@ -252,45 +252,6 @@ var AI_MODEL = (function () {
     });
     return danger;
   }
-  // A unit that cannot move blocks a factory exit it occupies for the rest of
-  // the match. Each blocked exit halves the factory's remaining exit value.
-  function immobileSites(game) {
-    var sites = new Set();
-    game.units.forEach(function (u) { if (!u.type.move && !u.carriedBy && !u.inFactory) sites.add(HEX.key(u.col, u.row)); });
-    return sites;
-  }
-  function exitCounts(game, b, sites) {
-    var exits = 0, open = 0;
-    HEX.neighbors(b.col, b.row).forEach(function (n) {
-      if (!game.inBounds(n.col, n.row) || !game.terrainAt(n.col, n.row).deployable) return;
-      exits++;
-      if (!sites.has(HEX.key(n.col, n.row))) open++;
-    });
-    return {exits: exits, open: open};
-  }
-  function blockedExitCost(game, b, sites) {
-    var count = exitCounts(game, b, sites);
-    var stake = 45 + b.stored.reduce(function (s, u) { return s + value(u) * 0.35; }, 0);
-    return stake * (Math.pow(0.5, count.open) - Math.pow(0.5, count.exits));
-  }
-  function adjacentFactories(game, col, row) {
-    return HEX.neighbors(col, row).map(function (n) { return game.inBounds(n.col, n.row) && game.buildingAt(n.col, n.row); })
-      .filter(function (b) { return b && b.kind === "factory" && b.owner >= 0; });
-  }
-  function exitBlockDelta(game, player, col, row) {
-    var sites = immobileSites(game), placed = new Set(sites).add(HEX.key(col, row));
-    return adjacentFactories(game, col, row).reduce(function (delta, b) {
-      var change = blockedExitCost(game, b, placed) - blockedExitCost(game, b, sites);
-      return delta + (b.owner === player ? -change : change);
-    }, 0);
-  }
-  // Taking an own factory's last open exit would strand its reserves for good.
-  function sealsFactory(game, player, col, row) {
-    var sites = immobileSites(game), placed = new Set(sites).add(HEX.key(col, row));
-    return adjacentFactories(game, col, row).some(function (b) {
-      return b.owner === player && exitCounts(game, b, sites).open > 0 && !exitCounts(game, b, placed).open;
-    });
-  }
   function evaluate(game, player, ctx) {
     if (game.winner !== null) return game.winner === player ? 100000 : -100000;
     var scores = [0,0], capturers = [[],[]];
@@ -308,9 +269,8 @@ var AI_MODEL = (function () {
         });
       }
     });
-    var sites = immobileSites(game);
     Object.values(game.buildings).forEach(function (b) {
-      if (b.kind === "factory" && b.owner >= 0) scores[b.owner] += 45 - blockedExitCost(game, b, sites);
+      if (b.kind === "factory" && b.owner >= 0) scores[b.owner] += 45;
       [0,1].forEach(function (p) {
         if (b.owner === p) return;
         var best = 0;
@@ -410,11 +370,9 @@ var AI_MODEL = (function () {
         cargoPlans.forEach(function (plan) {
           var cargo=plan.unit,cargoTargets=plan.targets;
           game.unloadTargets(u,cargo).forEach(function (drop) {
-            if(!cargo.type.move&&sealsFactory(game,cargo.player,drop.col,drop.row))return;
             var gain=deliveryValue(game,cargoTargets,drop.col,drop.row,true,cargo);
             var carry=deliveryValue(game,cargoTargets,rec.col,rec.row);
-            var unloadScore=2+(gain-carry)*1.4-danger(game,cargo,drop.col,drop.row,info)*0.5+
-              (cargo.type.move?0:exitBlockDelta(game,cargo.player,drop.col,drop.row));
+            var unloadScore=2+(gain-carry)*1.4-danger(game,cargo,drop.col,drop.row,info)*0.5;
             var action=Object.assign({},base,{cargo:cargo.id,drop:[drop.col,drop.row]});
             add(action,score+unloadScore);
             game.legalAttackTargets(u).forEach(function (enemy) {
@@ -432,9 +390,7 @@ var AI_MODEL = (function () {
       cargoPlans.forEach(function (plan) {
         var cargo=plan.unit,goals=plan.targets;
         game.unloadTargets(u,cargo).forEach(function (drop) {
-          if(!cargo.type.move&&sealsFactory(game,cargo.player,drop.col,drop.row))return;
-          var s=2+(deliveryValue(game,goals,drop.col,drop.row,true,cargo)-deliveryValue(game,goals,u.col,u.row))*1.4-danger(game,cargo,drop.col,drop.row,info)*0.5+
-            (cargo.type.move?0:exitBlockDelta(game,cargo.player,drop.col,drop.row));
+          var s=2+(deliveryValue(game,goals,drop.col,drop.row,true,cargo)-deliveryValue(game,goals,u.col,u.row))*1.4-danger(game,cargo,drop.col,drop.row,info)*0.5;
           prefixes.push({kind:"act",unit:u.id,cargo:cargo.id,drop:[drop.col,drop.row],before:true,score:s});
         });
       });
@@ -480,7 +436,6 @@ var AI_MODEL = (function () {
         if(!game.canDeployNow(b,u))return;
         var goals=objectives(game,u,ctx);
         game.deployTargets(b,u).forEach(function(n){
-          if(!u.type.move&&sealsFactory(game,u.player,n.col,n.row))return;
           var score=6+value(u)*0.1+potential(game,u,goals,n.col,n.row)*0.2-danger(game,u,n.col,n.row,info)*0.45;
           // Immobile fire support needs a useful firing position, but a
           // deployment restriction specific to one stock ID is not imposed.
@@ -488,7 +443,6 @@ var AI_MODEL = (function () {
             var firing=game.playerUnits(1-u.player).some(function(e){return combat.canAttackAt(u.type,combat.isAir(e),HEX.distance(n.col,n.row,e.col,e.row));});
             score+=firing?30:-10;
           }
-          if(!u.type.move)score+=exitBlockDelta(game,u.player,n.col,n.row);
           actions.push({kind:"deploy",building:[b.col,b.row],unit:u.id,to:[n.col,n.row],score:score});
         });
         game.transportDeployTargets(b,u).forEach(function(carrier){

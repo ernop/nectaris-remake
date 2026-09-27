@@ -8,10 +8,10 @@ that document remains the historical analysis and research bibliography.
 ## Playing
 
 The menu's **AI** setting offers five policies. A new match defaults to
-**Apex** unless another choice was saved. An older saved match without this
-field continues with Classic. The opponent is fixed for the whole match (user
+**Apex** unless another choice was saved. A saved match without this field is
+refused as an older format (2026-09-26). The opponent is fixed for the whole match (user
 instruction, 2026-09-26); the match panel names it. The choice is recorded with
-the match history, and older records keep any mid-match changes made before then.
+the match history.
 
 | Opponent | Implemented method | Typical computational cost |
 | --- | --- | --- |
@@ -63,12 +63,13 @@ carrier, so the search opponents choose which unit leaves, where and in what
 order. With a single exit they deployed a Seeker against an enemy Eagle and a
 Grizzly against tanks, whichever order the reserves were stored in; Classic
 keeps its fixed original-style scan. Loading a mine or Atlas straight into an
-adjacent Mule or Pelican is an ordinary candidate. Units with no movement never
-leave on, or are dropped onto, their own factory's last open exit, and each
-exit such a unit holds costs that factory evaluation value (the same cost
-counts in the planner's favour at an enemy factory). Before this, Sequence,
-Simulation and Apex usually moved the waiting carrier away and put the mine on
-the only exit, stranding that factory for the rest of the match. Limits: a
+adjacent Mule or Pelican is an ordinary candidate. Protocol 2026-09-26.1 briefly
+kept units with no movement off their own factory's last open exit, and charged
+factory value for each exit they held. The user removed both in 2026-09-26.2: the
+search bots must not rely on invented special-case rules. They can again leave
+a mine or Atlas on their own factory's only exit, stranding that factory for the
+rest of the match. This is a known weakness, to be solved by more general
+methods. Limits: a
 reserve with a legal exit is always deployed before the turn ends (there is no
 "keep stored" action), and a mine's placement value comes only from defending
 a threatened base or escorting infantry, not from blocking enemy routes.
@@ -139,9 +140,9 @@ process never runs a whole match. Public-position simulation seeds are independe
 of the real combat RNG. Exact equal role scores accept second. Each survey records
 its policy, budgets and first/second scores; earlier packages remain available.
 
-Protocol **2026-09-26.1** changes search move selection (factory exits and
-immobile units, above). A run recorded under another version cannot resume, and
-its games cannot be watched in this build.
+Protocol **2026-09-26.2** removes the factory-exit rules that 2026-09-26.1 had
+added to search move selection (above). A run recorded under another version
+cannot resume, and its games cannot be watched in this build.
 
 Protocol **2026-09-25.2** records those analyses, requested/effective opening,
 switch points, questions, exact bonus, first player and fixture leg. Unavailable
