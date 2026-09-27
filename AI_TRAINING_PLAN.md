@@ -84,9 +84,28 @@ The browser game stays plain JavaScript. Rust is a development tool
   JavaScript's 17.8 s (3–6× faster). The port is still direct: it allocates
   freely and recomputes enemy stopping cells that JavaScript caches.
 
-**Phases 4–6:**
-4. **Faster Rust bots**, keeping every gate: allocation-free searches, cached
-   stopping cells, cheaper copies of positions.
+**Phase 4, faster Rust bots (first step done 2026-09-27):** every decision is
+unchanged on all 674 games.
+- **Tables:** board tables (terrain, neighbours, buildings, entry costs per
+  unit type) are shared by every copy of a position.
+- **Movement search:** reuses per-thread tables. Its frontier is a bucket per
+  cost, which pops in exactly the heap's order.
+- **Caches:**
+  - Enemy stopping cells and the hexes each enemy threatens are cached by
+    JavaScript's `stopSignature` key.
+  - Origin terms are computed once per unit.
+  - Keys use a word-at-a-time hasher.
+- **Action lists:** only the unload-first actions, the one part that can
+  repeat a key, are deduplicated; then the best actions are selected without
+  sorting the rest.
+- `decide --verify-caches` recomputes every cached result and repeats the full
+  deduplication, and panics on any difference. CI runs it.
+- The 14-game sample (four Apex games on large boards, ten small search
+  games), one thread: JavaScript 233.5 s, Rust 27.4 s, 8.5× faster (7.6–9.6×
+  per game). The 620-game wider check: 144 search games 549 s → 185 s, 476
+  Classic v Tactical games 128 s → 89 s.
+
+**Phases 5–6:**
 5. **Self-play runner** on all cores, writing records that the tournament
    replay viewer opens. JavaScript replays samples of Rust-played games with
    equal fingerprints. Speed is measured against the JavaScript runner.

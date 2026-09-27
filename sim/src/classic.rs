@@ -179,7 +179,7 @@ fn wants_transport(g: &Game, passenger: usize, carrier: usize, from_factory: boo
             }
         };
         let at = g.cell(goal.0, goal.1);
-        if range.cost[at] != i32::MAX && range.flags[at] & crate::game::CAN_STOP != 0 && range.flags[at] & LOAD == 0 {
+        if range.find(at).is_some_and(|(_, f)| f & crate::game::CAN_STOP != 0 && f & LOAD == 0) {
             return false;
         }
     }
@@ -207,7 +207,7 @@ fn board_one_passenger(g: &mut Game, player: i32) -> bool {
             }
             let r = range.as_ref().unwrap();
             let at = g.cell(g.units[carrier].col, g.units[carrier].row);
-            if r.cost[at] == i32::MAX || r.flags[at] & LOAD == 0 {
+            if !r.find(at).is_some_and(|(_, f)| f & LOAD != 0) {
                 continue;
             }
             if !wants_transport(g, passenger, carrier, false, Some(r)) {
@@ -412,7 +412,7 @@ fn plan_unit(g: &mut Game, u: usize) -> Plan {
     if g.units[u].strength <= 3 && t.mv > 0 {
         if let Some(rb) = nearest_owned_repair(g, u) {
             let at = g.cell(rb.0, rb.1);
-            if range.cost[at] != i32::MAX && range.flags[at] & crate::game::CAN_STOP != 0 && g.unit_at(rb.0, rb.1).is_none() {
+            if range.find(at).is_some_and(|(_, f)| f & crate::game::CAN_STOP != 0) && g.unit_at(rb.0, rb.1).is_none() {
                 return Plan::Move(rb);
             }
         }

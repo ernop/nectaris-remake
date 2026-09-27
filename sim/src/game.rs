@@ -4,11 +4,9 @@
 //! engine's `units` list in its exact order, because board order decides
 //! occupancy ties, iteration and the state fingerprint.
 
-use crate::data::{Board, Data, MoveType, StoredDef, UnitType};
+use crate::data::{Board, Data, MoveType, StoredDef, Tables, UnitType};
 use crate::hex;
 use crate::rng::Rng;
-use std::cmp::Reverse;
-use std::collections::BinaryHeap;
 
 #[derive(Clone, Debug)]
 pub struct Unit {
@@ -43,15 +41,16 @@ pub struct Building {
 pub struct Game<'d> {
     pub d: &'d Data,
     pub board: usize,
+    pub tables: &'d Tables,
     pub w: i32,
     pub h: i32,
     /// Terrain index of every cell, row * width + col.
-    pub cells: Vec<usize>,
+    pub cells: &'d [usize],
     /// Every unit ever created, id = index + 1.
     pub units: Vec<Unit>,
     pub field: Vec<usize>,
     pub buildings: Vec<Building>,
-    pub building_at: Vec<i32>,
+    pub building_at: &'d [i32],
     pub turn: i32,
     pub turn_limit: i32,
     pub current: i32,
@@ -83,12 +82,34 @@ pub const LOAD: u8 = 4;
 pub const ENTER: u8 = 8;
 
 /// Result of the movement search: reached cells in first-reached order (the
-/// start first), each with its cheapest cost, record flags and predecessor.
+/// start first), with each one's cheapest cost and record flags in parallel.
 pub struct MoveSearch {
     pub order: Vec<usize>,
     pub cost: Vec<i32>,
     pub flags: Vec<u8>,
-    pub prev: Vec<i32>,
+}
+impl MoveSearch {
+    /// The cost and flags of a reached cell.
+    pub fn find(&self, cell: usize) -> Option<(i32, u8)> {
+        self.order.iter().position(|&c| c == cell).map(|i| (self.cost[i], self.flags[i]))
+    }
+}
+
+/// Per-thread search tables, restored to empty after every search.
+#[derive(Default)]
+struct Scratch {
+    best: Vec<i32>,
+    flags: Vec<u8>,
+    occupant: Vec<i32>,
+    zone: Vec<u8>,
+    filled: Vec<usize>,
+    /// The frontier by cost. Costs never decrease as the search proceeds, so
+    /// taking the cheapest bucket in insertion order is exactly the heap order
+    /// (cost, then first pushed).
+    buckets: Vec<Vec<u32>>,
+}
+thread_local! {
+    static SCRATCH: std::cell::RefCell<Scratch> = std::cell::RefCell::new(Scratch::default());
 }
 
 pub struct Battle {
@@ -135,25 +156,18 @@ fn cap(v: i32) -> i32 {
 impl<'d> Game<'d> {
     pub fn new(d: &'d Data, board: usize, seed: u32, first_player: i32) -> Game<'d> {
         let b: &Board = &d.boards[board];
-        let h = b.grid.len() as i32;
-        let w = b.grid[0].chars().count() as i32;
-        let mut cells = Vec::with_capacity((w * h) as usize);
-        for (r, line) in b.grid.iter().enumerate() {
-            assert_eq!(line.chars().count() as i32, w, "{}: row {r} has another width", b.name);
-            for ch in line.chars() {
-                cells.push(*d.terrain_by_char.get(&ch).unwrap_or_else(|| panic!("{}: bad terrain {ch}", b.name)));
-            }
-        }
+        let tables = &d.tables[board];
         let mut g = Game {
             d,
             board,
-            w,
-            h,
-            cells,
+            tables,
+            w: tables.w,
+            h: tables.h,
+            cells: &tables.cells,
             units: Vec::new(),
             field: Vec::new(),
             buildings: Vec::new(),
-            building_at: vec![-1; (w * h) as usize],
+            building_at: &tables.building_at,
             turn: 1,
             turn_limit: b.turn_limit.filter(|&n| n != 0).unwrap_or(50),
             current: if first_player == 1 { 1 } else { 0 },
@@ -166,9 +180,6 @@ impl<'d> Game<'d> {
         for def in &b.buildings {
             let cell = g.cell(def.col, def.row);
             let terrain = &d.terrain[g.cells[cell]];
-            assert!(terrain.building, "{}: building at {},{} is not on F/B terrain", b.name, def.col, def.row);
-            assert!(g.building_at[cell] < 0, "{}: two buildings at {},{}", b.name, def.col, def.row);
-            assert!(terrain.id != "base" || def.stored.is_empty(), "{}: a base stores units", b.name);
             let owner = def.owner.unwrap_or(-1);
             let mut stored = Vec::new();
             for s in &def.stored {
@@ -180,17 +191,11 @@ impl<'d> Game<'d> {
                 g.units[u].in_factory = true;
                 stored.push(u);
             }
-            g.building_at[cell] = g.buildings.len() as i32;
             g.buildings.push(Building { col: def.col, row: def.row, base: terrain.id == "base", owner, stored });
         }
-        for r in 0..h {
-            for c in 0..w {
-                let cell = g.cell(c, r);
-                if d.terrain[g.cells[cell]].building && g.building_at[cell] < 0 {
-                    g.building_at[cell] = g.buildings.len() as i32;
-                    g.buildings.push(Building { col: c, row: r, base: d.terrain[g.cells[cell]].id == "base", owner: -1, stored: Vec::new() });
-                }
-            }
+        for &cell in &tables.building_cells[b.buildings.len()..] {
+            let (c, r) = (cell as i32 % g.w, cell as i32 / g.w);
+            g.buildings.push(Building { col: c, row: r, base: d.terrain[g.cells[cell]].id == "base", owner: -1, stored: Vec::new() });
         }
         for def in &b.units {
             let u = g.make_unit(&def.t, def.o, def.x, def.y, def.str, def.exp);
@@ -204,13 +209,14 @@ impl<'d> Game<'d> {
         Game {
             d: self.d,
             board: self.board,
+            tables: self.tables,
             w: self.w,
             h: self.h,
-            cells: self.cells.clone(),
+            cells: self.cells,
             units: self.units.clone(),
             field: self.field.clone(),
             buildings: self.buildings.clone(),
-            building_at: self.building_at.clone(),
+            building_at: self.building_at,
             turn: self.turn,
             turn_limit: self.turn_limit,
             current: self.current,
@@ -372,109 +378,138 @@ impl<'d> Game<'d> {
     pub fn search_moves_as(&self, u: usize, mp: i32, shifted: bool, dest: Option<usize>) -> MoveSearch {
         let unit = &self.units[u];
         assert!(self.in_bounds(unit.col, unit.row), "Unit at {},{} is outside the map", unit.col, unit.row);
-        let size = (self.w * self.h) as usize;
         let start = self.cell(unit.col, unit.row);
-        let mut s = MoveSearch { order: vec![start], cost: vec![i32::MAX; size], flags: vec![0; size], prev: vec![-1; size] };
-        s.cost[start] = 0;
-        s.flags[start] = CAN_STOP;
+        let mut order = vec![start];
         if shifted || mp <= 0 {
-            return s;
+            return MoveSearch { order, cost: vec![0], flags: vec![CAN_STOP] };
         }
-        let t = self.typ(u);
-        let air = t.move_type == MoveType::Air;
-        let budget = mp;
-        let mut occupant = vec![-1i32; size];
-        for &i in &self.field {
-            let o = &self.units[i];
-            if o.carried_by != 0 || o.in_factory || !self.in_bounds(o.col, o.row) {
-                continue;
+        SCRATCH.with(|scratch| {
+            let mut guard = scratch.borrow_mut();
+            let sc = &mut *guard;
+            let size = self.cells.len();
+            if sc.best.len() < size {
+                sc.best.resize(size, i32::MAX);
+                sc.flags.resize(size, 0);
+                sc.occupant.resize(size, -1);
+                sc.zone.resize(size, 0);
             }
-            let at = self.cell(o.col, o.row);
-            if occupant[at] < 0 {
-                occupant[at] = i as i32;
-            }
-        }
-        let mut zone = vec![0u8; size];
-        let enemy_zoc = |cell: usize, zone: &mut Vec<u8>| -> bool {
-            if zone[cell] != 0 {
-                return zone[cell] == 2;
-            }
-            let (col, row) = (cell as i32 % self.w, cell as i32 / self.w);
-            for (c, r) in hex::neighbors(col, row) {
-                if self.in_bounds(c, r) {
-                    let o = occupant[self.cell(c, r)];
-                    if o >= 0 && self.units[o as usize].player != unit.player {
-                        zone[cell] = 2;
-                        return true;
-                    }
-                }
-            }
-            zone[cell] = 1;
-            false
-        };
-        let mut frontier = BinaryHeap::new();
-        let mut order = 0u64;
-        frontier.push(Reverse((0i32, order, start)));
-        while let Some(Reverse((cur_cost, _, c))) = frontier.pop() {
-            if cur_cost != s.cost[c] {
-                continue;
-            }
-            if Some(c) == dest {
-                break;
-            }
-            if s.flags[c] & STOP != 0 && c != start {
-                continue;
-            }
-            let (col, row) = (c as i32 % self.w, c as i32 / self.w);
-            for (nc, nr) in hex::neighbors(col, row) {
-                if !self.in_bounds(nc, nr) {
+            sc.best[start] = 0;
+            sc.flags[start] = CAN_STOP;
+            let t = self.typ(u);
+            let step_cost = &self.tables.step[unit.t];
+            let nbr = &self.tables.neighbors;
+            let air = t.move_type == MoveType::Air;
+            let budget = mp;
+            for &i in &self.field {
+                let o = &self.units[i];
+                if o.carried_by != 0 || o.in_factory || !self.in_bounds(o.col, o.row) {
                     continue;
                 }
-                let n = self.cell(nc, nr);
-                let Some(mut step) = self.d.terrain_cost(self.cells[n], t) else { continue };
-                let drains = self.d.terrain[self.cells[n]].costs_all_movement && !air;
-                if drains {
-                    step = budget - cur_cost;
-                    if step < 1 {
-                        continue;
-                    }
-                }
-                let new_cost = cur_cost + step;
-                if new_cost > budget || new_cost >= s.cost[n] {
-                    continue;
-                }
-                let occ = occupant[n];
-                let mut load = false;
-                if occ >= 0 {
-                    if self.units[occ as usize].player != unit.player {
-                        continue;
-                    }
-                    if self.can_load(occ as usize, u, false) {
-                        load = true;
-                    }
-                }
-                let entering_zoc = enemy_zoc(n, &mut zone);
-                let mut can_stop = occ < 0 || load;
-                if !load && !self.can_stop_at_building(u, nc, nr) {
-                    can_stop = false;
-                }
-                let enters = can_stop && !load && self.enters_building(u, nc, nr);
-                if s.cost[n] == i32::MAX {
-                    s.order.push(n);
-                }
-                s.cost[n] = new_cost;
-                s.prev[n] = c as i32;
-                s.flags[n] = (if entering_zoc || drains { STOP } else { 0 })
-                    | (if can_stop { CAN_STOP } else { 0 })
-                    | (if load { LOAD } else { 0 })
-                    | (if enters { ENTER } else { 0 });
-                if !load {
-                    order += 1;
-                    frontier.push(Reverse((new_cost, order, n)));
+                let at = self.cell(o.col, o.row);
+                if sc.occupant[at] < 0 {
+                    sc.occupant[at] = i as i32;
+                    sc.filled.push(at);
                 }
             }
-        }
-        s
+            if sc.buckets.len() <= budget as usize {
+                sc.buckets.resize(budget as usize + 1, Vec::new());
+            }
+            sc.buckets[0].push(start as u32);
+            let (mut cur_cost, mut read) = (0i32, 0usize);
+            loop {
+                while cur_cost <= budget && read >= sc.buckets[cur_cost as usize].len() {
+                    sc.buckets[cur_cost as usize].clear();
+                    cur_cost += 1;
+                    read = 0;
+                }
+                if cur_cost > budget {
+                    break;
+                }
+                let c = sc.buckets[cur_cost as usize][read] as usize;
+                read += 1;
+                if cur_cost != sc.best[c] {
+                    continue;
+                }
+                if Some(c) == dest {
+                    break;
+                }
+                if sc.flags[c] & STOP != 0 && c != start {
+                    continue;
+                }
+                for s in c * 6..c * 6 + 6 {
+                    let n = nbr[s];
+                    if n < 0 {
+                        continue;
+                    }
+                    let n = n as usize;
+                    let mut step = step_cost[n];
+                    if step < 0 {
+                        continue;
+                    }
+                    let drains = self.tables.drains[n] && !air;
+                    if drains {
+                        step = budget - cur_cost;
+                        if step < 1 {
+                            continue;
+                        }
+                    }
+                    let new_cost = cur_cost + step;
+                    if new_cost > budget || new_cost >= sc.best[n] {
+                        continue;
+                    }
+                    let occ = sc.occupant[n];
+                    let mut load = false;
+                    if occ >= 0 {
+                        if self.units[occ as usize].player != unit.player {
+                            continue;
+                        }
+                        if self.can_load(occ as usize, u, false) {
+                            load = true;
+                        }
+                    }
+                    let entering_zoc = if sc.zone[n] != 0 {
+                        sc.zone[n] == 2
+                    } else {
+                        let hit = nbr[n * 6..n * 6 + 6].iter().any(|&m| m >= 0 && sc.occupant[m as usize] >= 0 && self.units[sc.occupant[m as usize] as usize].player != unit.player);
+                        sc.zone[n] = if hit { 2 } else { 1 };
+                        hit
+                    };
+                    let (nc, nr) = (n as i32 % self.w, n as i32 / self.w);
+                    let mut can_stop = occ < 0 || load;
+                    if !load && self.building_at[n] >= 0 && !self.can_stop_at_building(u, nc, nr) {
+                        can_stop = false;
+                    }
+                    let enters = can_stop && !load && self.building_at[n] >= 0 && self.enters_building(u, nc, nr);
+                    if sc.best[n] == i32::MAX {
+                        order.push(n);
+                    }
+                    sc.best[n] = new_cost;
+                    sc.flags[n] = (if entering_zoc || drains { STOP } else { 0 })
+                        | (if can_stop { CAN_STOP } else { 0 })
+                        | (if load { LOAD } else { 0 })
+                        | (if enters { ENTER } else { 0 });
+                    if !load {
+                        sc.buckets[new_cost as usize].push(n as u32);
+                    }
+                }
+            }
+            for b in sc.buckets.iter_mut() {
+                b.clear();
+            }
+            let cost = order.iter().map(|&c| sc.best[c]).collect();
+            let flags = order.iter().map(|&c| sc.flags[c]).collect();
+            for &c in &order {
+                sc.best[c] = i32::MAX;
+                sc.flags[c] = 0;
+                sc.zone[c] = 0;
+            }
+            for i in 0..sc.filled.len() {
+                let at = sc.filled[i];
+                sc.occupant[at] = -1;
+            }
+            sc.filled.clear();
+            MoveSearch { order, cost, flags }
+        })
     }
 
     /// `stoppingCells`: reached cells where the move may end without boarding
@@ -482,7 +517,7 @@ impl<'d> Game<'d> {
     /// AI_MODEL's `fresh(unit)`.
     pub fn stopping_cells(&self, u: usize, fresh: bool) -> Vec<usize> {
         let s = if fresh { self.search_moves_as(u, self.typ(u).mv, false, None) } else { self.search_moves(u, None) };
-        s.order.into_iter().filter(|&c| s.flags[c] & CAN_STOP != 0 && s.flags[c] & (LOAD | ENTER) == 0).collect()
+        (0..s.order.len()).filter(|&i| s.flags[i] & CAN_STOP != 0 && s.flags[i] & (LOAD | ENTER) == 0).map(|i| s.order[i]).collect()
     }
 
     /// `attackCells`: cells from which the unit could fire on one of `among`.
@@ -566,10 +601,9 @@ impl<'d> Game<'d> {
         }
         let dest = self.cell(col, row);
         let s = self.search_moves(u, Some(dest));
-        if s.cost[dest] == i32::MAX || s.flags[dest] & CAN_STOP == 0 {
+        let Some((cost, flags)) = s.find(dest).filter(|&(_, f)| f & CAN_STOP != 0) else {
             return Err("Illegal move".into());
-        }
-        let (cost, flags) = (s.cost[dest], s.flags[dest]);
+        };
         let load = flags & LOAD != 0;
         if !load && !self.can_stop_at_building(u, col, row) {
             return Err("Cannot stop on an unowned factory".into());

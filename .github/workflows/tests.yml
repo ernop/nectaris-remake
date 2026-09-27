@@ -17,4 +17,4 @@ jobs:
         run: node test/tournament-runner-tests.cjs
       - name: Rust simulator replays the behaviour lock and its bots decide alike
         working-directory: sim
-        run: cargo run --release --locked -- replay && cargo run --release --locked -- decide
+        run: cargo run --release --locked -- replay && cargo run --release --locked -- decide --verify-caches

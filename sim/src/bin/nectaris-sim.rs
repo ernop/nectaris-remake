@@ -2,9 +2,11 @@
 //!   Checks the math port against V8's fingerprint, then replays every corpus
 //!   game from its board and seed and compares the state fingerprint after
 //!   every command with the recorded one.
-//! nectaris-sim decide [CORPUS]
+//! nectaris-sim decide [CORPUS] [--verify-caches]
 //!   Plays every corpus game again with its bots from its board and seed and
 //!   compares every command they choose with the recorded one.
+//!   --verify-caches recomputes every cached search result and panics on a
+//!   difference.
 //! nectaris-sim bench [CORPUS]
 //!   Times the rules alone: replays every game without per-command
 //!   fingerprints, checking only each game's final state.
@@ -134,10 +136,14 @@ fn bench(path: &str) -> bool {
 }
 
 fn main() {
-    let args: Vec<String> = std::env::args().collect();
+    let all: Vec<String> = std::env::args().collect();
+    if all.iter().any(|a| a == "--verify-caches") {
+        nectaris_sim::model::VERIFY_CACHES.store(true, std::sync::atomic::Ordering::Relaxed);
+    }
+    let args: Vec<&String> = all.iter().filter(|a| !a.starts_with("--")).collect();
     let default = repo().join("test/fixtures/sim-corpus.json.gz");
-    let path = args.get(2).map(String::as_str).unwrap_or(default.to_str().unwrap());
-    let ok = match args.get(1).map(String::as_str) {
+    let path = args.get(2).map(|s| s.as_str()).unwrap_or(default.to_str().unwrap());
+    let ok = match args.get(1).map(|s| s.as_str()) {
         Some("replay") => replay(path),
         Some("decide") => decide(path),
         Some("bench") => bench(path),

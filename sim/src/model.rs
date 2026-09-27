@@ -57,10 +57,66 @@ pub struct Plan {
     worth: f64,
 }
 
+/// A word-at-a-time hasher for cache keys; the default SipHash costs more
+/// than these lookups save. Keys are compared in full on every hit.
+#[derive(Default, Clone, Copy)]
+pub struct Fnv(u64);
+impl Fnv {
+    #[inline]
+    fn add(&mut self, x: u64) {
+        self.0 = (self.0.rotate_left(5) ^ x).wrapping_mul(0x517c_c1b7_2722_0a95);
+    }
+}
+impl std::hash::Hasher for Fnv {
+    fn finish(&self) -> u64 {
+        self.0
+    }
+    fn write(&mut self, bytes: &[u8]) {
+        let mut chunks = bytes.chunks_exact(8);
+        for c in &mut chunks {
+            self.add(u64::from_le_bytes(c.try_into().unwrap()));
+        }
+        let rest = chunks.remainder();
+        if !rest.is_empty() {
+            let mut last = [0u8; 8];
+            last[..rest.len()].copy_from_slice(rest);
+            self.add(u64::from_le_bytes(last) ^ ((rest.len() as u64) << 59));
+        }
+    }
+    fn write_u8(&mut self, x: u8) {
+        self.add(u64::from(x));
+    }
+    fn write_u32(&mut self, x: u32) {
+        self.add(u64::from(x));
+    }
+    fn write_i32(&mut self, x: i32) {
+        self.add(x as u32 as u64);
+    }
+    fn write_u64(&mut self, x: u64) {
+        self.add(x);
+    }
+    fn write_usize(&mut self, x: usize) {
+        self.add(x as u64);
+    }
+}
+pub type FastMap<K, V> = HashMap<K, V, std::hash::BuildHasherDefault<Fnv>>;
+
+/// Recompute every cached stopping-cell list and panic on a difference, as
+/// `AI_MODEL.verifyCachedStops` does in the JavaScript tests.
+pub static VERIFY_CACHES: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
 #[derive(Default)]
 pub struct Ctx {
-    routes: HashMap<(usize, Vec<(i32, i32)>), Rc<Vec<f64>>>,
-    deliveries: HashMap<(usize, usize, Vec<(i32, i32)>), Rc<Vec<f64>>>,
+    /// Walking-distance fields by unit type, then goal list.
+    routes: FastMap<usize, FastMap<Vec<(i32, i32)>, Rc<Vec<f64>>>>,
+    route_count: usize,
+    deliveries: FastMap<(usize, usize, Vec<(i32, i32)>), Rc<Vec<f64>>>,
+    stops: FastMap<Vec<i32>, Rc<Vec<usize>>>,
+    stop_key: Vec<i32>,
+    /// Hexes one enemy's weapon band covers from its stopping cells, keyed by
+    /// the stop key plus the band's domain.
+    covered: FastMap<Vec<i32>, Rc<Vec<usize>>>,
+    offsets: FastMap<(i32, i32, i32), Rc<Vec<(i32, i32)>>>,
     /// `evaluationGoals`: each field unit's objectives at the decision's root.
     pub goals: HashMap<usize, Rc<Vec<Target>>>,
 }
@@ -106,6 +162,47 @@ pub fn sort_desc<T>(list: &mut [T], score: impl Fn(&T) -> f64) {
     list.sort_by(|a, b| score(b).partial_cmp(&score(a)).unwrap_or(Ordering::Equal));
 }
 
+/// The first `limit` actions of the stable highest-score-first sort, without
+/// sorting the rest: (score descending, position ascending) is a total order
+/// whose first entries are exactly the stable sort's.
+pub fn best_actions(mut list: Vec<Action>, limit: usize) -> Vec<Action> {
+    let mut order: Vec<(f64, u32)> = list.iter().enumerate().map(|(i, a)| {
+        assert!(!a.score.is_nan(), "an action scored NaN");
+        (a.score, i as u32)
+    }).collect();
+    let by = |a: &(f64, u32), b: &(f64, u32)| b.0.partial_cmp(&a.0).unwrap().then(a.1.cmp(&b.1));
+    if order.len() > limit {
+        order.select_nth_unstable_by(limit, by);
+        order.truncate(limit);
+    }
+    order.sort_unstable_by(by);
+    let mut slots: Vec<Option<Action>> = list.drain(..).map(Some).collect();
+    order.into_iter().map(|(_, i)| slots[i as usize].take().unwrap()).collect()
+}
+
+/// `unitActions`' deduplication in full: the first position of each key with
+/// its best-scoring action, then the stable sort.
+fn dedup_sort(actions: Vec<Action>) -> Vec<Action> {
+    let mut unique: Vec<Action> = Vec::with_capacity(actions.len());
+    let mut at: FastMap<Key, usize> = FastMap::default();
+    for a in actions {
+        match at.entry(a.key()) {
+            std::collections::hash_map::Entry::Vacant(v) => {
+                v.insert(unique.len());
+                unique.push(a);
+            }
+            std::collections::hash_map::Entry::Occupied(o) => {
+                let i = *o.get();
+                if unique[i].score < a.score {
+                    unique[i] = a;
+                }
+            }
+        }
+    }
+    sort_desc(&mut unique, |a| a.score);
+    unique
+}
+
 fn is_air_type(t: &UnitType) -> bool {
     t.move_type == MoveType::Air
 }
@@ -144,8 +241,7 @@ fn neighbor_cells<'a>(g: &'a Game<'_>, cell: usize) -> impl Iterator<Item = usiz
 
 /// Reverse multi-source walking distances to the goals over chassis terrain.
 fn distances(g: &Game, t_index: usize, goals: &[(i32, i32)], ctx: &mut Ctx) -> Rc<Vec<f64>> {
-    let key = (t_index, goals.to_vec());
-    if let Some(f) = ctx.routes.get(&key) {
+    if let Some(f) = ctx.routes.get(&t_index).and_then(|m| m.get(goals)) {
         return f.clone();
     }
     let t = &g.d.types[t_index];
@@ -177,11 +273,13 @@ fn distances(g: &Game, t_index: usize, goals: &[(i32, i32)], ctx: &mut Ctx) -> R
             }
         }
     }
-    if ctx.routes.len() > 4096 {
+    if ctx.route_count > 4096 {
         ctx.routes.clear();
+        ctx.route_count = 0;
     }
     let field = Rc::new(result);
-    ctx.routes.insert(key, field.clone());
+    ctx.routes.entry(t_index).or_default().insert(goals.to_vec(), field.clone());
+    ctx.route_count += 1;
     field
 }
 
@@ -349,20 +447,151 @@ pub struct Info {
     emergencies: Vec<usize>,
 }
 
-fn offsets(min: i32, max: i32, parity: i32) -> Vec<(i32, i32)> {
+fn offsets(ctx: &mut Ctx, min: i32, max: i32, parity: i32) -> Rc<Vec<(i32, i32)>> {
+    ctx.offsets
+        .entry((min, max, parity))
+        .or_insert_with(|| {
+            let mut out = Vec::new();
+            for r in -max - 1..=max + 1 {
+                for c in -max..=max {
+                    let d = hex::distance(parity, 0, parity + c, r);
+                    if d >= min && d <= max {
+                        out.push((c, r));
+                    }
+                }
+            }
+            Rc::new(out)
+        })
+        .clone()
+}
+
+/// Most hexes the chassis crosses on a full budget (`reachOf`).
+fn reach_of(g: &Game, t_index: usize) -> i32 {
+    let min = g.tables.step[t_index].iter().copied().filter(|&c| c >= 0).fold(1, i32::min);
+    if min > 0 {
+        g.d.types[t_index].mv / min
+    } else {
+        i32::MAX / 4
+    }
+}
+
+/// `stopSignature`: everything `stoppingCells(fresh(enemy))` reads. Terrain
+/// never changes within one board.
+fn stop_key(g: &Game, e: usize, sig: &mut Vec<i32>) {
+    let x = &g.units[e];
+    let reach = reach_of(g, x.t);
+    sig.clear();
+    sig.extend([g.cell(x.col, x.row) as i32, x.t as i32, x.player, x.cargo.len() as i32]);
+    for &u in &g.field {
+        let o = &g.units[u];
+        if o.carried_by != 0 || o.in_factory || hex::distance(o.col, o.row, x.col, x.row) > reach + 1 {
+            continue;
+        }
+        sig.push(g.cell(o.col, o.row) as i32);
+        sig.push(o.player);
+        if o.player == x.player {
+            sig.extend([o.t as i32, i32::from(o.transfer_used), o.cargo.len() as i32]);
+        }
+    }
+    sig.push(-1);
+    for b in &g.buildings {
+        if hex::distance(b.col, b.row, x.col, x.row) <= reach {
+            sig.push(g.cell(b.col, b.row) as i32);
+            sig.push(b.owner);
+        }
+    }
+}
+
+/// The hexes the enemy's weapon band against `air` targets covers from
+/// every cell it could stop on. Each enemy adds its power once to each.
+fn covered_cells(g: &Game, e: usize, air: bool, (min, max): (i32, i32), ctx: &mut Ctx) -> Rc<Vec<usize>> {
+    let move_or_fire = g.typ(e).move_or_fire;
+    let mut key = std::mem::take(&mut ctx.stop_key);
+    if move_or_fire {
+        key.clear();
+        key.extend([g.cell(g.units[e].col, g.units[e].row) as i32, g.units[e].t as i32, -2]);
+    } else {
+        stop_key(g, e, &mut key);
+    }
+    key.push(i32::from(air));
+    if let Some(cells) = ctx.covered.get(key.as_slice()).cloned() {
+        ctx.stop_key = key;
+        if VERIFY_CACHES.load(std::sync::atomic::Ordering::Relaxed) {
+            let positions = if move_or_fire { vec![g.cell(g.units[e].col, g.units[e].row)] } else { g.stopping_cells(e, true) };
+            assert_eq!(*cells, cover(g, &positions, (min, max), ctx), "Cached threatened hexes differ for unit {} ({})", g.units[e].id, g.typ(e).id);
+        }
+        return cells;
+    }
+    let positions = if move_or_fire { Rc::new(vec![g.cell(g.units[e].col, g.units[e].row)]) } else { enemy_stops(g, e, ctx) };
+    let cells = Rc::new(cover(g, &positions, (min, max), ctx));
+    if ctx.covered.len() >= 50000 {
+        ctx.covered.clear();
+    }
+    ctx.covered.insert(key.clone(), cells.clone());
+    ctx.stop_key = key;
+    cells
+}
+
+/// The hexes within the band of any of the positions, each once, in the
+/// order the positions first reach them.
+fn cover(g: &Game, positions: &[usize], (min, max): (i32, i32), ctx: &mut Ctx) -> Vec<usize> {
+    let mut marks = vec![false; g.cells.len()];
     let mut out = Vec::new();
-    for r in -max - 1..=max + 1 {
-        for c in -max..=max {
-            let d = hex::distance(parity, 0, parity + c, r);
-            if d >= min && d <= max {
-                out.push((c, r));
+    if min == 1 && max == 1 {
+        for &p in positions.iter() {
+            for at in neighbor_cells(g, p) {
+                if !marks[at] {
+                    marks[at] = true;
+                    out.push(at);
+                }
+            }
+        }
+    } else {
+        let steps = [offsets(ctx, min, max, 0), offsets(ctx, min, max, 1)];
+        for &p in positions.iter() {
+            let (col, row) = (p as i32 % g.w, p as i32 / g.w);
+            for &(dc, dr) in steps[(col & 1) as usize].iter() {
+                let (c, r) = (col + dc, row + dr);
+                if g.in_bounds(c, r) {
+                    let at = g.cell(c, r);
+                    if !marks[at] {
+                        marks[at] = true;
+                        out.push(at);
+                    }
+                }
             }
         }
     }
     out
 }
 
-pub fn analysis(g: &Game) -> Info {
+/// `enemyStops`: the enemy's stopping cells, shared by every position with
+/// the same signature.
+fn enemy_stops(g: &Game, e: usize, ctx: &mut Ctx) -> Rc<Vec<usize>> {
+    let mut key = std::mem::take(&mut ctx.stop_key);
+    stop_key(g, e, &mut key);
+    let found = ctx.stops.get(key.as_slice()).cloned();
+    let cells = match found {
+        Some(cells) => {
+            if VERIFY_CACHES.load(std::sync::atomic::Ordering::Relaxed) {
+                assert_eq!(*cells, g.stopping_cells(e, true), "Cached stopping cells differ for unit {} ({})", g.units[e].id, g.typ(e).id);
+            }
+            cells
+        }
+        None => {
+            let cells = Rc::new(g.stopping_cells(e, true));
+            if ctx.stops.len() >= 50000 {
+                ctx.stops.clear();
+            }
+            ctx.stops.insert(key.clone(), cells.clone());
+            cells
+        }
+    };
+    ctx.stop_key = key;
+    cells
+}
+
+pub fn analysis(g: &Game, ctx: &mut Ctx) -> Info {
     let size = g.cells.len();
     let mut cells = vec![-1i32; size];
     for &u in &g.field {
@@ -373,43 +602,17 @@ pub fn analysis(g: &Game) -> Info {
     }
     let player = 1 - g.current;
     let mut threat = [vec![0.0f64; size], vec![0.0f64; size]];
-    let mut marks = vec![0u32; size];
-    let mut mark = 0u32;
     for e in g.player_units(player) {
         let t = g.typ(e);
         if t.atk_g == 0 && t.atk_a == 0 {
             continue;
         }
-        let positions = if t.move_or_fire { vec![g.cell(g.units[e].col, g.units[e].row)] } else { g.stopping_cells(e, true) };
         for air in [false, true] {
-            let Some((min, max)) = range_band(t, air) else { continue };
-            mark += 1;
-            let array = &mut threat[usize::from(air)];
+            let Some(band) = range_band(t, air) else { continue };
             let power = f64::from(atk_stat(t, air).min(100)) * f64::from(g.units[e].strength) / 8.0 * f64::from(g.d.combat.exp_damage[g.units[e].exp as usize]) / 100.0;
-            if min == 1 && max == 1 {
-                for &p in &positions {
-                    for at in neighbor_cells(g, p) {
-                        if marks[at] != mark {
-                            marks[at] = mark;
-                            array[at] += power;
-                        }
-                    }
-                }
-                continue;
-            }
-            let steps = [offsets(min, max, 0), offsets(min, max, 1)];
-            for &p in &positions {
-                let (col, row) = (p as i32 % g.w, p as i32 / g.w);
-                for &(dc, dr) in &steps[(col & 1) as usize] {
-                    let (c, r) = (col + dc, row + dr);
-                    if g.in_bounds(c, r) {
-                        let at = g.cell(c, r);
-                        if marks[at] != mark {
-                            marks[at] = mark;
-                            array[at] += power;
-                        }
-                    }
-                }
+            let array = &mut threat[usize::from(air)];
+            for &at in covered_cells(g, e, air, band, ctx).iter() {
+                array[at] += power;
             }
         }
     }
@@ -449,7 +652,7 @@ pub fn base_danger(g: &Game, player: i32) -> f64 {
                 continue;
             }
             let s = g.search_moves_as(u, t.mv, false, Some(at));
-            if s.cost[at] != i32::MAX && s.flags[at] & CAN_STOP != 0 {
+            if s.find(at).is_some_and(|(_, f)| f & CAN_STOP != 0) {
                 result = 1800.0;
             }
         }
@@ -679,18 +882,36 @@ impl Rec {
 }
 /// `movementRange`'s records in key order: the start, then first-reached order.
 pub fn records(g: &Game, s: &MoveSearch) -> Vec<Rec> {
-    s.order.iter().map(|&c| Rec { col: c as i32 % g.w, row: c as i32 / g.w, cost: s.cost[c], flags: s.flags[c] }).collect()
+    s.order.iter().enumerate().map(|(i, &c)| Rec { col: c as i32 % g.w, row: c as i32 / g.w, cost: s.cost[i], flags: s.flags[i] }).collect()
 }
 
-fn score_position(g: &Game, u: usize, rec: &Rec, targets: &[Target], info: &Info) -> f64 {
+/// The mover's own terms at its origin, identical in every `scorePosition`
+/// call for one unit and position.
+struct Origin {
+    potential: f64,
+    danger: f64,
+    support: f64,
+    def: i32,
+}
+fn origin_terms(g: &Game, u: usize, targets: &[Target], info: &Info) -> Origin {
+    let x = &g.units[u];
+    Origin {
+        potential: potential(g, g.typ(u).mv, targets, x.col, x.row),
+        danger: danger(g, u, x.col, x.row, info),
+        support: support_score(g, u, x.col, x.row, info),
+        def: g.terrain_at(x.col, x.row).def,
+    }
+}
+
+fn score_position(g: &Game, u: usize, rec: &Rec, targets: &[Target], info: &Info, o: &Origin) -> f64 {
     let x = &g.units[u];
     let t = g.typ(u);
-    let mut score = potential(g, t.mv, targets, rec.col, rec.row) - potential(g, t.mv, targets, x.col, x.row);
-    score += (danger(g, u, x.col, x.row, info) - danger(g, u, rec.col, rec.row, info)) * 0.6;
+    let mut score = potential(g, t.mv, targets, rec.col, rec.row) - o.potential;
+    score += (o.danger - danger(g, u, rec.col, rec.row, info)) * 0.6;
     if !is_air_type(t) {
-        score += f64::from(g.terrain_at(rec.col, rec.row).def - g.terrain_at(x.col, x.row).def) * 0.1;
+        score += f64::from(g.terrain_at(rec.col, rec.row).def - o.def) * 0.1;
     }
-    score += support_score(g, u, rec.col, rec.row, info) - support_score(g, u, x.col, x.row, info);
+    score += support_score(g, u, rec.col, rec.row, info) - o.support;
     if rec.cost > 0 {
         score -= 0.35;
     }
@@ -798,25 +1019,27 @@ pub fn unit_actions(g: &mut Game, u: usize, ctx: &mut Ctx, info: &Info, limit: u
     }).collect();
     let fire_from = g.attack_cells(u, &foes);
     let (mv, move_or_fire) = (g.typ(u).mv, g.typ(u).move_or_fire);
+    let here = origin_terms(g, u, &targets, info);
+    let carried_here: Vec<f64> = cargo_plans.iter().map(|(_, plans)| delivery_value(g, plans, origin.0, origin.1, None)).collect();
     for rec in recs.iter().filter(|r| r.can_stop()) {
         let moved = (rec.col, rec.row) != origin;
         let base = Action::act(u, if moved { Some((rec.col, rec.row)) } else { None });
         if rec.load() {
             let carrier = g.unit_at(rec.col, rec.row).expect("a transport on a load record");
             let speed = g.typ(carrier).mv - mv;
-            let here = potential(g, mv, &targets, origin.0, origin.1);
-            add(&mut actions, base, f64::from(speed.max(0)) * 1.2 + if here < 1.0 { 12.0 } else { 0.0 } - 5.0);
+            add(&mut actions, base, f64::from(speed.max(0)) * 1.2 + if here.potential < 1.0 { 12.0 } else { 0.0 } - 5.0);
             continue;
         }
-        let mut score = score_position(g, u, rec, &targets, info);
-        for (_, plans) in &cargo_plans {
-            score += (delivery_value(g, plans, rec.col, rec.row, None) - delivery_value(g, plans, origin.0, origin.1, None)) * 1.4;
+        let mut score = score_position(g, u, rec, &targets, info, &here);
+        for (i, (_, plans)) in cargo_plans.iter().enumerate() {
+            score += (delivery_value(g, plans, rec.col, rec.row, None) - carried_here[i]) * 1.4;
+        }
+        let can_fire = !rec.enter() && fire_from[g.cell(rec.col, rec.row)] == 1;
+        if rec.enter() || (!can_fire && cargo_plans.is_empty()) {
+            add(&mut actions, base, score);
+            continue;
         }
         add(&mut actions, base.clone(), score);
-        if rec.enter() {
-            continue;
-        }
-        let can_fire = fire_from[g.cell(rec.col, rec.row)] == 1;
         let spent = g.units[u].attack_spent;
         g.units[u].col = rec.col;
         g.units[u].row = rec.row;
@@ -854,6 +1077,9 @@ pub fn unit_actions(g: &mut Game, u: usize, ctx: &mut Ctx, info: &Info, limit: u
         g.units[u].row = origin.1;
         g.units[u].attack_spent = spent;
     }
+    // Every action so far has its own destination, target or unload and none
+    // unloads first, so only the unload-first section below can repeat a key.
+    let section = actions.len();
     if !g.units[u].cargo.is_empty() && !g.units[u].transfer_used {
         let mut prefixes: Vec<Action> = Vec::new();
         for (cargo, plans) in &cargo_plans {
@@ -888,31 +1114,32 @@ pub fn unit_actions(g: &mut Game, u: usize, ctx: &mut Ctx, info: &Info, limit: u
             }
         }
     }
-    let mut unique: Vec<Action> = Vec::new();
-    let mut at: HashMap<Key, usize> = HashMap::new();
-    for a in actions {
-        match at.get(&a.key()) {
-            None => {
-                at.insert(a.key(), unique.len());
-                unique.push(a);
-            }
-            Some(&i) => {
-                if unique[i].score < a.score {
-                    unique[i] = a;
+    let full = VERIFY_CACHES.load(std::sync::atomic::Ordering::Relaxed).then(|| dedup_sort(actions.clone()));
+    let tail = actions.split_off(section);
+    for a in tail {
+        match actions[section..].iter().position(|b| b.key() == a.key()) {
+            None => actions.push(a),
+            Some(i) => {
+                if actions[section + i].score < a.score {
+                    actions[section + i] = a;
                 }
             }
         }
     }
-    sort_desc(&mut unique, |a| a.score);
-    unique.truncate(limit);
-    unique
+    let best = best_actions(actions, limit);
+    if let Some(mut full) = full {
+        full.truncate(limit);
+        let view = |l: &[Action]| l.iter().map(|a| (a.key(), a.score.to_bits())).collect::<Vec<_>>();
+        assert_eq!(view(&best), view(&full), "unit actions differ from the full deduplication");
+    }
+    best
 }
 
 pub fn candidates(g: &mut Game, ctx: &mut Ctx, limit: usize, per_unit: usize, unit_limit: usize) -> Vec<Action> {
     if g.winner >= 0 {
         return Vec::new();
     }
-    let info = analysis(g);
+    let info = analysis(g, ctx);
     let current = g.current;
     let mut units: Vec<usize> = g
         .player_units(current)
@@ -958,11 +1185,10 @@ pub fn candidates(g: &mut Game, ctx: &mut Ctx, limit: usize, per_unit: usize, un
             }
         }
     }
-    sort_desc(&mut actions, |a| a.score);
     if actions.is_empty() {
         return vec![Action::end(0.0)];
     }
-    actions.truncate(limit);
+    let mut actions = best_actions(actions, limit);
     actions.push(Action::end(-20.0));
     actions
 }
@@ -971,14 +1197,15 @@ fn retreat(g: &Game, u: usize, ctx: &mut Ctx) -> Option<(i32, i32)> {
     if !g.can_move_now(u) || !g.units[u].attacked {
         return None;
     }
-    let info = analysis(g);
+    let info = analysis(g, ctx);
     let goals = objectives(g, u, ctx);
+    let here = origin_terms(g, u, &goals, &info);
     let (mut best, mut score) = (None, 0.0);
     for rec in records(g, &g.search_moves(u, None)) {
         if !rec.can_stop() || rec.load() || rec.cost == 0 {
             continue;
         }
-        let s = score_position(g, u, &rec, &goals, &info);
+        let s = score_position(g, u, &rec, &goals, &info, &here);
         if s > score {
             score = s;
             best = Some((rec.col, rec.row));

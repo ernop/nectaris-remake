@@ -155,10 +155,87 @@ pub struct Data {
     pub types: Vec<UnitType>,
     pub type_index: HashMap<String, usize>,
     pub boards: Vec<Board>,
+    /// Per-board tables, parallel to `boards`.
+    pub tables: Vec<Tables>,
     pub combat: CombatTables,
     /// Damage percentages, one entry per percent of probability.
     pub buckets: Vec<i32>,
     pub math: MathCheck,
+}
+
+/// What never changes during a game on one board. Cells are numbered
+/// row * width + col.
+pub struct Tables {
+    pub w: i32,
+    pub h: i32,
+    /// Terrain index of every cell.
+    pub cells: Vec<usize>,
+    /// The six neighbours of each cell in `hex::neighbors` order, -1 off the board.
+    pub neighbors: Vec<i32>,
+    /// Index into the game's buildings, -1 where there is none: explicit
+    /// buildings in definition order, then the other F/B cells row by row.
+    pub building_at: Vec<i32>,
+    /// Positions of the buildings in that order.
+    pub building_cells: Vec<usize>,
+    /// Per unit type: the cost to enter each cell, -1 where it cannot.
+    pub step: Vec<Vec<i32>>,
+    /// Cells whose terrain takes all remaining movement (valleys).
+    pub drains: Vec<bool>,
+}
+
+impl Tables {
+    fn new(b: &Board, terrain: &[Terrain], by_char: &HashMap<char, usize>, types: &[UnitType]) -> Tables {
+        let h = b.grid.len() as i32;
+        let w = b.grid[0].chars().count() as i32;
+        let mut cells = Vec::with_capacity((w * h) as usize);
+        for (r, line) in b.grid.iter().enumerate() {
+            assert_eq!(line.chars().count() as i32, w, "{}: row {r} has another width", b.name);
+            for ch in line.chars() {
+                cells.push(*by_char.get(&ch).unwrap_or_else(|| panic!("{}: bad terrain {ch}", b.name)));
+            }
+        }
+        let mut neighbors = Vec::with_capacity(cells.len() * 6);
+        for r in 0..h {
+            for c in 0..w {
+                for (nc, nr) in crate::hex::neighbors(c, r) {
+                    neighbors.push(if nc >= 0 && nc < w && nr >= 0 && nr < h { nr * w + nc } else { -1 });
+                }
+            }
+        }
+        let mut building_at = vec![-1; cells.len()];
+        let mut building_cells = Vec::new();
+        for def in &b.buildings {
+            assert!(def.col >= 0 && def.col < w && def.row >= 0 && def.row < h, "{}: building at {},{} is off the board", b.name, def.col, def.row);
+            let at = (def.row * w + def.col) as usize;
+            assert!(terrain[cells[at]].building, "{}: building at {},{} is not on F/B terrain", b.name, def.col, def.row);
+            assert!(building_at[at] < 0, "{}: two buildings at {},{}", b.name, def.col, def.row);
+            assert!(terrain[cells[at]].id != "base" || def.stored.is_empty(), "{}: a base stores units", b.name);
+            building_at[at] = building_cells.len() as i32;
+            building_cells.push(at);
+        }
+        for at in 0..cells.len() {
+            if terrain[cells[at]].building && building_at[at] < 0 {
+                building_at[at] = building_cells.len() as i32;
+                building_cells.push(at);
+            }
+        }
+        let step = types.iter().map(|t| cells.iter().map(|&c| terrain_cost_of(terrain, c, t).unwrap_or(-1)).collect()).collect();
+        let drains = cells.iter().map(|&c| terrain[c].costs_all_movement).collect();
+        Tables { w, h, cells, neighbors, building_at, building_cells, step, drains }
+    }
+}
+
+fn terrain_cost_of(terrain: &[Terrain], index: usize, t: &UnitType) -> Option<i32> {
+    if t.cannot_enter.contains(&index) {
+        return None;
+    }
+    let c = &terrain[index].cost;
+    match t.move_type {
+        MoveType::Air => Some(1),
+        MoveType::Foot => c.foot,
+        MoveType::Wheels => c.wheels,
+        MoveType::Treads => c.treads,
+    }
 }
 
 fn move_type(name: &str) -> MoveType {
@@ -184,7 +261,7 @@ impl Data {
         let ids = |list: &Option<Vec<String>>| -> Option<Vec<usize>> {
             list.as_ref().map(|l| l.iter().map(|id| *type_index.get(id).unwrap_or_else(|| panic!("Unknown unit type {id}"))).collect())
         };
-        let types = raw
+        let types: Vec<UnitType> = raw
             .units
             .iter()
             .map(|t| UnitType {
@@ -218,20 +295,12 @@ impl Data {
                 buckets.push(w[0]);
             }
         }
-        Data { terrain: raw.terrain, terrain_by_char, types, type_index, boards: raw.boards, combat: raw.combat, buckets, math: raw.math }
+        let tables = raw.boards.iter().map(|b| Tables::new(b, &raw.terrain, &terrain_by_char, &types)).collect();
+        Data { terrain: raw.terrain, terrain_by_char, types, type_index, boards: raw.boards, tables, combat: raw.combat, buckets, math: raw.math }
     }
 
     /// `terrainCost`: the cost for this chassis to enter the terrain, or None.
     pub fn terrain_cost(&self, terrain: usize, t: &UnitType) -> Option<i32> {
-        if t.cannot_enter.contains(&terrain) {
-            return None;
-        }
-        let c = &self.terrain[terrain].cost;
-        match t.move_type {
-            MoveType::Air => Some(1),
-            MoveType::Foot => c.foot,
-            MoveType::Wheels => c.wheels,
-            MoveType::Treads => c.treads,
-        }
+        terrain_cost_of(&self.terrain, terrain, t)
     }
 }
