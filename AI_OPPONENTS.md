@@ -57,6 +57,23 @@ the evaluation; being legal and supported does not prove optimal valuation.
 An entirely new action/rule would still require engine and planner support.
 Classic retains its historical stock-specific decisions for fidelity.
 
+**Factory deployment (checked 2026-09-26 after the user asked).** Every reserve
+is a separate candidate for every legal exit and every adjacent compatible
+carrier, so the search opponents choose which unit leaves, where and in what
+order. With a single exit they deployed a Seeker against an enemy Eagle and a
+Grizzly against tanks, whichever order the reserves were stored in; Classic
+keeps its fixed original-style scan. Loading a mine or Atlas straight into an
+adjacent Mule or Pelican is an ordinary candidate. Units with no movement never
+leave on, or are dropped onto, their own factory's last open exit, and each
+exit such a unit holds costs that factory evaluation value (the same cost
+counts in the planner's favour at an enemy factory). Before this, Sequence,
+Simulation and Apex usually moved the waiting carrier away and put the mine on
+the only exit, stranding that factory for the rest of the match. Limits: a
+reserve with a legal exit is always deployed before the turn ends (there is no
+"keep stored" action), and a mine's placement value comes only from defending
+a threatened base or escorting infantry, not from blocking enemy routes.
+`test/ai-search-tests.js` checks the single-exit case for all four search opponents.
+
 `COMBAT.distribution` enumerates the exact weighted joint casualty distribution
 under the current remake's combat model, sharing its damage implementation.
 It does not alter combat. Planning clones mutable state and cargo identities,
@@ -121,6 +138,10 @@ uses a reduced deterministic search budget (see `AI_OPENING.budget`); the openin
 process never runs a whole match. Public-position simulation seeds are independent
 of the real combat RNG. Exact equal role scores accept second. Each survey records
 its policy, budgets and first/second scores; earlier packages remain available.
+
+Protocol **2026-09-26.1** changes search move selection (factory exits and
+immobile units, above), so runs recorded under earlier versions stay viewable
+and exportable but cannot resume.
 
 Protocol **2026-09-25.2** records those analyses, requested/effective opening,
 switch points, questions, exact bonus, first player and fixture leg. Unavailable

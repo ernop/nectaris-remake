@@ -197,6 +197,12 @@
   67% { opacity: 1; transform: scale(1.3); color: #fffbe0; text-shadow: 0 0 4px #fff, 0 0 12px #ffe98a, 0 0 24px #ffb400; }
   100% { opacity: 1; transform: scale(1); color: #ffd23d; text-shadow: 0 0 2px #2a1800, 0 0 0 transparent, 0 0 0 transparent; }
 }
+/* Inventories (factory, base and cargo lists) use the same stars on 64-pixel icons. */
+.rank-icon-inventory { flex: 0 0 64px; width: 64px; height: 64px; }
+.rank-icon-inventory .unit-label-icon { width: 64px; height: 64px; flex: 0 0 64px; }
+.rank-icon-inventory .battle-rank { top: 4px; right: 5px; font-size: 10px; }
+.rank-icon-inventory .battle-rank-col-1 { padding-top: 5px; }
+.rank-icon-inventory .battle-rank-general { font-size: 28px; }
 @media (max-width: 700px) {
   .battle-rank-icon, .battle-combatant .battle-rank-icon .unit-label-icon { width: 64px; height: 64px; flex-basis: 64px; }
   .battle-rank { top: 4px; right: 5px; font-size: 10px; }

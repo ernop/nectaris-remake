@@ -713,6 +713,9 @@ Saved results include policies, role scores, both switch points, questions, bonu
 and first player. CSV and archives identify effective/requested openings. Prior
 normal runs from 2026-09-25.1 can resume with unchanged rules/move selection;
 prior offer runs remain reviewable but cannot mix the updated bidding policies.
+Protocol 2026-09-26.1 (search opponents no longer seal their own factory exits
+with immobile units; see AI_OPPONENTS.md) supersedes that resume allowance: runs
+from earlier versions remain reviewable but cannot resume.
 
 The same follow-up requires durable long runs, visible progress, intelligible
 controls, map/pair history, efficient replay and a fullscreen board for review.
@@ -767,6 +770,13 @@ remain. Clicking again while all reserves are blocked, spent or absent stays
 silent; inspect them through the hover card. Experience
 uses the map's traditional 3/2/3 star overlay (General at 8) on the icon, with
 an accessible label; there is no separate numeric experience row.
+Since 2026-09-26 (user request: stars were invisible when hovering a factory's
+stored units), every inventory list draws each unit on a 64-pixel icon with
+legible overlay stars: factory, base and cargo lists, including under a unit
+standing on a factory. The stars use the battle header's layout and the same
+code: they fill the left column up to 3, then the offset middle column up to
+2, then the right column up to 3, and the eighth turns them into one large
+General star, as in the original.
 The user reaffirmed on 2026-09-26 that a missing-star mouseover is a rendering
 bug to investigate within this design, not authorization to add separate badges
 or numeric experience labels. Preserve the existing compact roster.

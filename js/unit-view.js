@@ -23,6 +23,34 @@ var UNIT_VIEW = (function () {
   function html(unit) {
     return "<span class='unit-label'>" + iconHtml(unit) + "<span>" + esc(name(unit)) + "</span></span>";
   }
+  // The rank layout over a large icon, as in the original: stars fill the left
+  // column up to 3, then the offset middle column up to 2, then the right
+  // column up to 3; the eighth replaces them with one large General star.
+  // Stars above `before` are new and glow; each starts `stepMs` per rank later.
+  var MAX_EXP = 8;
+  function rankHtml(before, shown, stepMs) {
+    var html = "", rank = 0;
+    function star(value, className) {
+      var fresh = value > before;
+      return "<span class='" + className + (fresh ? " battle-rank-new" : "") + "'" +
+        (fresh ? " style='animation-delay:-" + (shown - value) * stepMs + "ms'" : "") + ">★</span>";
+    }
+    if (shown >= MAX_EXP) html = star(MAX_EXP, "battle-rank-general");
+    else [3, 2, 3].forEach(function (capacity, column) {
+      var stars = "";
+      for (var row = 0; row < capacity && rank < shown; row++) stars += star(++rank, "battle-rank-star");
+      if (stars) html += "<span class='battle-rank-col battle-rank-col-" + column + "'>" + stars + "</span>";
+    });
+    var label = rankLabel({exp: shown}) + (shown > before ? ", " + (shown - before) + " newly earned" : "");
+    return "<span class='battle-rank' role='img' aria-label='" + label + "' data-exp='" + shown + "'" +
+      (shown > before ? " data-exp-glow-from='" + before + "'" : "") + ">" + html + "</span>";
+  }
+  // A 64-pixel icon with the rank stars drawn over it, for inventories.
+  function rankIconHtml(unit) {
+    var exp = unit.exp || 0;
+    return "<span class='battle-rank-icon rank-icon-inventory'>" + iconHtml(Object.assign({}, unit, {exp: 0})) +
+      rankHtml(exp, exp, 0) + "</span>";
+  }
   function paint(container) {
     if (!container.querySelectorAll) return;
     var types = typeof module !== "undefined" ? require("./data-units.js").UNIT_TYPES : UNIT_TYPES;
@@ -41,6 +69,6 @@ var UNIT_VIEW = (function () {
     renderer().drawUnitIcon(canvas, unit.type ? unit : {type:unit,typeId:unit.id,player:0,strength:8,exp:0,cargo:[]}, {experience:true});
     return canvas;
   }
-  return {name:name,rankLabel:rankLabel,html:html,iconHtml:iconHtml,paint:paint,addIcon:addIcon};
+  return {name:name,rankLabel:rankLabel,html:html,iconHtml:iconHtml,rankHtml:rankHtml,rankIconHtml:rankIconHtml,paint:paint,addIcon:addIcon};
 })();
 if (typeof module !== "undefined") module.exports = UNIT_VIEW;

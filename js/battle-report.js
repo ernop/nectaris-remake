@@ -186,26 +186,10 @@ var BATTLE_REPORT = (function () {
   // Earned ranks are revealed one per STAR_MS; each then fades in, glows and
   // settles to the normal star colour over STAR_GLOW_MS.
   var STAR_MS = 350, STAR_GLOW_MS = 1800;
-  // The standard rank layout over the enlarged header icon: columns of 3, 2 and 3
-  // stars, replaced by the General star at rank 8. A new star's delay is its age
-  // on the reward clock, so rebuilding the screen for the next rank continues
-  // earlier stars mid-glow and the markup stays identical between ranks.
+  // A new star's delay is its age on the reward clock, so rebuilding the
+  // screen for the next rank continues earlier stars mid-glow.
   function rankHtml(before, shown) {
-    var html = "", rank = 0;
-    function star(value, className) {
-      var fresh = value > before;
-      return "<span class='" + className + (fresh ? " battle-rank-new" : "") + "'" +
-        (fresh ? " style='animation-delay:-" + (shown - value) * STAR_MS + "ms'" : "") + ">★</span>";
-    }
-    if (shown >= combat.MAX_EXP) html = star(combat.MAX_EXP, "battle-rank-general");
-    else [3, 2, 3].forEach(function (capacity, column) {
-      var stars = "";
-      for (var row = 0; row < capacity && rank < shown; row++) stars += star(++rank, "battle-rank-star");
-      if (stars) html += "<span class='battle-rank-col battle-rank-col-" + column + "'>" + stars + "</span>";
-    });
-    var label = unitView.rankLabel({exp: shown}) + (shown > before ? ", " + (shown - before) + " newly earned" : "");
-    return "<span class='battle-rank' role='img' aria-label='" + label + "' data-exp='" + shown + "'" +
-      (shown > before ? " data-exp-glow-from='" + before + "'" : "") + ">" + html + "</span>";
+    return unitView.rankHtml(before, shown, STAR_MS);
   }
 
   // Original-style opposing formations, recreated with the selected remake art.

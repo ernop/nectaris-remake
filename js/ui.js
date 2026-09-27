@@ -631,7 +631,8 @@ var UI = (function () {
   }
 
   function inventoryEntryHtml(unit) {
-    return unitView.html(unit) + (unit.strength < 8 ? "<small>" + unit.strength + "/8</small>" : "");
+    return "<span class='unit-label'>" + unitView.rankIconHtml(unit) + "<span>" + esc(unitView.name(unit)) + "</span></span>" +
+      (unit.strength < 8 ? "<small>" + unit.strength + "/8</small>" : "");
   }
 
   function inventoryHtml(units) {
