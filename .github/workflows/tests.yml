@@ -18,3 +18,9 @@ jobs:
       - name: Rust simulator replays the behaviour lock and its bots decide alike
         working-directory: sim
         run: cargo run --release --locked -- replay && cargo run --release --locked -- decide --verify-caches
+      - name: A Rust-played tournament passes the JavaScript import check
+        working-directory: sim
+        run: >-
+          cargo run --release --locked -- tournament --out="$RUNNER_TEMP/rust-run"
+          --opponents=classic,tactical,beam --boards=0,1 --rounds=2 --threads=2 &&
+          node ../tools/sim/import-rust.cjs "$RUNNER_TEMP/rust-run"

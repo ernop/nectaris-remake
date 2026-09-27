@@ -105,11 +105,20 @@ unchanged on all 674 games.
   per game). The 620-game wider check: 144 search games 549 s → 185 s, 476
   Classic v Tactical games 128 s → 89 s.
 
-**Phases 5–6:**
-5. **Self-play runner** on all cores, writing records that the tournament
-   replay viewer opens. JavaScript replays samples of Rust-played games with
-   equal fingerprints. Speed is measured against the JavaScript runner.
-6. **Training** runs on it (the phases below); JavaScript re-checks samples.
+**Phase 5, the self-play runner (done 2026-09-27):**
+- `nectaris-sim tournament` plays `run.cjs` tournaments on every thread. The
+  same settings give the same fixtures, seeds and seats.
+- `node tools/sim/import-rust.cjs DIR` replays every game in JavaScript. It
+  checks seeds, seats, legality, final positions and results, then writes the
+  standard archive the replay viewer opens. Usage: AI_OPPONENTS.md.
+- Two tournaments matched the JavaScript runner's archives game for game:
+  - 476 full Classic/Tactical games on all 119 boards;
+  - 144 three-round search games on 24 boards.
+- Speed, 16 workers each, on the 144 search games: `run.cjs` 216 s wall
+  (2,674 s CPU), Rust 15 s (216 s CPU), 14.5× faster.
+- CI plays a small Rust tournament and imports it on every push.
+
+**Phase 6:** **training** runs on it (the phases below).
 
 ## Speed work
 

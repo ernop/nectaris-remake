@@ -294,6 +294,30 @@ checks the engine/search source hash and refuses to mix changed algorithms
 into an existing experiment. Archives contain the full map and unit definitions.
 Do not edit an active archive or launch two CLI processes into the same output.
 
+### The Rust runner (2026-09-27)
+
+`sim/` plays the same tournaments with every bot's decisions unchanged, locked
+to JavaScript by `test/fixtures/sim-corpus.json.gz` (see agents.md). The same
+options give the same games, seeds and seats as `run.cjs`. Normal openings
+only, built-in boards, no resume:
+
+```sh
+cd sim && cargo run --release -- tournament --out=/tmp/rust-league \
+  --opponents=classic,tactical,beam,monte-carlo,apex --boards=0,1,2 --cycles=10 --threads=16
+node tools/sim/import-rust.cjs /tmp/rust-league
+```
+
+The runner writes one compact record per game to `rust-games/`. The importer
+replays every game with the JavaScript engine. It checks each fixture's seed
+and seats, every command's legality, and the final position and result. It
+then writes the `run.json` and `games/` archive `run.cjs` would write, so the
+replay viewer opens each game.
+
+On this machine (16 cores), 144 three-round Sequence/Simulation/Apex games on
+24 boards took 216 s with `run.cjs --workers=16` and 15 s with
+`--threads=16`. Both archives held identical games, as did 476 full
+Classic/Tactical games on all 119 boards (Rust: 7.6 s).
+
 ## Validation record
 
 The correctness suite covers immediate wins, independent RNG, snapshot
