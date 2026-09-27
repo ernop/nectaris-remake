@@ -314,7 +314,8 @@ var RENDER = (function () {
     if (legacyMap()) {
       var at = this.hexCenter(c, r), building = g.buildingAt(c, r);
       var neighbors = HEX.neighbors(c, r).map(function(n) { var t = g.inBounds(n.col,n.row) && g.terrainAt(n.col,n.row); return t ? t.id : null; });
-      LEGACY_TILES.draw(ctx,at.x,at.y,this.zoom,terr.id,neighbors,(c*3+r*7)%8,building ? building.owner : -1,this._activeTerrainRaster);
+      LEGACY_TILES.draw(ctx,at.x,at.y,this.zoom,terr.id,neighbors,(c*3+r*7)%8,building ? building.owner : -1,
+        this._activeTerrainRaster,this.sideways && !this._boardSpace);
       return;
     }
     var pal = TERRAIN_COLORS[terr.id];
@@ -1349,7 +1350,7 @@ var RENDER = (function () {
     var layer=this._terrainCacheDisabled?null:this._terrainCanvas,view=this._terrainView;
     function signature(area) {
       var values=[g.width,g.height,renderer.zoom,renderer.hexSize,theme.id,ICON_SETS.current().id,
-        area.minCol,area.maxCol,area.minRow,area.maxRow];
+        renderer.sideways&&!renderer._boardSpace,area.minCol,area.maxCol,area.minRow,area.maxRow];
       // Editor and hypothetical map edits can bypass engine mutation methods.
       // Validate the cached area plus its connection ring on every reuse.
       for(var row=Math.max(0,area.minRow-1);row<=Math.min(g.height-1,area.maxRow+1);row++)
@@ -1378,9 +1379,9 @@ var RENDER = (function () {
       this.ctx=layer.getContext("2d",{willReadFrequently:true});
       this.canvas=layer;this.originX+=margin;this.originY+=margin;
       bounds=this.visibleTileBounds();key=signature(bounds);
-      var dims=this.mapDimensions(),z=this.zoom;
-      var left=this.originX-(legacyMap()?24:this.hexSize)*z;
-      var top=this.originY-(legacyMap()?16:this.hexSize)*z;
+      var dims=legacyMap()?this.viewBounds():this.mapDimensions(),z=this.zoom;
+      var left=this.originX+(legacyMap()?dims.left:-this.hexSize)*z;
+      var top=this.originY+(legacyMap()?dims.top:-this.hexSize)*z;
       view={originX:originX,originY:originY,margin:margin,zoom:this.zoom,bounds:bounds,
         fullX:left>=this.hexSize*z && left+dims.width*z<=layer.width-this.hexSize*z,
         fullY:top>=this.hexSize*z && top+dims.height*z<=layer.height-this.hexSize*z};
@@ -1402,18 +1403,21 @@ var RENDER = (function () {
         for(var col=bounds.minCol;col<=bounds.maxCol;col++)this.drawTerrainHex(col,row);
       this.drawRoadNetwork(bounds);
       if(this._activeTerrainRaster)this._activeTerrainRaster.paint(this.ctx);
-      if(legacyMap())LEGACY_TILES.drawBoardBorder(this.ctx,{
-        columns:g.width,rows:g.height,scale:this.zoom,
-        left:this.originX-24*this.zoom,top:this.originY-16*this.zoom,
-        screenWidth:this.canvas.width,screenHeight:this.canvas.height
-      },function(c,r){
-        // Padding is scenery, never a reflected building or a false road exit.
-        var id=g.terrainAt(c,r).id;
-        if(id==="base"||id==="factory"||id==="road")id="plain";
-        else if(id==="bridge")id="valley";
-        var neighbors=HEX.neighbors(c,r).map(function(n){return g.inBounds(n.col,n.row)?g.terrainAt(n.col,n.row).id:null;});
-        return LEGACY_TILES.tile(id,neighbors,(c*3+r*7)%8,-1);
-      });
+      if(legacyMap()) {
+        var turned=this.sideways&&!this._boardSpace,frame=this.viewBounds();
+        LEGACY_TILES.drawBoardBorder(this.ctx,{
+          columns:g.width,rows:g.height,scale:this.zoom,turned:turned,
+          left:this.originX+frame.left*this.zoom,top:this.originY+frame.top*this.zoom,
+          screenWidth:this.canvas.width,screenHeight:this.canvas.height
+        },function(c,r){
+          // Padding is scenery: never a reflected building, a false road exit
+          // or a mirrored end of a ravine.
+          function scenery(id){return ["base","factory","road","valley","bridge"].indexOf(id)>=0?"plain":id;}
+          var id=scenery(g.terrainAt(c,r).id);
+          var neighbors=HEX.neighbors(c,r).map(function(n){return g.inBounds(n.col,n.row)?scenery(g.terrainAt(n.col,n.row).id):null;});
+          return LEGACY_TILES.tile(id,neighbors,(c*3+r*7)%8,-1,turned);
+        });
+      }
     } finally {
       this._activeTerrainRaster=null;
       this.ctx.restore();this.ctx=ctx;this.canvas=canvas;
@@ -1616,8 +1620,12 @@ var RENDER = (function () {
 
   Renderer.prototype.draw = function () {
     var ctx = this.ctx, g = this.game;
+    // Legacy art has a fixed up direction: a turned board draws its tiles
+    // upright in screen space instead of rotating the terrain picture.
+    var upright = this.sideways && legacyMap();
+    if (upright) this.drawTerrainLayer(this.visibleTileBounds());
     this.withBoardView(function () {
-      this.drawTerrainLayer(this.visibleTileBounds());
+      if (!upright) this.drawTerrainLayer(this.visibleTileBounds());
 
       // movement / attack highlights (fill + bright outline for visibility)
       if (this.highlights) {

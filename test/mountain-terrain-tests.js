@@ -18,6 +18,17 @@ module.exports = function(ok) {
     for(var y=80;y<160;y++)if(cliffRow(y).join(",")!==expected.join(","))continuous=false;
     ok(continuous,"vertical mountain silhouette and cliff bands stay continuous in column parity "+(column&1));
     ok([11,12,13,14].every(function(v){return expected.indexOf(v)>=0;}),"vertical range retains every stepped cliff shade");
+    // A turned board lays the same board column along a screen row.
+    raster={};
+    for(r=0;r<7;r++)for(c=0;c<7;c++)T.draw(ctx,240-r*32-(c&1)*16,24+c*32,1,
+      terrain(c,r),H.neighbors(c,r).map(function(n){return terrain(n.col,n.row);}),(c*3+r*7)%8,-1,null,true);
+    function cliffColumn(x){var col=[];for(var y=0;y<240;y++){
+      var v=T.palette.indexOf(raster[x+","+y]);col.push(v>=11&&v<=14?v:0);
+    }return col;}
+    var across=cliffColumn(128),level=true;
+    for(var x=100;x<160;x++)if(cliffColumn(x).join(",")!==across.join(","))level=false;
+    ok(level,"turned mountain silhouette and cliff bands stay continuous in column parity "+(column&1));
+    ok([11,12,13,14].every(function(v){return across.indexOf(v)>=0;}),"turned range retains every stepped cliff shade");
   });
   // Skirts only decorate tile edges; even an enclosed plain keeps a clear
   // playable center. Check every neighbor mask, including isolated peaks.
@@ -53,21 +64,22 @@ module.exports = function(ok) {
   var R=require("../js/render.js"),oldStyle=R.getStyle(),oldSet=R.getIconSet();
   R.setStyle("pixel");R.setIconSet("legacy");
   ctx.save=function(){};ctx.restore=function(){};
-  [1,2,5,6].forEach(function(width){[1,4].forEach(function(height){
+  [false,true].forEach(function(sideways){[1,2,5,6].forEach(function(width){[1,4].forEach(function(height){
     var g={width:width,height:height,
       inBounds:function(c,r){return c>=0&&r>=0&&c<width&&r<height;},
       terrainAt:function(){return {id:"mountain"};},buildingAt:function(){return null;}};
-    var renderer=new R.Renderer({width:300,height:220,getContext:function(){return ctx;}},g);
-    renderer.originX=40;renderer.originY=40;
+    var renderer=new R.Renderer({width:300,height:300,getContext:function(){return ctx;}},g),name=(sideways?"turned ":"")+width+"x"+height;
+    renderer.sideways=sideways;
+    var frame=renderer.viewBounds();renderer.originX=16-frame.left;renderer.originY=24-frame.top;
     raster={};
     renderer.drawTerrainLayer({minCol:0,maxCol:width-1,minRow:0,maxRow:height-1});
     var visible=Object.keys(raster).filter(function(p){return raster[p]!=="#181510";});
     ok(visible.length>0&&visible.every(function(p){var v=T.palette.indexOf(raster[p]);return v===13||v===14||raster[p]==="#55463f";}),
-      width+"x"+height+" mountain board reaches its frame without an outer slope or ground strip");
+      name+" mountain board reaches its frame without an outer slope or ground strip");
     ok(H.neighbors(0,0).filter(function(n){return !g.inBounds(n.col,n.row);}).every(function(n){
       var p=renderer.hexCenter(n.col,n.row);return renderer.pixelToHex(p.x,p.y)===null;
-    }),"plateau continuation adds no selectable hexes on "+width+"x"+height);
-  });});
+    }),"plateau continuation adds no selectable hexes on "+name);
+  });});});
   ok(!T.tile("void",Array(6).fill(null),0,-1).pixels.some(Boolean),"empty board border remains transparent");
   R.setIconSet(oldSet);R.setStyle(oldStyle);
 };

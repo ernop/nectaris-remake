@@ -82,13 +82,25 @@ and low white domed buildings with faction trim. These tiles are not extracted
 bitmap assets. The reference captures remain local and gitignored.
 
 The set selects production 48×32 flattened hexes with 32×32 center pitch and
-16-pixel odd-column stagger. Roads, hills, mountains and valley banks use
-neighbor-dependent variants. Terrain and unit art scale with the map using
-integer raster boundaries. The board uses a thin, rounded rectangular frame.
-The small gaps outside the outer hexes carry reflected edge terrain, without
-duplicating buildings or extending roads. This decorative margin does not add
-selectable cells or alter movement. Interior hexes keep their exact geometry and
-terrain pixels. The border is clipped to the viewport and included in the shared
-terrain cache.
+16-pixel odd-column stagger. Since the 2026-09-27 redraw, every tile is drawn
+on the original's 24×16 art grid, one art pixel per 2×2 native pixels, as the
+re-imported units are. Mountains, valleys and roads are shaped from one shared
+network of cell centres and the lines between connected neighbours. A tile
+next to a mountain or valley draws the part of its cliff or bank that crosses
+the shared edge, so runs stay continuous. Hills form one soft outline over
+rounded bumps with an ordered 2×2 dither. Terrain and unit art scale with the
+map using integer raster boundaries. The board uses a thin, rounded
+rectangular frame. The small gaps outside the outer hexes carry reflected edge
+terrain, without duplicating buildings or extending roads or ravines. This
+decorative margin does not add selectable cells or alter movement. Interior
+hexes keep their exact geometry and terrain pixels. The border is clipped to
+the viewport and included in the shared terrain cache.
 Picking, highlights, map bounds, panning and editor painting use the same hex
-geometry. Classic/neon are unaffected.
+geometry. The art outline steps in whole art pixels, so an edge tile's art may
+extend one native pixel past its clickable hex along the diagonal edges.
+Classic/neon are unaffected.
+
+On a turned board (Board: Auto or Sideways), the tiles are drawn upright in
+screen space with a turned layout: 16×24 art pixels (32×48 native), the same
+hex after the quarter turn, with the picture's up direction kept. Review both
+orientations with `tools/terrain-sheet.html` on the local development server.

@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Nectaris — Legacy terrain review</title>
+<style>
+ :root { color-scheme:dark; font-family:system-ui,sans-serif; background:#111218; color:#fff; }
+ body { margin:0; padding:16px 2vw 32px; }
+ h1 { font-size:24px; margin:0 0 8px; }
+ p { margin:0 0 12px; line-height:1.5; }
+ .controls { display:flex; flex-wrap:wrap; gap:10px 24px; align-items:center; margin:14px 0; }
+ label { display:flex; gap:8px; align-items:center; font-weight:700; }
+ select { font:inherit; background:#252a34; color:#fff; border:1px solid #454e5d; padding:4px 6px; }
+ .boards { display:flex; flex-wrap:wrap; gap:18px; align-items:flex-start; }
+ figure { margin:0; max-width:100%; }
+ figcaption { font-size:16px; font-weight:800; margin-bottom:6px; }
+ canvas { display:block; max-width:100%; image-rendering:pixelated; }
+</style>
+</head>
+<body>
+<h1>Legacy terrain · normal and turned boards</h1>
+<p>Drawn by the game's renderer. The turned board is what Board: Auto shows for tall maps on wide screens; its art stays upright.</p>
+<div class="controls">
+ <label>Board <select id="board"><option value="sampler">Terrain sampler</option><option value="ramsey">04 RAMSEY</option></select></label>
+ <label>Zoom <select id="zoom"><option>1</option><option selected>2</option><option>3</option></select></label>
+</div>
+<div class="boards" id="boards"></div>
+<script src="../js/hex.js?v=20260927-fast-search-2"></script>
+<script src="../js/data-terrain.js?v=20260920-fidelity"></script>
+<script src="../js/data-units.js?v=20260920-cpu-tactics"></script>
+<script src="../js/combat.js?v=20260927-fast-search-2"></script>
+<script src="../js/engine.js?v=20260927-fast-search-2"></script>
+<script src="../js/data-maps.js?v=20260920-battle-forecast"></script>
+<script src="../js/data-unit-art.js?v=20260920-battle-forecast"></script>
+<script src="../js/data-unit-art-legacy.js?v=20260926-legacy-2x"></script>
+<script src="../js/unit-icon-sets.js?v=20260926-simple-menu"></script>
+<script src="../js/legacy-terrain.js?v=20260927-legacy-tiles"></script>
+<script src="../js/render.js?v=20260927-upright-tiles"></script>
+<script>
+"use strict";
+RENDER.setStyle("pixel");
+RENDER.setIconSet("legacy", false);
+const BOARDS = {
+  sampler: {name: "Terrain sampler", grid: [
+    "...v....hh...MM.", "...v...hhh..MMM.", "...v....h....MM.", "---=---------...", "...v....www.....",
+    "...v...wwww..h..", "...vv...ww......", "....vv.......F.B", "B.F..vvv........", "................"],
+    buildings: [{col:0,row:8,owner:0},{col:2,row:8,owner:0},{col:13,row:7,owner:1},{col:15,row:7,owner:1}],
+    units: [{t:"CHARLIE",o:0,x:9,y:9},{t:"CHARLIE",o:1,x:11,y:9}]},
+  ramsey: CAMPAIGN[3],
+};
+// Draw a whole board at `zoom` in one orientation, with a 30-pixel margin.
+function renderBoard(key, zoom, orientation) {
+  const canvas = document.createElement("canvas"), game = new ENGINE.Game(BOARDS[key], {seed: 1});
+  const renderer = new RENDER.Renderer(canvas, game), turned = orientation === "sideways";
+  const dims = renderer.mapDimensions();
+  canvas.width = Math.round((turned ? dims.height : dims.width) * zoom + 60);
+  canvas.height = Math.round((turned ? dims.width : dims.height) * zoom + 60);
+  renderer.orientation = orientation; renderer.sideways = turned; renderer.zoom = zoom;
+  const bounds = renderer.viewBounds();
+  renderer.originX = 30 - bounds.left * zoom; renderer.originY = 30 - bounds.top * zoom;
+  renderer.draw();
+  return canvas;
+}
+function show() {
+  const key = document.getElementById("board").value, zoom = +document.getElementById("zoom").value;
+  const boards = document.getElementById("boards");
+  boards.replaceChildren();
+  [["normal", "Normal"], ["sideways", "Turned"]].forEach(([orientation, label]) => {
+    const figure = document.createElement("figure"), caption = document.createElement("figcaption");
+    caption.textContent = label + " · zoom " + zoom;
+    figure.append(caption, renderBoard(key, zoom, orientation));
+    boards.append(figure);
+  });
+}
+document.getElementById("board").onchange = show;
+document.getElementById("zoom").onchange = show;
+show();
+</script>
+</body>
+</html>

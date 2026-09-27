@@ -228,6 +228,12 @@ Review their placement against long guns and rotor tips; do not bake UI into art
   without extra playable cells, copied buildings or extended roads. See
   [the border record](PRODUCT.md#connected-terrain-and-board-borders-2026-09-23)
   for the user request, implementation choice and superseded edge treatment.
+- Legacy terrain is drawn on the original's 24×16 art grid in 2×2 native
+  pixels (2026-09-27). Its hex outline steps in whole art pixels. Picking
+  keeps the one-pixel hex, so they differ by at most one native pixel along
+  diagonal edges. Turned boards draw the tiles upright in a 32×48 turned
+  layout rather than rotating the picture. See
+  [the redraw record](PRODUCT.md#legacy-terrain-redraw-and-upright-turned-boards-2026-09-27).
 - Terrain frames are 48×32. Buildings are original 32×32 objects with the
   common anchor, pixel lighting and faction colors, above continuous ground.
   Bases use low domed bunkers, uneven service blocks, perimeter walls and an

@@ -7,27 +7,30 @@ module.exports=function(ok) {
     for(var yy=y;yy<y+h;yy++)for(var xx=x;xx<x+w;xx++)pixels[xx+","+yy]=this.fillStyle;
   }};
   ["plain","waste","hill","mountain","valley","road","bridge","base","factory"].forEach(function(id){
-    [1,2,5,6].forEach(function(width){[1,4].forEach(function(height){
+    [false,true].forEach(function(sideways){[1,2,5,6].forEach(function(width){[1,4].forEach(function(height){
       var g={width:width,height:height,
         inBounds:function(c,r){return c>=0&&r>=0&&c<width&&r<height;},
         terrainAt:function(){return {id:id};},buildingAt:function(){return null;}};
-      var renderer=new R.Renderer({width:300,height:220,getContext:function(){return ctx;}},g);
-      renderer.originX=40;renderer.originY=40;pixels={};
+      var renderer=new R.Renderer({width:300,height:300,getContext:function(){return ctx;}},g);
+      renderer.sideways=sideways;
+      var dims=renderer.viewBounds(),shape=true,scenery=true,name=id+" "+(sideways?"turned ":"")+width+"x"+height;
+      renderer.originX=16-dims.left;renderer.originY=24-dims.top;pixels={};
       renderer.drawTerrainLayer({minCol:0,maxCol:width-1,minRow:0,maxRow:height-1});
-      var dims=renderer.mapDimensions(),shape=true,scenery=true;
+      // Art edges step in whole art pixels, so an edge tile may paint one
+      // pixel past its selectable hex; everything farther out is margin.
+      function margin(x,y){for(var dy=-1;dy<=1;dy++)for(var dx=-1;dx<=1;dx++)
+        if(renderer.pixelToHex(x+dx+.5,y+dy+.5))return false;return true;}
       for(var y=0;y<dims.height;y++)for(var x=0;x<dims.width;x++) {
         var qx=Math.max(8-x-.5,0,x+.5-(dims.width-8));
         var qy=Math.max(8-y-.5,0,y+.5-(dims.height-8));
-        var color=pixels[(16+x)+","+(24+y)];
+        var color=pixels[(16+x)+","+(24+y)],value=T.palette.indexOf(color);
         if((color!==background)!==(qx*qx+qy*qy<=64))shape=false;
-        if((id==="road"||id==="base"||id==="factory")&&color!==background&&color!==rim&&
-          !renderer.pixelToHex(16+x+.5,24+y+.5)) {
-          var value=T.palette.indexOf(color);if(value<1||value>4)scenery=false;
-        }
+        if(["road","base","factory","valley","bridge"].indexOf(id)>=0&&color!==background&&color!==rim&&
+          (value<1||value>4)&&margin(16+x,24+y))scenery=false;
       }
-      ok(shape,id+" "+width+"x"+height+" fills one continuous rounded board frame");
-      ok(scenery,id+" margin never duplicates a building or invents a road exit");
-    });});
+      ok(shape,name+" fills one continuous rounded board frame");
+      ok(scenery,name+" margin never duplicates a building, a road exit or a ravine");
+    });});});
   });
   // Nothing in the playable interior is resampled by the border pass.
   pixels={};var unchanged=true,calls=0;
@@ -37,6 +40,13 @@ module.exports=function(ok) {
     if(xy[0]>=16&&xy[0]<192&&xy[1]>=16&&xy[1]<128)unchanged=false;
   });
   ok(unchanged&&calls>0,"board edging paints only the perimeter, preserving interior terrain pixels");
+  pixels={};unchanged=true;calls=0;
+  T.drawBoardBorder(ctx,{columns:6,rows:4,scale:1,left:0,top:0,turned:true,screenWidth:300,screenHeight:300},
+    function(){calls++;return T.tile("waste",[],0,-1,true);});
+  Object.keys(pixels).forEach(function(p){var xy=p.split(",").map(Number);
+    if(xy[0]>=16&&xy[0]<128&&xy[1]>=16&&xy[1]<192)unchanged=false;
+  });
+  ok(unchanged&&calls>0,"turned board edging paints only the perimeter, preserving interior terrain pixels");
   pixels={};calls=0;
   T.drawBoardBorder(ctx,{columns:65,rows:49,scale:1,left:-900,top:-700,screenWidth:300,screenHeight:220},
     function(){calls++;return T.tile("plain",[],0,-1);});

@@ -258,8 +258,11 @@ no longer move the controls. Panel contents may scroll without changing its widt
 **Board: Auto / Normal / Sideways** remains available and persisted. Auto
 compares both orientations against the fixed board viewport and uses a clockwise
 quarter turn when that fits better. Normal and Sideways are explicit overrides.
-Units, counts and labels stay upright; terrain, highlights and hit testing rotate
-together. This is presentation only and the editor retains normal orientation.
+Units, counts and labels stay upright; highlights and hit testing rotate with
+the board. Legacy terrain is drawn upright for the turned board
+([2026-09-27](#legacy-terrain-redraw-and-upright-turned-boards-2026-09-27));
+other styles and art sets rotate the terrain picture. This is presentation only
+and the editor retains normal orientation.
 **Fit** restores the complete board. Window, explicit orientation, art or style
 changes may refit; metadata and selection changes may not. Keep the 8-pixel fit
 margin, up to 4× zoom, Ctrl+left-drag pan and cursor-anchored wheel zoom.
@@ -367,7 +370,8 @@ and skirt treatment.
 
 The implemented response uses a thin rounded rectangular frame for every
 Legacy terrain type. Small gaps outside the edge hexes carry reflected nearby
-terrain, without copied buildings or roads continuing outside the map. The
+terrain, without copied buildings, roads or (since 2026-09-27) ravines
+continuing outside the map. The
 frame shape was selected during implementation; the user requested the border
 improvement but did not explicitly choose between frame shapes.
 
@@ -378,6 +382,51 @@ include it in the existing terrain cache. Classic/neon and Remake retain their
 current rendering. Implementation/provenance is in `art/legacy/README.md`;
 regressions live in `test/mountain-terrain-tests.js` and
 `test/board-border-tests.js`.
+
+## Legacy terrain redraw and upright turned boards (2026-09-27)
+
+The user asked for two things on 2026-09-27. First, when **Board: Auto** or
+**Sideways** turns a tall map, draw the Legacy tiles upright for the turned
+board instead of rotating their picture (the second option discussed for that
+view). Second, fix the Legacy tiles, which the user found "a bit janky even in
+normal mode".
+
+**Turned boards.** With the Pixel style and the Legacy set, a turned board
+draws its terrain in screen space with a turned tile layout. Each cell keeps
+its hex after the quarter turn, so it is 32×48 native pixels with pointed tops
+and bottoms. The picture inside it stays upright: light from the upper left,
+domes standing up, cliffs stepping down the screen. Highlights, units and hit
+testing already follow the turned hex and are unchanged.
+
+**Tile redraw.** The user asked for the fix; these looks are implementation
+choices, not user selections.
+- Every tile is drawn on the original's 24×16 art grid, one art pixel per 2×2
+  native pixels, like the re-imported Legacy units. The hex outline steps in
+  whole art pixels, while picking keeps the one-pixel hex. An edge tile's art
+  therefore extends at most one native pixel past its clickable area along the
+  diagonal edges.
+- Plains carry an even, staggered speckle lattice with rare lighter grains.
+- Hills are one soft outline around rounded bumps at the hill's centre and
+  toward connected hills. They are shaded from the upper left with an ordered
+  2×2 dither.
+- Mountains keep the continuous plateaus and stepped cliff bands of the
+  2026-09-23 record above.
+- Valleys are continuous ravines along the valley network, with a lit bank
+  and a shadow bank. Neighbouring tiles draw the parts of a bank that cross
+  into them.
+- Wasteland is scattered, lit pebbles. Roads are 12 native pixels across,
+  including their dark edges (8 before). Bases and factories are white domes
+  with faction trim above a paved apron. They stand 24 native pixels tall
+  instead of 17–18, at the same 28-pixel width.
+- The board margin treats valleys and bridges as plain, like roads and
+  buildings.
+
+Review page: `tools/terrain-sheet.html` shows a sampler map and RAMSEY in both
+orientations. Regressions cover the art-grid hex, cracks, road exits and
+upright turned tiles (`test/legacy-terrain-tests.js`), and turned mountain
+runs (`test/mountain-terrain-tests.js`). They also cover both frame
+orientations (`test/board-border-tests.js`) and the pixel checksum over both
+layouts (`test/terrain-performance-tests.js`).
 
 ## Native pixel art and flattened geometry (2026-09-20)
 
