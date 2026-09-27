@@ -1209,15 +1209,13 @@ var RENDER = (function () {
     ctx.restore();
   };
 
-  // Experience stars copied from the original's star box (the PCE art in
-  // Hudson's 1997 Windows port): a box the size of a unit sprite, 16 art
-  // pixels square, laid over the whole icon. Small stars are 5 by 4 art pixels
-  // at RANK_STAR_AT: 1-3 down the left column, 4-5 in an offset middle column,
-  // 6-7 in the right column; the eighth replaces them with one large star.
-  // The original's navy box and the grey plate behind its large star are left
-  // out so the unit stays visible, and a dark edge keeps the stars legible.
+  // Experience stars from Hudson's 1997 Windows port (PCE art; re-derive with
+  // tools/read-original-stars.py). The port's box is 16 art pixels square, the
+  // size of a unit sprite: 5×4 stars at RANK_STAR_AT, 1-3 down the left, 4-5 in
+  // a lower middle column, 6-7 on the right, and one large star at 8. Only the
+  // stars are kept: no EXP label, no navy panel tiles and no grey plate behind
+  // the large star. UNIT_VIEW draws them beside the icon, never on a sprite.
   var RANK_COLORS = { Y: "#ffde00", W: "#dedede", o: "#de9c00", O: "#bd7b00" };
-  var RANK_EDGE = "#140c00";
   var RANK_STAR = ["..Y..", "YYWYY", ".YYY.", ".Y.Y."];
   var RANK_STAR_AT = [[0, 1], [0, 6], [0, 11], [5, 3], [5, 8], [10, 1], [10, 6]];
   var RANK_GENERAL = [
@@ -1250,34 +1248,11 @@ var RENDER = (function () {
     });
     return runs;
   }
-  var STAR_RUNS = rankRuns(RANK_STAR), GENERAL_RUNS = rankRuns(RANK_GENERAL);
-
-  // Draws `exp` stars into the unit-sized box at (x, y), `px` canvas pixels per art pixel.
-  function drawRankStars(ctx, exp, x, y, px) {
-    if (!(exp > 0)) return;
-    var glyphs = exp >= 8 ? [[GENERAL_RUNS, 0, 0]] :
-      RANK_STAR_AT.slice(0, exp).map(function (at) { return [STAR_RUNS, at[0], at[1]]; });
-    var edge = Math.max(1, Math.round(px / 2));
-    ctx.save();
-    ctx.fillStyle = RANK_EDGE;
-    glyphs.forEach(function (g) {
-      g[0].forEach(function (r) {
-        ctx.fillRect(x + (g[1] + r[0]) * px - edge, y + (g[2] + r[1]) * px - edge, r[2] * px + 2 * edge, px + 2 * edge);
-      });
-    });
-    glyphs.forEach(function (g) {
-      g[0].forEach(function (r) {
-        ctx.fillStyle = RANK_COLORS[r[3]];
-        ctx.fillRect(x + (g[1] + r[0]) * px, y + (g[2] + r[1]) * px, r[2] * px, px);
-      });
-    });
-    ctx.restore();
-  }
 
   /* Standalone unit icon (factory panel, tools/unit-sheet.html). `opts` is
    * optional: { attacking: true } uses the attack palette, { spent: true }
-   * applies the completed-activation greyscale. { experience: true } adds the
-   * rank stars over the whole icon. Pixel UI icons use their native frame. */
+   * applies the completed-activation greyscale. Experience stars are never
+   * drawn on this icon. Pixel UI icons use their native frame. */
   function drawUnitIcon(canvas, unit, opts) {
     var ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("Factory unit icon requires a 2D canvas context");
@@ -1289,10 +1264,6 @@ var RENDER = (function () {
     if (opts && opts.spent) ctx.filter = "grayscale(1)";
     ctx.translate(Math.round(canvas.width / 2), Math.round(canvas.height / 2));
     drawUnitBody(ctx, unit, u, base);
-    if (opts && opts.experience) {
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      drawRankStars(ctx, unit.exp, 0, 0, Math.min(canvas.width, canvas.height) / 16);
-    }
     ctx.restore();
   }
 
@@ -1692,7 +1663,6 @@ var RENDER = (function () {
     Renderer: Renderer,
     PLAYER_COLORS: PLAYER_COLORS,
     drawUnitIcon: drawUnitIcon,
-    drawRankStars: drawRankStars,
     rankRuns: rankRuns,
     RANK_COLORS: RANK_COLORS,
     RANK_STAR: RANK_STAR,

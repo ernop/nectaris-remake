@@ -110,15 +110,14 @@ strength. Every loss bursts at the same moment: 0.5 s + 0.45 s, however many
 machines fall. This follows the user's 2026-09-26 request ("with bullets and
 all at once, like the orig game"); machines previously fell one by one over
 1.6–2.6 s.
-Experience is shown only as stars over unit icons throughout the game, never
-as numeric ranks or a separate badge. In the battle scene, only the two header
-icons carry experience; the individual formation machines have no stars.
-After fighting ends, actual earned stars appear one by one and glow on the
-header icons, ending at the awarded rank (including the General emblem).
+Experience is shown only as stars in the standard unit mark (below), never
+painted on a unit sprite and never as a numeric rank. Each battle header shows
+the unit mark at 96 px (64 px on narrow screens): the portrait with its stars
+beside it. Formation machines have no stars.
+After fighting ends, actual earned stars appear one by one and glow beside
+the header portrait, ending at the awarded rank (including the General star).
 The user's 2026-09-26 corrections remove the "Experience gained" row, which
-shifted the header layout, and enlarge the header unit icon to 96 px (64 px on
-narrow screens) with the original's star box drawn over it (below), as on every
-other icon. Ranks start
+shifted the header layout, and enlarge the header unit icon. Ranks start
 at 0 and follow the published awards (+1 per battle; +2 for destroying the
 enemy squad or, as defender, taking no damage). Each newly earned star fades in,
 holds a bright glow, then settles to the normal star colour over 1.2 s; Pause
@@ -146,14 +145,34 @@ and the factory panel for the selected reserve each print an EXP label over a
   and yellow on the left, orange `#de9c00` and brown `#bd7b00` on the right,
   on a grey plate.
 
-Our icons copy this box pixel for pixel, laid over the whole unit icon (the box
-and a Legacy sprite share one pixel grid), replacing the earlier text-glyph
-stars. Two adaptations: the navy box and the grey plate are left out so the unit
-stays visible, and a thin dark edge keeps the stars legible on unit art. The
-stars appear on the map hover card, factory, base and cargo lists, battle
-headers and list icons; map sprites still carry none. The pattern is
-third-party-derived art imported at the user's request; the executable stays
-outside the repo.
+**Standard unit mark (user request, 2026-09-27):** "a standard ui unit: unit
+icon + exp just next to it", with stars only ("we don't need that huge EXP")
+and the stars at one scale relative to the icon in every context. The mark
+is the unit icon followed by a star box exactly the icon's size, holding the
+stars above at their original places. It has no EXP label, no navy tiles and
+no grey plate behind the General star. This replaces the EXP label and box of
+2026-09-26/27 and the earlier stars laid over the icon. The box keeps its
+place at zero experience, so names line up in lists and a first earned star
+moves nothing. Contexts choose only the size, a multiple of the 32-pixel
+icon frame: 64 px in the hover card heading, 96 px in battle headers (64 px
+on narrow screens), 32 px everywhere else. The icon repeats the map sprite's
+look: faction colours, greyscale once its activation is finished on its own
+side's turn, red while attacking. Every view of a unit uses the mark: hover
+card, factory, base and cargo lists, factory deployment rows,
+battle headers, battle and move reports and the forecast in the left panel,
+unload, deploy and end-turn buttons, the range legend, the replay hover line
+and the balance setup. Only formation machines in the battle scene and unit
+types in the editor palette show the icon alone. Map sprites still carry no
+stars. The star pattern is third-party-derived art imported at the user's
+request; the executable stays outside the repo.
+
+The hover card shows the mark and the name in its heading, with a damaged
+squad's remaining count on the icon's corner as on the map sprite, above
+attack, defense and Shift. Factory, base and cargo rows are one line: the mark,
+the name and N/8 when damaged. The original's map bar is not copied: a bar
+under the board tried on 2026-09-26/27 took 56 pixels of board height, broke
+the full-height board below, repeated the hover card, and the user could not
+find it, so it was removed on 2026-09-27.
 
 **Pause / Resume** freezes the current battle phase, including the automatic
 advance to the next action, in human combat, watched AI and replays. A paused
@@ -499,15 +518,11 @@ longer exact bands directly beneath their attack value; when ground range is
 longer, retain an aircraft range of 1 to make mixed ranges unambiguous (Lynx).
 Keep terrain and its defense bonus in the footer, adding damage bonus only
 when experience grants one. Show remaining/total Shift only when a friendly
-buggy has spent movement. As corrected on 2026-09-26, experience stars sit
-on the unit icon, using the original's star box (see the battle review
-section) and its one large General star. Zero experience has no stars. No
-numeric rank or separate badge.
-Map sprites themselves carry no stars (user, 2026-09-26). Stars appear where a
-unit is inspected: hover cards, factory, base and cargo lists, and battle
-headers.
-Damaged units show only the remaining-unit number on their icon, without a
-“Strength” label. Names and terrain text wrap without
+buggy has spent movement. The card heading is the standard unit mark (see
+the battle review section) at 64 px, then the name. Zero experience leaves the
+star box empty. No numeric rank. Map sprites themselves carry no stars.
+Damaged units show only the remaining-unit number on their icon, on the map
+and in the card, without a "Strength" label. Names and terrain text wrap without
 truncation. No faction heading,
 stats table, movement chassis, capture explanation or action-rule reminders.
 The card stays anchored to the hex. Placement

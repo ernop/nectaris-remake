@@ -188,8 +188,8 @@ var BATTLE_REPORT = (function () {
   var STAR_MS = 350, STAR_GLOW_MS = 1200;
   // A new star's delay is its age on the reward clock, so rebuilding the
   // screen for the next rank continues earlier stars mid-glow.
-  function rankHtml(before, shown) {
-    return unitView.rankHtml(before, shown, STAR_MS);
+  function markHtml(unit, before, shown) {
+    return unitView.markHtml(unit, {before: before, shown: shown, stepMs: STAR_MS});
   }
 
   // Original-style opposing formations, recreated with the selected remake art.
@@ -198,11 +198,10 @@ var BATTLE_REPORT = (function () {
     phase = phase || "result";
     function head(unit, now, exp, role, after) {
       var shown = after === undefined ? exp : after;
-      var sprite = Object.assign({}, unit, {strength: now, exp: 0});
       return "<div class='battle-combatant' data-player='" + unit.player + "'><span class='war-faction war-faction-" + unit.player + "'>" +
-        faction(unit.player) + " · " + role + "</span><h3><span class='unit-label'><span class='battle-rank-icon'>" +
-        unitView.iconHtml(sprite) + rankHtml(exp, shown) +
-        "</span><span>" + esc(unitView.name(unit)) + "</span></span></h3>" +
+        faction(unit.player) + " · " + role + "</span><h3><span class='unit-label'>" +
+        markHtml(Object.assign({}, unit, {strength: now}), exp, shown) +
+        "<span>" + esc(unitView.name(unit)) + "</span></span></h3>" +
         "<div class='battle-count'><strong>" + now + "</strong><span>machines</span></div></div>";
     }
     // Per-machine values as calculated. Squad size multiplies damage, never

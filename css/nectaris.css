@@ -295,13 +295,10 @@ select, input[type="url"] {
    nearby card and selection inspector so both disclose the same details. */
 .unit-card-head { display: flex; align-items: center; gap: 8px;
   min-height: 32px; margin-bottom: 8px; }
-.unit-card-icon { width: 64px; height: 64px; image-rendering: pixelated; }
-.unit-card-portrait { position: relative; display: block; flex: 0 0 64px; height: 64px; }
-.unit-card-portrait .unit-card-icon { display: block; }
-.unit-card-rank { flex: 0 0 32px; width: 32px; height: 32px; }
-.unit-card-head .ui-name { font-size: 14px; line-height: 18px; margin: 0;
+.unit-card-head .unit-mark { --unit-size: 64px; }
+.unit-card-head .ui-name { font-size: 16px; line-height: 20px; font-weight: 800; margin: 0;
   flex: 1; min-width: 0; overflow-wrap: anywhere; }
-.unit-strength { position: absolute; left: -2px; bottom: -2px; padding: 0 2px;
+.unit-mark > .unit-strength { position: absolute; left: -2px; bottom: -2px; padding: 0 2px;
   background: #211d16; color: #ffca92; font: 700 18px/20px monospace; }
 .unit-combat-grid { display: grid; grid-auto-flow: column;
   grid-template-columns: minmax(0, 1.3fr); grid-auto-columns: minmax(0, 1fr);
@@ -321,14 +318,17 @@ select, input[type="url"] {
 .unit-label > span { min-width: 0; overflow-wrap: anywhere; }
 .unit-inventory { margin-top: 8px; border-top: 1px solid #494032; padding-top: 5px; }
 .inventory-caption { color: var(--ui-secondary); font-size: 11px; margin-bottom: 4px; }
-.inventory-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3px 8px; }
-.inventory-entry { display: flex; align-items: center; gap: 3px; min-width: 0; font-size: 12px; }
-.inventory-entry small { color: #ffca92; }
+.inventory-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; }
+.inventory-entry { display: flex; align-items: center; flex-wrap: nowrap; gap: 6px; min-width: 0;
+  font-size: 14px; font-weight: 700; color: #fff; white-space: nowrap; }
+.inventory-entry .unit-label { flex: 1; }
+.inventory-entry .unit-label > span { white-space: nowrap; }
+.inventory-entry small { color: #ffca92; font-size: 14px; font-weight: 800; font-variant-numeric: tabular-nums; }
 
 #unit-hover {
   position: absolute;
   z-index: 9;
-  width: 280px;
+  width: 320px;
   max-width: calc(100% - 16px);
   padding: 9px 10px;
   background: #211d16;
@@ -407,17 +407,17 @@ select, input[type="url"] {
 #factory-close { font-size: 20px; line-height: 22px; padding: 0 6px; }
 #factory-summary { color: #d0c8b0; margin: 7px 0; font-size: 12px; flex-shrink: 0; }
 #factory-list { min-height: 0; overflow-y: auto; gap: 6px; padding: 2px; }
-.factory-row { display: flex; flex-direction: column; align-items: stretch; justify-content: center;
-  min-width: 0; min-height: 48px; padding: 5px 6px; gap: 3px; text-align: left;
-  background: #1c1912; border: 1px solid #494032; border-radius: 4px; font-size: 12px; }
+.factory-row { display: flex; flex-direction: row; flex-wrap: nowrap; align-items: center;
+  min-width: 0; min-height: 40px; padding: 4px 6px; gap: 8px; text-align: left;
+  background: #1c1912; border: 1px solid #494032; border-radius: 4px; font-size: 14px; color: #fff; }
 .factory-row .inventory-entry { flex: 1; }
 .factory-row .unit-label { flex: 1; }
-.factory-row[aria-disabled="true"] { color: var(--ui-secondary); }
+.factory-row[aria-disabled="true"] { color: #fff; }
 .factory-row.is-ready { border-color: #8c7930; }
 button.factory-row:hover, button.factory-row:focus-visible { background: #49402c; border-color: #ffd94a; }
 button.factory-row:focus-visible { outline: 2px solid #ffd94a; outline-offset: -2px; }
-.factory-unit-status { color: var(--ui-secondary); font-size: 11px; text-align: right; }
-.is-ready .factory-unit-status { color: #ffe09a; font-weight: 700; }
+.factory-unit-status { color: #fff; font-size: 14px; font-weight: 800; text-align: right; white-space: nowrap; }
+.is-ready .factory-unit-status { color: #ffe09a; font-weight: 800; }
 .deploy-prompt { flex-shrink: 0; white-space: nowrap; font-size: 12px; padding-right: 6px; }
 .unload-prompt, #action-menu .unload-available { color: #ffb653; }
 #action-menu .unload-available { border-color: #c67f2e; }

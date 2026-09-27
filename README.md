@@ -202,14 +202,18 @@ the page or list scrolls or resizes.
   restores the whole board after zooming or panning.
 - Controls, unit actions, reports and replay metadata stay in a fixed left panel.
   That panel scrolls independently; changing details never resizes the board.
-- Hover a unit for a compact stats card beside its hex. Factory hovers show
-  each reserve separately with its icon and experience stars. Unit names use
+- Everywhere a unit appears, it is shown as its icon with its experience
+  stars directly to the right, in a box the icon's size.
+- Hover a unit for a compact stats card beside its hex. The card heading
+  shows the icon with its stars and the name, above attack, defense and Shift;
+  a damaged squad's remaining count sits on the icon's corner, as on the map.
+  Factory and cargo lists show each unit on one line: icon with stars, name,
+  and N/8 when damaged. Unit names use
   short names such as Pelican, without model numbers, and always have an icon.
   The card stays clear
   of the unit, flips at map edges, and lets clicks pass through. It appears and
-  disappears immediately, with one compact row for attack, defense and Shift,
-  a faction-colored bold name, and experience stars on the unit icon:
-  traditional small stars, or one large star for General. Ranks are never numeric. Damaged units show only their remaining
+  disappears immediately, with one compact row for attack, defense and Shift
+  and a faction-colored bold name. Ranks are never numeric. Damaged units show only their remaining
   count on the icon, without a Strength label. Unsupported
   air attack, default adjacent ranges and zero experience bonuses are omitted;
   longer ranges sit under their attack value, with mixed ground/air bands explicit.
@@ -283,7 +287,7 @@ the page or list scrolls or resizes.
   formations with Union on the left and Xenon on the right, each on its own
   terrain. A one-way arrow marks attacks without a counter. Ready, Fighting and
   Result mark the approach, combat and summary. Each side's unit icon in
-  the battle header is enlarged, with the original's rank stars on top; newly
+  the battle header is enlarged, with its stars beside it at the same scale; newly
   earned stars fade in, glow brightly, then
   settle to the normal colour. Formation machines have no stars. **Pause / Resume** freezes the battle and its automatic advance.
   Replay **Pause on battle screens** starts on; click anywhere on the paused
@@ -294,12 +298,12 @@ the page or list scrolls or resizes.
   AI turns. Unchecking **Move animation** separately places moving units straight on
   their destination while Watch AI still shows each AI step. Opponent actions preserve your chosen camera position and zoom.
   Replay **Follow action** starts off and only follows when you enable it.
-- The factory panel shows each stored unit's map icon with experience stars,
-  damage when present, and a full-row deployment button.
-- Experience appears as the original's star art over the unit icon: up to 3
-  small stars down the left column, 2 in a lower-set middle column and 2 in the
-  right column. Selecting a unit shows the exact damage bonus; level 8 replaces
-  them with one large **GENERAL** star.
+- The factory panel shows each stored unit on one line: map icon with stars,
+  name, damage when present, and a full-row deployment button.
+- Experience appears as the original's star art beside the unit icon: up to 3
+  small stars down the left of the star box, 2 in a lower middle column and 2
+  in the right column. Level 8 replaces them with one large **GENERAL** star.
+  Selecting a unit shows the exact damage bonus.
 - Union silhouettes face right and Xenon silhouettes face left, so opposing
   units visibly confront one another.
 - Units that have completed their activation this turn appear fully greyscale

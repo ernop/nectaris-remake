@@ -215,6 +215,8 @@ with the level table `0, 7, 11, 15, 19, 23, 27, 31`.
 `tools/read-original-stars.py` prints all nine boxes and the palette. The
 resulting geometry and colours are recorded in PRODUCT's battle review section
 and copied in `js/render.js` (`RANK_STAR`, `RANK_STAR_AT`, `RANK_GENERAL`).
+The remake keeps only the stars and shows them beside each unit icon in a
+box the icon's size. It does not paint stars on the sprite.
 
 ```sh
 python tools/read-original-stars.py /path/to/Nec.exe

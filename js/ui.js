@@ -598,11 +598,17 @@ var UI = (function () {
     if (this._battlePlayback) this.refreshBattlePause();
   };
 
-  function unitInfoHtml(game, unit) {
+  // The map sprite's look for a unit's icon: red while attacking, greyscale
+  // once its activation is finished on its own side's turn.
+  function iconState(game, unit, attackingId) {
+    var attacking = attackingId !== null && attackingId !== undefined && attackingId === unit.id;
+    return {attacking: attacking, spent: !attacking && !!unit.moved && game.currentPlayer === unit.player};
+  }
+
+  function unitInfoHtml(game, unit, state) {
     if (!unit) return "";
     var t = unit.type;
     var terr = game.terrainAt(unit.col, unit.row);
-    var strCap = COMBAT.strengthCaption(unit.strength);
     function stat(label, value, detail) {
       return "<div class='unit-stat'><span class='unit-stat-label'>" + label +
         "</span><strong>" + value + "</strong>" +
@@ -616,9 +622,8 @@ var UI = (function () {
     var remainingShift = t.moveAfterAttack && unit.player === game.currentPlayer && unit.movePointsLeft < t.move;
     var shift = remainingShift ? unit.movePointsLeft + "<small>/" + t.move + "</small>" : t.move;
     var experience = COMBAT.experienceBonus(unit.exp), damage = experience.damage;
-    return "<div class='unit-card-head'><span class='unit-card-portrait rank-icon-inventory'><canvas class='unit-card-icon' width='32' height='32' role='img' aria-label='" +
-      esc(unitView.name(t) + " · " + unitView.rankLabel(unit)) + "'></canvas>" + unitView.rankHtml(unit.exp, unit.exp, 0) +
-      (strCap ? "<span class='unit-strength' role='img' aria-label='" + strCap + " machines remaining'>" + strCap + "</span>" : "") + "</span>" +
+    return "<div class='unit-card-head'>" +
+      unitView.markHtml(unit, {state: state, count: COMBAT.strengthCaption(unit.strength)}) +
       "<strong class='ui-name' style='color:" + factionTextColor(unit.player) + "'>" + esc(unitView.name(t)) + "</strong>" +
       "</div>" +
       "<div class='unit-combat-grid'>" + stat("Ground ATK", t.atkG || 0, groundRange) +
@@ -627,17 +632,16 @@ var UI = (function () {
       "<div class='unit-card-foot'><span>" + esc(terr.name) + " <strong>+" + (t.moveType === "air" ? 0 : terr.def) +
       " DEF</strong></span>" + (damage ? "<span>Damage <strong>+" + damage + "%</strong></span>" : "") +
       "</div>" + (unit.cargo && unit.cargo.length ? "<div class='unit-inventory'><div class='inventory-caption'>Cargo</div>" +
-        inventoryHtml(unit.cargo) + "</div>" : "");
+        inventoryHtml(game, unit.cargo) + "</div>" : "");
   }
 
-  function inventoryEntryHtml(unit) {
-    return "<span class='unit-label'>" + unitView.rankIconHtml(unit) + "<span>" + esc(unitView.name(unit)) + "</span></span>" +
-      (unit.strength < 8 ? "<small>" + unit.strength + "/8</small>" : "");
+  function inventoryEntryHtml(game, unit) {
+    return unitView.html(unit, iconState(game, unit)) + (unit.strength < 8 ? "<small>" + unit.strength + "/8</small>" : "");
   }
 
-  function inventoryHtml(units) {
+  function inventoryHtml(game, units) {
     return "<div class='inventory-grid'>" + units.map(function (unit) {
-      return "<div class='inventory-entry'>" + inventoryEntryHtml(unit) + "</div>";
+      return "<div class='inventory-entry'>" + inventoryEntryHtml(game, unit) + "</div>";
     }).join("") + "</div>";
   }
 
@@ -647,27 +651,22 @@ var UI = (function () {
       (building.kind === "base" ? "Base" : "Factory") + "</strong><span>" +
       (building.owner < 0 ? "Neutral" : faction.name) + "</span></div>" +
       "<div class='inventory-caption'>" + (building.stored.length ? building.stored.length +
-        " stored unit" + (building.stored.length === 1 ? "" : "s") : "Empty") + "</div>" + inventoryHtml(building.stored);
+        " stored unit" + (building.stored.length === 1 ? "" : "s") : "Empty") + "</div>" + inventoryHtml(this.game, building.stored);
     var key = html + RENDER.getStyle() + RENDER.getIconSet();
     if (container._unitCardKey === key) return;
     container._unitCardKey = key; container.innerHTML = html; unitView.paint(container);
   };
 
   GameUI.prototype.renderUnitInfo = function (container, unit, building) {
-    var html = unitInfoHtml(this.game, unit) + (building && building.stored.length ?
+    var html = unitInfoHtml(this.game, unit, unit && iconState(this.game, unit, this.renderer.attackingUnitId)) +
+      (building && building.stored.length ?
       "<div class='unit-inventory'><div class='inventory-caption'>" + (building.kind === "base" ? "Base" : "Factory") +
-      " · " + building.stored.length + " stored</div>" + inventoryHtml(building.stored) + "</div>" : "");
-    var attacking = unit && this.renderer.attackingUnitId === unit.id;
-    var spent = unit && !attacking && unit.moved && this.game.currentPlayer === unit.player;
-    var key = html + (unit ? unit.exp : "") + RENDER.getStyle() + RENDER.getIconSet() + attacking + spent;
+      " · " + building.stored.length + " stored</div>" + inventoryHtml(this.game, building.stored) + "</div>" : "");
+    var key = html + RENDER.getStyle() + RENDER.getIconSet();
     if (container._unitCardKey === key) return;
     container._unitCardKey = key;
     container.innerHTML = html;
     unitView.paint(container);
-    if (unit) {
-      RENDER.drawUnitIcon(container.querySelector(".unit-card-icon"), unit,
-        { attacking: attacking, spent: spent });
-    }
   };
 
   // Anchor to the hex, not the moving pointer. Prefer a side with fewer
@@ -896,7 +895,7 @@ var UI = (function () {
       row.setAttribute("data-unit-id", su.id);
       row.setAttribute("aria-label", (ready ? "Deploy " : "") + unitView.name(su) +
         ", " + unitView.rankLabel(su));
-      row.innerHTML = "<span class='inventory-entry'>" + inventoryEntryHtml(su) + "</span>" +
+      row.innerHTML = "<span class='inventory-entry'>" + inventoryEntryHtml(g, su) + "</span>" +
         "<span class='factory-unit-status'>" +
           (ready ? "Deploy →" : su.moved ? "Next turn" : "No open exit") + "</span>";
       if (ready) {

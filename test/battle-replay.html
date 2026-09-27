@@ -35,7 +35,7 @@ document.getElementById("run").onclick=async function(){
   $("replay-battle-toggle").click();await wait(450);
   check($("replay-battle-stage").hidden,"earned-star updates respect Show map");
   $("replay-battle-toggle").click();await until(function(){return $("replay-battle-pause").disabled;});
-  check(!!d.querySelector(".battle-heading [data-exp-glow-from]")&&Array.from(d.querySelectorAll(".battle-machine canvas")).every(function(c){return c.dataset.exp==="0";}),"only header icons show earned glowing stars");
+  check(!!d.querySelector(".battle-heading [data-exp-glow-from]")&&!d.querySelector(".battle-machine .unit-stars"),"only header marks show earned glowing stars");
   $("replay-first").click();$("replay-play").click();await wait(40);
   $("replay-battle-content").click();await until(function(){return d.querySelector(".battle-screen").dataset.battlePhase==="fighting";});
   $("replay-skip-battles").checked=true;$("replay-skip-battles").dispatchEvent(new w.Event("change"));await wait(40);

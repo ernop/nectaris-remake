@@ -27,8 +27,8 @@ document.getElementById("hover").onclick=function(){
     ui.renderer.hoverHex={col:unit.col,row:unit.row};
     for(var rank of [0,1,2,8]){
       unit.exp=rank;ui.updateHoverInfo();
-      var overlay=x.d.querySelector("#unit-hover .unit-card-portrait .battle-rank");
-      check(overlay&&overlay.dataset.exp===String(rank),"mini unit popup shows the stars for "+x.w.UNIT_VIEW.rankLabel(unit));
+      var card=x.d.querySelector("#unit-hover .unit-card-head .unit-mark .unit-stars");
+      check(card&&card.dataset.exp===String(rank),"the hover card shows the stars beside the icon for "+x.w.UNIT_VIEW.rankLabel(unit));
     }
     document.getElementById("status").textContent=checks+" checks passed";
   }catch(e){document.getElementById("status").textContent="FAIL: "+e.message;console.error(e);}
@@ -68,9 +68,9 @@ document.getElementById("run").onclick=async function(){
     var phases=new Set(["ready",d.querySelector(".battle-screen").dataset.battlePhase]);
     while(ui.busy){phases.add(d.querySelector(".battle-screen").dataset.battlePhase);await wait(25);}
     check(["ready","fighting","result"].every(function(p){return phases.has(p);}),"live battles visibly pass through Ready, Fighting and Result");
-    check(Array.from(d.querySelectorAll(".battle-machine canvas")).every(function(c){return c.dataset.exp==="0";})&&
-      !!d.querySelector(".battle-heading [data-exp-glow-from]"),"only header icons gain glowing experience stars; formation models have no stars");
-    check(!!d.querySelector(".battle-heading .battle-rank-icon .battle-rank-new")&&!d.getElementById("battle-content").textContent.includes("Experience gained")&&!d.getElementById("battle-content").textContent.includes("EXP "),"earned stars fade in over the header icon without a separate row or numeric experience");
+    check(!d.querySelector(".battle-machine .unit-stars")&&
+      !!d.querySelector(".battle-heading [data-exp-glow-from]"),"only header marks gain glowing experience stars; formation models have no stars");
+    check(!!d.querySelector(".battle-heading .unit-mark .unit-star-new")&&!d.getElementById("battle-content").textContent.includes("Experience gained")&&!d.getElementById("battle-content").textContent.includes("EXP "),"earned stars fade in beside the header icon, not as a numeric row");
     check(d.getElementById("battle-stage").classList.contains("hidden")&&bounds(canvas)===baseline,"battle completes and returns to the same map viewport");
     var gun=g.units.find(function(u){return u.typeId==="HADRIAN";});ui.selectUnit(gun);ui.tryMove(gun,1,0);
     while(ui.busy)await wait(15);
@@ -83,8 +83,8 @@ document.getElementById("run").onclick=async function(){
     ui.showWatchMove({t:"move",unit:g.units[1],from:{col:10,row:6},to:{col:11,row:6}});ui.draw();
     check([ui.renderer.zoom,ui.renderer.originX,ui.renderer.originY].join()===camera,"watched opponent selection preserves the chosen camera");
     ui.closeWarDock();
-    // Stars are drawn over the hover and inventory icons, never painted into the canvas.
-    function stars(rank){return rank?Array.from(rank.querySelectorAll(".battle-rank-star")).length+(rank.querySelector(".battle-rank-general")?"G":""):"none";}
+    // Stars sit beside the icon in the unit mark, never painted into the sprite.
+    function stars(rank){return rank?Array.from(rank.querySelectorAll(".unit-star")).length+(rank.querySelector(".unit-general")?"G":""):"none";}
     var style=w.RENDER.getStyle(),iconSet=w.RENDER.getIconSet();
     try{
       for(var look of [["pixel","remake"],["pixel","legacy"],["classic","remake"],["neon","remake"]]){
@@ -93,16 +93,16 @@ document.getElementById("run").onclick=async function(){
         var oldExp=unit.exp,shown=[];
         for(var rank of [0,1,2,8]){
           unit.exp=rank;ui.updateHoverInfo();
-          shown.push(stars(d.querySelector("#unit-hover .unit-card-portrait .battle-rank")));
+          shown.push(stars(d.querySelector("#unit-hover .unit-card-head .unit-stars")));
         }
-        check(shown.join()==="0,1,2,0G",look.join("/")+": the hover portrait shows each rank's stars and the General star ("+shown.join()+")");
+        check(shown.join()==="0,1,2,0G",look.join("/")+": the hover card shows each rank's stars and the General star ("+shown.join()+")");
         unit.exp=oldExp;await wait(0);
         for(var owner of [-1,0,1]){
           ui.game=new w.ENGINE.Game({name:"Factory stars",grid:Array(7).fill("............").map(function(row,i){return i===3?"....F.......":row;}),
             buildings:[{col:4,row:3,owner:owner,stored:[{t:"BISON",exp:0},{t:"BISON",exp:3},{t:"BISON",exp:8}]}],
             units:[{t:"CHARLIE",o:0,x:0,y:0},{t:"BISON",o:1,x:11,y:6}]},{seed:7});
           ui.renderer.game=ui.game;ui.renderer.fitToMap();ui.mode="idle";ui.renderer.hoverHex={col:4,row:3};ui.updateHoverInfo();
-          var inventory=Array.from(d.querySelectorAll("#unit-hover .rank-icon-inventory .battle-rank")).map(stars);
+          var inventory=Array.from(d.querySelectorAll("#unit-hover .inventory-entry .unit-stars")).map(stars);
           check(inventory.join()==="0,3,0G",look.join("/")+" owner "+owner+": stored units show their stars and the General star ("+inventory.join()+")");
           await wait(0);
         }

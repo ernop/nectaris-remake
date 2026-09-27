@@ -72,41 +72,49 @@ module.exports = function (ok) {
     ok(start.includes("data-exp='"+out.attackerExpBefore+"'")&&end===screen&&
       REPORT.earnedExperience(3,7,350)===4&&REPORT.earnedExperience(7,8,9999)===8,
       "earned stars reveal one at a time from the original rank, ending at the actual awarded rank");
-    ok(!before.includes("battle-rank-new"),"a battle preview never claims experience before the attack occurs");
+    ok(!before.includes("unit-star-new"),"a battle preview never claims experience before the attack occurs");
     function headsOf(html){return html.slice(html.indexOf("battle-heading"),html.indexOf("battle-field")).split("battle-combatant'").slice(1);}
-    function fresh(html){return (html.match(/battle-rank-new/g)||[]).length;}
-    function pips(html){return (html.match(/class='battle-rank-star/g)||[]).length;}
-    function layout(html){return html.split("battle-rank-col-").slice(1).map(function(part){return pips(part);}).join("/");}
+    function fresh(html){return (html.match(/unit-star-new/g)||[]).length;}
+    function pips(html){return (html.match(/class='unit-star(?: |')/g)||[]).length;}
+    function places(html){
+      var out=[];
+      html.replace(/class='unit-star[^']*' style='left:([^%]+)%;top:([^%]+)%/g,function(_,x,y){
+        out.push(Math.round(parseFloat(x)/100*16)+","+Math.round(parseFloat(y)/100*16));
+      });
+      return out.join(" ");
+    }
+    var at=[[0,1],[0,6],[0,11],[5,3],[5,8],[10,1],[10,6]];
     var heads=headsOf(screen);
     var earned=[0,1].map(function(p){return p===a.player ? a.exp-out.attackerExpBefore : d.exp-out.defenderExpBefore;});
     var rank=[0,1].map(function(p){return p===a.player ? a.exp : d.exp;});
     ok(heads.length===2 && [0,1].every(function(p){
-        return heads[p].includes("battle-rank-icon") && heads[p].includes("data-exp='0'") &&
-          (rank[p]>=8 ? heads[p].includes("battle-rank-general") && !pips(heads[p]) : pips(heads[p])===rank[p]) &&
+        return heads[p].includes("<span class='unit-mark'><canvas") && heads[p].includes("unit-stars") &&
+          (rank[p]>=8 ? heads[p].includes("unit-general") && !pips(heads[p]) : pips(heads[p])===rank[p]) &&
           fresh(heads[p])===(rank[p]>=8 && earned[p] ? 1 : earned[p]);
       }) && !screen.includes("Experience gained"),
-      "each enlarged header icon shows its whole rank as stars or the General star; only the earned ones glow");
-    var expected={0:"",1:"1",3:"3",4:"3/1",5:"3/2",6:"3/2/1",7:"3/2/2"};
-    ok(Object.keys(expected).every(function(n){
+      "each header shows the unit mark, its whole rank beside the icon; only the earned stars glow");
+    ok([0,1,3,4,5,6,7].every(function(n){
       var head=headsOf(REPORT.screenHtml(a,d,out.preview,a0,d0,a.strength,d.strength,+n,0,undefined,undefined,"ready"))[a.player];
-      return layout(head)===expected[n] && !head.includes("battle-rank-general") && !fresh(head);
-    }),"header ranks fill columns of 3, 2 and 3 stars, as on every other icon");
+      return places(head)===at.slice(0,+n).map(function(p){return p.join(",");}).join(" ") &&
+        !head.includes("unit-general") && !fresh(head);
+    }),"header stars sit at the original box coordinates");
     var most=Math.max(earned[0],earned[1]),at0=REPORT.present(report.snapshot,0).screen;
-    ok(!at0.includes("battle-rank-new") && (!most || REPORT.present(report.snapshot,350).screen===REPORT.present(report.snapshot,699).screen),
+    ok(!at0.includes("unit-star-new") && (!most || REPORT.present(report.snapshot,350).screen===REPORT.present(report.snapshot,699).screen),
       "new stars follow the reward clock, one rank per 350 ms, and the screen is unchanged between ranks");
     var two=headsOf(REPORT.screenHtml(a,d,out.preview,a0,d0,a.strength,d.strength,5,2,7,2,"result"))[a.player];
-    ok(fresh(two)===2 && layout(two)==="3/2/2" && two.indexOf("animation-delay:-350ms")<two.indexOf("animation-delay:-0ms"),
+    ok(fresh(two)===2 && places(two)===at.map(function(p){return p.join(",");}).join(" ") &&
+      two.indexOf("animation-delay:-350ms")<two.indexOf("animation-delay:-0ms"),
       "a second new star joins without restarting the first star's glow");
     var promoted=headsOf(REPORT.screenHtml(a,d,out.preview,a0,d0,a.strength,d.strength,6,2,8,2,"result"));
-    ok(promoted[a.player].includes("battle-rank-general battle-rank-new") && !pips(promoted[a.player]) &&
+    ok(promoted[a.player].includes("unit-general unit-star-new") && !pips(promoted[a.player]) &&
       promoted[a.player].includes("General, 2 newly earned") && !fresh(promoted[d.player]),
-      "reaching rank 8 replaces the columns with the glowing General star");
+      "reaching rank 8 replaces the small stars with the glowing General star");
     var models=screen.slice(screen.indexOf("battle-field"),screen.indexOf("battle-stat-panels"));
-    ok(!/data-exp='[1-8]'/.test(models)&&screen.includes("data-exp-glow-from"),
-      "formation machines have no rank overlays; earned stars glow only on the header icons");
+    ok(!models.includes("unit-stars")&&screen.includes("data-exp-glow-from"),
+      "formation machines have no stars; earned stars glow only in the header marks");
     var fighting=REPORT.animate(report.snapshot,0),summary=REPORT.animate(report.snapshot,REPORT.fightingDuration(report.snapshot)+REPORT.rewardDuration(report.snapshot));
     ok(before.includes("data-battle-phase='ready'")&&fighting.screen.includes("data-battle-phase='fighting'")&&
-      !fighting.screen.includes("battle-rank-new")&&fighting.math===""&&summary.screen===screen&&summary.math===report.math,
+      !fighting.screen.includes("unit-star-new")&&fighting.math===""&&summary.screen===screen&&summary.math===report.math,
       "ready, fighting and result are distinct stages; experience and final arithmetic appear after combat");
   });
   var ledger = REPORT.emptyLedger();
