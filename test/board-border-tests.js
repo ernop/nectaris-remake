@@ -16,17 +16,13 @@ module.exports=function(ok) {
       var dims=renderer.viewBounds(),shape=true,scenery=true,name=id+" "+(sideways?"turned ":"")+width+"x"+height;
       renderer.originX=16-dims.left;renderer.originY=24-dims.top;pixels={};
       renderer.drawTerrainLayer({minCol:0,maxCol:width-1,minRow:0,maxRow:height-1});
-      // Art edges step in whole art pixels, so an edge tile may paint one
-      // pixel past its selectable hex; everything farther out is margin.
-      function margin(x,y){for(var dy=-1;dy<=1;dy++)for(var dx=-1;dx<=1;dx++)
-        if(renderer.pixelToHex(x+dx+.5,y+dy+.5))return false;return true;}
       for(var y=0;y<dims.height;y++)for(var x=0;x<dims.width;x++) {
         var qx=Math.max(8-x-.5,0,x+.5-(dims.width-8));
         var qy=Math.max(8-y-.5,0,y+.5-(dims.height-8));
         var color=pixels[(16+x)+","+(24+y)],value=T.palette.indexOf(color);
         if((color!==background)!==(qx*qx+qy*qy<=64))shape=false;
         if(["road","base","factory","valley","bridge"].indexOf(id)>=0&&color!==background&&color!==rim&&
-          (value<1||value>4)&&margin(16+x,24+y))scenery=false;
+          (value<1||value>4)&&!renderer.pixelToHex(16+x+.5,24+y+.5))scenery=false;
       }
       ok(shape,name+" fills one continuous rounded board frame");
       ok(scenery,name+" margin never duplicates a building, a road exit or a ravine");

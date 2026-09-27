@@ -468,7 +468,9 @@ terrain and building migration for Remake are still pending.
 **Art set → Legacy** in the game or editor uses all 23 unit icons
 adapted from [ユニットデータ](https://anka.sakura.ne.jp/nectaris/d2.html), together
 with original-style pixel terrain: maroon plains, gray ridges, pink plateaus,
-pale connected roads and domed installations. Legacy uses 48×32 flattened
+pale connected roads and continuous riverbeds. Its buildings follow the
+original's: the base is a walled prison camp, the factory has round tanks and a
+piped hall, and a neutral factory is yellow. Legacy uses 48×32 flattened
 hexes, 32×32 pitch and a 16-pixel column stagger. The 32×32 unit frames scale with their hexes when zooming.
 Mountain ranges join continuously across hex corners. A thin rounded board
 frame fills exterior gaps with decorative terrain, without adding playable

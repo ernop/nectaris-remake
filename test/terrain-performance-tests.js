@@ -5,9 +5,11 @@ var freshTerrain = new Function("module", source + "\nreturn LEGACY_TERRAIN;");
 
 module.exports = function (ok) {
   var terrain = freshTerrain({exports: {}}), neighbors = ["plain", "road", "factory", "hill", "valley", null];
-  // Captured from the 2026-09-27 redesign (2x2 art pixels, flat and turned
-  // layouts). Any intended art change must re-capture it; an optimization
-  // must not. Protects every mountain mask and texture.
+  // Captured 2026-09-27 from the original-style art with continuous
+  // riverbeds and the original's base and factory, in the flat and turned
+  // layouts. Any intended art change must
+  // re-capture it; an optimization must not. Protects every mountain mask and
+  // texture.
   var digest=require("node:crypto").createHash("sha256");
   [false,true].forEach(function(turned){
     ["plain","hill","mountain","road","valley","bridge","waste","base","factory","void"].forEach(function(id){
@@ -17,8 +19,8 @@ module.exports = function (ok) {
       }
     });
   });
-  assert.equal(digest.digest("hex"),"8a40455499746b9e916c95fd42448ce9225a7b4c40cf63b9e083c4127563eb68");
-  ok(true,"10,240 flat and turned terrain samples exactly match the redesign's pixel checksum");
+  assert.equal(digest.digest("hex"),"d4babd8ac09cc38cf1d6f7cf476efaebcf3683bf8924cf7aaecc2ca672bc6d2e");
+  ok(true,"10,240 flat and turned terrain samples exactly match the recorded pixel checksum");
   // Compare shared-cache output with independently generated tiles. Neighbor
   // names that share a cache entry must have identical visual connections.
   var rng = require("../js/combat.js").makeRng(90137);

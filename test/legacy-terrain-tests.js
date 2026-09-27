@@ -24,18 +24,15 @@ module.exports = function(ok) {
   H.neighbors(2,2).forEach(function(n,i){var p=renderer.hexCenter(n.col,n.row);
     ok((p.x-origin.x)/renderer.zoom===T.offsets[i][0]&&(p.y-origin.y)/renderer.zoom===T.offsets[i][1],"terrain edge direction matches logical neighbor "+i);
   });
-  // Art is drawn on the original's 24x16 hex in 2x2 pixels. The turned layout
-  // is the same hex after the board's quarter turn, with the art kept upright.
-  function artHex(w,h){return function(i){
-    var x=((i%(w*2))>>1)+.5-w/2,y=(Math.floor(i/(w*2))>>1)+.5-h/2;return Math.abs(x)+Math.abs(y)<=12;};}
-  var flatHex=artHex(24,16),turnedHex=artHex(16,24);
+  // The turned layout is the same hex after the board's quarter turn, with the
+  // art kept upright.
   ["plain","road","waste","hill","mountain","valley","bridge","factory","base"].forEach(function(id){
     var t=T.tile(id,Array(6).fill(id),3,0),turned=T.tile(id,Array(6).fill(id),3,0,true);
     ok(t.width===48&&t.height===32&&t.pixels.some(Boolean),id+" uses native tile size");
-    ok(t.pixels.every(function(v,i){return Boolean(v)===flatHex(i);}),id+" exactly fills its flattened hex in whole art pixels");
-    ok(t.pixels.every(function(v,i){var x=i%48,y=Math.floor(i/48);return v===t.pixels[(y&~1)*48+(x&~1)];}),id+" draws every art pixel as a 2x2 block");
-    ok(turned.width===32&&turned.height===48&&turned.pixels.every(function(v,i){return Boolean(v)===turnedHex(i);}),
-      id+" turned tile fills the quarter-turned hex");
+    ok(t.pixels.every(function(v,i){var x=i%48+.5-24,y=Math.floor(i/48)+.5-16;return Boolean(v)===(Math.abs(x)+Math.abs(y)<=24);}),id+" exactly fills its flattened hex mask");
+    ok(turned.width===32&&turned.height===48&&turned.pixels.every(function(v,i){
+      var x=i%32+.5-16,y=Math.floor(i/32)+.5-24;return Boolean(v)===(Math.abs(x)+Math.abs(y)<=24);}),
+      id+" turned tile exactly fills the quarter-turned hex");
     T.draw(ctx,50.3,50.7,1.15,id,Array(6).fill(id),3,0);
   });
   // Every interior pixel is covered: flattened tiles must meet without cracks.
@@ -52,7 +49,7 @@ module.exports = function(ok) {
     ok([8,9].indexOf(t.pixels[y*48+x])>=0,"road reaches neighbor edge "+i);
   });
   T.layouts.turned.offsets.forEach(function(p,i){var ns=Array(6).fill("plain");ns[i]="road";
-    var t=T.tile("road",ns,0,-1,true),x=Math.floor(16+p[0]*2*.47),y=Math.floor(24+p[1]*2*.47);
+    var t=T.tile("road",ns,0,-1,true),x=Math.floor(16+p[0]*.47),y=Math.floor(24+p[1]*.47);
     x=Math.max(0,Math.min(31,x));y=Math.max(0,Math.min(47,y));
     ok([8,9].indexOf(t.pixels[y*32+x])>=0,"turned road reaches neighbor edge "+i);
   });
@@ -67,6 +64,17 @@ module.exports = function(ok) {
   ok(same,"a turned board draws the base's upright turned tile at its turned position");
   var blue=T.tile("base",[],0,0),green=T.tile("base",[],0,1);
   ok(blue.pixels.some(function(v,i){return v!==green.pixels[i];}),"capturing a Legacy building changes its ownership palette");
+  // The base (a prison camp) and the factory are different buildings, not
+  // one building in two colours.
+  [-1,0,1].forEach(function(owner){[false,true].forEach(function(turned){
+    var plain=T.tile("plain",Array(6).fill("plain"),0,-1,turned).pixels,painted=0,same=0;
+    var base=T.tile("base",Array(6).fill("plain"),0,owner,turned).pixels,factory=T.tile("factory",Array(6).fill("plain"),0,owner,turned).pixels;
+    plain.forEach(function(v,i){if(base[i]!==v||factory[i]!==v){painted++;if(base[i]===factory[i])same++;}});
+    ok(painted>400&&same<painted/2,"base and factory differ in shape for owner "+owner+(turned?" on a turned board":""));
+  });});
+  function hasColor(t,c){return t.pixels.some(function(v){return T.palette[v]===c;});}
+  ok(hasColor(T.tile("factory",[],0,-1),"#f8f070")&&!hasColor(T.tile("base",[],0,-1),"#f8f070"),
+    "a neutral factory is yellow, as in the original, and a neutral base is not");
   R.setIconSet("remake");ok(renderer.minimumZoom()<=0.2,"Remake also permits the full-map overview");
   R.setIconSet(oldSet);R.setStyle(oldStyle);
 };

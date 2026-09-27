@@ -20,8 +20,9 @@ instructions for the next session.
 
 The product retains lunar military tactics, sourced PCE rules with English unit
 names, and the requested browser facilities. The visual direction is angular
-military pixel art with small infantry, pale armor, upper-left light and domed
-bases; Remake and Legacy have distinct provenance and implementation status.
+military pixel art with small infantry, pale armor and upper-left light. Remake
+bases are domed; Legacy buildings follow the original's top-down tiles. Remake
+and Legacy have distinct provenance and implementation status.
 Original map families and their route, symmetry, roster and inventory choices
 are recorded in PRODUCT, separately from imported campaigns that must not be
 retuned. These themes do not authorize extra features or unsourced rule changes.
@@ -42,7 +43,7 @@ retuned. These themes do not authorize extra features or unsourced rule changes.
 | UI contrast | Explicit requirement: opaque readable text and saturated faction colors, including secondary labels and campaign numbers. [Color guidance](PRODUCT.md#readable-interface-colors-2026-09-23). |
 | Factory inspection | Hover supplies contents; clicking opens only an owned building's actionable deployment picker. The 2026-09-26 clarification preserves the existing stars/layout; the reported missing-star mouseover still needs an exact reproducer. [Factory behavior](PRODUCT.md#building-capture-storage-and-deployment-updated-2026-09-23). |
 | Legacy unit icons | Rebuilt 2026-09-26 after the user reported a broken Rabbit: all 46 frames had see-through holes and uneven pixels. The importer now reads the chart's 2×2 art-pixel grid; every unit, infantry included, is drawn at exactly 2× by user decision, and the Remake size limits no longer apply to Legacy. [Decision](PRODUCT.md#selectable-art-sets-2026-09-20), [method](art/legacy/README.md). |
-| Legacy terrain and borders | Implemented: flattened geometry, connected relief, continuous mountain runs and a rounded board frame. The user requested better borders; the frame shape was an implementation choice, not an explicitly selected user preference. Redrawn 2026-09-27 at the user's request on the original's 2×2 art-pixel grid; turned boards draw the tiles upright instead of rotating them. The looks are implementation choices, still unreviewed by the user. [Border requirements](PRODUCT.md#connected-terrain-and-board-borders-2026-09-23), [redraw](PRODUCT.md#legacy-terrain-redraw-and-upright-turned-boards-2026-09-27). |
+| Legacy terrain and borders | Implemented: flattened geometry, connected relief, continuous mountain runs and a rounded board frame. The user requested better borders; the frame shape was an implementation choice, not an explicitly selected user preference. Turned boards draw the tiles upright instead of rotating them (user, 2026-09-27). A 2×2 art-grid redraw of the tiles was reverted the same day at the user's request; the prior tiles are back, with the redraw's continuous riverbeds kept. Also that day, at the user's request, the base and factory were redrawn after the original's tiles (walled prison camp; tanks, hall and sheds) so they no longer look alike. [Border requirements](PRODUCT.md#connected-terrain-and-board-borders-2026-09-23), [redraw](PRODUCT.md#legacy-terrain-redraw-and-upright-turned-boards-2026-09-27). |
 | Remake production terrain/buildings and flattened geometry | Planned, still pending. The art review fixture is not production completion. Classic/neon retain their existing vector rendering and projection. [Art status](ART_DIRECTION.md#implementation-status-and-remaining-checks). |
 | Fifteen numerical ground-unit concepts | Experimental proposals, not additions to the playable roster. Numerical coverage is not evidence of balance; artwork is a separate review pack. [Study, assumptions and playtesting needs](tools/design-space/README.md). |
 | Fifteen designed ground-unit concepts | Experimental proposals, not additions to the playable roster. One missing decision per unit, drawn inside the 1989 rule grammar, separate from the numerical distance study. [Design and overview](grok4.7/README.md). |
@@ -115,11 +116,14 @@ Release first, verify later (user decision). Examine together later:
     - whether the dark edge keeps stars legible on light unit art;
     - the glow of new stars, the General included;
     - a damaged cargo unit's count above its stars.
-18. The redrawn Legacy terrain (2026-09-27), normal and turned:
-    - every terrain type, bridges and both building kinds at zoom 1–4;
+18. Legacy terrain after the 2026-09-27 changes, normal and turned:
+    - the new riverbeds beside every other terrain type, bridges included;
+    - the new base and factory for each owner, including under the stored-unit
+      count badge and with a unit standing on them;
+    - the prior tiles drawn upright on turned boards, at zoom 1–4;
     - tall maps such as RAMSEY under Board: Auto;
-    - frame corners and margins;
-    - highlights and clicks along diagonal hex edges.
+    - frame corners and margins.
+19. The Fit board (F) button and key during AI turns, battles and replays.
 
 Research rather than a check: direct PC Engine confirmation of the Windows
 combat traces.

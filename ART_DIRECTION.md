@@ -228,21 +228,25 @@ Review their placement against long guns and rotor tips; do not bake UI into art
   without extra playable cells, copied buildings or extended roads. See
   [the border record](PRODUCT.md#connected-terrain-and-board-borders-2026-09-23)
   for the user request, implementation choice and superseded edge treatment.
-- Legacy terrain is drawn on the original's 24×16 art grid in 2×2 native
-  pixels (2026-09-27). Its hex outline steps in whole art pixels. Picking
-  keeps the one-pixel hex, so they differ by at most one native pixel along
-  diagonal edges. Turned boards draw the tiles upright in a 32×48 turned
-  layout rather than rotating the picture. See
-  [the redraw record](PRODUCT.md#legacy-terrain-redraw-and-upright-turned-boards-2026-09-27).
+- Turned boards draw the Legacy tiles upright in a 32×48 turned layout rather
+  than rotating the picture. Legacy valleys are continuous ravines whose banks
+  neighbouring tiles draw. A 2×2 art-grid redraw of the other tiles was
+  reverted the same day at the user's request (2026-09-27). See
+  [the record](PRODUCT.md#legacy-terrain-redraw-and-upright-turned-boards-2026-09-27).
 - Terrain frames are 48×32. Buildings are original 32×32 objects with the
   common anchor, pixel lighting and faction colors, above continuous ground.
   Bases use low domed bunkers, uneven service blocks, perimeter walls and an
   open courtyard/ramp, inspired by the original installations. Avoid large
   box-shaped sheds. Center the visible compound horizontally within its hex.
+  Legacy departs from this (user, 2026-09-27): its base is the original's
+  walled prison camp and its factory the original's tanks, hall and sheds, seen
+  from above, in Union blue, Xenon green or neutral yellow (factory) and grey
+  (base). The two must differ in shape, not only in colour.
 - No permanent full-map grid in normal view. Provide a grid toggle and
   movement/attack/selection overlays with exact geometry when useful.
 - Start with a documented terrain palette capped at 24 opaque colors across
-  the set; keep terrain contrast and detail subordinate to units.
+  the set; keep terrain contrast and detail subordinate to units. Legacy uses
+  28 since 2026-09-27, for the original's owner shades on buildings.
 
 ## Regeneration method and deliverables
 
@@ -314,7 +318,8 @@ outlines and remain subject to the safe envelope; they are not solid rectangles.
    native data. Map sprites scale proportionally at fractional and whole map
    zooms, with shared pixel boundaries rounded for crisp rendering. Larger maps scroll. Classic/neon retain their existing vector artwork.
 3. **Legacy geometry and terrain integrated.** Production game/editor maps use
-   48×32 flattened terrain, connected roads/relief and domed installations.
+   48×32 flattened terrain, connected roads/relief and the original's
+   top-down buildings.
    Continuous mountains and the rounded board frame have dedicated regression
    checks. Picking, bounds, panning and editor projection share that geometry.
 4. **Remake geometry and terrain pending.** Its review fixture uses the planned

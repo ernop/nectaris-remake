@@ -145,7 +145,10 @@ Facts we need across sessions:
   center the visible unit silhouette in its tile. Map icons scale with hex zoom, preserving their intended proportions
   (updated 2026-09-21; supersedes the old no-enlargement rule). Inspectors,
   factories and review sheets use the native 32×32 frame. Remake Charlie must
-  stay small within its frame; bases use original-style domed compounds. Legacy
+  stay small within its frame; Remake bases use original-style domed compounds.
+  Legacy buildings follow the original's top-down tiles: the base is a walled
+  prison camp, the factory round tanks, a piped hall and sheds, and the two
+  must differ in shape (user, 2026-09-27). Legacy
   units, infantry included, keep the chart's pixels as exact 2×2 blocks, with no
   resampling and no safe-hex shrink (user decision, 2026-09-26; see
   `art/legacy/README.md`). Review changes in

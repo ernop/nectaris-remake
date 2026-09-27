@@ -77,30 +77,35 @@ roster sheet and map preview share it.
 The user's follow-up also requested the old map tile style. `js/legacy-terrain.js`
 reconstructs that appearance with original code-authored pixels, based on the
 local original-game terrain reference chart: maroon speckled plains, gray
-ridged hills, pink stepped mountain plateaus, pale roads, dark valleys, rubble
-and low white domed buildings with faction trim. These tiles are not extracted
-bitmap assets. The reference captures remain local and gitignored.
+ridged hills, pink stepped mountain plateaus, pale roads, dark valleys and
+rubble. These tiles are not extracted bitmap assets. The reference captures
+remain local and gitignored.
+
+Since 2026-09-27 the buildings follow the original's top-down map tiles, so the
+base and the factory no longer share one domed design. The base is the prison
+camp: a square walled compound with maze-like inner walls, cell windows, a gate
+and a watchtower annex. The factory has two round tanks, a long piped hall and
+two sheds on an L-shaped footing. Both are Union blue or Xenon green; a neutral
+factory is yellow and a neutral base grey. They are text pixel maps in
+`BUILDINGS` in `js/legacy-terrain.js`, drawn for this project after studying
+the screenshots on [Anka's factory page](https://anka.sakura.ne.jp/nectaris/l5.html)
+and the local encirclement-quiz capture. No pixels were copied from them.
 
 The set selects production 48×32 flattened hexes with 32×32 center pitch and
-16-pixel odd-column stagger. Since the 2026-09-27 redraw, every tile is drawn
-on the original's 24×16 art grid, one art pixel per 2×2 native pixels, as the
-re-imported units are. Mountains, valleys and roads are shaped from one shared
-network of cell centres and the lines between connected neighbours. A tile
-next to a mountain or valley draws the part of its cliff or bank that crosses
-the shared edge, so runs stay continuous. Hills form one soft outline over
-rounded bumps with an ordered 2×2 dither. Terrain and unit art scale with the
-map using integer raster boundaries. The board uses a thin, rounded
-rectangular frame. The small gaps outside the outer hexes carry reflected edge
-terrain, without duplicating buildings or extending roads or ravines. This
-decorative margin does not add selectable cells or alter movement. Interior
-hexes keep their exact geometry and terrain pixels. The border is clipped to
-the viewport and included in the shared terrain cache.
+16-pixel odd-column stagger. Roads, hills, mountains and valley banks use
+neighbor-dependent variants. Since 2026-09-27 a valley is a continuous ravine
+along the lines between connected valley cells, and a tile next to a valley
+draws the part of its bank that crosses the shared edge. Terrain and unit art
+scale with the map using integer raster boundaries. The board uses a thin,
+rounded rectangular frame. The small gaps outside the outer hexes carry
+reflected edge terrain, without duplicating buildings or extending roads or
+ravines. This decorative margin does not add selectable cells or alter
+movement. Interior hexes keep their exact geometry and terrain pixels. The
+border is clipped to the viewport and included in the shared terrain cache.
 Picking, highlights, map bounds, panning and editor painting use the same hex
-geometry. The art outline steps in whole art pixels, so an edge tile's art may
-extend one native pixel past its clickable hex along the diagonal edges.
-Classic/neon are unaffected.
+geometry. Classic/neon are unaffected.
 
 On a turned board (Board: Auto or Sideways), the tiles are drawn upright in
-screen space with a turned layout: 16×24 art pixels (32×48 native), the same
-hex after the quarter turn, with the picture's up direction kept. Review both
-orientations with `tools/terrain-sheet.html` on the local development server.
+screen space with a 32×48 turned layout: the same hex after the quarter turn,
+with the picture's up direction kept. Review both orientations with
+`tools/terrain-sheet.html` on the local development server.

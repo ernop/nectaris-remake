@@ -401,33 +401,47 @@ and bottoms. The picture inside it stays upright: light from the upper left,
 domes standing up, cliffs stepping down the screen. Highlights, units and hit
 testing already follow the turned hex and are unchanged.
 
-**Tile redraw.** The user asked for the fix; these looks are implementation
-choices, not user selections.
-- Every tile is drawn on the original's 24×16 art grid, one art pixel per 2×2
-  native pixels, like the re-imported Legacy units. The hex outline steps in
-  whole art pixels, while picking keeps the one-pixel hex. An edge tile's art
-  therefore extends at most one native pixel past its clickable area along the
-  diagonal edges.
-- Plains carry an even, staggered speckle lattice with rare lighter grains.
-- Hills are one soft outline around rounded bumps at the hill's centre and
-  toward connected hills. They are shaded from the upper left with an ordered
-  2×2 dither.
-- Mountains keep the continuous plateaus and stepped cliff bands of the
-  2026-09-23 record above.
-- Valleys are continuous ravines along the valley network, with a lit bank
-  and a shadow bank. Neighbouring tiles draw the parts of a bank that cross
-  into them.
-- Wasteland is scattered, lit pebbles. Roads are 12 native pixels across,
-  including their dark edges (8 before). Bases and factories are white domes
-  with faction trim above a paved apron. They stand 24 native pixels tall
-  instead of 17–18, at the same 28-pixel width.
+**Tile redraw, reverted the same day.** Commit 739421e redrew every tile on the
+original's 24×16 art grid, one art pixel per 2×2 native pixels. It had rounded,
+dithered hills, pebble wasteland, wider roads and taller domes. The user then
+said the prior terrain was "much more beautiful", especially for the normal,
+horizontal maps, and asked to restore it: "things like the 30% hills and the
+20% ones were much nicer there" (wasteland is 30% and hills 20% in the defense
+table). The user allowed keeping the riverbed changes, "since that looked
+janky and weird before"; they are kept. Current state:
+- Plains, hills, wasteland, mountains, roads, bridge decks and buildings are
+  the prior tiles again. On a normal board every tile without a valley or
+  bridge is pixel-identical to the pre-redraw generator.
+- Valleys keep the redraw's riverbed: a continuous ravine along the lines
+  between connected valley cells, with a lit bank and a shadow bank.
+  Neighbouring tiles draw the parts of a bank that cross into them. It is drawn
+  one pixel per native pixel, like the other tiles.
+- A turned board draws the same tiles upright in the 32×48 turned layout.
 - The board margin treats valleys and bridges as plain, like roads and
-  buildings.
+  buildings, so no ravine continues past the board's edge.
+
+**Buildings (same day).** The user said "it's vital the BASE look diff than the
+FACTORY" and asked to model the Legacy tiles on the original game's. Both are
+now code-drawn top-down buildings after the original's map tiles, replacing the
+low domes:
+- The base is the original's prison camp (収容所): a square walled compound
+  with maze-like inner walls, cell windows, a gate and a watchtower annex.
+- The factory (工場) has two round storage tanks, a long hall with pipe runs
+  and two sheds on an L-shaped footing.
+- Colours follow the original: Union blue, Xenon green, and a neutral factory
+  yellow. A neutral base, which the original does not show, is grey.
+- Sources studied, not copied: the screenshots on
+  [Anka's factory page](https://anka.sakura.ne.jp/nectaris/l5.html), the local
+  encirclement-quiz capture, and the factory colours described on
+  [game-keyboard.com](http://www.game-keyboard.com/?p=1623). The pixels are
+  drawn in `js/legacy-terrain.js`; no reference image is bundled.
+- `test/legacy-terrain-tests.js` requires the two buildings to differ in shape
+  for every owner, not only in colour.
 
 Review page: `tools/terrain-sheet.html` shows a sampler map and RAMSEY in both
-orientations. Regressions cover the art-grid hex, cracks, road exits and
-upright turned tiles (`test/legacy-terrain-tests.js`), and turned mountain
-runs (`test/mountain-terrain-tests.js`). They also cover both frame
+orientations. Regressions cover the hex mask in both layouts, cracks, road
+exits and upright turned tiles (`test/legacy-terrain-tests.js`), and turned
+mountain runs (`test/mountain-terrain-tests.js`). They also cover both frame
 orientations (`test/board-border-tests.js`) and the pixel checksum over both
 layouts (`test/terrain-performance-tests.js`).
 
@@ -444,8 +458,9 @@ Map icons scale from their 32×32 frame with hex zoom (2026-09-21 correction,
 superseding the old prohibition on enlarging them). Inspector, factory and
 review icons remain native 32×32. Center the visible silhouette horizontally with equal
 left/right transparent padding in every facing. Remake infantry stays smaller within
-its frame (Charlie 18×17, Kilroy 22×17, Panther 22×14 visible). Bases are low domed compounds with
-open service areas, following the original art's structure.
+its frame (Charlie 18×17, Kilroy 22×17, Panther 22×14 visible). Remake bases are low domed compounds with
+open service areas. Legacy buildings follow the original's top-down tiles instead
+([2026-09-27](#legacy-terrain-redraw-and-upright-turned-boards-2026-09-27)).
 
 Use angular military proportions inspired by traditional Japanese hex strategy:
 long low hulls, flat rectangular turrets, straight wing edges, narrow fuselages
