@@ -10,6 +10,10 @@
 //! nectaris-sim bench [CORPUS]
 //!   Times the rules alone: replays every game without per-command
 //!   fingerprints, checking only each game's final state.
+//! nectaris-sim turn-time --board=N [--seed=3] [--round=6] [--bots=tactical,beam,monte-carlo,apex] [--work=standard]
+//!   Plays Classic self-play to the round, as tools/ai-research/speed-bench.cjs
+//!   does, then times one whole side's turn for each bot from that position
+//!   and prints the resulting state fingerprint.
 //! nectaris-sim tournament --out=DIR [--opponents=classic,tactical,...]
 //!     [--boards=all|0,1] [--cycles=1] [--rounds=0] [--work=standard]
 //!     [--seed=42] [--self-play] [--threads=N]
@@ -29,6 +33,47 @@ fn check_protocol(c: &corpus::Corpus) -> bool {
         return false;
     }
     true
+}
+
+fn turn_time(flags: &HashMap<String, String>) -> Result<(), String> {
+    let known = ["board", "seed", "round", "bots", "work"];
+    if let Some(k) = flags.keys().find(|k| !known.contains(&k.as_str())) {
+        return Err(format!("Unknown option --{k}"));
+    }
+    let data = Data::load(repo().join("sim/data/game-data.json").to_str().unwrap());
+    let get = |k: &str| -> Result<i64, String> {
+        let v = flags.get(k).ok_or(format!("--{k} is required"))?;
+        v.parse().map_err(|_| format!("--{k} must be a whole number"))
+    };
+    let board = get("board")? as usize;
+    if board >= data.boards.len() {
+        return Err(format!("--board must be below {}", data.boards.len()));
+    }
+    let seed = flags.get("seed").map_or(Ok(3), |v| v.parse::<u32>().map_err(|_| "--seed must be a whole number".to_string()))?;
+    let round = flags.get("round").map_or(Ok(6), |v| v.parse::<i32>().map_err(|_| "--round must be a whole number".to_string()))?;
+    let work = flags.get("work").map_or("standard", String::as_str);
+    let mut g = Game::new(&data, board, seed, 0);
+    while g.winner < 0 && g.turn < round {
+        let side = g.current;
+        nectaris_sim::classic::play_turn(&mut g, side);
+        if g.winner < 0 {
+            g.end_turn();
+        }
+    }
+    if g.winner >= 0 {
+        return Err(format!("{} ended before round {round}", data.boards[board].name));
+    }
+    for bot in flags.get("bots").map_or("tactical,beam,monte-carlo,apex", String::as_str).split(',') {
+        let mut c = g.sim_clone(g.rng);
+        let side = c.current;
+        let started = Instant::now();
+        match bot {
+            "classic" => nectaris_sim::classic::play_turn(&mut c, side),
+            id => nectaris_sim::search::play_turn(&mut c, side, id, work),
+        }
+        println!("{} round {round}, {bot}: {:.3} s, fingerprint {}", data.boards[board].name, started.elapsed().as_secs_f64(), hash::state_hash(&c));
+    }
+    Ok(())
 }
 
 fn tournament_command(flags: &HashMap<String, String>) -> Result<(), String> {
@@ -216,7 +261,7 @@ fn main() {
     let default = repo().join("test/fixtures/sim-corpus.json.gz");
     let path = args.get(2).map(|s| s.as_str()).unwrap_or(default.to_str().unwrap());
     let command = args.get(1).map(|s| s.as_str());
-    if command != Some("tournament") {
+    if command != Some("tournament") && command != Some("turn-time") {
         if let Some(k) = flags.keys().next() {
             eprintln!("Unknown option --{k}");
             std::process::exit(1);
@@ -227,6 +272,13 @@ fn main() {
         Some("decide") => decide(path),
         Some("bench") => bench(path),
         Some("tournament") => match tournament_command(&flags) {
+            Ok(()) => true,
+            Err(e) => {
+                eprintln!("{e}");
+                false
+            }
+        },
+        Some("turn-time") => match turn_time(&flags) {
             Ok(()) => true,
             Err(e) => {
                 eprintln!("{e}");

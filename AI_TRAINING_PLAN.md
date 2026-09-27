@@ -188,8 +188,10 @@ more add little.
   capability-based features. No special-case rules or hand-picked penalties for
   particular situations.
 - **Unchanged runtime:** the browser build stays dependency-free and plain
-  script. Training code lives in `tools/` and runs on Node only. Learned weights
-  ship as a checked-in data file with their provenance.
+  script. Self-play and training run in the Rust simulator (`sim/`), locked to
+  the JavaScript bots ("write an ultrafast rust game sim tool and use that",
+  user, 2026-09-27). Learned weights ship as a checked-in data file that both
+  read, with their provenance.
 - **Reproducible:** search keeps fixed work budgets (no wall-clock cutoffs), so
   the same position and weights give the same decision on any machine.
 - **Playable:** per-turn thinking time in the browser must meet agreed targets.
@@ -212,7 +214,21 @@ games):
 | Apex | 1.9 s | — | over 9 min per game, unfinished | 176 s |
 
 Apex needs about three minutes for one mid-game turn on
-the last normal-campaign board. A profile of the Sequence turn puts about 40%
+the last normal-campaign board.
+
+**Update 2026-09-27,** after the JavaScript speed steps: one side's whole turn
+on NECTOR at round 6 of Classic self-play from seed 3 (`nectaris-sim turn-time
+--board=15`). Both implementations reach the same position after the turn.
+
+| Bot | JavaScript (the browser) | Rust |
+| --- | --- | --- |
+| Tactical | 0.09 s | 0.008 s |
+| Sequence | 0.90 s | 0.107 s |
+| Simulation | 2.26 s | 0.311 s |
+| Apex | 14.2 s | 1.65 s |
+
+This game thins out after round 6; the three-minute position above came from
+another game. A profile of the Sequence turn puts about 40%
 of the time in movement ranges: `Game.movementRange` 20%, the enemy threat map
 built from every enemy's range 11%, `enemyZOC` 10.5%.
 
