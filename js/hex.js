@@ -19,25 +19,22 @@ var HEX = (function () {
     return { col: col, row: row };
   }
 
-  var CUBE_DIRS = [
-    { x: 1, y: -1, z: 0 }, { x: 1, y: 0, z: -1 }, { x: 0, y: 1, z: -1 },
-    { x: -1, y: 1, z: 0 }, { x: -1, y: 0, z: 1 }, { x: 0, y: -1, z: 1 },
-  ];
+  // Neighbour order is the cube directions (+x−y), (+x−z), (+y−z), (−x+y),
+  // (−x+z), (−y+z), as offset steps (col, row pairs) for even and odd columns.
+  // Search calls these constantly, so they avoid cube objects.
+  var NEIGHBOR_STEPS = [[1, 0, 1, -1, 0, -1, -1, -1, -1, 0, 0, 1], [1, 1, 1, 0, 0, -1, -1, 0, -1, 1, 0, 1]];
 
   // All 6 neighbors of an offset coordinate, as offset coordinates.
   function neighbors(col, row) {
-    var c = toCube(col, row);
-    var out = [];
-    for (var i = 0; i < 6; i++) {
-      var d = CUBE_DIRS[i];
-      out.push(toOffset({ x: c.x + d.x, y: c.y + d.y, z: c.z + d.z }));
-    }
-    return out;
+    var s = NEIGHBOR_STEPS[col & 1];
+    return [{ col: col + s[0], row: row + s[1] }, { col: col + s[2], row: row + s[3] },
+      { col: col + s[4], row: row + s[5] }, { col: col + s[6], row: row + s[7] },
+      { col: col + s[8], row: row + s[9] }, { col: col + s[10], row: row + s[11] }];
   }
 
   function distance(c1, r1, c2, r2) {
-    var a = toCube(c1, r1), b = toCube(c2, r2);
-    return Math.max(Math.abs(a.x - b.x), Math.abs(a.y - b.y), Math.abs(a.z - b.z));
+    var dx = c1 - c2, dz = r1 - ((c1 - (c1 & 1)) >> 1) - (r2 - ((c2 - (c2 & 1)) >> 1));
+    return Math.max(Math.abs(dx), Math.abs(dx + dz), Math.abs(dz));
   }
 
   // Pixel placement for flat-top hexes of circumradius `size`.

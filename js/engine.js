@@ -70,6 +70,66 @@ var ENGINE = (function () {
     return first.value;
   };
 
+  /* Per-map tables for movement search, keyed by the terrain array that AI
+   * copies of a match share. Neighbour cells, keys and building cells never
+   * change after construction. Unit positions are read afresh on every call,
+   * and the scratch arrays are cleared after each search. */
+  var TABLES = new WeakMap();
+  function tablesFor(game) {
+    var t = TABLES.get(game.terrain);
+    if (t) return t;
+    var w = game.width, size = w * game.height;
+    t = { width: w, size: size, neighbors: new Int32Array(size * 6), keys: new Array(size),
+      building: new Uint8Array(size), cells: new Array(size), drains: new Uint8Array(size), costs: new Map(),
+      occupant: new Int32Array(size), zone: new Int8Array(size), best: new Float64Array(size).fill(Infinity),
+      record: new Array(size) };
+    for (var row = 0; row < game.height; row++) for (var col = 0; col < w; col++) {
+      var at = row * w + col, ns = HEX.neighbors(col, row);
+      t.keys[at] = HEX.key(col, row);
+      for (var i = 0; i < 6; i++) {
+        var n = ns[i];
+        t.neighbors[at * 6 + i] = n.col >= 0 && n.col < w && n.row >= 0 && n.row < game.height ? n.row * w + n.col : -1;
+      }
+    }
+    Object.values(game.buildings).forEach(function (b) { t.building[b.row * w + b.col] = 1; });
+    refreshTerrain(game, t);
+    TABLES.set(game.terrain, t);
+    return t;
+  }
+  function refreshTerrain(game, t) {
+    for (var at = 0; at < t.size; at++) {
+      var terr = game.terrain[(at / t.width) | 0][at % t.width];
+      t.cells[at] = terr;
+      t.drains[at] = terr.costsAllMovement ? 1 : 0;
+    }
+    t.costs.clear();
+  }
+  // The tables with terrain costs matching the terrain as it is now. Tests and
+  // tools edit terrain cells in place, so every search checks the cells first.
+  function terrainTables(game) {
+    var t = tablesFor(game), cells = t.cells, w = t.width;
+    for (var row = 0, at = 0; row < game.height; row++) {
+      var line = game.terrain[row];
+      for (var col = 0; col < w; col++, at++) {
+        if (cells[at] !== line[col]) { refreshTerrain(game, t); return t; }
+      }
+    }
+    return t;
+  }
+  // Entry cost of every hex for one chassis; -1 where it cannot enter.
+  function stepCosts(game, t, type) {
+    var id = type.moveType + "|" + (type.cannotEnter ? type.cannotEnter.join(",") : "");
+    var costs = t.costs.get(id);
+    if (costs) return costs;
+    costs = new Float64Array(t.size);
+    for (var at = 0; at < t.size; at++) {
+      var c = terrainCost(t.cells[at], type.moveType, type);
+      costs[at] = c === null ? -1 : c;
+    }
+    t.costs.set(id, costs);
+    return costs;
+  }
+
   function wholeNumber(value, min, max) {
     return Number.isInteger(value) && value >= min && value <= max;
   }
@@ -297,7 +357,9 @@ var ENGINE = (function () {
   };
 
   Game.prototype.buildingAt = function (col, row) {
-    return this.buildings[HEX.key(col, row)] || null;
+    if (row < 0 || row >= this.height || col < 0 || col >= this.width) return null;
+    var t = tablesFor(this), at = row * this.width + col;
+    return t.building[at] ? this.buildings[t.keys[at]] || null : null;
   };
 
   Game.prototype.inBounds = function (col, row) {
@@ -330,8 +392,16 @@ var ENGINE = (function () {
     }, this);
   };
 
+  // surroundRing's rule, stopping at the first uncontrolled hex.
   Game.prototype.isSurrounded = function (unit) {
-    return this.surroundRing(unit).every(function (hex) { return hex.controlled; });
+    var ns = HEX.neighbors(unit.col, unit.row);
+    for (var i = 0; i < 6; i++) {
+      var n = ns[i];
+      if (!this.inBounds(n.col, n.row)) return false;
+      var occupant = this.unitAt(n.col, n.row);
+      if (!(occupant && occupant.player !== unit.player) && !this.inEnemyZOC(n.col, n.row, unit.player)) return false;
+    }
+    return true;
   };
 
   Game.prototype.adjacentAllies = function (col, row, player, exclude) {
@@ -383,81 +453,86 @@ var ENGINE = (function () {
     result[startKey] = { col: unit.col, row: unit.row, cost: 0, canStop: true, prev: null };
     if (unit.shifted || unit.movePointsLeft <= 0) return result;
 
-    // Index only for this synchronous search. Units are also moved directly
-    // during AI simulations/editor operations, so a persistent cache could
-    // silently use stale positions after a move, undo, deployment or load.
-    var occupants = Object.create(null), zones = Object.create(null);
-    for (var i = 0; i < this.units.length; i++) {
-      var u = this.units[i], key = HEX.key(u.col, u.row);
-      if (!u.carriedBy && !u.inFactory && !occupants[key]) occupants[key] = u;
-    }
-    function enemyZOC(col, row, key) {
-      if (zones[key] !== undefined) return zones[key];
-      var neighbors = HEX.neighbors(col, row);
-      for (var j = 0; j < neighbors.length; j++) {
-        var other = occupants[HEX.key(neighbors[j].col, neighbors[j].row)];
-        if (other && other.player !== unit.player) return (zones[key] = true);
+    // Occupancy is indexed only for this synchronous search. Units are also
+    // moved directly during AI simulations/editor operations, so a persistent
+    // index could silently use stale positions after a move, undo, deployment
+    // or load. Cells are numbered row * width + col; records keep their keys.
+    var t = terrainTables(this), w = this.width, h = this.height, nbr = t.neighbors, keys = t.keys;
+    var occupant = t.occupant, zone = t.zone, best = t.best, record = t.record, drainsAt = t.drains;
+    var costs = stepCosts(this, t, unit.type), units = this.units, player = unit.player;
+    var air = unit.type.moveType === "air", budget = unit.movePointsLeft;
+    var start = unit.row * w + unit.col, filled = [], touched = [start];
+    function enemyZOC(cell) {
+      if (zone[cell]) return zone[cell] === 2;
+      for (var j = cell * 6, end = j + 6; j < end; j++) {
+        var nb = nbr[j];
+        if (nb >= 0 && occupant[nb] && units[occupant[nb] - 1].player !== player) { zone[cell] = 2; return true; }
       }
-      return (zones[key] = false);
+      zone[cell] = 1;
+      return false;
     }
-    var budget = unit.movePointsLeft;
+    try {
+      for (var i = 0; i < units.length; i++) {
+        var u = units[i];
+        if (u.carriedBy || u.inFactory || u.col < 0 || u.col >= w || u.row < 0 || u.row >= h) continue;
+        var at = u.row * w + u.col;
+        if (!occupant[at]) { occupant[at] = i + 1; filled.push(at); }
+      }
+      best[start] = 0; record[start] = result[startKey];
 
-    // The origin is exempt from a ZOC stop, not from terrain costs on entry
-    // to the next hex. Confirmed by the original Windows movement routine;
-    // see ORIGINAL_EXECUTABLE_NOTES.md and the recorded ZOC fixtures.
-    var frontier = new CostQueue();
-    frontier.push({ col: unit.col, row: unit.row, cost: 0 });
-    var cur;
-    while ((cur = frontier.pop()) !== null) {
-      var curKey = HEX.key(cur.col, cur.row);
-      if (cur.cost !== result[curKey].cost) continue;
-      if (curKey === destinationKey) break;
-      if (result[curKey].stop && curKey !== startKey) continue; // ZOC: no expansion past
-      var ns = HEX.neighbors(cur.col, cur.row);
-      for (i = 0; i < ns.length; i++) {
-        var n = ns[i];
-        if (!this.inBounds(n.col, n.row)) continue;
-        var terr = this.terrainAt(n.col, n.row);
-        var baseCost = terrainCost(terr, unit.type.moveType, unit.type);
-        if (baseCost === null) continue; // impassable for this chassis
-        var stepCost = baseCost;
-        /* Valley: a unit that can enter at all does so by spending everything
-         * it has left, so it always ends its move there. Air is unaffected —
-         * terrainCost already flattens every hex to 1 for aircraft. */
-        var drains = !!terr.costsAllMovement && unit.type.moveType !== "air";
-        if (drains) {
-          stepCost = budget - cur.cost;
-          if (stepCost < 1) continue;
-        }
-        var newCost = cur.cost + stepCost;
-        if (newCost > budget) continue;
-        var k = HEX.key(n.col, n.row);
-        var rec = result[k];
-        if (rec && newCost >= rec.cost) continue;
-        var occ = occupants[k];
-        var isLoad = false;
-        if (occ) {
-          if (occ.player !== unit.player) continue;             // enemies block
-          if (this.canLoad(occ, unit, false)) {
-            isLoad = true;                                       // can board
+      // The origin is exempt from a ZOC stop, not from terrain costs on entry
+      // to the next hex. Confirmed by the original Windows movement routine;
+      // see ORIGINAL_EXECUTABLE_NOTES.md and the recorded ZOC fixtures.
+      var frontier = new CostQueue();
+      frontier.push({ cell: start, cost: 0 });
+      var cur;
+      while ((cur = frontier.pop()) !== null) {
+        var c = cur.cell;
+        if (cur.cost !== best[c]) continue;
+        if (keys[c] === destinationKey) break;
+        if (record[c].stop && c !== start) continue; // ZOC: no expansion past
+        for (var s = c * 6, last = s + 6; s < last; s++) {
+          var n = nbr[s];
+          if (n < 0) continue;
+          var stepCost = costs[n];
+          if (stepCost < 0) continue; // impassable for this chassis
+          /* Valley: a unit that can enter at all does so by spending everything
+           * it has left, so it always ends its move there. Air is unaffected —
+           * terrainCost already flattens every hex to 1 for aircraft. */
+          var drains = drainsAt[n] === 1 && !air;
+          if (drains) {
+            stepCost = budget - cur.cost;
+            if (stepCost < 1) continue;
           }
-          // friendly non-transport: can pass through, not stop
-        }
-        var enteringZOC = enemyZOC(n.col, n.row, k);
-        var canStopHere = !occ || isLoad;
-        if (!isLoad && !this.canStopAtBuilding(unit, n.col, n.row)) canStopHere = false;
-        if (!rec || newCost < rec.cost) {
-          result[k] = {
-            col: n.col, row: n.row, cost: newCost,
+          var newCost = cur.cost + stepCost;
+          if (newCost > budget || newCost >= best[n]) continue;
+          var occ = occupant[n] ? units[occupant[n] - 1] : null;
+          var isLoad = false;
+          if (occ) {
+            if (occ.player !== player) continue;                  // enemies block
+            if (this.canLoad(occ, unit, false)) isLoad = true;    // can board
+            // friendly non-transport: can pass through, not stop
+          }
+          var col = n % w, row = (n / w) | 0;
+          var enteringZOC = enemyZOC(n);
+          var canStopHere = !occ || isLoad;
+          if (!isLoad && t.building[n] && !this.canStopAtBuilding(unit, col, row)) canStopHere = false;
+          if (best[n] === Infinity) touched.push(n);
+          best[n] = newCost;
+          result[keys[n]] = record[n] = {
+            col: col, row: row, cost: newCost,
             stop: enteringZOC || drains,             // move ends here
             canStop: canStopHere,                    // can end move on hex
             load: isLoad,
-            enterBuilding: canStopHere && !isLoad && this.entersBuilding(unit, n.col, n.row),
-            prev: curKey,
+            enterBuilding: canStopHere && !isLoad && t.building[n] === 1 ? this.entersBuilding(unit, col, row) : false,
+            prev: keys[c],
           };
-          if (!isLoad) frontier.push({ col: n.col, row: n.row, cost: newCost });
+          if (!isLoad) frontier.push({ cell: n, cost: newCost });
         }
       }
+    } finally {
+      for (i = 0; i < filled.length; i++) occupant[filled[i]] = 0;
+      for (i = 0; i < touched.length; i++) { var k = touched[i]; best[k] = Infinity; record[k] = undefined; zone[k] = 0; }
     }
     return result;
   };
@@ -871,7 +946,8 @@ var ENGINE = (function () {
     return out;
   };
 
-  return { Game: Game, makeUnit: makeUnit, CostQueue: CostQueue };
+  return { Game: Game, makeUnit: makeUnit, CostQueue: CostQueue, gridTables: tablesFor, terrainTables: terrainTables,
+    stepCosts: stepCosts };
 })();
 
 if (typeof module !== "undefined") module.exports = ENGINE;

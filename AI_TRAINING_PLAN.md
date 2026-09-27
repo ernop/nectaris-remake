@@ -5,6 +5,35 @@ request: "plan a training run to really make the bots good ... test and
 investigate step by step and plan a great one". The measurements below were
 taken that day on this machine. The open decisions at the end are the user's.
 
+**Speed first (user, 2026-09-27):** the user put optimizing self-play speed
+ahead of every decision below ("let's optimize the speed of self-play games,
+first"). Machine time, turn targets, held-out boards and milestones wait until
+the simulation is much faster.
+
+## Speed work
+
+`tools/ai-research/speed-bench.cjs` plays one side's turn for each bot from
+fixed mid-game positions and fingerprints the resulting board and random state.
+Every speed change must keep all fingerprints; only the time may change.
+
+Step 1 (2026-09-27) kept every decision identical:
+- **Movement search:** runs on per-map tables and typed arrays, with no string
+  keys and no neighbour lists allocated per hex.
+- **Hex helpers:** neighbours and distance no longer allocate objects.
+- **Battle odds for the planner:** skip the forecast's display-only block.
+- **Surround check:** stops at the first open hex.
+- **Scoring:** unit values are cached per type; the threat map and support
+  scoring reuse cell arrays.
+
+| Bot | Speed-up on the benchmark |
+| --- | --- |
+| Tactical | 1.4–1.85× |
+| Sequence | 1.9–2.7× |
+| Simulation | 2.2–2.6× |
+| Apex | 2.9–3.05× |
+
+The mid-game NECTOR turn that took Sequence 10.0 s now takes 4.8 s.
+
 ## Goal and constraints
 
 - **Goal:** Tactical, Sequence, Simulation and Apex win more often on every

@@ -145,8 +145,8 @@ var COMBAT = (function () {
     };
   }
 
-  /* Full battle preview using per-machine modified attack and defense. */
-  function preview(game, attacker, defender) {
+  /* Per-machine modified attack and defense: the numbers every battle uses. */
+  function battleStats(game, attacker, defender) {
     var dist = HEX.distance(attacker.col, attacker.row, defender.col, defender.row);
     var ranged = dist > 1;
     var counter = !ranged && canAttackAt(defender.type, isAir(attacker), dist);
@@ -161,22 +161,28 @@ var COMBAT = (function () {
       atkStat(defender.type, isAir(attacker)), defender.type.def,
       0, dSupport, terrainValue(game, defender), surrounded, !counter
     );
-    return { attacker: a, defender: d, ranged: ranged, counter: counter, dist: dist,
-      surrounded: surrounded, attackerTerrain: game.terrainAt(attacker.col, attacker.row).name,
-      defenderTerrain: game.terrainAt(defender.col, defender.row).name,
-      tactical: {
-        attackerInZOC: game.inEnemyZOC(attacker.col, attacker.row, attacker.player),
-        defenderInZOC: game.inEnemyZOC(defender.col, defender.row, defender.player),
-        attackSupporters: ranged ? [] : game.adjacentAllies(defender.col, defender.row, attacker.player, attacker).map(function (u) {
-          return {name: u.type.name, typeId:u.typeId, player:u.player, exp:u.exp, strength: u.strength,
-            value: atkStat(u.type, isAir(defender)), col: u.col, row: u.row};
-        }),
-        defenseSupporters: ranged ? [] : game.adjacentAllies(attacker.col, attacker.row, defender.player, defender).map(function (u) {
-          return {name: u.type.name, typeId:u.typeId, player:u.player, exp:u.exp, strength: u.strength,
-            value: u.type.def, col: u.col, row: u.row};
-        }),
-        ring: ranged ? [] : game.surroundRing(defender),
-      } };
+    return { attacker: a, defender: d, ranged: ranged, counter: counter, dist: dist, surrounded: surrounded };
+  }
+
+  /* Full battle preview: the battle numbers plus what the forecast displays. */
+  function preview(game, attacker, defender) {
+    var pv = battleStats(game, attacker, defender), ranged = pv.ranged;
+    pv.attackerTerrain = game.terrainAt(attacker.col, attacker.row).name;
+    pv.defenderTerrain = game.terrainAt(defender.col, defender.row).name;
+    pv.tactical = {
+      attackerInZOC: game.inEnemyZOC(attacker.col, attacker.row, attacker.player),
+      defenderInZOC: game.inEnemyZOC(defender.col, defender.row, defender.player),
+      attackSupporters: ranged ? [] : game.adjacentAllies(defender.col, defender.row, attacker.player, attacker).map(function (u) {
+        return {name: u.type.name, typeId:u.typeId, player:u.player, exp:u.exp, strength: u.strength,
+          value: atkStat(u.type, isAir(defender)), col: u.col, row: u.row};
+      }),
+      defenseSupporters: ranged ? [] : game.adjacentAllies(attacker.col, attacker.row, defender.player, defender).map(function (u) {
+        return {name: u.type.name, typeId:u.typeId, player:u.player, exp:u.exp, strength: u.strength,
+          value: u.type.def, col: u.col, row: u.row};
+      }),
+      ring: ranged ? [] : game.surroundRing(defender),
+    };
+    return pv;
   }
 
   function randomCoefficient(rng) {
@@ -255,7 +261,7 @@ var COMBAT = (function () {
   /* Exact public chance model for planners. No match RNG access, sampling or
    * duplicated combat arithmetic. Merge roll buckets with identical losses. */
   function distribution(game, attacker, defender) {
-    var pv = preview(game, attacker, defender);
+    var pv = battleStats(game, attacker, defender);
     function marginal(shooter, target, ap, da, enabled) {
       var losses = {};
       if (!enabled) return [{loss: 0, probability: 1}];

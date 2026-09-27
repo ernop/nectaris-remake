@@ -67,15 +67,24 @@ var AI_MODEL = (function () {
       if(!u.inFactory)ctx.evaluationGoals.set(u.id,objectives(game,u,ctx));
     });
   }
-  function value(unit) {
-    var t = unit.type, attack = Math.max(t.atkG || 0, t.atkA || 0);
-    var base = 18 + Math.min(100, attack) * 0.7 + Math.min(100, t.def || 0) * 0.65 +
-      Math.min(t.atkG || 0, t.atkA || 0, 100) * 0.15 + (t.move || 0) * 2 +
-      Math.max(t.rngG || 0, t.rngA || 0) * 7 + (t.capture ? 65 : 0) + (t.cargo || 0) * 25;
-    return unit.strength <= 0 ? 0 : base * (0.2 + 0.8 * unit.strength / combat.MAX_STRENGTH) *
-      (0.75 + 0.25 * combat.EXP_DAMAGE[unit.exp] / 100);
+  var baseValues = new WeakMap();
+  function baseValue(t) {
+    var base = baseValues.get(t);
+    if (base === undefined) {
+      var attack = Math.max(t.atkG || 0, t.atkA || 0);
+      base = 18 + Math.min(100, attack) * 0.7 + Math.min(100, t.def || 0) * 0.65 +
+        Math.min(t.atkG || 0, t.atkA || 0, 100) * 0.15 + (t.move || 0) * 2 +
+        Math.max(t.rngG || 0, t.rngA || 0) * 7 + (t.capture ? 65 : 0) + (t.cargo || 0) * 25;
+      baseValues.set(t, base);
+    }
+    return base;
   }
-  function fullValue(u) { return value(Object.assign({}, u, {strength: combat.MAX_STRENGTH})); }
+  function valueAt(type, strength, exp) {
+    return strength <= 0 ? 0 : baseValue(type) * (0.2 + 0.8 * strength / combat.MAX_STRENGTH) *
+      (0.75 + 0.25 * combat.EXP_DAMAGE[exp] / 100);
+  }
+  function value(unit) { return valueAt(unit.type, unit.strength, unit.exp); }
+  function fullValue(u) { return valueAt(u.type, combat.MAX_STRENGTH, u.exp); }
   function fresh(u) { return Object.assign({}, u, {moved: false, shifted: false, attacked: false,
     attackSpent: false, movePointsLeft: u.type.move}); }
   function routeKey(unit) { return JSON.stringify([unit.type.moveType, unit.type.move, unit.type.cannotEnter || []]); }
@@ -85,25 +94,25 @@ var AI_MODEL = (function () {
   function distances(game, unit, goals, ctx) {
     var key = routeKey(unit) + ":" + goals.map(function (g) { return g.col + "," + g.row; }).join(";");
     if (ctx.routes.has(key)) return ctx.routes.get(key);
-    var result = new Float64Array(game.width * game.height); result.fill(Infinity);
+    var w = game.width, h = game.height, grid = engine.terrainTables(game), nbr = grid.neighbors, drains = grid.drains;
+    var costs = engine.stepCosts(game, grid, unit.type), air = unit.type.moveType === "air";
+    var result = new Float64Array(w * h); result.fill(Infinity);
     var open = new engine.CostQueue();
     goals.forEach(function (g) {
-      var terrain = game.terrainAt(g.col, g.row);
-      if (!terrain || terrainCost(terrain, unit.type.moveType, unit.type) === null) return;
-      result[g.row * game.width + g.col] = 0; open.push({col: g.col, row: g.row, cost: 0});
+      if (g.col < 0 || g.col >= w || g.row < 0 || g.row >= h || costs[g.row * w + g.col] < 0) return;
+      result[g.row * w + g.col] = 0; open.push({cell: g.row * w + g.col, cost: 0});
     });
     var cur;
     while ((cur = open.pop()) !== null) {
-      if (cur.cost !== result[cur.row * game.width + cur.col]) continue;
-      var terrain = game.terrainAt(cur.col, cur.row);
-      var cost = terrainCost(terrain, unit.type.moveType, unit.type);
-      if (terrain.costsAllMovement && unit.type.moveType !== "air") cost = Math.max(1, unit.type.move);
-      HEX.neighbors(cur.col, cur.row).forEach(function (n) {
-        var terr = game.terrainAt(n.col, n.row);
-        if (!terr || terrainCost(terr, unit.type.moveType, unit.type) === null) return;
-        var at = n.row * game.width + n.col, next = cur.cost + cost;
-        if (next < result[at]) { result[at] = next; open.push({col: n.col, row: n.row, cost: next}); }
-      });
+      var c = cur.cell;
+      if (cur.cost !== result[c]) continue;
+      var cost = drains[c] && !air ? Math.max(1, unit.type.move) : costs[c];
+      for (var j = c * 6, end = j + 6; j < end; j++) {
+        var n = nbr[j];
+        if (n < 0 || costs[n] < 0) continue;
+        var next = cur.cost + cost;
+        if (next < result[n]) { result[n] = next; open.push({cell: n, cost: next}); }
+      }
     }
     // Prevent a long search over moving targets from retaining unbounded fields.
     if (ctx.routes.size > 384) ctx.routes.delete(ctx.routes.keys().next().value);
@@ -204,10 +213,18 @@ var AI_MODEL = (function () {
     });return best;
   }
 
+  // One hex set per enemy weapon band, cleared by advancing the mark.
+  var marks = new Int32Array(0), mark = 0;
+  function nextMark(size) {
+    if (marks.length < size || mark === 0x7fffffff) { marks = new Int32Array(Math.max(size, marks.length)); mark = 0; }
+    return ++mark;
+  }
   function analysis(game, ctx) {
     if (ctx.analysis.has(game)) return ctx.analysis.get(game);
-    var size = game.width * game.height, info = {threat: [], occupied: {}, emergencies: []};
-    game.units.forEach(function (u) { if (!u.carriedBy && !u.inFactory) info.occupied[HEX.key(u.col,u.row)] = u; });
+    var w = game.width, size = w * game.height, info = {threat: [], cells: new Array(size), emergencies: []};
+    game.units.forEach(function (u) {
+      if (!u.carriedBy && !u.inFactory && u.col >= 0 && u.col < w && u.row >= 0 && u.row < game.height) info.cells[u.row * w + u.col] = u;
+    });
     [1-game.currentPlayer].forEach(function (player) {
       var ground = new Float64Array(size), air = new Float64Array(size);
       game.playerUnits(player).forEach(function (enemy) {
@@ -216,12 +233,12 @@ var AI_MODEL = (function () {
           Object.values(game.movementRange(fresh(enemy))).filter(function (rec) { return rec.canStop && !rec.load && !rec.enterBuilding; });
         [false,true].forEach(function (isAir) {
           var band = combat.rangeBand(enemy.type, isAir); if (!band) return;
-          var seen = new Uint8Array(size), array = isAir ? air : ground;
+          var seen = nextMark(size), array = isAir ? air : ground;
           var power = Math.min(100, combat.atkStat(enemy.type,isAir)) * enemy.strength / 8 * combat.EXP_DAMAGE[enemy.exp] / 100;
           positions.forEach(function (pos) {
             offsets(band,pos.col&1).forEach(function(offset){
-              var c=pos.col+offset[0],r=pos.row+offset[1],at=r*game.width+c;
-              if(c>=0&&c<game.width&&r>=0&&r<game.height&&!seen[at]){seen[at]=1;array[at]+=power;}
+              var c=pos.col+offset[0],r=pos.row+offset[1],at=r*w+c;
+              if(c>=0&&c<w&&r>=0&&r<game.height&&marks[at]!==seen){marks[at]=seen;array[at]+=power;}
             });
           });
         });
@@ -293,15 +310,15 @@ var AI_MODEL = (function () {
     return JSON.stringify([action.kind,action.unit,action.to,action.target,action.cargo,action.drop,action.before,action.into,action.building]);
   }
   function supportScore(game,u,col,row,info) {
-    var result=0;
-    HEX.neighbors(col,row).forEach(function (n) {
-      var e=info.occupied[HEX.key(n.col,n.row)];
-      if(!e||e.player===u.player)return;
-      HEX.neighbors(e.col,e.row).forEach(function (neighbor) {
-        var ally=info.occupied[HEX.key(neighbor.col,neighbor.row)];
+    var result=0, w=game.width, nbr=engine.gridTables(game).neighbors, cells=info.cells;
+    for (var i=(row*w+col)*6, end=i+6; i<end; i++) {
+      var n=nbr[i], e=n<0?undefined:cells[n];
+      if(!e||e.player===u.player)continue;
+      for (var j=(e.row*w+e.col)*6, last=j+6; j<last; j++) {
+        var m=nbr[j], ally=m<0?undefined:cells[m];
         if (ally&&ally.player===u.player&&ally!==u&&!ally.moved) result+=Math.min(12,combat.atkStat(u.type,combat.isAir(e))*u.strength/80);
-      });
-    });
+      }
+    }
     return result;
   }
   function scorePosition(game,u,rec,targets,info) {
