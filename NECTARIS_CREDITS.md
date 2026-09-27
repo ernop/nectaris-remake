@@ -5,8 +5,10 @@ everyone who worked on any version of Nectaris (design, programming, art, music,
 production, localization and related work) by name, year, company and location;
 to find them on X/Twitter, LinkedIn or by mail; to send each a respectful letter
 of thanks; and to commemorate their work. The research below was completed on
-2026-09-27. No letters have been sent and no one has been contacted. The owner
-sends them personally and records each one in the Sent and Reply columns of the
+2026-09-27. No letters have been sent and no one has been contacted: the owner
+clarified on 2026-09-27 that for now he is only preparing this information, so
+no one is to be contacted yet. When outreach starts, the owner sends the letters
+personally and records each one in the Sent and Reply columns of the
 [contact list](#contact-list). The public thank-you page built from this record
 is [`thanks.html`](https://nectaris-remake.fuseki.net/thanks.html), added
 2026-09-27; when a name, role or source changes here, change the page too.

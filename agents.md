@@ -111,6 +111,8 @@ Facts we need across sessions:
 - **Thanks page (2026-09-27):** `thanks.html` thanks everyone who made Nectaris,
   in English and Japanese; the menu and tournament page link to it and it links
   back. `NECTARIS_CREDITS.md` is its research record: update both together.
+  Nobody is to be contacted: the user is only preparing the information
+  (2026-09-27), and any outreach will be his own.
   Pictures are freely licensed Wikimedia Commons files only, embedded by
   `tools/build-thanks-images.py`, because the server and its CSP allow no image
   files and no outside images. No box art, screenshots, or photographs of people
