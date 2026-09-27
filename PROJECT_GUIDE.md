@@ -84,6 +84,14 @@ Release first, verify later (user decision). Examine together later:
 9. The tournament replay viewer with the per-machine battle stats. It has no
    skip or aftermath.
 10. CI after GitHub's `ubuntu-latest` move to Ubuntu 26 (from 2026-10-19).
+11. Battle-pair marks:
+    - subtle but findable on each art style;
+    - they clear on the next action;
+    - a watched AI turn's last battle stays marked into the player's turn.
+12. Replay pacing:
+    - whether 450 ms moves and 1.4 s trails read well at each Speed setting;
+    - bursts of deployments;
+    - one-press Next action for non-battle steps.
 
 Research rather than a check: direct PC Engine confirmation of the Windows
 combat traces.
