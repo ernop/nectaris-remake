@@ -722,6 +722,14 @@ Community additions, one sentence each after the remake paragraph:
   the 1989 ネクタリス 公式ガイドブック and the 1998 PlayStation official guidebook.
   They may name the box illustrator, the sound-effects author, testers and the
   contest judges.
+- **Buying ハドソン伝説4 (checked 2026-09-27):** a Japanese self-published book
+  (96 pages, ¥1,540) with no English edition and no Kindle edition; neither
+  Amazon.co.jp nor Amazon.com lists it. [BEEP](https://channel.beep-shop.com/products/detail/26477)
+  had it in stock; [Toranoana](https://ec.toranoana.jp/tora_r/ec/item/040031005659/)
+  was sold out. BEEP ships only within Japan and directs overseas buyers to the
+  forwarding service [tenso.com](https://www.tenso.com/); proxy buyers such as
+  [Remambo](https://www.remambo.jp/articles/how-to-buy-from-beep-japan) also
+  handle BEEP orders. The owner wants a copy.
 - **US localization (1990):** translator, manual writer, NEC producer, testers
   and box illustrator are undocumented.
 - **Staff lists not found:** the SystemSoft ports, the Windows versions (the
