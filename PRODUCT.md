@@ -147,7 +147,9 @@ drawn out, with no selection cursor and no slow walking.
 - Only battles pause on their selection. Moves, deployments, unloads, boardings,
   finishes and turn ends play at once.
 - A unit still crosses every hex of its route, but the whole move takes at
-  most 450 ms (up to 90 ms per hex).
+  most 450 ms (up to 90 ms per hex). Aircraft take half that (user
+  suggestion, 2026-09-26), in replays and in play (75 ms per hex instead of
+  150).
 - Each route stays drawn in its side's colour and fades over 1.4 s, so quick
   sequences remain readable.
 - Speed sets the pause between actions.

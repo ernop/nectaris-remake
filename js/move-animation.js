@@ -6,7 +6,9 @@ var MOVE_ANIMATION = (function () {
     options = options || {};
     var request = options.requestFrame || requestAnimationFrame;
     var cancel = options.cancelFrame || cancelAnimationFrame;
-    var stepMs = options.stepMs || 150, previous = null, elapsed = 0, frameId = null, stopped = false, paused = false;
+    // Aircraft cross each hex in half the time of ground units.
+    var stepMs = (options.stepMs || 150) * (unit.type.moveType === "air" ? 0.5 : 1);
+    var previous = null, elapsed = 0, frameId = null, stopped = false, paused = false;
     var duration = Math.max(0, path.length - 1) * stepMs;
     var visual = Object.assign({}, unit, {moved: false});
     function draw() { if (options.draw) options.draw(); else renderer.draw(); }
