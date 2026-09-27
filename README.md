@@ -69,7 +69,7 @@ independent progress and a Next mission button.
 Tiny forces, restricted rosters and awkward heavy-armor positions are mixed
 with larger battles. No Hunters, Falcons or Eagles appear; Pelicans remain.
 
-Select **Use normal opening** to play the exact authored roster puzzles;
+Keep **Mode: Normal** to play the exact authored roster puzzles;
 compensation offers can add extra units. Read the [mission catalog](ENVIRONMENT_CAMPAIGNS.md)
 or use each map's **?** briefing in the game.
 
@@ -103,10 +103,11 @@ game state (campaign progress, custom levels, custom units) lives in
 
 ## Player profiles and saved games
 
-On your first visit, choose a username. The menu remembers your profile and
-lets you switch players or create another profile. Each has independent campaign
-stars, win/loss history, and one unfinished match. Mission cards show your record;
-**Match history** includes why each match ended, when, and on which turn.
+Your first visit starts as **Wilson**; nothing asks for a name. Click **You are
+logged in as Wilson** in the upper-right corner to **Rename**, add a **New
+profile** or **Switch to** another one. Each has independent campaign stars,
+win/loss history, and one unfinished match. Mission cards show your record;
+**Match history** in the same menu includes why each match ended, when, and on which turn.
 Use **Show older matches** to browse beyond the latest ten results.
 
 Progress saves automatically after actions. **Save & Menu** leaves the match;
@@ -122,12 +123,10 @@ profile. Storage problems display an error instead of claiming progress is saved
 
 ## Choosing the opening
 
-Above the level list, **How should the match open?** offers two explicit choices:
-**Use normal opening** (Union first, original armies) and **Use offer for first**
-(guided second-player compensation). Choose one, then click a level. The retained
-**Use map defaults** setting uses normal play on imported normal/advanced
-campaigns and offers elsewhere. Your choice persists; **Continue match** keeps
-the saved opening.
+The **Mode** dropdown under the title offers **Normal** (the default: Union
+first, original armies) and **Offer for first** (guided second-player
+compensation). Choose one, then click a level. Your choice persists; **Continue
+match** keeps the saved opening.
 
 In the guided setup, inspect the battlefield and fixed numbered bonus sites,
 then answer **“Would you accept X to go second?”** You can select any earlier
@@ -136,7 +135,7 @@ that menu’s packages is enough, so it tries a larger one. Normally this finds
 your switch point in at most six questions. **Change previous answer** lets you
 correct an answer. Mixed packages are alternatives, not universal unit prices.
 
-Choose the bot in the level picker for both moves and opening offers. Both players
+The **AI** dropdown picks the bot for both moves and opening offers. Both players
 answer privately. Solo evaluates independently in the background; hotseat
 uses a pass-the-device screen. Once both switch points are known, the lower one
 sets the compensation and its accepting player goes second. Matching switch
@@ -155,7 +154,7 @@ preserves your previous saved match. Started agreements and turn order are saved
 compensated results have separate records. The bot tries both roles using its own playing algorithm; its bounded analysis
 estimates preferences rather than proven equal winning chances.
 
-**Configure a bot tournament →** in the same panel opens the linked setup screen.
+The **Bot tournament** tab next to the title opens the tournament setup.
 Choose normal opening or offers there too. Bots negotiate automatically. You can
 skip unavailable/no-deal games (no rating change), or explicitly allow a normal
 opening fallback. Each tournament stores its settings, and results/replays identify
@@ -175,24 +174,27 @@ symmetric layouts. No campaign source deployment or inventory is modified.
 
 ## Controls
 
-The mission library uses the same layout for campaigns, expansion packs and
-custom levels. Collection links jump between groups; each header shows your
-progress. Each dense entry keeps its number/name, dimensions, Union/Xenon/
+The campaign list uses the same layout for campaigns, expansion packs and
+custom levels: the Normal and Advanced campaigns and Base Nectaris first, then
+the AI-made campaigns, AI-made maps, Lunar Frontiers and custom levels.
+Collection links jump between groups; each header shows your progress. Each dense entry keeps its number/name, dimensions, Union/Xenon/
 Neutral totals and any result on one line. Totals align vertically beneath their
 column headings. Wide screens show three levels per row, reducing to two or one
 on narrower screens. Lists scroll horizontally when needed instead of wrapping. **Click the entry to play**; the separate `?`
 opens details. Returning to the library keeps your scroll position.
 
 Hover or focus the small **?** beside a level or collection for its briefing,
-design notes, credits and sources. Click/tap **?** toggles it. Moving outside the
+design notes, credits and sources. Only entries with such notes have one; the
+original Normal and Advanced campaigns have none. Click/tap **?** toggles it. Moving outside the
 button and its popup closes it immediately, including after clicking. The popup
 touches its button so its links remain reachable. Clicking outside or pressing Escape
 also closes it. Moving across an entry does not open anything. Panels close when
 the page or list scrolls or resizes.
 
 - **Details** toggles the left inspector, initially closed; your choice is
-  remembered. Unit details, factory information and combat forecasts remain
-  available there.
+  remembered. Unit details and factory information remain available there.
+  Hovering an attackable enemy shows the outcome forecast and heatmap directly
+  under the unit's action strip whether or not Details is open.
 - **Board: Auto / Normal / Sideways** rotates the view by 90° when useful.
   Auto picks the orientation that fits the board largest. Units and labels stay
   upright; clicking, wheel zoom and Ctrl+left-drag follow the displayed board.
@@ -279,14 +281,15 @@ the page or list scrolls or resizes.
   formations with Union on the left and Xenon on the right, each on its own
   terrain. A one-way arrow marks attacks without a counter. Ready, Fighting and
   Result mark the approach, combat and summary. Experience stars appear only on
-  the header icons, with earned stars glowing after combat; formation machines
-  have no stars. **Pause / Resume** freezes the battle and its automatic advance.
+  the header icons; newly earned stars fade in large and glowing on top of the
+  icon after combat. Formation machines have no stars. **Pause / Resume** freezes the battle and its automatic advance.
   Replay **Pause on battle screens** starts on; click anywhere on the paused
   battle to continue. **Skip battle scenes** starts off and bypasses the scenes,
   automatic pauses and holds. Show map / Show battle switches views without
   changing the board. Units traverse each
   hex of their legal movement route in live play and replays. Turn Watch AI off for immediate
-  AI turns. Opponent actions preserve your chosen camera position and zoom.
+  AI turns. **Move animation: Off** separately places moving units straight on
+  their destination while Watch AI still shows each AI step. Opponent actions preserve your chosen camera position and zoom.
   Replay **Follow action** starts off and only follows when you enable it.
 - The factory panel shows each stored unit's map icon with experience stars,
   damage when present, and a full-row deployment button.
@@ -448,7 +451,8 @@ domains the unit can attack.
 
 ## Art style
 
-The first/default set, **1 · Remake**, gives all 23 unit types original native **32×32** art in pixel mode: angular
+New players start in **Pixel** style with the **Legacy** art set (the default
+since 2026-09-26). The first-listed set, **1 · Remake**, gives all 23 unit types original native **32×32** art in pixel mode: angular
 military silhouettes, upper-left lighting, bright flat armor and selective
 charcoal contours. Both directions are separately shaded and horizontally
 centered. Infantry stays small within its frame. Icons scale proportionally
@@ -457,7 +461,7 @@ exports and review tools. The flattened 48×32 terrain geometry specified in
 [ART_DIRECTION.md](ART_DIRECTION.md) is present in the review fixture; production
 terrain and building migration for Remake are still pending.
 
-Choose **Art set → Legacy** in the game or editor to use all 23 unit icons
+**Art set → Legacy** in the game or editor uses all 23 unit icons
 adapted from [ユニットデータ](https://anka.sakura.ne.jp/nectaris/d2.html), together
 with original-style pixel terrain: maroon plains, gray ridges, pink plateaus,
 pale connected roads and domed installations. Legacy uses 48×32 flattened
@@ -468,7 +472,7 @@ cells, duplicating buildings or extending roads beyond the map.
 The terrain is a reconstruction; the icons are JPEG-derived adaptations,
 not a bit-exact ROM atlas. Provenance and rebuilding: [art/legacy/README.md](art/legacy/README.md).
 
-The art-set choice is stored under `nectaris-unit-icon-set-v1`, shared by
+The art-set choice is stored under `nectaris-unit-icon-set-v2`, shared by
 the game, editor and review tools. It applies in Pixel style. New sets can
 be registered through `js/unit-icon-sets.js`; every set must cover all 23 units.
 
@@ -503,11 +507,10 @@ pixel mode as Union, Xenon, attacking and spent, always at native size.
 
 ## Briefing language
 
-Level cards render in English or Japanese, chosen with the **Briefing
-language / 表示言語** selector on the mission menu and stored under
-`nectaris-lang`. A level supplies Japanese by adding `nameJa`,
-`descriptionJa`, `specialJa` and `tagsJa` beside the English fields; a level
-without them shows its English text in either setting.
+The menu is English only. The 2026-09-26 simplification removed the **Briefing
+language / 表示言語** selector and its `nectaris-lang` setting. The Base Nectaris
+levels still carry `nameJa`, `descriptionJa`, `specialJa` and `tagsJa` fields,
+which the game does not display.
 
 ## Fidelity and originality
 

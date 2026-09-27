@@ -97,11 +97,7 @@ var COMBAT_VIEW = (function () {
   }
   function html(attacker, defender, pv, projection) {
     return "<div class='forecast-eyebrow'>ATTACK PREVIEW · " + pv.dist + " HEX" + (pv.dist === 1 ? "" : "ES") + "</div>" +
-      "<h3>" + unitView.html(defender) + "</h3>" + targetInfo(defender) + "<div class='forecast-matchup'>" + unitView.html(attacker) + " → " + unitView.html(defender) + "</div>" +
-      "<p class='forecast-note'>" + (pv.ranged ? "Indirect fire · no counterattack, support or surround." :
-        (pv.counter ? "Direct fire · both squads fire at pre-battle strength." : "Direct fire · target cannot counterattack.")) + "</p>" +
-      "<div class='forecast-final'><span>Your ATK / DEF <strong>" + pv.attacker.ap + " / " + pv.attacker.da +
-      "</strong></span><span>Target ATK / DEF <strong>" + pv.defender.ap + " / " + pv.defender.da + "</strong></span></div>" +
+      "<h3>" + unitView.html(defender) + "</h3>" +
       "<div class='forecast-eyebrow forecast-chart-title'>OUTCOME RATES · " + projection.samples.toLocaleString("en-US") + " SIMULATIONS</div>" +
       heatmap(projection, attacker.strength, defender.strength) +
       "<div class='forecast-summary'><div><strong>" + projection.meanDefenderLoss.toFixed(2) + "</strong><span>Mean enemy losses</span></div>" +
@@ -110,6 +106,11 @@ var COMBAT_VIEW = (function () {
       "<div><strong>" + esc(percent(projection.attackerDestroyed)) + "</strong><span>Your squad lost</span></div></div>" +
       "<p class='forecast-note'>Cell labels are %. Brighter = more likely. Hover or focus a cell for its rate.<br>Independent seeds · mutual destruction " +
       esc(percent(projection.mutualDestruction)) + ".</p>" +
+      targetInfo(defender) + "<div class='forecast-matchup'>" + unitView.html(attacker) + " → " + unitView.html(defender) + "</div>" +
+      "<p class='forecast-note'>" + (pv.ranged ? "Indirect fire · no counterattack, support or surround." :
+        (pv.counter ? "Direct fire · both squads fire at pre-battle strength." : "Direct fire · target cannot counterattack.")) + "</p>" +
+      "<div class='forecast-final'><span>Your ATK / DEF <strong>" + pv.attacker.ap + " / " + pv.attacker.da +
+      "</strong></span><span>Target ATK / DEF <strong>" + pv.defender.ap + " / " + pv.defender.da + "</strong></span></div>" +
       "<details class='forecast-calculations' open><summary>Combat calculation</summary><div class='forecast-sides'>" +
       side(attacker, pv.attacker, pv.attackerTerrain, "Your squad") + side(defender, pv.defender, pv.defenderTerrain, "Target") + "</div>" + tactics(pv, attacker) +
       damageLine(attacker, pv.attacker.ap, pv.defender.da, "Attack") +

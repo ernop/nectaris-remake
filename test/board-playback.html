@@ -69,7 +69,7 @@ document.getElementById("run").onclick=async function(){
     check(["ready","fighting","result"].every(function(p){return phases.has(p);}),"live battles visibly pass through Ready, Fighting and Result");
     check(Array.from(d.querySelectorAll(".battle-machine canvas")).every(function(c){return c.dataset.exp==="0";})&&
       !!d.querySelector(".battle-heading [data-exp-glow-from]"),"only header icons gain glowing experience stars; formation models have no stars");
-    check(d.getElementById("battle-content").textContent.includes("Experience gained")&&!d.getElementById("battle-content").textContent.includes("EXP "),"battle result shows earned stars on icons without numeric experience");
+    check(!!d.querySelector(".battle-heading .battle-rank-icon .battle-new-star")&&!d.getElementById("battle-content").textContent.includes("Experience gained")&&!d.getElementById("battle-content").textContent.includes("EXP "),"earned stars fade in over the header icon without a separate row or numeric experience");
     check(d.getElementById("battle-stage").classList.contains("hidden")&&bounds(canvas)===baseline,"battle completes and returns to the same map viewport");
     var gun=g.units.find(function(u){return u.typeId==="HADRIAN";});ui.selectUnit(gun);ui.tryMove(gun,1,0);
     while(ui.busy)await wait(15);

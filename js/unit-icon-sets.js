@@ -3,8 +3,9 @@
 var UNIT_ICON_SETS = (function () {
   var native = typeof NATIVE_UNIT_ART !== "undefined" ? NATIVE_UNIT_ART : require("./data-unit-art.js");
   var legacy = typeof LEGACY_UNIT_ART !== "undefined" ? LEGACY_UNIT_ART : require("./data-unit-art-legacy.js");
-  var KEY = "nectaris-unit-icon-set-v1", packs = Object.create(null), order = [], listeners = [];
-  var selected = "remake", stockIds = Object.keys(native.frames);
+  // v2 (2026-09-26) makes every browser start once on the new Legacy default.
+  var KEY = "nectaris-unit-icon-set-v2", DEFAULT = "legacy", packs = Object.create(null), order = [], listeners = [];
+  var selected = DEFAULT, stockIds = Object.keys(native.frames);
 
   function register(pack) {
     if (!pack || !/^[a-z][a-z0-9-]*$/.test(pack.id) || packs[pack.id]) throw new Error("Invalid or duplicate icon set");
@@ -45,7 +46,7 @@ var UNIT_ICON_SETS = (function () {
     if (changed) listeners.slice().forEach(function (listener) { listener(id); });
   }
   if (typeof window !== "undefined" && window.addEventListener) window.addEventListener("storage", function (event) {
-    if (event.key === KEY || event.key === null) choose(packs[event.newValue] ? event.newValue : "remake", false);
+    if (event.key === KEY || event.key === null) choose(packs[event.newValue] ? event.newValue : DEFAULT, false);
   });
   return {
     register: register,

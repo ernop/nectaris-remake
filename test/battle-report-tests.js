@@ -55,13 +55,27 @@ module.exports = function (ok) {
     ok(start.includes("data-exp='"+out.attackerExpBefore+"'")&&end===screen&&
       REPORT.earnedExperience(3,7,350)===4&&REPORT.earnedExperience(7,8,9999)===8,
       "earned stars reveal one at a time from the original rank, ending at the actual awarded rank");
-    ok(!before.includes("battle-exp-gain"),"a battle preview never claims experience before the attack occurs");
+    ok(!before.includes("battle-new-star"),"a battle preview never claims experience before the attack occurs");
+    var heads=screen.slice(screen.indexOf("battle-heading"),screen.indexOf("battle-field")).split("battle-combatant'").slice(1);
+    function stars(html){return (html.match(/class='battle-new-star[ ']/g)||[]).length;}
+    var earned=[0,1].map(function(p){return p===a.player ? a.exp-out.attackerExpBefore : d.exp-out.defenderExpBefore;});
+    ok(heads.length===2 && earned.every(function(n,p){return stars(heads[p])===n && heads[p].includes("battle-rank-icon");}) &&
+      !screen.includes("Experience gained"),"each header icon carries exactly the stars it earned, with no separate experience row");
+    var most=Math.max(earned[0],earned[1]),at0=REPORT.present(report.snapshot,0).screen;
+    ok(!at0.includes("battle-new-star") && (!most || REPORT.present(report.snapshot,350).screen===REPORT.present(report.snapshot,699).screen),
+      "new stars follow the reward clock, one rank per 350 ms, and the screen is unchanged between ranks");
+    var promoted=REPORT.screenHtml(a,d,out.preview,a0,d0,a.strength,d.strength,6,2,8,2,"result");
+    var promotedHeads=promoted.slice(promoted.indexOf("battle-heading"),promoted.indexOf("battle-field")).split("battle-combatant'").slice(1);
+    ok(stars(promotedHeads[a.player])===2 && promotedHeads[a.player].includes("battle-new-general") &&
+      promotedHeads[a.player].includes("Promoted to General") && promotedHeads[a.player].indexOf("animation-delay:-350ms") <
+      promotedHeads[a.player].indexOf("animation-delay:-0ms") && !stars(promotedHeads[d.player]),
+      "a promotion shows the seventh star and the larger General star; the older star continues its fade");
     var models=screen.slice(screen.indexOf("battle-field"),screen.indexOf("battle-stat-panels"));
     ok(!/data-exp='[1-8]'/.test(models)&&screen.includes("data-exp-glow-from"),
       "formation machines have no rank overlays; earned stars glow only on the header icons");
     var fighting=REPORT.animate(report.snapshot,0),summary=REPORT.animate(report.snapshot,REPORT.fightingDuration(report.snapshot)+REPORT.rewardDuration(report.snapshot));
     ok(before.includes("data-battle-phase='ready'")&&fighting.screen.includes("data-battle-phase='fighting'")&&
-      !fighting.screen.includes("battle-exp-gain")&&fighting.math===""&&summary.screen===screen&&summary.math===report.math,
+      !fighting.screen.includes("battle-new-star")&&fighting.math===""&&summary.screen===screen&&summary.math===report.math,
       "ready, fighting and result are distinct stages; experience and final arithmetic appear after combat");
   });
   var ledger = REPORT.emptyLedger();

@@ -4,12 +4,16 @@ module.exports = function (ok) {
   var ENGINE = require("../js/engine.js"), COMBAT = require("../js/combat.js"), UI = require("../js/ui.js");
   var unitView = require("../js/unit-view.js");
   var savedDocument = global.document, savedView = global.COMBAT_VIEW, savedRender = global.RENDER;
-  var nodes = {};
+  // Any id reads as an element, however early a check looks at it.
+  var nodes = new Proxy({}, {get: function (store, id) {
+    return typeof id === "string" ? store[id] || (store[id] = element()) : undefined;
+  }});
   function element() {
     var classes = new Set(["hidden"]), html = "";
     return { getContext: function () { return new Proxy({}, {get:function(target,key) { return target[key] || function () {}; }}); }, style: {setProperty:function(){}}, children: [], textContent: "", offsetWidth: 108, offsetHeight: 26,
       set innerHTML(value) { html = value; this.children = []; }, get innerHTML() { return html; },
       appendChild: function (child) { this.children.push(child); }, setAttribute: function () {},
+      getBoundingClientRect: function () { return {top: 0, bottom: 600}; },
       querySelector: function () { return { width: 32, height: 32, getContext: function () {
         return new Proxy({}, { get: function (target, key) { return target[key] || function () {}; } });
       } }; },

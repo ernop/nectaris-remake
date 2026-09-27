@@ -35,6 +35,19 @@ Facts we need across sessions:
   `127.0.0.1:8001`; do not substitute a random port. The machine's shared
   Caddy registry exposes it at `http://nectaris.localhost` and the local
   dashboard can start/stop it under project name `nectaris-remake`.
+- **Browser checks in Cursor's built-in browser:** open a new tab and pass its
+  `viewId` to every browser call. A call without one runs in the last-used tab,
+  which can be the user's own site (2026-09-26: a `localStorage.clear()` meant
+  for the test tab cleared the user's Minesweeper tab). Background tabs fire no
+  `requestAnimationFrame`, so animation-driven fixtures such as
+  `test/battle-replay.html` time out there unless the iframe gets a timer-based
+  frame shim. The pane does not paint a tab it is not showing: `browser_take_screenshot`
+  times out and a plain `Page.captureScreenshot` returns an old frame; pass
+  `captureBeyondViewport: true` to get a fresh one. Tool calls sent in one batch
+  run concurrently, so never batch an edit with the command that checks it.
+- **How much to test (user instruction, 2026-09-26):** do not test after each
+  edit. Make the whole change, then run `node test/run-tests.js` once (about 35 s)
+  and do one quick browser look at the changed screen.
 - **Map navigation (2026-09-23):** only Ctrl+left-drag pans, at every zoom level,
   including during movement selection. Ordinary left/middle/right drags never
   pan; Ctrl-click never issues a unit command. Never recenter merely because
@@ -86,8 +99,9 @@ Facts we need across sessions:
   That specific import is in `art/legacy/`; its README records provenance and
   distinguishes user authorization from a third-party license. The Legacy
   terrain is an original code-authored reconstruction in `js/legacy-terrain.js`.
-  The registry `js/unit-icon-sets.js` keeps Remake first/default and Legacy
-  second; the shared persisted choice covers game, editor and review pages.
+  The registry `js/unit-icon-sets.js` lists Remake first and Legacy second;
+  Legacy is the default since 2026-09-26 (key `nectaris-unit-icon-set-v2`);
+  the shared persisted choice covers game, editor and review pages.
   Other original sprite/tile imports still require explicit authorization. The
   gitignored captures under `inspiration/nectaris-original/` are local design
   references only and must never become runtime or redistributed assets.
@@ -151,14 +165,24 @@ Facts we need across sessions:
   invalidate a comparison; do not mix versions or label smoke-test Elo as human
   strength. `tools/ai-research/run.cjs` provides reproducible multi-core matches.
 
-- **Profiles/save state:** `js/profiles.js` stores browser-local profiles; engine
-  snapshots preserve cargo identity and RNG state. UI checkpoints committed human
-  actions and complete AI turns; unfinished AI turns resume from their start.
-  Tests in `test/profiles-tests.js` run through the main suite. See `PRODUCT.md`.
+- **Profiles/save state:** `js/profiles.js` stores browser-local profiles; a first
+  visit starts as **Wilson** (no username prompt) and Rename keeps the profile's
+  records. Engine snapshots preserve cargo identity and RNG state. UI checkpoints
+  committed human actions and complete AI turns; unfinished AI turns resume from
+  their start. Tests in `test/profiles-tests.js` run through the main suite. See `PRODUCT.md`.
 
-- **Compensation offers (updated 2026-09-25):** prominent Normal / Offer for
-  first choices above the level picker link to bot tournament setup. The retained
-  map-default choice uses original play for imported campaigns and offers elsewhere.
+- **Campaign menu (2026-09-26):** the first page exists to get new players into a
+  campaign; keep it short. One header row: large **NECTARIS**, **Campaigns** /
+  **Bot tournament** tabs, and "You are logged in as Wilson" in the corner (menu:
+  Rename, New profile, Switch to, record, history). One settings row: **Mode**
+  (Normal default / Offer for first), hotseat, **AI**. No language option, no
+  map-default mode, no explanatory paragraphs. Order: Normal, Advanced, Base
+  Nectaris, then the other packs. Match defaults: Pixel + Legacy, Watch AI on,
+  and a separate **Move animation** toggle. See PRODUCT's campaign menu record.
+
+- **Compensation offers (updated 2026-09-25):** the menu's **Mode** dropdown offers
+  Normal (default) and Offer for first; since 2026-09-26 there is no map-default
+  choice, and tournament setup has its own tab.
   Guided private questions narrow each player's first acceptable cumulative menu
   of up to 32 mixed packages; earlier choices stay available. Lower switch point
   gets second with its accepted bonus; ties are random, no-deal is explicit.
@@ -180,7 +204,8 @@ Facts we need across sessions:
   pause before battles on, skip scenes off; click a paused scene to resume.
   Experience ranks are stars on unit icons everywhere, never numeric or separate
   badges. Only battle header icons have stars, not individual formation machines;
-  actual earned stars appear and glow after fighting. See PRODUCT's battle review
+  newly earned stars fade in large and glowing on top of the header icon after
+  fighting, with no "Experience gained" row (2026-09-26). See PRODUCT's battle review
   record and `test/board-playback.html` / `test/battle-replay.html` browser fixtures.
 
 - **Unit labels and factory hovers (updated 2026-09-23):** use `UNIT_VIEW` for short
@@ -221,7 +246,8 @@ Facts we need across sessions:
   Click a red target to fire directly; Attack can still isolate aiming.
   Atlas aims immediately. After moving, target an unused legal attack
   directly; otherwise finish automatically. No per-unit End button. Moves animate
-  every hex in the legal route without changing saves, RNG or engine outcomes. **Unit activation correction
+  every hex in the legal route without changing saves, RNG or engine outcomes;
+  **Move animation: Off** (separate from Watch AI) places units directly. **Unit activation correction
   (2026-09-23):** switching away or clearing selection after moving forfeits the
   unused attack; returning later in the player turn never reopens it. Leaving
   a buggy's post-attack retreat likewise ends its activation. Cancelling a ready,
@@ -236,6 +262,9 @@ Facts we need across sessions:
   Buggies retain their remaining movement only after attacking. Keep action
   controls clear of target hexes. The left inspector is optional (Details,
   initially closed); commands and changing readouts stay in the fixed left panel.
+  Hovering an attackable enemy always shows its outcome forecast and heatmap in
+  the left panel directly under the unit's action strip (above Details, Undo and
+  End Turn), even with Details closed (2026-09-26).
   Enemy inspection retains orange movement and ground/air firing contours.
   Never restore automatic layout changes from metadata or
   automatic move-and-attack shortcuts. `PRODUCT.md` records the current flow;
@@ -255,6 +284,8 @@ Facts we need across sessions:
   Details open only from small edge `?` controls (intentional hover, focus or
   click/tap), never whole-card mouseovers. Keep briefings, making-of notes and
   provenance there; preserve numbering, result keys and import controls.
+  Since 2026-09-26 the Normal and Advanced campaigns show no `?` (the original
+  game had no briefings) and other levels show `?` only when they have notes.
   Mouseout closes help immediately (0 ms), even after a click or with lingering
   button focus. No dismissal timer or fade. The panel touches its button so
   source links remain reachable. Click-to-pin and the proposed 60 ms delay are superseded.

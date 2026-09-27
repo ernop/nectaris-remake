@@ -116,6 +116,21 @@ module.exports = function (ok) {
   var before = storage.getItem(PROFILES.KEY);
   storage.setItem = function () { throw new Error("quota"); };
   ok(throws(function () { store.create("No space"); }) && storage.getItem(PROFILES.KEY) === before, "storage failure preserves previous data");
+  var fresh = new PROFILES.Store(memory()), wilson = fresh.ensureDefault();
+  ok(wilson.name === "Wilson" && fresh.active().id === wilson.id, "a first visit starts as the default profile Wilson");
+  ok(fresh.ensureDefault().id === wilson.id && fresh.read().profiles.length === 1,
+    "later visits keep the existing profile instead of adding another Wilson");
+  fresh.checkpoint(wilson.id, {id: "wilson-match", options: {}, state: new ENGINE.Game(map, {seed: 1}).snapshot()});
+  fresh.rename(wilson.id, "  Ada ");
+  ok(fresh.active().id === wilson.id && fresh.active().name === "Ada" && fresh.active().savedMatch.id === "wilson-match",
+    "renaming keeps the same profile and its unfinished match");
+  fresh.rename(wilson.id, "ADA");
+  ok(fresh.active().name === "ADA", "a profile may change the case of its own name");
+  var grace = fresh.create("Grace");
+  ok(throws(function () { fresh.rename(grace.id, "ada"); }) && fresh.active().name === "Grace",
+    "renaming refuses another profile's name case-insensitively");
+  ok(throws(function () { fresh.rename(grace.id, " "); }) && throws(function () { fresh.rename("missing", "Zed"); }),
+    "renaming rejects blank names and unknown profiles");
   var corrupt = memory(); corrupt.setItem(PROFILES.KEY, "{broken");
   ok(throws(function () { new PROFILES.Store(corrupt).create("Fresh"); }) && corrupt.getItem(PROFILES.KEY) === "{broken", "corrupt data is not silently overwritten");
   ok(throws(function () { ENGINE.Game.restore({version: 999}); }), "unknown save versions fail explicitly");

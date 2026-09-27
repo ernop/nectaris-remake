@@ -27,6 +27,7 @@ module.exports = function (ok) {
       remove:function(){if(this.parentNode){var list=this.parentNode.children;list.splice(list.indexOf(this),1);this.parentNode=null;}},
       replaceChildren:function(){this.children.forEach(function(c){c.parentNode=null;});this.children=[];text="";html="";},
       addEventListener:function(name,fn){this.events[name]=fn;},
+      showModal:function(){this.open=true;},close:function(){this.open=false;},select:function(){},
       setAttribute:function(name,value){this.attributes[name]=String(value);},
       contains:function(other){return this===other || this.children.some(function(c){return c.contains(other);});},
       focus:function(){context.document.activeElement=this;if(this.onfocus)this.onfocus();},
@@ -40,14 +41,8 @@ module.exports = function (ok) {
   function find(node,cls){return all(node,cls)[0];}
   function flushTimers(){var pending=Array.from(timers.values());timers.clear();pending.forEach(function(fn){fn();});}
   function cards(id){return all(get(id),"level-card");}
-  var openingInputs=["auto","original","offers"].map(function(value){return {value:value,checked:value==="auto"};});
-  function selectOpening(value){
-    openingInputs.forEach(function(input){input.checked=input.value===value;});
-    get("opening-select").onchange({target:openingInputs.find(function(input){return input.checked;})});
-  }
+  function selectOpening(value){get("opening-select").value=value;get("opening-select").onchange();}
   var context = {document:{getElementById:get,createElement:element,baseURI:"http://nectaris.localhost/",activeElement:null,
-      querySelector:function(selector){var value=selector.match(/\[value="([^"]+)"\]/);
-        return openingInputs.find(function(input){return value?input.value===value[1]:input.checked;});},
       addEventListener:function(name,fn){documentListeners[name]=fn;}},
     localStorage:storage,PROFILES:PROFILES,AI_SEARCH:require("../js/ai-search.js"),URL:URL,
     setTimeout:function(fn){timers.set(++timerId,fn);return timerId;},clearTimeout:function(id){timers.delete(id);},
@@ -92,22 +87,33 @@ module.exports = function (ok) {
         PROFILES.levelKey(level,{environmentCampaign:campaign.id,environmentIndex:i})==="environment:"+campaign.id+":"+i;
     }),campaign.name+": sixteen ordered cards, jump options and independent progress keys");
   });
-  ok(get("level-groups").children.length===9 && get("level-groups-nav").children.length===9,
-    "one shared collection structure covers campaigns, packs and custom levels with jump navigation");
+  ok(get("level-groups").children.map(function(s){return s.id;}).join(",")===
+    "normal-section,advanced-section,basenec-section,open-horizons-section,knotted-heart-section,broken-ground-section,"+
+    "ai-made-section,expansion-section,custom-section" && get("level-groups-nav").children.length===9,
+    "collections list Normal, Advanced and Base Nectaris first, then the remaining packs, with jump navigation");
+  ok(get("level-groups").children.map(function(s){return (find(s,"level-group-intro")||{}).textContent||"";}).filter(Boolean).join("|")===
+    "From the PC Engine campaign.|Community terrain, with new forces and briefings for this remake.",
+    "only the Normal campaign and Base Nectaris keep a one-line introduction");
+  ["mission-list","advanced-mission-list"].forEach(function(id){
+    ok(!all(get(id).parentNode,"level-help").length && get(id).classList.contains("no-help") &&
+      cards(id).every(function(card){return card.classList.contains("no-help");}),
+      id+": original-game campaigns show no level or collection help");
+  });
   ["mission-list","advanced-mission-list","ai-made-list","expansion-list","basenec-list","custom-list",
     "open-horizons-list","knotted-heart-list","broken-ground-list"].forEach(function(id){
-    var card=cards(id)[0], columns=all(get(id),"level-columns");
+    var card=cards(id)[0], columns=all(get(id),"level-columns"), original=/mission-list$/.test(id), custom=id==="custom-list";
     ok(columns.length===3 && columns.every(function(header){
       return header.children.slice(3,6).map(function(c){return c.textContent;}).join("/") === "Union/Xenon/Neutral";
     }), id+": all three listing columns identify their aligned numeric totals");
     ok(card.tagName==="article" && find(card,"level-card-heading") && find(card,"level-card-meta") &&
-      find(card,"level-card-forces") && find(card,"mission-record") && find(card,"level-play") && find(card,"level-help"),
-      id+": shared entry contains name, size, army totals, result, a large Play target and separate help");
+      find(card,"level-card-forces") && find(card,"mission-record") && find(card,"level-play") &&
+      !!find(card,"level-help")===!(original || custom),
+      id+": shared entry contains name, size, army totals, result, a large Play target and help only when it has notes");
     ok(!card.onclick && !card.onmouseenter && !card.onfocus && !card.title,
       id+": the wrapper never opens hover details or a native title tooltip");
     ok(find(card,"level-play").contains(find(card,"level-card-heading")) &&
       find(card,"level-play").contains(find(card,"level-card-forces")) &&
-      !find(card,"level-play").contains(find(card,"level-help")) &&
+      (!find(card,"level-help") || !find(card,"level-play").contains(find(card,"level-help"))) &&
       !find(card,"level-card-meta").textContent.includes("turn"),
       id+": name and counts are clickable, help is separate, and turn limits are omitted");
   });
@@ -162,27 +168,26 @@ module.exports = function (ok) {
   ok(panel.classList.contains("hidden"),"horizontal list scrolling closes details");
   help.onclick();listeners.scroll();
   ok(panel.classList.contains("hidden"),"scrolling closes a detached help panel even if its button has focus");
-  var otherHelp=find(cards("mission-list")[0],"level-help");help.onclick();otherHelp.focus();
+  var otherHelp=find(cards("expansion-list")[0],"level-help");help.onclick();otherHelp.focus();
   ok(panel.classList.contains("hidden") && otherHelp.attributes["aria-expanded"]==="true","only one help panel stays open across collections");
   listeners.resize();
   var customCard=cards("custom-list")[0];
   ok(find(customCard,"level-card-heading").textContent===custom.name && !find(customCard,"level-card-heading").innerHTML &&
-    !find(find(customCard,"level-briefing"),"level-source"),"custom titles stay plain text and unsafe source schemes are omitted");
+    !find(customCard,"level-help"),"custom titles stay plain text, and an unsafe source scheme alone never earns a help button");
   ok(find(customCard,"level-card-meta").textContent==="3 × 2" &&
     find(customCard,"level-card-forces").innerHTML===
       "<span class='level-force force-union' aria-label='Union 3'><span class='force-count'>3</span></span>"+
       "<span class='level-force force-xenon' aria-label='Xenon 1'><span class='force-count'>1</span></span>"+
       "<span class='level-force force-neutral' aria-label='Neutral 3'><span class='force-count'>3</span></span>",
     "entries list Union, Xenon and Neutral in order, with field units plus each side’s stored reserves");
-  ok(!find(customCard,"level-briefing").textContent.includes("undefined"),"missing custom metadata never displays undefined fields");
+  ok(!customCard.textContent.includes("undefined"),"missing custom metadata never displays undefined fields");
   var customTools=get("custom-level-tools");get("online-level-url").value="https://example.com/map.json";
-  get("lang-select").value="ja";get("lang-select").onchange();
-  ok(find(cards("basenec-list")[0],"level-card-heading").textContent===context.BASE_NECTARIS_LEVELS[0].nameJa &&
-    find(cards("basenec-list")[0],"level-briefing").textContent.includes(context.BASE_NECTARIS_LEVELS[0].descriptionJa),
-    "Japanese titles and briefings remain available in the common layout");
+  selectOpening("original");
+  ok(find(cards("basenec-list")[0],"level-card-heading").textContent===context.BASE_NECTARIS_LEVELS[0].name &&
+    find(cards("basenec-list")[0],"level-briefing").textContent.includes(context.BASE_NECTARIS_LEVELS[0].description),
+    "Base Nectaris entries show their English names and briefings");
   ok(get("custom-level-tools")===customTools && customTools.parentNode.id==="custom-section" &&
     get("online-level-url").value==="https://example.com/map.json","menu rebuilds preserve import controls and the entered URL");
-  get("lang-select").value="en";get("lang-select").onchange();
   context.window.scrollY=1460;get("chk-hotseat").checked=true;
   find(cards("advanced-mission-list")[0],"level-play").onclick();
   ok(get("menu-screen").classList.contains("hidden") && store.active().savedMatch.options.campaignIndex===16 && liveUI.options.hotseat,
@@ -191,11 +196,15 @@ module.exports = function (ok) {
   ok(!get("menu-screen").classList.contains("hidden") && context.window.scrollY===1460,
     "returning from a match preserves the library scroll position after rebuilding cards");
   var previousSave=JSON.stringify(store.active().savedMatch),previousUI=liveUI;
+  ok(get("opening-select").value==="original" && previousUI.game.firstPlayer===0 && !previousUI.game.balance,
+    "Normal is the default Mode and starts play without offers");
   get("chk-hotseat").checked=false;
+  selectOpening("offers");
+  ok(data["nectaris-opening"]==="offers","the chosen Mode persists");
   find(cards("ai-made-list")[9],"level-play").onclick();
   ok(liveSetup && !liveSetup.options.hotseat && liveUI===previousUI &&
     JSON.stringify(store.active().savedMatch)===previousSave,
-    "custom battles default to offers without starting play or replacing the existing checkpoint");
+    "Offer for first opens setup without starting play or replacing the existing checkpoint");
   ok(liveSetup.options.opponent==="apex","level picker passes the selected default algorithm into opening setup");
   liveSetup.options.onCancel();
   ok(liveSetup.destroyed && JSON.stringify(store.active().savedMatch)===previousSave &&
@@ -216,7 +225,7 @@ module.exports = function (ok) {
   liveUI.options.onMenu();selectOpening("original");
   find(cards("ai-made-list")[9],"level-play").onclick();
   ok(liveSetup===previousSetup && !liveUI.game.balance && liveUI.game.firstPlayer===0,
-    "Original opening bypasses offers even on a custom battle");
+    "Normal bypasses offers even on an AI-made battle");
   liveUI.options.onMenu();selectOpening("offers");
   find(cards("mission-list")[0],"level-play").onclick();
   ok(liveSetup!==previousSetup && liveSetup.game.map.name===campaign[0].name,
@@ -226,8 +235,7 @@ module.exports = function (ok) {
     "the original-opening fallback starts a regular match with no compensation metadata");
   liveUI.options.onMenu();
   // Exercise real start/save/continue/next wiring, without changing browser storage.
-  selectOpening("original");
-  get("lang-select").onchange();get("chk-hotseat").checked=false;
+  selectOpening("original");get("chk-hotseat").checked=false;
   find(cards("open-horizons-list")[0],"level-play").onclick();
   var saved=store.active().savedMatch;
   ok(saved.options.environmentCampaign==="open-horizons" && saved.options.environmentIndex===0 &&
@@ -253,7 +261,30 @@ module.exports = function (ok) {
   ok(get("gameover-next").classList.contains("hidden") && !get("gameover-next").onclick,
     "mission sixteen ends its campaign instead of advancing into an unrelated collection");
   liveUI.options.onMenu();
-  storage.setItem("nectaris-custom-levels","[]");get("lang-select").onchange();
+  storage.setItem("nectaris-custom-levels","[]");selectOpening("original");
   ok(find(get("custom-list"),"empty-levels") && get("custom-level-tools").parentNode.id==="custom-section",
     "an empty custom collection still has a useful empty state and import controls");
+  var resultsBefore=JSON.stringify(store.active().results),profileId=store.active().id;
+  get("profile-rename").onclick();
+  ok(get("profile-dialog").open && get("profile-dialog-title").textContent==="Rename profile" &&
+    get("profile-name").value==="History player","Rename opens the dialog with the current username");
+  get("profile-name").value="Historian";get("profile-form").onsubmit({preventDefault:function(){}});
+  ok(!get("profile-dialog").open && get("profile-current").textContent==="Historian" && store.active().id===profileId &&
+    store.active().name==="Historian" && JSON.stringify(store.active().results)===resultsBefore,"renaming keeps the profile's results");
+  get("profile-new").onclick();
+  ok(get("profile-dialog-title").textContent==="New profile" && get("profile-name").value==="","New profile opens an empty dialog");
+  get("profile-name").value="new PLAYER";get("profile-form").onsubmit({preventDefault:function(){}});
+  ok(get("profile-dialog").open && get("profile-error").textContent.includes("already exists"),
+    "New profile refuses an existing username without closing");
+  get("profile-cancel").onclick();
+
+  // A first visit: empty storage apart from the removed map-default Mode preference.
+  data={"nectaris-opening":"auto"};nodes={};listeners={};documentListeners={};
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname,"../js/main.js"),"utf8"),Object.assign({},context));
+  listeners.DOMContentLoaded();
+  var fresh=new PROFILES.Store(storage);
+  ok(fresh.read().profiles.length===1 && fresh.active().name==="Wilson" && get("profile-current").textContent==="Wilson" &&
+    !get("profile-dialog").open,"a first visit starts as Wilson without asking for a username");
+  ok(get("profile-switch").classList.contains("hidden"),"Switch to stays hidden until a second profile exists");
+  ok(get("opening-select").value==="original","a stored map-default preference opens as Normal");
 };

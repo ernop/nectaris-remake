@@ -132,11 +132,25 @@
 .battle-controls button[aria-pressed="true"] { background: #614c16; }
 #replay-battle-stage[data-paused="true"] { cursor: pointer; }
 #replay-battle-hint { font-size: 13px; }
-.battle-exp-gain { display: block; margin-top: 4px; color: #ffe668; font-weight: 800; }
 .battle-combatant .unit-label, .replay-viewer .unit-label { display: inline-flex; align-items: center; gap: 5px; }
 .battle-combatant .unit-label-icon, .replay-viewer .unit-label-icon { width: 32px; height: 32px; flex: 0 0 32px; image-rendering: pixelated; }
 .replay-viewer .battle-machine .unit-label-icon { width: 100%; height: 100%; }
-.battle-exp-gain { grid-column: 1 / -1; }
+
+/* Newly earned stars fade in large and glowing over the header unit icon. */
+.battle-rank-icon { position: relative; display: inline-flex; flex: 0 0 32px; }
+.battle-new-stars { position: absolute; z-index: 3; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  display: flex; align-items: center; gap: 1px; pointer-events: none; white-space: nowrap; }
+.battle-new-star { display: inline-block; color: #ffe45c; font: 700 30px/1 "DejaVu Sans", "Segoe UI Symbol", sans-serif;
+  text-shadow: 0 1px 1px #4a2e00, 0 0 8px #fff3a8, 0 0 18px #ffb800;
+  animation: battle-star-in 650ms cubic-bezier(.2, .75, .25, 1) both; }
+.battle-new-star.battle-new-general { font-size: 42px; }
+#battle-stage[data-paused="true"] .battle-new-star,
+#replay-battle-stage[data-paused="true"] .battle-new-star { animation-play-state: paused; }
+@keyframes battle-star-in {
+  0% { opacity: 0; transform: scale(2.8); text-shadow: 0 0 2px #fff, 0 0 30px #fff8cc, 0 0 60px #ffc400; }
+  45% { opacity: 1; }
+  100% { opacity: 1; transform: scale(1); text-shadow: 0 1px 1px #4a2e00, 0 0 8px #fff3a8, 0 0 18px #ffb800; }
+}
 
 .battle-phases { display: flex; justify-content: center; gap: 10px; padding: 6px; border-bottom: 1px solid #5e6281;
   font-size: 12px; color: #d4d9ee; letter-spacing: .04em; }

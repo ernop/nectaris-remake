@@ -2,8 +2,9 @@
 
 Revision 5, 2026-09-20: all **23 stock units** use the approved angular military
 direction. These are original constructions, not traced or extracted assets.
-This is **1 · Remake**, the first/default registered set. The separate
-[Legacy set](../legacy/README.md) is an explicitly requested chart import.
+This is **1 · Remake**, the first registered set. The separate
+[Legacy set](../legacy/README.md) is an explicitly requested chart import and,
+since 2026-09-26, the default.
 
 - One **32×32 transparent frame**. Map icons scale with terrain zoom, preserving
   their footprint within the hex (2026-09-21 correction). Factories, inspectors

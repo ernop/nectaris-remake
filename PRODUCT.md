@@ -5,6 +5,58 @@ identified where relevant. Mechanics reconstruction (with sources) lives in
 `MECHANICS.md`. [PROJECT_GUIDE.md](PROJECT_GUIDE.md) indexes current guidance,
 pending work, experiments and historical evidence.
 
+## Campaign menu for new players (2026-09-26)
+
+The user asked for a much simpler first page whose job is getting a new player
+into a campaign: fewer words, fewer controls and a smaller level list.
+Implemented; this supersedes the conflicting parts of the mission-library,
+profile and opening-choice records below.
+
+- **Header:** one row. **NECTARIS** is the large title; the "Lunar Tactics" tag,
+  the "Mission library" heading and "Choose a battlefield. Every campaign is open
+  from the start." are removed. Two tabs follow the title: **Campaigns** (this
+  page) and **Bot tournament** (`tournaments.html`, which shows the same tabs).
+  The tournament lab is a separate area; the in-page "Configure a bot tournament →"
+  and "AI tournament lab" links are removed.
+- **Profile:** the upper-right corner reads "You are logged in as Wilson". A first
+  visit creates the profile **Wilson** without asking. Clicking the corner opens
+  **Rename**, **New profile** and **Switch to** (only with two or more profiles).
+  Rename keeps the profile's results, stars and unfinished match. Implementation
+  choice: the win/loss line and the collapsed match history (one line per match)
+  also live in that menu. This supersedes the first-visit username prompt and
+  the large player-profile panel.
+- **Settings row** under the title: **Mode** (**Normal**, the default, or **Offer
+  for first**), **Two players (hotseat)** and **AI** (the bot for moves and offers).
+  The user named the second mode only approximately ("like new user offer"); it
+  keeps its earlier name. The map-default mode and the explanatory paragraphs are
+  removed; a stored map-default preference opens as Normal. **Continue match** is
+  one line, shown only when a match is saved.
+- **Removed:** the briefing-language option, per the user's instruction not to
+  keep language as a setting (English only; the Base Nectaris data keeps its
+  Japanese fields), and the "Briefings & making-of notes: ?" legend.
+- **Collection order:** Normal campaign, Advanced campaign, Base Nectaris, then
+  the three AI-made terrain campaigns, AI-made, Lunar Frontiers and Custom levels.
+  The in-game map selector follows the same order.
+- **Collection headers:** title, won count and the collection `?`. Category labels
+  and introductions are removed except "From the PC Engine campaign." (Normal)
+  and "Community terrain, with new forces and briefings for this remake." (Base
+  Nectaris). The AI-made campaigns keep "AI-made:" in their titles; their theme
+  sentences move into the collection `?`.
+- **Help controls:** the original game had no briefings, so the Normal and
+  Advanced campaigns show no `?` at all, neither per level nor per collection.
+  Elsewhere a level shows `?` only when it has a briefing, design notes, tags,
+  credit, terrain file or a safe source link, so no help panel is empty.
+- **Denser entries:** the three-across single-line layout stays with smaller rows,
+  gaps and `?` buttons. The page uses the full window width and neutral menu
+  text is white.
+
+Match defaults from the same request: **Pixel style** with the **Legacy** art set
+(see Selectable art sets), **Watch AI** on, and a separate **Move animation**
+toggle (see Movement presentation). The user also asked why everything moved to
+the right after opening a level: the first level on the old page was AI-made,
+and the map-default mode sent it to the offer setup, whose panel sits on the
+right. With Normal as the default, levels open straight into the match.
+
 ## Search opponents and tournament lab (2026-09-23)
 
 The user requested maximum-strength AI development, several distinct algorithms,
@@ -55,6 +107,11 @@ as numeric ranks or a separate badge. In the battle scene, only the two header
 icons carry experience; the individual formation machines have no stars.
 After fighting ends, actual earned stars appear one by one and glow on the
 header icons, ending at the awarded rank (including the General emblem).
+The user's 2026-09-26 correction removes the "Experience gained" row, which
+shifted the header layout. Each newly earned star now fades in large and
+glowing on top of the header unit icon (General as a larger star) and stays
+until the screen closes; Pause freezes the fade. After the last star the
+result holds 1 s instead of 0.7 s so its fade completes.
 This supersedes numeric battle EXP and separate inspector rank badges.
 Damage bonuses and calculation multipliers remain ordinary numeric stats.
 
@@ -131,6 +188,12 @@ Commands stay locked during human movement; watched AI/replay playback waits
 for movement to finish. Slow frames cannot skip intermediate hexes. Boarding
 and storage can draw the moving unit even after it leaves the engine's field list.
 Fast, unwatched AI and tournament computation retain their immediate execution.
+The user asked on 2026-09-26 for movement display to be configurable separately
+from Watch AI. **Move animation: On/Off** (default On, stored as
+`nectaris-animate-moves`) sits beside Watch AI. Off draws no traversal: human
+and watched AI units appear at their committed destination on the next frame,
+and the rest of the flow is unchanged. Watch AI still decides whether the
+opponent's turn is shown step by step at all. Replays keep their own speed control.
 `test/board-playback.html` checks real-browser board bounds, camera stability,
 move-to-attack, auto-completion, save/RNG preservation and battle presentation.
 
@@ -167,8 +230,10 @@ change to ranges, movement or attack eligibility.
 
 ## Selectable art sets (2026-09-20)
 
-The **Art set** selector offers **1 · Remake** first/default and **Legacy**
-second. Legacy unit icons are adapted from the user-selected ユニットデータ
+The **Art set** selector lists **1 · Remake** first and **Legacy** second.
+**Legacy** is the default since the user's 2026-09-26 request, superseding
+Remake as the default; the preference key moved to `nectaris-unit-icon-set-v2`
+so every browser starts once on Legacy. Legacy unit icons are adapted from the user-selected ユニットデータ
 chart; source provenance and the JPEG limitations are in `art/legacy/README.md`.
 Both sets provide all 23 units in native 32×32 frames and all game states.
 
@@ -551,11 +616,11 @@ requested in the 2026-09-25 follow-up, superseding the shared material heuristic
 Neither surveying nor tie-breaking reads or advances combat randomness. The final screen shows
 both switch points and the exact bonus; no army acts before Start match.
 
-A prominent **How should the match open?** panel above the campaign/level lists
-has **Use normal opening** and **Use offer for first**, plus the retained map-default
-choice (original on the 32 imported campaign missions, offers elsewhere). The
-choice persists and applies to new levels; Continue keeps the saved agreement.
-The panel links directly to tournament setup, which links back to it. Tournament
+Updated 2026-09-26 (see Campaign menu for new players): the **Mode** dropdown
+under the title offers **Normal** (default) and **Offer for first**. This
+supersedes the **How should the match open?** panel and its map-default choice.
+The choice persists and applies to new levels; Continue keeps the saved agreement.
+Tournament setup is reached from the **Bot tournament** tab. Tournament
 opening preferences are independent of human-match preferences, and each run
 freezes its own opening and no-deal policy. Imported map data stays unchanged.
 Human/CPU factions remain Union/Xenon; only initiative changes. A round ends
@@ -768,7 +833,12 @@ still governs unloading.
 On selection and after a Shift destination, only enemies attackable from that position turn
 red. Hovering one shows its identity, both units' combat stats, support, terrain,
 surround, experience, counterattack eligibility and the resulting calculation
-in the sidebar, outside the map. The last hovered matchup remains readable
+in the fixed left panel, outside the map. Restored at the user's 2026-09-26
+request: this forecast, with its heatmap, appears directly under the selected
+unit's action strip whenever an attackable enemy is hovered, whether or not
+Details is open; Details, Undo/Redo and End Turn move down below it while it
+shows (the user's chosen placement). It had been hidden inside the
+closed-by-default Details panel since 2026-09-22. The last hovered matchup remains readable
 while moving into the sidebar; hovering another target replaces it. Clicking
 a red target commits the attack from the chosen position.
 Sidebar target buttons also preview on focus or click, so the details remain
@@ -815,6 +885,9 @@ combat cannot be undone or rerolled.
 The user rejected aggressive, whole-card mouseovers and requested a consistent
 structure across every campaign and level group, with extra detail behind a
 subtle edge `?` control. This supersedes the earlier AI-made-only hover layout.
+Partly superseded on 2026-09-26 (see Campaign menu for new players): the
+original-game campaigns show no `?`, levels without notes show none, and the
+category labels, most introductions and the language option are removed.
 
 The implemented content layout is:
 
@@ -848,9 +921,9 @@ when the page or list scrolls or resizes. Only one panel may be open. It must no
 change the entry's height or show missing metadata as `undefined`.
 
 Use responsive columns of individually single-line entries and collection jump links. Keep profile selection,
-Continue, history, hotseat, briefing language and custom imports accessible.
+Continue, history, hotseat and custom imports accessible.
 Remember the menu's scroll position when starting a match and restore it after
-rebuilding the list on return. Language/profile changes must preserve entered
+rebuilding the list on return. Mode/profile changes must preserve entered
 import URLs and handlers. Custom text is plain text; source links use safe web
 URLs (or local files when running the app from disk).
 
@@ -877,9 +950,10 @@ use the local captures as visual references only.
 
 ## Player profiles and resumable matches (2026-09-20)
 
-First visit asks for a username (1–24 characters, unique ignoring case).
-The last-used profile stays selected; the mission menu offers Switch profile
-and New profile. Each browser-local profile has its own campaign stars, complete
+Since 2026-09-26 a first visit starts as the profile **Wilson** instead of
+asking for a username; **Rename** changes it (1–24 characters, unique ignoring
+case). The last-used profile stays selected; the corner profile menu offers
+Rename, New profile and Switch to. Each browser-local profile has its own campaign stars, complete
 match-result history (ten per page, with Show older matches), and one unfinished match. Solo results
 are wins/losses from Union's perspective; hotseat records name the winning side
 and are counted separately. A later campaign win marks only that mission.
@@ -922,7 +996,9 @@ After choosing a firing position, moving over each red target updates one
 inspector with that target's class, movement type, ground/air power and range,
 defense, damage and experience. The joint casualty plot uses enemy losses on X
 and your losses on Y; each cell is a percentage from 100,000 independent seeds.
-The plot precedes the mean-loss summary to keep it closer to the target details.
+Since 2026-09-26 the plot comes first, directly under the target's name, then
+the mean-loss summary, the target details and the calculation, so the heatmap
+fits on a 1080-pixel screen when the forecast opens under the unit's action strip.
 The calculation section names support contributors and their weighted values,
 shows the support divisor, terrain, experience, caps, counterattack eligibility
 and ZOC/surround status. Ordinary ZOC restricts movement; it is not a separate

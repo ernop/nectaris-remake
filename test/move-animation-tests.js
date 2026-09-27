@@ -38,4 +38,17 @@ module.exports = function (ok) {
   ok(load.loaded&&load.path[0].col===0&&load.path[load.path.length-1].col===2,"boarding retains the complete route after the passenger leaves the board");
   M.play(renderer,passenger,load.path,{requestFrame:request,cancelFrame:cancel});
   ok(renderer.motion.unit.id===passenger.id,"a boarded or stored unit remains drawable along its route");
+  renderer.motion=null;callbacks.clear();
+  var view=Object.create(require("../js/ui.js").GameUI.prototype),drawn=[],arrived=0;
+  view.renderer=renderer;view.draw=function(){drawn.push(renderer.motion);};
+  global.requestAnimationFrame=request;global.cancelAnimationFrame=cancel;
+  view.animateMoves=false;view.animateMovement(unit,move.path,function(){arrived++;});
+  ok(!renderer.motion&&arrived===0,"Move animation off never draws the unit along its route");
+  frame(0);
+  ok(arrived===1&&drawn.every(function(m){return !m;})&&callbacks.size===0&&JSON.stringify(g.snapshot())===state,
+    "Move animation off completes on the next frame at the committed destination");
+  view.animateMoves=true;view.animateMovement(unit,move.path,function(){arrived++;});
+  ok(renderer.motion&&renderer.motion.from.col===move.path[0].col,"Move animation on still traverses every hex");
+  view._movement.cancel();
+  delete global.requestAnimationFrame;delete global.cancelAnimationFrame;
 };

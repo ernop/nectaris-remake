@@ -7,7 +7,10 @@ module.exports = function (ok) {
   var UI = require("../js/ui.js");
   var previousDocument = global.document, previousRender = global.RENDER;
   var previousStyle = RENDER.getStyle();
-  var nodes = {};
+  // Any id reads as an element, however early a check looks at it.
+  var nodes = new Proxy({}, {get: function (store, id) {
+    return typeof id === "string" ? store[id] || (store[id] = element("div")) : undefined;
+  }});
   function element(tag) {
     var classes = new Set(["hidden"]), html = "";
     return {

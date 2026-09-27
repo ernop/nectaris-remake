@@ -1,7 +1,7 @@
 # Art direction and regeneration plan
 
-**Selectable sets:** These authoring rules govern the first/default **1 · Remake**
-set. **Legacy** is the user-requested exception: JPEG-derived unit-chart art
+**Selectable sets:** These authoring rules govern the first-listed **1 · Remake**
+set. **Legacy** (the default since 2026-09-26) is the user-requested exception: JPEG-derived unit-chart art
 with mirrored source shading, plus reconstructed original-style terrain and
 buildings. Legacy's 48×32 flattened geometry is integrated in production;
 Remake's terrain migration remains pending. Both sets use native 32×32 unit

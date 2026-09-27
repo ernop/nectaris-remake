@@ -3,6 +3,7 @@
 "use strict";
 var PROFILES = (function () {
   var KEY = "nectaris-profiles-v1";
+  var DEFAULT_NAME = "Wilson";
   function id() {
     return typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() :
       Date.now().toString(36) + "-" + Math.random().toString(36).slice(2);
@@ -56,13 +57,17 @@ var PROFILES = (function () {
     var data = this.read();
     return data.profiles.find(function (p) { return p.id === data.activeId; }) || null;
   };
-  Store.prototype.create = function (name) {
+  function checkedName(data, name, ownId) {
     name = name.trim();
     if (!name || name.length > 24) throw new Error("Choose a username between 1 and 24 characters.");
-    var data = this.read();
-    if (data.profiles.some(function (p) { return p.name.toLowerCase() === name.toLowerCase(); })) {
-      throw new Error("That username already exists. Choose it from Switch profile.");
+    if (data.profiles.some(function (p) { return p.id !== ownId && p.name.toLowerCase() === name.toLowerCase(); })) {
+      throw new Error("That username already exists. Choose another.");
     }
+    return name;
+  }
+  Store.prototype.create = function (name) {
+    var data = this.read();
+    name = checkedName(data, name);
     var profile = {id: id(), name: name, results: [], cleared: [], savedMatch: null};
     if (!data.profiles.length) {
       // Preserve old campaign stars once, without inventing match history.
@@ -73,6 +78,18 @@ var PROFILES = (function () {
       } catch (e) { /* Older progress was optional. */ }
     }
     data.profiles.push(profile); data.activeId = profile.id;
+    this.write(data);
+    return profile;
+  };
+  Store.prototype.ensureDefault = function () {
+    if (!this.read().profiles.length) return this.create(DEFAULT_NAME);
+    return this.active();
+  };
+  Store.prototype.rename = function (profileId, name) {
+    var data = this.read();
+    var profile = data.profiles.find(function (p) { return p.id === profileId; });
+    if (!profile) throw new Error("Profile not found.");
+    profile.name = checkedName(data, name, profileId);
     this.write(data);
     return profile;
   };
@@ -108,7 +125,7 @@ var PROFILES = (function () {
     }
     this.write(data);
   };
-  return {Store: Store, KEY: KEY, newId: id, levelKey: levelKey,
+  return {Store: Store, KEY: KEY, DEFAULT_NAME: DEFAULT_NAME, newId: id, levelKey: levelKey,
     outcomeLabel: outcomeLabel, reasonLabel: reasonLabel, levelRecord: levelRecord};
 })();
 if (typeof module !== "undefined") module.exports = PROFILES;

@@ -233,7 +233,7 @@ var BALANCE_UI = (function () {
       $("balance-turn").textContent="Your answers are locked";
       $("balance-message").textContent="The bot is still comparing both opening roles with its own playing algorithm. Its analysis cannot see your answers.";
     }else if(noDeal){
-      $("balance-turn").textContent="No agreement";$("balance-message").textContent="Neither player accepts second with any available package. Try the questions again, return to the library, or explicitly choose the normal opening.";
+      $("balance-turn").textContent="No agreement";$("balance-message").textContent="Neither player accepts second with any available package. Try the questions again, return to Campaigns, or explicitly choose the normal opening.";
     }else{
       var survey=this.surveys[this.responder];
       $("balance-turn").textContent="Question "+(survey.answers.length+1)+" · "+faction(this.responder)+"’s switch point";

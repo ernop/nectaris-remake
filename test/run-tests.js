@@ -171,6 +171,10 @@ for (var c = 0; c < 8; c++) {
 }
 
 section("renderer roads and viewport constraints");
+// Road hubs, facing and palette checks cover Remake's hex geometry and art;
+// Legacy draws roads on its own tile grid (legacy-terrain-tests.js).
+var suiteIconSet = RENDER.getIconSet();
+RENDER.setIconSet("remake");
 var rendererGame = {
   width: 3,
   height: 3,
@@ -376,6 +380,19 @@ renderer.drawUnit({
 ok(!bystanderAssignments.some(function (assignment) {
   return assignment[0] === "fillStyle" && assignment[1] === "#be4448";
 }), "a unit that is not attacking keeps its faction colours");
+RENDER.setIconSet("legacy");
+var legacyAttackAssignments = [];
+renderer.attackingUnitId = "attacking-unit";
+renderer.ctx = recordingContext(legacyAttackAssignments, null);
+renderer.drawUnit({
+  id: "attacking-unit", typeId: "GRIZZLY", type: UNIT_TYPES.GRIZZLY,
+  player: 1, col: 1, row: 1, moved: true, strength: 8, exp: 0, cargo: [],
+});
+renderer.attackingUnitId = null;
+ok(legacyAttackAssignments.some(function (assignment) {
+  return assignment[0] === "fillStyle" && assignment[1] === "#c63745";
+}), "Legacy draws the attacking unit in its own deep-red attack body colour");
+RENDER.setIconSet(suiteIconSet);
 RENDER.setStyle("neon");
 
 section("movement and ZOC");

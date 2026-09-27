@@ -5,80 +5,63 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nectaris — hex tactics remake</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='24,16 20,23 12,23 8,16 12,9 20,9' fill='%23ffd94a'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/nectaris.css?v=20260925-tournaments-2">
-<link rel="stylesheet" href="css/battle-dock.css?v=20260926-battle-controls">
+<link rel="stylesheet" href="css/nectaris.css?v=20260926-forecast-hover">
+<link rel="stylesheet" href="css/battle-dock.css?v=20260926-star-fade">
 </head>
 <body>
 <div id="save-error" class="hidden" role="alert"></div>
 <dialog id="profile-dialog" aria-labelledby="profile-dialog-title">
   <form id="profile-form">
-    <p class="profile-eyebrow">YOUR LUNAR CAMPAIGN</p>
-    <h2 id="profile-dialog-title">Choose your username</h2>
-    <p>Your profile keeps your results and unfinished match on this browser.</p>
+    <h2 id="profile-dialog-title">New profile</h2>
     <label for="profile-name">Username</label>
-    <input id="profile-name" name="username" type="text" maxlength="24" required autocomplete="off" placeholder="Commander name">
+    <input id="profile-name" name="username" type="text" maxlength="24" required autocomplete="off">
     <p id="profile-error" role="alert"></p>
     <div class="profile-actions">
-      <button type="submit" class="primary">Create profile</button>
+      <button type="submit" id="profile-submit" class="primary">Create</button>
       <button type="button" id="profile-cancel">Cancel</button>
     </div>
   </form>
 </dialog>
 
-<!-- ============ Mission menu ============ -->
+<!-- ============ Campaign menu ============ -->
 <div id="menu-screen">
   <header class="menu-header">
-    <p class="menu-brand">NECTARIS <span>LUNAR TACTICS</span></p>
-    <h1>Mission library</h1>
-    <p class="subtitle">Choose a battlefield. Every campaign is open from the start.</p>
-  </header>
-
-  <section class="profile-panel" aria-labelledby="profile-heading">
-    <div class="profile-summary">
-    <div>
-    <p class="profile-eyebrow">PLAYER PROFILE</p>
-    <h2 id="profile-heading">Choose your player profile</h2>
-    <p id="profile-record"></p>
-    </div>
-    <div class="profile-actions">
-      <label for="profile-select">Switch profile</label>
-      <select id="profile-select"></select>
-      <button id="profile-new">New profile</button>
-    </div>
-    </div>
-    <p class="section-note">Saved automatically in this browser. Use the same address when you return.</p>
-    <div id="continue-match" class="hidden">
-      <div><strong>Unfinished match</strong><p id="continue-detail"></p></div>
-      <button id="continue-button" class="primary">Continue match</button>
-    </div>
-    <details id="history-section" class="hidden">
-      <summary>Match history</summary>
-      <ol id="profile-history"></ol>
-      <p id="history-count" class="section-note" role="status"></p>
-      <button id="history-more" class="hidden">Show older matches</button>
+    <h1 class="menu-brand">NECTARIS</h1>
+    <nav class="menu-tabs" aria-label="Sections">
+      <a href="index.html" aria-current="page">Campaigns</a>
+      <a href="tournaments.html">Bot tournament</a>
+    </nav>
+    <details id="profile-menu" class="profile-menu">
+      <summary>You are logged in as <strong id="profile-current"></strong></summary>
+      <div class="profile-menu-panel">
+        <div class="profile-actions">
+          <button type="button" id="profile-rename">Rename</button>
+          <button type="button" id="profile-new">New profile</button>
+          <label id="profile-switch" for="profile-select">Switch to <select id="profile-select"></select></label>
+        </div>
+        <p id="profile-record"></p>
+        <details id="history-section" class="hidden">
+          <summary>Match history</summary>
+          <ol id="profile-history"></ol>
+          <p id="history-count" role="status"></p>
+          <button id="history-more" class="hidden">Show older matches</button>
+        </details>
+      </div>
     </details>
-  </section>
-
-  <section id="opening-settings" class="opening-settings" aria-labelledby="opening-heading">
-    <div class="opening-heading"><h2 id="opening-heading">How should the match open?</h2><a class="btn-like" href="tournaments.html#setup-title">Configure a bot tournament →</a></div>
-    <fieldset id="opening-select">
-      <legend>Opening system for your next level</legend>
-      <label class="opening-option"><input type="radio" name="opening" value="original"><span><strong>Use normal opening</strong><small>Union moves first. Keep the map’s original armies.</small></span></label>
-      <label class="opening-option"><input type="radio" name="opening" value="offers"><span><strong>Use offer for first</strong><small>Answer a few questions to find the bonus you would accept for going second.</small></span></label>
-      <label class="opening-default"><input type="radio" name="opening" value="auto" checked> Use map defaults: normal for imported campaigns, offers elsewhere</label>
-    </fieldset>
-    <p>Choose an opening, then click a level below. In offers, review the agreement before starting. Continuing a saved match keeps its existing opening.</p>
-  </section>
+  </header>
   <div class="library-toolbar">
-    <label><input type="checkbox" id="chk-hotseat"> Two players (hotseat)</label>
-    <label>Bot for moves &amp; opening offers <select id="menu-opponent"></select></label>
-    <label>Briefing language / 表示言語
-      <select id="lang-select">
-        <option value="en">English</option>
-        <option value="ja">日本語</option>
+    <label>Mode
+      <select id="opening-select">
+        <option value="original">Normal</option>
+        <option value="offers">Offer for first</option>
       </select>
     </label>
-    <span>Briefings &amp; making-of notes: <span class="help-key">?</span></span>
+    <label><input type="checkbox" id="chk-hotseat"> Two players (hotseat)</label>
+    <label>AI <select id="menu-opponent"></select></label>
+  </div>
+  <div id="continue-match" class="hidden">
+    <strong>Unfinished match</strong><span id="continue-detail"></span>
+    <button id="continue-button" class="primary">Continue match</button>
   </div>
   <nav id="level-groups-nav" aria-label="Level collections"></nav>
   <div id="level-groups"></div>
@@ -87,7 +70,6 @@
     <div class="menu-controls">
       <label class="filebtn">Import level JSON<input type="file" id="file-import" accept=".json"></label>
       <a class="btn-like" href="editor.html">Open level editor</a>
-      <a class="btn-like" href="tournaments.html" target="_blank" rel="noopener">AI tournament lab</a>
     </div>
     <div class="url-import">
       <input type="url" id="online-level-url" placeholder="https://…/level.json" aria-label="Online level JSON URL">
@@ -106,7 +88,7 @@
 <!-- ============ Pregame compensation ============ -->
 <section id="balance-screen" class="hidden" aria-labelledby="balance-title">
   <header id="balance-header" class="balance-header">
-    <button id="balance-back">◄ Mission library</button>
+    <button id="balance-back">◄ Campaigns</button>
     <strong id="balance-title">Offer for first · find your switch point</strong>
     <span id="balance-map-name"></span>
   </header>
@@ -177,6 +159,7 @@
     </select>
     <select id="icon-set-select" aria-label="Art set"></select>
     <button id="btn-watch" aria-pressed="true">Watch AI: On</button>
+    <button id="btn-animate" aria-pressed="true">Move animation: On</button>
     <button id="btn-music" aria-pressed="false">Music: Off</button>
     </div>
     <div class="view-controls" role="group" aria-label="Board view">
@@ -188,6 +171,7 @@
       <button id="btn-fit" title="Fit the entire board in the available space">Fit</button>
     </div>
     <div id="dock-unit-controls"></div>
+    <div id="combat-inspector" class="hidden" aria-live="polite"></div>
     <div class="topbar-actions">
     <button id="btn-details" aria-expanded="false" aria-controls="sidebar" title="Show unit details and combat forecasts">Details</button>
     <div class="history-controls" role="group" aria-label="Action history">
@@ -207,7 +191,6 @@
       <div id="action-status" class="hidden" role="status"></div>
       <div id="transport-actions" class="hidden"></div>
       <div id="attack-targets" class="hidden" role="group" aria-label="Preview attack targets"></div>
-      <div id="combat-inspector" class="hidden" aria-live="polite"></div>
       <div id="unit-info"></div>
       <div id="hex-info"></div>
     </aside>
@@ -284,18 +267,18 @@
 <script src="js/data-environment-campaigns.js?v=20260923-ai-made-labels"></script>
 <script src="js/data-unit-art.js?v=20260920-battle-forecast"></script>
 <script src="js/data-unit-art-legacy.js?v=20260920-battle-forecast"></script>
-<script src="js/unit-icon-sets.js?v=20260920-battle-forecast"></script>
+<script src="js/unit-icon-sets.js?v=20260926-simple-menu"></script>
 <script src="js/legacy-terrain.js?v=20260923-board-frame"></script>
 <script src="js/render.js?v=20260926-battle-controls"></script>
 <script src="js/unit-view.js?v=20260926-battle-controls"></script>
-<script src="js/balance-ui.js?v=20260926-battle-controls"></script>
+<script src="js/balance-ui.js?v=20260926-simple-menu"></script>
 <script src="js/music.js?v=20260920-battle-forecast"></script>
-<script src="js/combat-view.js?v=20260926-battle-controls"></script>
+<script src="js/combat-view.js?v=20260926-forecast-hover"></script>
 <script src="js/playback-timeline.js?v=20260926-battle-controls"></script>
 <script src="js/move-animation.js?v=20260926-battle-controls"></script>
-<script src="js/battle-report.js?v=20260926-battle-controls"></script>
-<script src="js/ui.js?v=20260926-battle-controls"></script>
-<script src="js/profiles.js?v=20260923-terrain-campaigns"></script>
-<script src="js/main.js?v=20260925-tournaments-2"></script>
+<script src="js/battle-report.js?v=20260926-star-fade"></script>
+<script src="js/ui.js?v=20260926-forecast-hover"></script>
+<script src="js/profiles.js?v=20260926-simple-menu"></script>
+<script src="js/main.js?v=20260926-simple-menu"></script>
 </body>
 </html>

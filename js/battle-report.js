@@ -170,6 +170,23 @@ var BATTLE_REPORT = (function () {
     return html + "</div>";
   }
 
+  // Earned ranks are revealed one per STAR_MS; each then fades in over STAR_FADE_MS.
+  var STAR_MS = 350, STAR_FADE_MS = 650;
+  // A star's delay is its age on the reward clock, so rebuilding the screen for
+  // the next rank continues earlier stars mid-fade and the markup stays identical
+  // between ranks.
+  function newStarsHtml(before, shown) {
+    if (!(shown > before)) return "";
+    var html = "";
+    for (var rank = before + 1; rank <= shown; rank++) {
+      html += "<span class='battle-new-star" + (rank >= combat.MAX_EXP ? " battle-new-general" : "") +
+        "' style='animation-delay:-" + (shown - rank) * STAR_MS + "ms'>★</span>";
+    }
+    var label = shown >= combat.MAX_EXP ? "Promoted to General" :
+      "Earned " + (shown - before) + " experience star" + (shown - before === 1 ? "" : "s");
+    return "<span class='battle-new-stars' role='img' aria-label='" + label + "'>" + html + "</span>";
+  }
+
   // Original-style opposing formations, recreated with the selected remake art.
   // Stats describe the pre-battle squads; casualties and earned stars animate.
   function screenHtml(attacker, defender, preview, aBefore, dBefore, aNow, dNow, aExp, dExp, aExpAfter, dExpAfter, phase) {
@@ -177,9 +194,10 @@ var BATTLE_REPORT = (function () {
     function head(unit, now, exp, role, after) {
       var shownUnit=Object.assign({},unit,{strength:now,exp:after === undefined ? exp : after});
       return "<div class='battle-combatant' data-player='" + unit.player + "'><span class='war-faction war-faction-" + unit.player + "'>" +
-        faction(unit.player) + " · " + role + "</span><h3>" + unitView.html(shownUnit, after > exp ? {experienceGlowFrom:exp} : null) + "</h3>" +
-        "<div class='battle-count'><strong>" + now + "</strong><span>machines</span></div>" +
-        (after > exp ? "<div class='battle-exp-gain'>Experience gained</div>" : "") + "</div>";
+        faction(unit.player) + " · " + role + "</span><h3><span class='unit-label'><span class='battle-rank-icon'>" +
+        unitView.iconHtml(shownUnit, after > exp ? {experienceGlowFrom:exp} : null) + newStarsHtml(exp, after) +
+        "</span><span>" + esc(unitView.name(shownUnit)) + "</span></span></h3>" +
+        "<div class='battle-count'><strong>" + now + "</strong><span>machines</span></div></div>";
     }
     function stats(unit, side, strength, canFire) {
       return "<div class='battle-stats' data-player='" + unit.player + "'><dl><div><dt>Attack</dt><dd>" + (canFire ? side.ap * strength : "—") +
@@ -214,10 +232,14 @@ var BATTLE_REPORT = (function () {
 
   function earnedExperience(before, after, elapsed) {
     if (after === undefined || elapsed === undefined) return after;
-    return Math.min(after, before + Math.floor(elapsed / 350));
+    return Math.min(after, before + Math.floor(elapsed / STAR_MS));
+  }
+  // The last star finishes fading, then stays in view briefly before the screen closes.
+  function rewardHoldMs(stars) {
+    return stars ? stars * STAR_MS + STAR_FADE_MS + 350 : 700;
   }
   function rewardDuration(snap) {
-    return Math.max((snap.aExpAfter || 0) - snap.aExp, (snap.dExpAfter || 0) - snap.dExp, 0) * 350 + 700;
+    return rewardHoldMs(Math.max((snap.aExpAfter || 0) - snap.aExp, (snap.dExpAfter || 0) - snap.dExp, 0));
   }
   function fightingDuration(snap) {
     return Math.max(1600, Math.min(2600, Math.max(snap.aBefore-snap.aAfter, snap.dBefore-snap.dAfter)*360));
@@ -279,7 +301,7 @@ var BATTLE_REPORT = (function () {
   }
 
   return {faction: faction, emptyLedger: emptyLedger, cloneLedger: cloneLedger, assess: assess,
-    snapshot: snapshot, animate: animate, fightingDuration: fightingDuration, earnedExperience: earnedExperience, rewardDuration: rewardDuration, record: record, sceneHtml: sceneHtml, screenHtml: screenHtml, present: present, resultParts: resultParts,
+    snapshot: snapshot, animate: animate, fightingDuration: fightingDuration, earnedExperience: earnedExperience, rewardDuration: rewardDuration, rewardHoldMs: rewardHoldMs, record: record, sceneHtml: sceneHtml, screenHtml: screenHtml, present: present, resultParts: resultParts,
     previewHtml: previewHtml, ledgerHtml: ledgerHtml, noteHtml: noteHtml};
 })();
 if (typeof module !== "undefined") module.exports = BATTLE_REPORT;

@@ -48,8 +48,9 @@ build step. Generated indexed data lives in `js/data-unit-art-legacy.js`.
 Both sets are registered in `js/unit-icon-sets.js`. A pack needs an id, label,
 complete 32×32 left/right frames for all 23 stock units, and union/xenon/attack/
 neutral palettes. `register()` validates this contract before exposing a pack.
-The selected id is saved as `nectaris-unit-icon-set-v1`, independent of map
-data and profiles. Game, editor, roster sheet and map preview share it.
+Legacy is the default set since 2026-09-26. The selected id is saved as
+`nectaris-unit-icon-set-v2`, independent of map data and profiles. Game, editor,
+roster sheet and map preview share it.
 
 ## Legacy map style
 

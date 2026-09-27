@@ -65,6 +65,7 @@ var UI = (function () {
     this.busy = false;
     this.destroyed = false;
     this.watchAI = localStorage.getItem("nectaris-watch-ai") !== "off";
+    this.animateMoves = localStorage.getItem("nectaris-animate-moves") !== "off";
     this.warLedger = battleReport.emptyLedger();
     this.onGameOver = this.options.onGameOver || function () {};
     this.detailsOpen = false;
@@ -143,6 +144,11 @@ var UI = (function () {
     $("btn-watch").onclick = function () {
       self.watchAI = !self.watchAI;
       localStorage.setItem("nectaris-watch-ai", self.watchAI ? "on" : "off");
+      self.refreshWatchButton();
+    };
+    $("btn-animate").onclick = function () {
+      self.animateMoves = !self.animateMoves;
+      localStorage.setItem("nectaris-animate-moves", self.animateMoves ? "on" : "off");
       self.refreshWatchButton();
     };
 
@@ -418,6 +424,9 @@ var UI = (function () {
     var button = $("btn-watch");
     button.textContent = "Watch AI: " + (this.watchAI ? "On" : "Off");
     button.setAttribute("aria-pressed", this.watchAI ? "true" : "false");
+    var animate = $("btn-animate");
+    animate.textContent = "Move animation: " + (this.animateMoves ? "On" : "Off");
+    animate.setAttribute("aria-pressed", this.animateMoves ? "true" : "false");
   };
 
   GameUI.prototype.openWarDock = function (scene, math) {
@@ -457,6 +466,7 @@ var UI = (function () {
     var paused = this._battlePlayback && this._battlePlayback.paused, button = $("btn-battle-pause");
     button.textContent = paused ? "Resume" : "Pause";
     button.setAttribute("aria-pressed", paused ? "true" : "false");
+    $("battle-stage").setAttribute("data-paused", paused ? "true" : "false");
   };
 
   GameUI.prototype.toggleBattlePause = function () {
@@ -478,7 +488,8 @@ var UI = (function () {
   GameUI.prototype.animateMovement = function (unit, path, done) {
     if (this._movement) this._movement.cancel();
     var self = this;
-    this._movement = movement.play(this.renderer, unit, path, {
+    // A one-hex route draws no motion and still completes on the next frame.
+    this._movement = movement.play(this.renderer, unit, this.animateMoves ? path : path.slice(-1), {
       draw: function () { self.draw(); },
       done: function () { self._movement = null; if (!self.destroyed && done) done(); },
     });
@@ -561,8 +572,8 @@ var UI = (function () {
     var lastCounts = "", resultMath = $("war-math").innerHTML;
     if (holdMs === undefined) holdMs = 900;
     if (approachMs === undefined) approachMs = 800;
-    holdMs = Math.max(holdMs, Math.max(event.attacker.exp - result.attackerExpBefore,
-      event.defender.exp - result.defenderExpBefore) * 350 + 700);
+    holdMs = Math.max(holdMs, battleReport.rewardHoldMs(Math.max(event.attacker.exp - result.attackerExpBefore,
+      event.defender.exp - result.defenderExpBefore)));
     this.renderer.battleGhosts = [event.attacker, event.defender];
 
     function casualtyState(before, losses, progress, unit, seed) {
@@ -779,10 +790,7 @@ var UI = (function () {
 
   GameUI.prototype.hideCombatPreview = function () {
     $("combat-inspector").classList.add("hidden");
-    $("unit-info").classList.remove("hidden");
     this._previewKey = null;
-    $("btn-details").classList.remove("has-forecast");
-    $("btn-details").textContent = "Details";
     this._forecastCache = {};
     this.renderer.attackingUnitId = null;
     this.renderer.flashUnits = {};
@@ -798,13 +806,14 @@ var UI = (function () {
     if (!this._forecastCache) this._forecastCache = {};
     var forecast = this._forecastCache[key];
     if (!forecast) forecast = this._forecastCache[key] = COMBAT.forecast(attacker, defender, pv);
-    $("combat-inspector").innerHTML = COMBAT_VIEW.html(attacker, defender, pv, forecast);
-    unitView.paint($("combat-inspector"));
-    $("combat-inspector").classList.remove("hidden");
-    $("unit-info").classList.add("hidden");
-    $("sidebar").scrollTop = 0;
-    $("btn-details").classList.add("has-forecast");
-    $("btn-details").textContent = "Details · Forecast";
+    var inspector = $("combat-inspector"), panel = $("topbar");
+    inspector.innerHTML = COMBAT_VIEW.html(attacker, defender, pv, forecast);
+    unitView.paint(inspector);
+    inspector.classList.remove("hidden");
+    // The forecast sits in the left panel whether or not Details is open; scroll
+    // the panel, never the board, when a short window hides it.
+    if (inspector.getBoundingClientRect().top >= panel.getBoundingClientRect().bottom)
+      panel.scrollTop += inspector.getBoundingClientRect().top - panel.getBoundingClientRect().top;
     this.renderer.attackingUnitId = attacker.id;
     this.renderer.flashUnits = {};
     this.renderer.flashUnits[defender.id] = "#ffffff";

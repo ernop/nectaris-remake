@@ -36,26 +36,33 @@
     } catch (error) { reportSaveError(error); return false; }
   }
 
-  function openProfileForm() {
+  var renamingProfile = false;
+  function openProfileForm(rename) {
+    renamingProfile = !!(rename && activeProfile);
+    $("profile-menu").open = false;
     $("profile-error").textContent = "";
-    $("profile-name").value = "";
+    $("profile-dialog-title").textContent = renamingProfile ? "Rename profile" : "New profile";
+    $("profile-submit").textContent = renamingProfile ? "Save" : "Create";
+    $("profile-name").value = renamingProfile ? activeProfile.name : "";
     $("profile-cancel").classList.toggle("hidden", !activeProfile);
     $("profile-dialog").showModal();
     $("profile-name").focus();
+    if (renamingProfile) $("profile-name").select();
   }
 
   function renderProfile() {
-    activeProfile = profiles.active();
-    var select = $("profile-select");
+    activeProfile = profiles.ensureDefault();
+    var select = $("profile-select"), all = profiles.read().profiles;
     select.replaceChildren();
-    profiles.read().profiles.forEach(function (p) {
+    all.forEach(function (p) {
       var option = document.createElement("option");
       option.value = p.id; option.textContent = p.name;
       select.appendChild(option);
     });
     select.value = activeProfile ? activeProfile.id : "";
-    select.disabled = !activeProfile;
-    $("profile-heading").textContent = activeProfile ? "Welcome back, " + activeProfile.name : "Choose your player profile";
+    $("profile-switch").classList.toggle("hidden", all.length < 2);
+    $("profile-current").textContent = activeProfile ? activeProfile.name : "no profile";
+    $("profile-rename").disabled = !activeProfile;
     var results = activeProfile ? activeProfile.results : [];
     var solo = results.filter(function (r) { return !r.hotseat; });
     var wins = solo.filter(function (r) { return r.outcome === "win"; }).length;
@@ -123,9 +130,7 @@
   var menuScrollTop = 0;
 
   function openingMode(options) {
-    var selected=document.querySelector('input[name="opening"]:checked');
-    var mode=options.opening || (selected && selected.value) || "auto";
-    return mode==="auto" ? (options.campaignIndex===undefined ? "offers" : "original") : mode;
+    return options.opening || $("opening-select").value;
   }
 
   function startGame(mapDef, opts, saved) {
@@ -248,37 +253,14 @@
     try {$("menu-opponent").value=AI_SEARCH.get(localStorage.getItem("nectaris-opponent")||"apex").id;}catch(e){}
     buildMenu();
     window.scrollTo(0, menuScrollTop);
-    if (!activeProfile && !$("profile-dialog").open) openProfileForm();
   }
 
-  var LANG_KEY = "nectaris-lang";
-  /* Briefing language. Levels may carry Japanese variants (nameJa, descriptionJa,
-   * ...); a level without them shows its English text in either setting, which
-   * is a real absence of a translation, not a failure. */
-  function lang() {
-    var v = localStorage.getItem(LANG_KEY);
-    return v === "ja" ? "ja" : "en";
-  }
-  function tr(lv, field) {
-    var ja = lv[field + "Ja"];
-    return (lang() === "ja" && ja) ? ja : lv[field];
-  }
-
-  var CARD_LABELS = {
-    en: {
-      source: "Level source ↗", collectionSource: "Collection notes ↗", play: "Play",
-      briefing: "Briefing", design: "Design notes", author: "Made by", sourceFile: "Terrain file",
-      lastMatch: "Last match", collection: "About this collection", noNotes: "No briefing supplied by the author.",
-      union: "Union", xenon: "Xenon", neutral: "Neutral",
-      mission: "Level", size: "Size", result: "Result",
-    },
-    ja: {
-      source: "出典 ↗", collectionSource: "コレクションの詳細 ↗", play: "開始",
-      briefing: "作戦概要", design: "設計の特徴", author: "作者", sourceFile: "地形ファイル",
-      lastMatch: "前回の結果", collection: "このコレクションについて", noNotes: "作戦概要はありません。",
-      union: "連合軍", xenon: "ガイチ軍", neutral: "中立",
-      mission: "マップ", size: "サイズ", result: "結果",
-    },
+  var LABELS = {
+    source: "Level source ↗", collectionSource: "Collection notes ↗", play: "Play",
+    briefing: "Briefing", design: "Design notes", author: "Made by", sourceFile: "Terrain file",
+    lastMatch: "Last match", collection: "About this collection",
+    union: "Union", xenon: "Xenon", neutral: "Neutral",
+    mission: "Level", size: "Size", result: "Result",
   };
 
   function initialForceCounts(level) {
@@ -326,13 +308,14 @@
     panel.appendChild(menuText("h4", "", label));
     panel.appendChild(menuText("p", "", value));
   }
+  function safeSource(source) {
+    if (!source) return false;
+    try { var url = new URL(source, document.baseURI); } catch (error) { return false; }
+    return url.protocol === "https:" || url.protocol === "http:" ||
+      (url.protocol === "file:" && location.protocol === "file:");
+  }
   function addHelpSource(panel, source, label) {
-    if (!source) return;
-    try {
-      var url = new URL(source, document.baseURI);
-      if (url.protocol !== "https:" && url.protocol !== "http:" &&
-          !(url.protocol === "file:" && location.protocol === "file:")) return;
-    } catch (error) { return; }
+    if (!safeSource(source)) return;
     var link = menuText("a", "level-source", label);
     link.href = source; link.target = "_blank"; link.rel = "noopener";
     panel.appendChild(link);
@@ -403,46 +386,43 @@
       !!(activeProfile && options.opening!=="offers" && options.campaignIndex !== undefined &&
         activeProfile.cleared.indexOf(options.campaignIndex) >= 0);
   }
+  // The original game's campaigns had no briefings, so they show no help at all.
   function levelGroups() {
-    return ENVIRONMENT_CAMPAIGNS.map(function (campaign) {
-      return {id:campaign.id, list:campaign.id+"-list", title:campaign.name, kind:"AI-made campaign",
-        intro:campaign.description, levels:campaign.levels, pack:"environmentIndex", environmentCampaign:campaign.id,
-        notes:"Sixteen AI-made battles created by Codex, each with its own terrain, forces and tactical problem. Normal capture/elimination rules apply. No Hunters, Falcons or Eagles; some missions include Pelicans. Forces start fresh each mission.",
-        source:"ENVIRONMENT_CAMPAIGNS.md#"+campaign.id};
-    }).concat([
-      {id:"ai-made", list:"ai-made-list", title:"AI-made", kind:"Original scenarios",
-        intro:"Branching fjords, narrow passes and new routes to explore.",
-        levels:AI_MADE_LEVELS, pack:"aiMadeIndex",
-        notes:"Original battlefields made to the project owner's specifications. Each part keeps its own layout, starting forces and factory inventories. Later maps explore different route structures rather than replacing earlier levels.",
-        source:"PRODUCT.md#ai-made-fjord-levels-2026-09-22"},
-      {id:"normal", list:"mission-list", title:"Normal campaign", kind:"Original campaign",
-        intro:"Sixteen original battles from the PC Engine campaign.",
-        levels:CAMPAIGN, pack:"campaignIndex",
-        notes:"Original normal-campaign layouts, deployments and factory inventories, extracted from Hudson's official 1997 Windows remake. English unit names follow the TurboGrafx-16 release. The imported battlefields are preserved without retuning.",
-        source:"LEVEL_SOURCES.md#included-campaign-official-hudson-normal-campaign"},
-      {id:"advanced", list:"advanced-mission-list", title:"Advanced campaign", kind:"Original campaign",
-        intro:"Return to the original battlefields with advanced deployments and reserves.",
-        levels:ADVANCED_CAMPAIGN, pack:"campaignIndex", offset:CAMPAIGN.length,
-        notes:"Missions 17–32 preserve the official advanced deployments and factory inventories. They remain separate from the normal campaign and keep their original campaign numbering.",
-        source:"LEVEL_SOURCES.md#included-advanced-campaign-2026-09-20"},
-      {id:"expansion", list:"expansion-list", title:"Lunar Frontiers", kind:"Original expansion",
-        intro:"Twelve original scenarios, each built around a different tactical idea.",
-        levels:EXPANSION_LEVELS, pack:"expansionIndex",
-        notes:"Original maps by Nectaris Remake contributors. Each level's notes explain its design focus and link to the source data; these layouts do not reproduce the original campaign or community archive maps.",
-        source:"LEVEL_SOURCES.md#included-online-expansion-lunar-frontiers"},
-      {id:"basenec", list:"basenec-list", title:lang() === "ja" ? "ベース・ネクタリス地形" : "Base Nectaris", kind:"Terrain pack",
+    return [
+      {id:"normal", list:"mission-list", title:"Normal campaign", intro:"From the PC Engine campaign.",
+        levels:CAMPAIGN, pack:"campaignIndex", originalGame:true},
+      {id:"advanced", list:"advanced-mission-list", title:"Advanced campaign",
+        levels:ADVANCED_CAMPAIGN, pack:"campaignIndex", offset:CAMPAIGN.length, originalGame:true},
+      {id:"basenec", list:"basenec-list", title:"Base Nectaris",
         intro:"Community terrain, with new forces and briefings for this remake.",
         levels:BASE_NECTARIS_LEVELS, pack:"baseNecIndex",
         notes:"Terrain by Crescent (BASE NECTARIS), from the unit-free Windows map files whose download page permits placing units and reposting the result. Rosters, deployments and briefings are this project's. Other archive scenarios and commentary are not part of this import.",
         source:"LEVEL_SOURCES.md#included-pack-base-nectaris-terrain-added-2026-09-01"},
-      {id:"custom", list:"custom-list", title:"Custom levels", kind:"Your collection",
-        intro:"Battlefields you create or import, saved in this browser.", levels:getCustomLevels(),
+    ].concat(ENVIRONMENT_CAMPAIGNS.map(function (campaign) {
+      return {id:campaign.id, list:campaign.id+"-list", title:campaign.name,
+        levels:campaign.levels, pack:"environmentIndex", environmentCampaign:campaign.id,
+        notes:campaign.description+" Sixteen AI-made battles created by Codex, each with its own terrain, forces and tactical problem. Normal capture/elimination rules apply. No Hunters, Falcons or Eagles; some missions include Pelicans. Forces start fresh each mission.",
+        source:"ENVIRONMENT_CAMPAIGNS.md#"+campaign.id};
+    }), [
+      {id:"ai-made", list:"ai-made-list", title:"AI-made",
+        levels:AI_MADE_LEVELS, pack:"aiMadeIndex",
+        notes:"Original battlefields made to the project owner's specifications. Each part keeps its own layout, starting forces and factory inventories. Later maps explore different route structures rather than replacing earlier levels.",
+        source:"PRODUCT.md#ai-made-fjord-levels-2026-09-22"},
+      {id:"expansion", list:"expansion-list", title:"Lunar Frontiers",
+        levels:EXPANSION_LEVELS, pack:"expansionIndex",
+        notes:"Original maps by Nectaris Remake contributors. Each level's notes explain its design focus and link to the source data; these layouts do not reproduce the original campaign or community archive maps.",
+        source:"LEVEL_SOURCES.md#included-online-expansion-lunar-frontiers"},
+      {id:"custom", list:"custom-list", title:"Custom levels", levels:getCustomLevels(),
         notes:"Create a map in the editor, import a JSON file, or install a level from a URL. Custom maps can include their own units and rules data. Briefings and attribution appear here when provided by their author.",
         source:"LEVEL_SOURCES.md#installing-levels-from-the-web"}
     ]);
   }
+  function levelHasHelp(group, lv) {
+    return !group.originalGame && !!(lv.description || lv.blurb || lv.special ||
+      (lv.tags && lv.tags.length) || lv.author || lv.sourceFile || safeSource(lv.source));
+  }
   function renderLevelCards(host, group) {
-    var L = CARD_LABELS[lang()];
+    var L = LABELS;
     if (group.levels.length) {
       [1, 2, 3].forEach(function (column) {
         var columns = menuText("div", "level-columns", "");
@@ -458,9 +438,9 @@
       });
     }
     group.levels.forEach(function (lv, i) {
-      var options = levelOptions(group, i), name = tr(lv, "name");
+      var options = levelOptions(group, i), name = lv.name, help = levelHasHelp(group, lv);
       var card = document.createElement("article");
-      card.className = "level-card" + (levelWasWon(lv, options) ? " cleared" : "");
+      card.className = "level-card" + (levelWasWon(lv, options) ? " cleared" : "") + (help ? "" : " no-help");
       var play = menuText("button", "level-play", "");
       play.type = "button"; play.setAttribute("aria-label", L.play + " " + name);
       play.onclick = function () {
@@ -478,18 +458,15 @@
       forces.innerHTML = forceCountHtml(lv, L, "level-force"); play.appendChild(forces);
       appendLevelRecord(play, lv, options);
       card.appendChild(play);
-      card.appendChild(createMenuHelp(title.id + "-details", name, function (panel) {
-        addHelpText(panel, L.briefing, tr(lv, "description") || tr(lv, "blurb"));
-        addHelpText(panel, L.design, tr(lv, "special"));
-        var tags = tr(lv, "tags");
-        if (tags && tags.length) panel.appendChild(menuText("p", "level-tags", tags.join(" · ")));
-        addHelpText(panel, L.author, tr(lv, "author"));
+      if (help) card.appendChild(createMenuHelp(title.id + "-details", name, function (panel) {
+        addHelpText(panel, L.briefing, lv.description || lv.blurb);
+        addHelpText(panel, L.design, lv.special);
+        if (lv.tags && lv.tags.length) panel.appendChild(menuText("p", "level-tags", lv.tags.join(" · ")));
+        addHelpText(panel, L.author, lv.author);
         if (lv.sourceFile) addHelpText(panel, L.sourceFile, lv.sourceFile);
         var record = PROFILES.levelRecord(activeProfile, lv, options);
         if (record.latest) addHelpText(panel, L.lastMatch, PROFILES.outcomeLabel(record.latest) +
           " · " + PROFILES.reasonLabel(record.latest.reason) + " · Turn " + record.latest.turn);
-        if (!tr(lv, "description") && !tr(lv, "blurb") && !tr(lv, "special"))
-          panel.appendChild(menuText("p", "", L.noNotes));
         addHelpSource(panel, lv.source || group.source, lv.source ? L.source : L.collectionSource);
       }));
       host.appendChild(card);
@@ -497,9 +474,6 @@
   }
   function buildMenu() {
     closeMenuHelp();
-    var sel = $("lang-select");
-    sel.value = lang();
-    sel.onchange = function () { localStorage.setItem(LANG_KEY, sel.value); buildMenu(); };
     try { renderProfile(); } catch (error) { reportSaveError(error); }
     // Detach import controls before replacing their collection, preserving events and entered URLs.
     var customTools = $("custom-level-tools");
@@ -511,19 +485,18 @@
       section.className = "level-group"; section.id = group.id + "-section";
       section.setAttribute("aria-labelledby", group.id + "-heading");
       var heading = document.createElement("header"); heading.className = "level-group-header";
-      var intro = document.createElement("div"); intro.className = "level-group-intro";
-      intro.appendChild(menuText("p", "level-group-kind", group.kind));
       var title = menuText("h2", "", group.title); title.id = group.id + "-heading";
-      intro.appendChild(title); intro.appendChild(menuText("p", "section-note", group.intro));
-      heading.appendChild(intro);
+      heading.appendChild(title);
+      if (group.intro) heading.appendChild(menuText("p", "level-group-intro", group.intro));
       var won = group.levels.filter(function (lv,i) { return levelWasWon(lv, levelOptions(group,i)); }).length;
       heading.appendChild(menuText("span", "group-progress", group.levels.length ? won + " / " + group.levels.length + " won" : "No levels yet"));
-      heading.appendChild(createMenuHelp(group.id + "-details", group.title, function (panel) {
-        addHelpText(panel, CARD_LABELS[lang()].collection, group.notes);
-        addHelpSource(panel, group.source, CARD_LABELS[lang()].collectionSource);
+      if (group.notes) heading.appendChild(createMenuHelp(group.id + "-details", group.title, function (panel) {
+        addHelpText(panel, LABELS.collection, group.notes);
+        addHelpSource(panel, group.source, LABELS.collectionSource);
       }));
       section.appendChild(heading);
-      var list = document.createElement("div"); list.id = group.list; list.className = "level-library";
+      var list = document.createElement("div"); list.id = group.list;
+      list.className = "level-library" + (group.levels.some(function (lv) { return levelHasHelp(group, lv); }) ? "" : " no-help");
       list.addEventListener("scroll", closeMenuHelp);
       renderLevelCards(list, group); section.appendChild(list);
       if (!group.levels.length) list.appendChild(menuText("p", "empty-levels", "No levels yet. Create a battlefield or import one below."));
@@ -609,32 +582,37 @@
     try{opponent.value=AI_SEARCH.get(localStorage.getItem("nectaris-opponent")||"apex").id;}catch(e){}
     opponent.onchange=function(){try{localStorage.setItem("nectaris-opponent",opponent.value);}catch(e){}};
     $("chk-hotseat").onchange=function(){opponent.disabled=this.checked;};
-    var openingSelect=$("opening-select"),opening="auto";
-    try {opening=localStorage.getItem("nectaris-opening") || "auto";} catch(e) { /* optional preference */ }
-    if(["original","offers","auto"].indexOf(opening)<0)opening="auto";
-    document.querySelector('input[name="opening"][value="'+opening+'"]').checked=true;
-    openingSelect.onchange=function(event){
-      try {localStorage.setItem("nectaris-opening",event.target.value);} catch(e) { /* optional preference */ }
+    var openingSelect=$("opening-select"),opening=null;
+    try {opening=localStorage.getItem("nectaris-opening");} catch(e) { /* optional preference */ }
+    // Unset preferences and the removed "auto" map-default mode start Normal.
+    openingSelect.value=opening==="offers" ? "offers" : "original";
+    openingSelect.onchange=function(){
+      try {localStorage.setItem("nectaris-opening",openingSelect.value);} catch(e) { /* optional preference */ }
       buildMenu();
     };
     window.addEventListener("scroll", closeMenuHelp);
     window.addEventListener("resize", closeMenuHelp);
+    var profileMenu = $("profile-menu");
     document.addEventListener("pointerdown", function (event) {
       if (activeMenuHelp && !activeMenuHelp.wrap.contains(event.target)) closeMenuHelp();
+      if (profileMenu.open && !profileMenu.contains(event.target)) profileMenu.open = false;
     });
     document.addEventListener("keydown", function (event) {
       if (event.key === "Escape" && activeMenuHelp) {
         activeMenuHelp.button.focus();
         closeMenuHelp(); event.stopPropagation();
+      } else if (event.key === "Escape" && profileMenu.open) {
+        profileMenu.open = false; event.stopPropagation();
       }
     });
-    try { profiles = new PROFILES.Store(localStorage); activeProfile = profiles.active(); }
+    try { profiles = new PROFILES.Store(localStorage); activeProfile = profiles.ensureDefault(); }
     catch (error) { reportSaveError(error); }
     $("profile-form").onsubmit = function (event) {
       event.preventDefault();
       try {
         if (!profiles) profiles = new PROFILES.Store(localStorage);
-        activeProfile = profiles.create($("profile-name").value);
+        if (renamingProfile) profiles.rename(activeProfile.id, $("profile-name").value);
+        else activeProfile = profiles.create($("profile-name").value);
         $("profile-dialog").close();
         $("save-error").classList.add("hidden");
         buildMenu();
@@ -644,10 +622,11 @@
       if (!activeProfile) event.preventDefault();
     });
     $("profile-cancel").onclick = function () { $("profile-dialog").close(); };
-    $("profile-new").onclick = openProfileForm;
+    $("profile-new").onclick = function () { openProfileForm(false); };
+    $("profile-rename").onclick = function () { openProfileForm(true); };
     $("history-more").onclick = function () { historyLimit += 10; renderHistory(); };
     $("profile-select").onchange = function () {
-      try { profiles.switchTo(this.value); buildMenu(); }
+      try { profiles.switchTo(this.value); profileMenu.open = false; buildMenu(); }
       catch (error) { reportSaveError(error); }
     };
     $("continue-button").onclick = function () {
@@ -683,15 +662,6 @@
       campaignGroup.appendChild(option);
     });
     jump.appendChild(campaignGroup);
-    var expansionGroup = document.createElement("optgroup");
-    expansionGroup.label = "Lunar Frontiers";
-    EXPANSION_LEVELS.forEach(function (m, i) {
-      var option = document.createElement("option");
-      option.value = "e:" + i;
-      option.textContent = String(i + 1).padStart(2, "0") + " · " + m.name;
-      expansionGroup.appendChild(option);
-    });
-    jump.appendChild(expansionGroup);
     var baseNecGroup = document.createElement("optgroup");
     baseNecGroup.label = "Base Nectaris Terrain";
     BASE_NECTARIS_LEVELS.forEach(function (m, i) {
@@ -701,15 +671,6 @@
       baseNecGroup.appendChild(option);
     });
     jump.appendChild(baseNecGroup);
-    var aiMadeGroup = document.createElement("optgroup");
-    aiMadeGroup.label = "AI-made";
-    AI_MADE_LEVELS.forEach(function (m, i) {
-      var option = document.createElement("option");
-      option.value = "a:" + i;
-      option.textContent = String(i + 1).padStart(2, "0") + " · " + m.name;
-      aiMadeGroup.appendChild(option);
-    });
-    jump.appendChild(aiMadeGroup);
     ENVIRONMENT_CAMPAIGNS.forEach(function (campaign) {
       var group = document.createElement("optgroup"); group.label = campaign.name;
       campaign.levels.forEach(function (map, index) {
@@ -720,6 +681,24 @@
       });
       jump.appendChild(group);
     });
+    var aiMadeGroup = document.createElement("optgroup");
+    aiMadeGroup.label = "AI-made";
+    AI_MADE_LEVELS.forEach(function (m, i) {
+      var option = document.createElement("option");
+      option.value = "a:" + i;
+      option.textContent = String(i + 1).padStart(2, "0") + " · " + m.name;
+      aiMadeGroup.appendChild(option);
+    });
+    jump.appendChild(aiMadeGroup);
+    var expansionGroup = document.createElement("optgroup");
+    expansionGroup.label = "Lunar Frontiers";
+    EXPANSION_LEVELS.forEach(function (m, i) {
+      var option = document.createElement("option");
+      option.value = "e:" + i;
+      option.textContent = String(i + 1).padStart(2, "0") + " · " + m.name;
+      expansionGroup.appendChild(option);
+    });
+    jump.appendChild(expansionGroup);
     jump.onchange = function () {
       if (this.value === "") return;
       var parts = this.value.split(":");
