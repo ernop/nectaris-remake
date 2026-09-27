@@ -69,7 +69,9 @@ factory value for each exit they held. The user removed both in 2026-09-26.2: th
 search bots must not rely on invented special-case rules. They can again leave
 a mine or Atlas on their own factory's only exit, stranding that factory for the
 rest of the match. This is a known weakness, to be solved by more general
-methods. Limits: a
+methods. The position score itself is a sum of hand-picked constants; the user
+deferred replacing it with self-play tuning or deeper simulation (2026-09-26).
+Limits: a
 reserve with a legal exit is always deployed before the turn ends (there is no
 "keep stored" action), and a mine's placement value comes only from defending
 a threatened base or escorting infantry, not from blocking enemy routes.

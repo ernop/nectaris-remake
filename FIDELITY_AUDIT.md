@@ -111,6 +111,8 @@ PCE/Windows in-game manuals are identified in [Anka's supplement](https://anka.s
   *every* official version. [Release guide](https://nectaris.tg-16.com/nectaris-military_madness-FAQ-playstation-intro.html)
 - Our Panther-to-Mule factory-only exception, direct unloading into an owned
   factory, and stored-Atlas elimination exception select documented PCE rules.
+  The Windows 1997 executable lets a Panther board a Mule anywhere; the user
+  kept the PCE rule on 2026-09-26.
   Other ports differ; that does not make these choices unofficial.
 - We omit the documented transient PCE/Windows factory-capture ZOC bug. This is
   a known difference from those releases, not a universal missing game rule.

@@ -194,7 +194,8 @@ not knowledge of the next hidden outcome. See `PRODUCT.md` for controls.
 ## Transports, factories and bases
 
 Mule carries Charlie, Kilroy, Atlas and Trigger. PCE permits Panther boarding
-only from a factory. Pelican carries ground units, including an empty Mule;
+only from a factory. The Windows 1997 executable lets a Panther board anywhere;
+the user kept the PCE rule on 2026-09-26. Pelican carries ground units, including an empty Mule;
 loaded nested transports are forbidden. See the
 [release comparison](https://anka.sakura.ne.jp/nectaris/d6.html).
 
