@@ -15,3 +15,6 @@ jobs:
         run: node test/run-tests.js
       - name: Parallel tournament and checkpoint recovery
         run: node test/tournament-runner-tests.cjs
+      - name: Rust simulator replays the behaviour lock
+        working-directory: sim
+        run: cargo run --release --locked -- replay

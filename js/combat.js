@@ -410,7 +410,7 @@ var COMBAT = (function () {
     experienceBonus: experienceBonus, expectedCasualties: expectedCasualties, shotReport: shotReport, distribution: distribution,
     forecast: forecast,
     MAX_EXP: MAX_EXP, MAX_STRENGTH: MAX_STRENGTH,
-    EXP_DAMAGE: EXP_DAMAGE,
+    EXP_DAMAGE: EXP_DAMAGE, RANDOM_WEIGHTS: RANDOM_WEIGHTS,
     /* Full strength is the default squad size; UI must not print it. */
     strengthCaption: function (n) { return n < MAX_STRENGTH ? String(n) : null; },
   };

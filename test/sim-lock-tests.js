@@ -4,8 +4,11 @@
  * test/fixtures/sim-corpus.json.gz (see tools/sim/make-corpus.cjs) and
  * updates the Rust simulator in the same change. */
 "use strict";
-var fs = require("node:fs"), path = require("node:path"), zlib = require("node:zlib");
+var fs = require("node:fs"), path = require("node:path"), zlib = require("node:zlib"), child = require("node:child_process");
 module.exports = function (ok) {
+  /* A separate process: earlier tests merge extra unit types into this one. */
+  var exported = child.spawnSync(process.execPath, [path.join(__dirname, "../tools/sim/export-data.cjs"), "--check"], {encoding: "utf8"});
+  ok(exported.status === 0, "sim/data/game-data.json matches the JavaScript data" + (exported.status === 0 ? "" : ": " + exported.stderr.trim()));
   var ENGINE = require("../js/engine.js"), T = require("../js/ai-tournament.js");
   var H = require("../tools/sim/state-hash.cjs"), boards = require("../tools/sim/boards.cjs");
   var corpus = JSON.parse(zlib.gunzipSync(fs.readFileSync(path.join(__dirname, "fixtures/sim-corpus.json.gz"))));

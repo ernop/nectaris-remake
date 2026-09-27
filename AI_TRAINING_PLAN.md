@@ -46,12 +46,30 @@ The browser game stays plain JavaScript. Rust is a development tool
 - `test/sim-lock-tests.js`, in the main suite, replays every command and
   re-plays one game per pairing with its bots.
 
-**Phases 2–5:**
-2. **Rust rules engine** in `sim/`: hex grid, terrain, units, randomness,
-   combat, movement, buildings, transports and the seven recorded commands.
-   Board and unit data are exported from the JavaScript data files, which stay
-   the single source. Gate: every corpus game replays with every fingerprint
-   equal.
+**Phase 2, the Rust rules engine (done 2026-09-27):**
+- `sim/` holds the `nectaris-sim` crate. It ports `js/engine.js` and
+  `js/combat.js` rule for rule: hex grid, terrain, units, randomness,
+  movement, zones of control, buildings, transports, combat and the seven
+  recorded commands.
+- `tools/sim/export-data.cjs` writes `sim/data/game-data.json` from the
+  JavaScript data files, which stay the single source. The main suite fails
+  while the export is out of date.
+- In `sim/`, `cargo run --release -- replay [CORPUS]` compares the fingerprint
+  after every command; `bench [CORPUS]` times the rules alone.
+- Every corpus game matches. A wider check matched too: 620 games, 365,780
+  commands, every fingerprint equal:
+  - Classic v Tactical on all 119 boards, two seeds each;
+  - Sequence, Simulation and Apex for 3 rounds on 24 boards.
+
+  It was recorded with `tools/ai-research/run.cjs --seed=77`
+  (`--opponents=classic,tactical --boards=all --cycles=2 --rounds=0`, and
+  `--opponents=beam,monte-carlo,apex --boards=0,5,…,115 --rounds=3`), then
+  converted by `make-corpus.cjs`.
+- Rules alone, before any Rust tuning: 1.2–1.6 µs per command against
+  JavaScript's 13–20 µs, 8–16× faster. Bots take most of self-play time, so
+  the self-play speed-up is measured in phase 3.
+
+**Phases 3–5:**
 3. **Rust bots:** Classic, Tactical, Sequence, Simulation and Apex. Gate: from
    each corpus game's board and seed they play the recorded commands, then
    JavaScript replays Rust-played games of every family with equal
