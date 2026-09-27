@@ -1158,5 +1158,8 @@ require("./outcome-menu-tests.js")(ok);
 section("performance algorithm equivalence");
 require("./performance-tests.js")(ok);
 
+section("behaviour lock shared with the Rust simulator");
+require("./sim-lock-tests.js")(ok);
+
 console.log("\n" + checks + " checks, " + failures + " failures");
 process.exit(failures ? 1 : 0);

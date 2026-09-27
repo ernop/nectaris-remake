@@ -10,6 +10,56 @@ ahead of every decision below ("let's optimize the speed of self-play games,
 first"). Machine time, turn targets, held-out boards and milestones wait until
 the simulation is much faster.
 
+**Lock, then a Rust simulator (user, 2026-09-27):** "lock down the game
+behavior from the pov of ai, fully, and then write an ultrafast rust game sim
+tool and use that".
+
+## Rust simulator
+
+**Requirement: identical behaviour, not just identical rules.** The Rust
+simulator must reach the same state after every command. Its bots must choose
+the same commands as the JavaScript bots for the same board and seed. Then each
+implementation can check the other on every game, and weights trained in Rust
+behave the same in the browser. This needs Rust to reproduce, exactly:
+- **Randomness:** the mulberry32-style generator (`COMBAT.makeRng`).
+- **Math:** V8's results for `Math.log` and `Math.tanh` (search uses them), and
+  JavaScript float arithmetic order.
+- **Order:** insertion order where objects and maps are iterated, and stable
+  sorting.
+- **Search seed:** the JSON text behind `AI_MODEL.seedFor`, which includes each
+  unit type's definition as `JSON.stringify` writes it.
+
+The browser game stays plain JavaScript. Rust is a development tool
+(installed with rustup on 2026-09-27; `~/.cargo/bin`).
+
+**Phase 1, the lock (done 2026-09-27):**
+- `tools/sim/state-hash.cjs` fingerprints every rule-relevant field. Unit ids
+  are numbered from 1 in creation order, because JavaScript draws them from a
+  process-wide counter.
+- `tools/sim/regenerate-lock.cjs` records 54 games:
+  - Classic v Tactical full games on 22 boards from every family;
+  - Sequence v Simulation for 4 rounds on 3 small boards;
+  - Apex v Tactical for 3 rounds on 2 small boards.
+
+  It converts them into `test/fixtures/sim-corpus.json.gz` (14,959 commands,
+  a fingerprint after each). Regenerating gives a byte-identical file.
+- `test/sim-lock-tests.js`, in the main suite, replays every command and
+  re-plays one game per pairing with its bots.
+
+**Phases 2–5:**
+2. **Rust rules engine** in `sim/`: hex grid, terrain, units, randomness,
+   combat, movement, buildings, transports and the seven recorded commands.
+   Board and unit data are exported from the JavaScript data files, which stay
+   the single source. Gate: every corpus game replays with every fingerprint
+   equal.
+3. **Rust bots:** Classic, Tactical, Sequence, Simulation and Apex. Gate: from
+   each corpus game's board and seed they play the recorded commands, then
+   JavaScript replays Rust-played games of every family with equal
+   fingerprints.
+4. **Self-play runner** on all cores, writing records that the tournament
+   replay viewer opens. Speed is measured against the JavaScript runner.
+5. **Training** runs on it (the phases below); JavaScript re-checks samples.
+
 ## Speed work
 
 `tools/ai-research/speed-bench.cjs` plays one side's turn for each bot from

@@ -61,6 +61,15 @@ Facts we need across sessions:
     [Deferred checks](PROJECT_GUIDE.md#deferred-checks-2026-09-26); the user
     runs them together later. This replaces the earlier "one suite run and one
     browser look per change" rule.
+- **Behaviour lock (user instruction, 2026-09-27):** the game as the AI sees
+  it (rules, randomness and every bot decision) is locked for the Rust
+  simulator in `sim/`. `test/fixtures/sim-corpus.json.gz` holds 54 recorded
+  games; `test/sim-lock-tests.js` fails if any command replays to a different
+  state or a recorded bot chooses differently.
+  - Speed work must keep the corpus passing unchanged.
+  - A deliberate rule or AI change runs `node tools/sim/regenerate-lock.cjs`
+    and updates the Rust simulator to match in the same change.
+  - `tools/sim/state-hash.cjs` defines the state fingerprint both sides compute.
 - **Map navigation (2026-09-23):** only Ctrl+left-drag pans, at every zoom level,
   including during movement selection. Ordinary left/middle/right drags never
   pan; Ctrl-click never issues a unit command. Never recenter merely because
