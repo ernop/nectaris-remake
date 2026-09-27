@@ -1193,8 +1193,7 @@ var RENDER = (function () {
       ctx.fillText(strCap, -7 * u, 7.2 * u);
     }
 
-    drawExperience(ctx, unit, u);
-
+    // Map sprites carry no experience stars; inspection views draw them.
     // cargo marker
     if (unit.cargo && unit.cargo.length) {
       ctx.fillStyle = "#fff";

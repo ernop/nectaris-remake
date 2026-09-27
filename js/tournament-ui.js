@@ -153,7 +153,7 @@
       if(slot.job!==null)return;var index=run.completed;while(index<run.config.total&&(assigned.has(index)||pending.has(index)))index++;
       // Bound out-of-order replay memory if one long game holds up Elo order.
       if(index>=run.config.total||index-run.completed>=run.config.workers*2)return;
-      slot.job=index;slot.progress=null;assigned.add(index);var spec=T.fixture(run.config,index);spec.protocol=run.version;slot.worker.postMessage({spec:spec,types:run.types});
+      slot.job=index;slot.progress=null;assigned.add(index);var spec=T.fixture(run.config,index);slot.worker.postMessage({spec:spec,types:run.types});
     });render();
   }
   async function launch(){
@@ -163,7 +163,7 @@
     recovered.forEach(function(g){pending.set(g.index,g);});run.status="running";sessionBase=run.wallMs||0;sessionStart=Date.now();await store.save(run);
     await flushFinished();if(run.status!=="running")return;
     for(var i=0;i<run.config.workers;i++){
-      var worker=new Worker("js/tournament-worker.js?v=20260926-exits"),slot={worker:worker,job:null,progress:null};pool.push(slot);
+      var worker=new Worker("js/tournament-worker.js?v=20260926-clean-forward"),slot={worker:worker,job:null,progress:null};pool.push(slot);
       (function(s){worker.onmessage=function(event){var data=event.data;
         if(data.type==="progress"){if(data.index!==s.job)return;s.progress=data.progress;render();return;}
         if(data.type!=="result"||data.result.index!==s.job)return;
@@ -427,24 +427,15 @@
     }catch(e){stopPlayback();error(new Error("Replay could not advance: "+e.message));}
   }
   async function openReplay(game){stopPlayback();var token=++replayToken;
-    // Older archives are indexed once on opening, with yields to keep the UI responsive.
-    if(!game.turns||!game.checkpoints){
-      var indexed=ENGINE.Game.restore(game.initial);game.checkpoints=[];game.turns=[{at:0,turn:indexed.turn,side:indexed.currentPlayer}];
-      for(var i=0;i<game.commands.length;i++){
-        T.command(indexed,game.commands[i]);
-        if(game.commands[i][0]==="endTurn")game.turns.push({at:i+1,turn:indexed.turn,side:indexed.currentPlayer});
-        if((i+1)%128===0){var state=indexed.snapshot(),logLength=state.log.length;delete state.map;delete state.types;delete state.log;delete state.balance;
-          game.checkpoints.push({at:i+1,state:state,logLength:logLength});await new Promise(function(resolve){setTimeout(resolve,0);});if(token!==replayToken)return;}
-      }
-      if(!game.final)game.final=indexed.snapshot();
-    }
-    if(token!==replayToken)return;
+    // Replays run on this build's engine and bots, so only games recorded by them can be replayed faithfully.
+    if(game.version!==T.version)throw new Error("This game was recorded with bot version "+game.version+"; this build replays only version "+T.version+".");
+    if(!game.turns||!game.checkpoints||!game.final)throw new Error("This game file lacks its turn index, checkpoints or final position.");
     replayData=game;replayAt=0;replayPhase="done";replaySpec=null;replayFocus=[];actionRecord=null;replayTrails=[];replayGame=ENGINE.Game.restore(game.initial);renderer=new RENDER.Renderer($("replay-canvas"),replayGame);setFollow(false);
     $("lab-form").inert=true;$("lab-results").inert=true;document.querySelector("body>header").inert=true;
     document.body.classList.add("reviewing");replayNeedsFit=true;$("lab-viewer").hidden=false;$("replay-title").textContent="Game "+(game.index+1)+" · "+game.map;
     $("replay-detail").textContent=label(game.players[0])+" (Union) vs "+label(game.players[1])+" (Xenon) · seed "+game.seed+" · "+game.reason+" · "+openingLabel(game)+
       (game.negotiation&&game.negotiation.thresholds?" · Switch points (Union / Xenon): "+game.negotiation.thresholds.map(function(t){return t===null?"none":t;}).join(" / "):"")+
-      (game.negotiation&&game.negotiation.message?" · "+game.negotiation.message:"")+(game.version!==T.version?" · recorded with older engine/search version "+game.version:"");
+      (game.negotiation&&game.negotiation.message?" · "+game.negotiation.message:"");
     var turns=$("replay-turn");turns.replaceChildren();game.turns.forEach(function(t){option(turns,String(t.at),"Round "+t.turn+" · "+(t.side?"Xenon":"Union"));});
     $("replay-offers").textContent=game.negotiation&&game.negotiation.policies?game.negotiation.policies.map(function(p,side){
       if(!p)return (side?"Xenon":"Union")+": human responses";

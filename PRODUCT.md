@@ -398,8 +398,11 @@ longer, retain an aircraft range of 1 to make mixed ranges unambiguous (Lynx).
 Keep terrain and its defense bonus in the footer, adding damage bonus only
 when experience grants one. Show remaining/total Shift only when a friendly
 buggy has spent movement. As corrected on 2026-09-26, experience stars sit
-on the unit icon, using the map's traditional 3/2/3 arrangement and one large
+on the unit icon, using the traditional 3/2/3 arrangement and one large
 General star. Zero experience has no stars. No numeric rank or separate badge.
+Map sprites themselves carry no stars (user, 2026-09-26). Stars appear where a
+unit is inspected: hover cards, factory, base and cargo lists, and battle
+headers.
 Damaged units show only the remaining-unit number on their icon, without a
 “Strength” label. Names and terrain text wrap without
 truncation. No faction heading,
@@ -728,10 +731,20 @@ replay persistence. Completed out-of-order games are saved before ordered atomic
 rating updates; reload offers Resume without discarding those records. Unfinished
 games restart from their fixed seeds. Persistent-storage requests and archive
 exports support longer experiments. Ratings stay per run. Indexed history filters
-avoid loading replay payloads, and old browser records migrate intact. Replays
-fill the window, optionally enter true fullscreen, support normal zoom/Ctrl-drag
-pan, turn jumps and cached seeking every 128 commands. Old replays are indexed
-once on opening. See [AI_OPPONENTS.md](AI_OPPONENTS.md#browser-tournaments) for
+avoid loading replay payloads. Replays fill the window, optionally enter true
+fullscreen, support normal zoom/Ctrl-drag pan, turn jumps and cached seeking
+every 128 commands.
+
+On 2026-09-26 the user removed tournament backward compatibility: no meaningful
+tournaments had been run in production.
+- A storage schema change starts afresh, dropping earlier stores without
+  migration.
+- A replay must carry its turn index, checkpoints and final position.
+- A replay recorded with a different bot version is refused with an error
+  rather than shown.
+- A run from another bot version cannot be resumed.
+
+See [AI_OPPONENTS.md](AI_OPPONENTS.md#browser-tournaments) for
 precise search budgets, persistence boundaries, exports and validation.
 
 ## Official normal campaign (2026-09-03)

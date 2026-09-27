@@ -143,7 +143,7 @@ var AI_TOURNAMENT = (function () {
     var end=index===undefined?result.commands.length:index;
     integer(end,0,result.commands.length,"Replay position");
     var point={at:0,state:result.initial};
-    (result.checkpoints||[]).forEach(function(p){if(p.at<=end&&p.at>point.at)point=p;});
+    result.checkpoints.forEach(function(p){if(p.at<=end&&p.at>point.at)point=p;});
     var state=point.at?Object.assign({},point.state,{map:result.initial.map,types:result.initial.types,balance:result.initial.balance,log:result.final.log.slice(0,point.logLength)}):point.state;
     var g=engine.Game.restore(state);
     for(var i=point.at;i<end;i++)command(g,result.commands[i]);return g;

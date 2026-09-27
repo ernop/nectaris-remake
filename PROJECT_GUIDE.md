@@ -94,6 +94,11 @@ Release first, verify later (user decision). Examine together later:
     - one-press Next action for non-battle steps.
 13. The battle volley: how the bullets look on narrow screens and at each
     squad size; the loss burst; the single map explosion per squad.
+14. After the tournament compatibility removal:
+    - storage opens empty in a browser that ran earlier tournaments;
+    - `test/tournament-storage.html` passes;
+    - importing an older replay file shows the version error;
+    - map sprites show no stars while hover cards and factory lists do.
 
 Research rather than a check: direct PC Engine confirmation of the Windows
 combat traces.

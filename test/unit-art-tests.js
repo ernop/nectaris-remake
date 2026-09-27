@@ -102,7 +102,7 @@ module.exports = function (ok) {
     var neutral=canvas(32,32);RENDER.drawUnitIcon(neutral,{typeId:id,type:types[id],player:-1});
     ok(raster(neutral)===expected(art.frames[id].right,art.palettes.neutral,0,0),id+" neutral factory inventory uses grey faction art");
   });
-  // Inventory/inspector experience is the very same overlay as map chrome.
+  // Inspection icons draw the 3/2/3 stars and General emblem; map sprites draw none.
   function starCanvas() {
     var paths = [], points;
     var ctx = new Proxy({
@@ -119,8 +119,8 @@ module.exports = function (ok) {
     var icon=starCanvas(), map=starCanvas();
     RENDER.drawUnitIcon(icon,unit,{experience:true});
     new RENDER.Renderer(map,{currentPlayer:0}).drawUnit(unit);
-    ok(JSON.stringify(icon.paths) === JSON.stringify(map.paths) && icon.paths.length === (level===8 ? 3 : level),
-      pack.id+": experience "+level+" uses identical stars on the icon and map, including the General emblem");
+    ok(icon.paths.length === (level===8 ? 3 : level) && map.paths.length === 0,
+      pack.id+": experience "+level+" draws stars on the inspection icon, including the General emblem, and none on the map");
   }
   var small=new RENDER.Renderer(canvas(240,160),{width:30,height:20});small.fitToMap();
   ok(small.zoom<0.65 && !small.panAxes().x && !small.panAxes().y,"large maps fit completely below the former minimum zoom");

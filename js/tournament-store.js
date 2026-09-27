@@ -2,19 +2,19 @@
  * A finished game and the ordered Elo update commit in one transaction. */
 "use strict";
 var TOURNAMENT_STORE=(function(){
+  // A schema change starts storage afresh: earlier stores are dropped, never migrated.
   function open(name){return new Promise(function(resolve,reject){
-    var request=indexedDB.open(name||"nectaris-tournaments",2);
-    request.onupgradeneeded=function(event){var db=request.result,tx=request.transaction;
-      if(event.oldVersion<1){db.createObjectStore("runs",{keyPath:"id"});
-        var games=db.createObjectStore("games",{keyPath:["runId","index"]});games.createIndex("runId","runId");}
+    var request=indexedDB.open(name||"nectaris-tournaments",3);
+    request.onupgradeneeded=function(){var db=request.result;
+      Array.from(db.objectStoreNames).forEach(function(store){db.deleteObjectStore(store);});
+      db.createObjectStore("runs",{keyPath:"id"});
+      var games=db.createObjectStore("games",{keyPath:["runId","index"]});games.createIndex("runId","runId");
       var summaries=db.createObjectStore("summaries",{keyPath:["runId","index"]});
       summaries.createIndex("map",["runId","mapIndex","index"]);
       summaries.createIndex("pair",["runId","pairKey","index"]);
       summaries.createIndex("mapPair",["runId","mapIndex","pairKey","index"]);
-      var cursor=tx.objectStore("games").openCursor();
-      cursor.onsuccess=function(){var c=cursor.result;if(!c)return;summaries.put(summary(c.value));c.continue();};
     };
-    request.onblocked=function(){reject(new Error("Close other tournament tabs, then reload to upgrade saved game history. Existing results are safe."));};
+    request.onblocked=function(){reject(new Error("Close other tournament tabs, then reload to open tournament storage."));};
     request.onsuccess=function(){var db=request.result;db.onversionchange=function(){db.close();};resolve(db);};request.onerror=function(){reject(request.error);};
   });}
   function request(tx,store,method,arg){return new Promise(function(resolve,reject){var r=tx.objectStore(store)[method](arg);

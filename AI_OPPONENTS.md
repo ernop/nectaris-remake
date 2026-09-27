@@ -140,8 +140,8 @@ of the real combat RNG. Exact equal role scores accept second. Each survey recor
 its policy, budgets and first/second scores; earlier packages remain available.
 
 Protocol **2026-09-26.1** changes search move selection (factory exits and
-immobile units, above), so runs recorded under earlier versions stay viewable
-and exportable but cannot resume.
+immobile units, above). A run recorded under another version cannot resume, and
+its games cannot be watched in this build.
 
 Protocol **2026-09-25.2** records those analyses, requested/effective opening,
 switch points, questions, exact bonus, first player and fixture leg. Unavailable
@@ -190,11 +190,13 @@ open tab. Web Locks prevent two tabs from running/deleting one experiment.
 for a separate backup regardless of whether the browser grants it.
 
 **Saved game history** filters by map and pairing through indexed lightweight
-summaries. Only Watch loads a complete replay. IndexedDB v2 migrates v1 data
-without removing games. Replays open with the board filling the window and offer
+summaries. Only Watch loads a complete replay. IndexedDB has no migrations: a
+schema change starts storage afresh (2026-09-26; no meaningful tournaments had
+been run). Replays open with the board filling the window and offer
 true fullscreen, Fit, zoom, Ctrl+left-drag pan, unit hovers, turn jumps, action
-steps, scrubber and playback speed. Each step can stop on the selection, then
-on the committed action. Moves animate the exact legal hex route. A fixed left
+steps, scrubber and playback speed. Only battles stop on their selection; other
+actions play at once. Moves animate the exact legal hex route within 450 ms
+(aircraft 225 ms) and leave a fading trail. A fixed left
 panel shows who attacked whom,
 machines destroyed and lost, the match's damage-table roll, and whether those
 casualties were above, near, or below the table average. A ledger sums each
@@ -213,7 +215,8 @@ action** is explicitly enabled. Wheel zoom, Fit and Ctrl+drag disable following
 again. Back to tournament leaves a running job alone.
 A compact checkpoint every 128 commands makes arbitrary seeking require at most
 127 commands after restore. Static maps, rosters and growing logs are not copied
-into every checkpoint. Older archives are indexed once when opened. Watching
+into every checkpoint. A game without its turn index, checkpoints and final
+position, or recorded with another bot version, is refused with an error. Watching
 runs recorded engine commands, never AI search; full state and dice are retained.
 Opening decisions disclose each policy's role scores. Node game JSON imports
 use the same viewer.
@@ -230,7 +233,7 @@ Validation (2026-09-25): the main suite passes 146,866 checks, including selecte
 policy execution, distinct role valuations, public-RNG isolation, four-leg
 symmetry and exact checkpoint replay at boundary positions. The process recovery
 suite recovers 80 games exactly once after interruption. Open
-`test/tournament-storage.html` for 12 browser IndexedDB checks covering v1 migration,
+`test/tournament-storage.html` for 13 browser IndexedDB checks covering the schema reset,
 map/pair indexes, bounded pagination, out-of-order recovery and atomic records.
 A 40-game worker smoke run covered all five offer policies without errors; browser
 checks covered full-window seeking, solo offers, a 4,000-game archive after reload,
