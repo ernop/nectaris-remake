@@ -136,6 +136,34 @@ games:
 - Now almost all time is in rollouts, whose candidate lists are new
   positions; no single function dominates any more.
 
+**Phase 4, third step (2026-09-28):**
+- **Decisions (user, 2026-09-28):**
+  - No mimalloc. It measured 6% faster at 32 threads, at the cost of a
+    crate that compiles a C library on every build. Allocations are cut in
+    our own code instead.
+  - Build per-unit reuse.
+- **Per-unit reuse, measured and removed:**
+  - The cache was exact: a unit's action list, keyed on everything the list
+    reads, and verified on every gate.
+  - It reused only 18–20% of the sample's lists and made it slower
+    (16.6 s against 15.7 s).
+  - The reason: 55% of lists come out identical to the unit's previous one,
+    but their inputs repeat far less often. The danger at the unit's hexes
+    and the enemies' state change even when its best actions don't.
+  - Reuse across such changes would need rescoring only the hexes whose
+    inputs changed, a larger design.
+- **Kept:**
+  - Unit-limited candidate lists compute each unit's rank once. They
+    recomputed it inside the sort, collecting the enemy list each time.
+  - The best-action selection clones only the actions it returns.
+  - Foes and firing hexes use reused buffers.
+- **Where the 1000× target stands:** 1,152 three-round search games on
+  24 boards.
+  - Rust, 32 threads: 59.2 s, 19.5 games/s.
+  - JavaScript, one thread: 0.085 games/s (144 such games in 1,687.6 s).
+  - Rust is therefore 228× one JavaScript thread. On one thread it is 16.8×
+    (the 144 games take 100 s).
+
 **Phase 5, the self-play runner (done 2026-09-27):**
 - `nectaris-sim tournament` plays `run.cjs` tournaments on every thread. The
   same settings give the same fixtures, seeds and seats.

@@ -122,6 +122,9 @@ pub struct Ctx {
     memo: FastMap<Vec<i32>, Rc<Vec<Action>>>,
     /// Movement records by `search_key`.
     searches: FastMap<Vec<i32>, Rc<Vec<Rec>>>,
+    /// Reused buffers for `unit_actions`.
+    foes: Vec<usize>,
+    fire_from: Vec<u8>,
     /// Each unit's last threatened-hex key and result, by unit index and
     /// domain, checked before the map.
     last_covered: Vec<[Option<(Vec<i32>, Rc<Vec<usize>>)>; 2]>,
@@ -176,7 +179,7 @@ pub fn sort_desc<T>(list: &mut [T], score: impl Fn(&T) -> f64) {
 /// The first `limit` actions of the stable highest-score-first sort, without
 /// sorting the rest: (score descending, position ascending) is a total order
 /// whose first entries are exactly the stable sort's.
-pub fn best_actions(mut list: Vec<Action>, limit: usize) -> Vec<Action> {
+pub fn best_actions(list: Vec<Action>, limit: usize) -> Vec<Action> {
     let mut order: Vec<(f64, u32)> = list.iter().enumerate().map(|(i, a)| {
         assert!(!a.score.is_nan(), "an action scored NaN");
         (a.score, i as u32)
@@ -187,8 +190,7 @@ pub fn best_actions(mut list: Vec<Action>, limit: usize) -> Vec<Action> {
         order.truncate(limit);
     }
     order.sort_unstable_by(by);
-    let mut slots: Vec<Option<Action>> = list.drain(..).map(Some).collect();
-    order.into_iter().map(|(_, i)| slots[i as usize].take().unwrap()).collect()
+    order.into_iter().map(|(_, i)| list[i as usize].clone()).collect()
 }
 
 /// `unitActions`' deduplication in full: the first position of each key with
@@ -1091,7 +1093,6 @@ fn add(actions: &mut Vec<Action>, mut a: Action, score: f64) {
 /// `unitActions`: one unit's best activations, deduplicated by key (first
 /// position, best score), highest score first.
 pub fn unit_actions(g: &mut Game, u: usize, ctx: &mut Ctx, info: &Info, limit: usize) -> Vec<Action> {
-    let mut actions: Vec<Action> = Vec::new();
     let targets = objectives(g, u, ctx);
     let origin = (g.units[u].col, g.units[u].row);
     let cargo_plans: Vec<(usize, Vec<Plan>)> = g.units[u].cargo.clone().into_iter().map(|c| (c, delivery_plans(g, u, c, ctx))).collect();
@@ -1105,11 +1106,16 @@ pub fn unit_actions(g: &mut Game, u: usize, ctx: &mut Ctx, info: &Info, limit: u
         Rc::new(Vec::new())
     };
     let player = g.units[u].player;
-    let foes: Vec<usize> = g.field.iter().copied().filter(|&e| {
+    let mut actions: Vec<Action> = Vec::with_capacity(recs.len() + 16);
+    let mut foes = std::mem::take(&mut ctx.foes);
+    foes.clear();
+    foes.extend(g.field.iter().copied().filter(|&e| {
         let o = &g.units[e];
         o.player != player && o.carried_by == 0 && !o.in_factory
-    }).collect();
-    let fire_from = g.attack_cells(u, &foes);
+    }));
+    let mut fire_from = std::mem::take(&mut ctx.fire_from);
+    g.attack_cells_into(u, &foes, &mut fire_from);
+    ctx.foes = foes;
     let (mv, move_or_fire) = (g.typ(u).mv, g.typ(u).move_or_fire);
     let here = origin_terms(g, u, &targets, info);
     let carried_here: Vec<f64> = cargo_plans.iter().map(|(_, plans)| delivery_value(g, plans, origin.0, origin.1, None)).collect();
@@ -1167,6 +1173,7 @@ pub fn unit_actions(g: &mut Game, u: usize, ctx: &mut Ctx, info: &Info, limit: u
         g.relocate(u, origin.0, origin.1);
         g.units[u].attack_spent = spent;
     }
+    ctx.fire_from = fire_from;
     // Every action so far has its own destination, target or unload and none
     // unloads first, so only the unload-first section below can repeat a key.
     let section = actions.len();
@@ -1257,17 +1264,24 @@ fn generate(g: &mut Game, ctx: &mut Ctx, limit: usize, per_unit: usize, unit_lim
         .filter(|&u| !g.units[u].moved || g.units[u].cargo.iter().any(|&c| !g.unload_targets(u, c).is_empty()))
         .collect();
     if unit_limit > 0 && units.len() > unit_limit {
-        let rank = |u: usize| {
-            let x = &g.units[u];
-            let nearest = g
-                .player_units(1 - x.player)
-                .into_iter()
-                .map(|e| f64::from(hex::distance(x.col, x.row, g.units[e].col, g.units[e].row)))
-                .fold(f64::INFINITY, f64::min);
-            (if g.typ(u).capture { 15.0 } else { 0.0 }) + value(g, u) * 0.06 - nearest + if x.cargo.is_empty() { 0.0 } else { 10.0 }
-        };
-        units.sort_by(|&a, &b| (rank(b) - rank(a)).partial_cmp(&0.0).unwrap_or(Ordering::Equal));
-        units.truncate(unit_limit);
+        // Ranks are computed once each; the comparison is JavaScript's
+        // `rank(b) - rank(a)`.
+        let mut ranked: Vec<(usize, f64)> = units
+            .iter()
+            .map(|&u| {
+                let x = &g.units[u];
+                let mut nearest = f64::INFINITY;
+                for &e in &g.field {
+                    let y = &g.units[e];
+                    if y.player == 1 - x.player && y.carried_by == 0 && !y.in_factory {
+                        nearest = nearest.min(f64::from(hex::distance(x.col, x.row, y.col, y.row)));
+                    }
+                }
+                (u, (if g.typ(u).capture { 15.0 } else { 0.0 }) + value(g, u) * 0.06 - nearest + if x.cargo.is_empty() { 0.0 } else { 10.0 })
+            })
+            .collect();
+        ranked.sort_by(|a, b| (b.1 - a.1).partial_cmp(&0.0).unwrap_or(Ordering::Equal));
+        units = ranked.into_iter().take(unit_limit).map(|(u, _)| u).collect();
     }
     let info = analysis(g, ctx);
     let mut actions = Vec::new();
