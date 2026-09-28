@@ -133,6 +133,11 @@ Release first, verify later (user decision). Examine together later:
     - the new "Thanks to the creators" tab on the menu and tournament page;
     - a native speaker's read of the Japanese text.
 
+21. The Rust simulator page (2026-09-28):
+    - layout on wide and narrow windows; wide tables scroll sideways with
+      every row on one line;
+    - the new "Rust simulator" tab on the menu, tournament and thanks pages.
+
 Research rather than a check: direct PC Engine confirmation of the Windows
 combat traces.
 
