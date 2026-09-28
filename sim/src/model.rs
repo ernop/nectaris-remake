@@ -117,9 +117,20 @@ pub struct Ctx {
     /// the stop key plus the band's domain.
     covered: FastMap<Vec<i32>, Rc<Vec<usize>>>,
     offsets: FastMap<(i32, i32, i32), Rc<Vec<(i32, i32)>>>,
+    /// Candidate lists by position signature and request. `candidates` reads
+    /// nothing about a position that `signature` leaves out.
+    memo: FastMap<Vec<i32>, Rc<Vec<Action>>>,
+    /// Movement records by `search_key`.
+    searches: FastMap<Vec<i32>, Rc<Vec<Rec>>>,
+    /// Each unit's last threatened-hex key and result, by unit index and
+    /// domain, checked before the map.
+    last_covered: Vec<[Option<(Vec<i32>, Rc<Vec<usize>>)>; 2]>,
     /// `evaluationGoals`: each field unit's objectives at the decision's root.
     pub goals: HashMap<usize, Rc<Vec<Target>>>,
 }
+
+pub static MEMO_HITS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
+pub static MEMO_MISSES: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub enum Kind {
@@ -482,6 +493,25 @@ fn stop_key(g: &Game, e: usize, sig: &mut Vec<i32>) {
     let reach = reach_of(g, x.t);
     sig.clear();
     sig.extend([g.cell(x.col, x.row) as i32, x.t as i32, x.player, x.cargo.len() as i32]);
+    neighbourhood(g, e, reach, sig);
+}
+
+/// Everything the movement search reads about a unit with this allowance: the
+/// same neighbourhood as `stopSignature`, reached with `mp` instead of a full
+/// budget.
+fn search_key(g: &Game, u: usize, mp: i32, sig: &mut Vec<i32>) {
+    let x = &g.units[u];
+    let min = g.tables.step[x.t].iter().copied().filter(|&c| c >= 0).fold(1, i32::min);
+    let reach = if min > 0 { mp / min } else { i32::MAX / 4 };
+    sig.clear();
+    sig.extend([g.cell(x.col, x.row) as i32, x.t as i32, x.player, x.cargo.len() as i32, mp, -3]);
+    neighbourhood(g, u, reach, sig);
+}
+
+/// Field units within reach + 1 of the unit (blocking, boarding and zones of
+/// control) and buildings within reach (stopping and entering).
+fn neighbourhood(g: &Game, e: usize, reach: i32, sig: &mut Vec<i32>) {
+    let x = &g.units[e];
     for &u in &g.field {
         let o = &g.units[u];
         if o.carried_by != 0 || o.in_factory || hex::distance(o.col, o.row, x.col, x.row) > reach + 1 {
@@ -514,7 +544,25 @@ fn covered_cells(g: &Game, e: usize, air: bool, (min, max): (i32, i32), ctx: &mu
         stop_key(g, e, &mut key);
     }
     key.push(i32::from(air));
+    if ctx.last_covered.len() <= e {
+        ctx.last_covered.resize(e + 1, [None, None]);
+    }
+    if let Some((last, cells)) = &ctx.last_covered[e][usize::from(air)] {
+        if *last == key {
+            let cells = cells.clone();
+            ctx.stop_key = key;
+            if VERIFY_CACHES.load(std::sync::atomic::Ordering::Relaxed) {
+                let positions = if move_or_fire { vec![g.cell(g.units[e].col, g.units[e].row)] } else { g.stopping_cells(e, true) };
+                assert_eq!(*cells, cover(g, &positions, (min, max), ctx), "Remembered threatened hexes differ for unit {} ({})", g.units[e].id, g.typ(e).id);
+            }
+            return cells;
+        }
+    }
+    let remember = |ctx: &mut Ctx, key: &Vec<i32>, cells: &Rc<Vec<usize>>| {
+        ctx.last_covered[e][usize::from(air)] = Some((key.clone(), cells.clone()));
+    };
     if let Some(cells) = ctx.covered.get(key.as_slice()).cloned() {
+        remember(ctx, &key, &cells);
         ctx.stop_key = key;
         if VERIFY_CACHES.load(std::sync::atomic::Ordering::Relaxed) {
             let positions = if move_or_fire { vec![g.cell(g.units[e].col, g.units[e].row)] } else { g.stopping_cells(e, true) };
@@ -528,8 +576,40 @@ fn covered_cells(g: &Game, e: usize, air: bool, (min, max): (i32, i32), ctx: &mu
         ctx.covered.clear();
     }
     ctx.covered.insert(key.clone(), cells.clone());
+    remember(ctx, &key, &cells);
     ctx.stop_key = key;
     cells
+}
+
+/// The unit's movement records, shared by every position with the same
+/// `search_key`.
+fn unit_records(g: &Game, u: usize, ctx: &mut Ctx) -> Rc<Vec<Rec>> {
+    let x = &g.units[u];
+    if x.shifted || x.mp <= 0 {
+        return Rc::new(vec![Rec { col: x.col, row: x.row, cost: 0, flags: CAN_STOP }]);
+    }
+    let mut key = std::mem::take(&mut ctx.stop_key);
+    search_key(g, u, x.mp, &mut key);
+    let recs = match ctx.searches.get(key.as_slice()).cloned() {
+        Some(recs) => {
+            if VERIFY_CACHES.load(std::sync::atomic::Ordering::Relaxed) {
+                let fresh = records(g, &g.search_moves(u, None));
+                let view = |l: &[Rec]| l.iter().map(|r| (r.col, r.row, r.cost, r.flags)).collect::<Vec<_>>();
+                assert_eq!(view(&recs), view(&fresh), "Cached movement records differ for unit {} ({})", x.id, g.typ(u).id);
+            }
+            recs
+        }
+        None => {
+            let recs = Rc::new(records(g, &g.search_moves(u, None)));
+            if ctx.searches.len() >= 50000 {
+                ctx.searches.clear();
+            }
+            ctx.searches.insert(key.clone(), recs.clone());
+            recs
+        }
+    };
+    ctx.stop_key = key;
+    recs
 }
 
 /// The hexes within the band of any of the positions, each once, in the
@@ -591,15 +671,9 @@ fn enemy_stops(g: &Game, e: usize, ctx: &mut Ctx) -> Rc<Vec<usize>> {
     cells
 }
 
-pub fn analysis(g: &Game, ctx: &mut Ctx) -> Info {
+/// The enemy threat on every hex, each hex summing its enemies in board order.
+fn threat_map(g: &Game, ctx: &mut Ctx) -> [Vec<f64>; 2] {
     let size = g.cells.len();
-    let mut cells = vec![-1i32; size];
-    for &u in &g.field {
-        let unit = &g.units[u];
-        if unit.carried_by == 0 && !unit.in_factory && g.in_bounds(unit.col, unit.row) {
-            cells[g.cell(unit.col, unit.row)] = u as i32;
-        }
-    }
     let player = 1 - g.current;
     let mut threat = [vec![0.0f64; size], vec![0.0f64; size]];
     for e in g.player_units(player) {
@@ -616,6 +690,20 @@ pub fn analysis(g: &Game, ctx: &mut Ctx) -> Info {
             }
         }
     }
+    threat
+}
+
+pub fn analysis(g: &Game, ctx: &mut Ctx) -> Info {
+    let size = g.cells.len();
+    let mut cells = vec![-1i32; size];
+    for &u in &g.field {
+        let unit = &g.units[u];
+        if unit.carried_by == 0 && !unit.in_factory && g.in_bounds(unit.col, unit.row) {
+            cells[g.cell(unit.col, unit.row)] = u as i32;
+        }
+    }
+    let player = 1 - g.current;
+    let threat = threat_map(g, ctx);
     let mut emergencies = Vec::new();
     for (i, b) in g.buildings.iter().enumerate() {
         if !b.base || b.owner != g.current {
@@ -1008,10 +1096,14 @@ pub fn unit_actions(g: &mut Game, u: usize, ctx: &mut Ctx, info: &Info, limit: u
     let origin = (g.units[u].col, g.units[u].row);
     let cargo_plans: Vec<(usize, Vec<Plan>)> = g.units[u].cargo.clone().into_iter().map(|c| (c, delivery_plans(g, u, c, ctx))).collect();
     let ready = !g.units[u].moved;
-    let mut recs = if g.can_move_now(u) { records(g, &g.search_moves(u, None)) } else { Vec::new() };
-    if ready && recs.is_empty() {
-        recs.push(Rec { col: origin.0, row: origin.1, cost: 0, flags: CAN_STOP });
-    }
+    // A unit that can move always reaches at least its own hex.
+    let recs = if g.can_move_now(u) {
+        unit_records(g, u, ctx)
+    } else if ready {
+        Rc::new(vec![Rec { col: origin.0, row: origin.1, cost: 0, flags: CAN_STOP }])
+    } else {
+        Rc::new(Vec::new())
+    };
     let player = g.units[u].player;
     let foes: Vec<usize> = g.field.iter().copied().filter(|&e| {
         let o = &g.units[e];
@@ -1041,8 +1133,7 @@ pub fn unit_actions(g: &mut Game, u: usize, ctx: &mut Ctx, info: &Info, limit: u
         }
         add(&mut actions, base.clone(), score);
         let spent = g.units[u].attack_spent;
-        g.units[u].col = rec.col;
-        g.units[u].row = rec.row;
+        g.relocate(u, rec.col, rec.row);
         if move_or_fire && moved {
             g.units[u].attack_spent = true;
         }
@@ -1073,8 +1164,7 @@ pub fn unit_actions(g: &mut Game, u: usize, ctx: &mut Ctx, info: &Info, limit: u
                 }
             }
         }
-        g.units[u].col = origin.0;
-        g.units[u].row = origin.1;
+        g.relocate(u, origin.0, origin.1);
         g.units[u].attack_spent = spent;
     }
     // Every action so far has its own destination, target or unload and none
@@ -1139,7 +1229,27 @@ pub fn candidates(g: &mut Game, ctx: &mut Ctx, limit: usize, per_unit: usize, un
     if g.winner >= 0 {
         return Vec::new();
     }
-    let info = analysis(g, ctx);
+    let mut key = signature(g);
+    key.extend([limit as i32, per_unit as i32, unit_limit as i32]);
+    if let Some(hit) = ctx.memo.get(key.as_slice()).cloned() {
+        MEMO_HITS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+        if VERIFY_CACHES.load(std::sync::atomic::Ordering::Relaxed) {
+            let fresh = generate(g, ctx, limit, per_unit, unit_limit);
+            let view = |l: &[Action]| l.iter().map(|a| (a.key(), a.score.to_bits())).collect::<Vec<_>>();
+            assert_eq!(view(&fresh), view(&hit), "cached candidates differ from a fresh generation");
+        }
+        return (*hit).clone();
+    }
+    MEMO_MISSES.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+    let result = generate(g, ctx, limit, per_unit, unit_limit);
+    if ctx.memo.len() >= 8000 {
+        ctx.memo.clear();
+    }
+    ctx.memo.insert(key, Rc::new(result.clone()));
+    result
+}
+
+fn generate(g: &mut Game, ctx: &mut Ctx, limit: usize, per_unit: usize, unit_limit: usize) -> Vec<Action> {
     let current = g.current;
     let mut units: Vec<usize> = g
         .player_units(current)
@@ -1159,6 +1269,7 @@ pub fn candidates(g: &mut Game, ctx: &mut Ctx, limit: usize, per_unit: usize, un
         units.sort_by(|&a, &b| (rank(b) - rank(a)).partial_cmp(&0.0).unwrap_or(Ordering::Equal));
         units.truncate(unit_limit);
     }
+    let info = analysis(g, ctx);
     let mut actions = Vec::new();
     for u in units {
         actions.extend(unit_actions(g, u, ctx, &info, per_unit));

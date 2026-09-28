@@ -278,8 +278,7 @@ fn plan_transport(g: &mut Game, carrier: usize, recs: &[Rec]) -> Option<Plan> {
             continue;
         }
         let (was_moved, transfer_used) = (g.units[cargo].moved, g.units[carrier].transfer_used);
-        g.units[carrier].col = rec.col;
-        g.units[carrier].row = rec.row;
+        g.relocate(carrier, rec.col, rec.row);
         g.units[cargo].moved = false;
         g.units[carrier].transfer_used = false;
         for drop in g.unload_targets(carrier, cargo) {
@@ -306,8 +305,7 @@ fn plan_transport(g: &mut Game, carrier: usize, recs: &[Rec]) -> Option<Plan> {
                 chosen = Some(((rec.col, rec.row), drop, remaining));
             }
         }
-        g.units[carrier].col = origin.0;
-        g.units[carrier].row = origin.1;
+        g.relocate(carrier, origin.0, origin.1);
         g.units[cargo].moved = was_moved;
         g.units[carrier].transfer_used = transfer_used;
     }
@@ -386,8 +384,7 @@ fn best_attack_plan(g: &mut Game, u: usize, recs: &[Rec]) -> Option<(Option<(i32
             if !rec.can_stop() || rec.load() || rec.enter() || occupied_by_other(g, (rec.col, rec.row), u) {
                 continue;
             }
-            g.units[u].col = rec.col;
-            g.units[u].row = rec.row;
+            g.relocate(u, rec.col, rec.row);
             for target in g.attack_targets(u) {
                 let mut sc = score_attack(g, u, target, expected_trade(g, u, target));
                 if !is_air(g, u) {
@@ -397,8 +394,7 @@ fn best_attack_plan(g: &mut Game, u: usize, recs: &[Rec]) -> Option<(Option<(i32
                     best = Some((Some((rec.col, rec.row)), target, sc));
                 }
             }
-            g.units[u].col = origin.0;
-            g.units[u].row = origin.1;
+            g.relocate(u, origin.0, origin.1);
         }
     }
     best

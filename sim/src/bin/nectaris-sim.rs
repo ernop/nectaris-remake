@@ -216,6 +216,8 @@ fn decide(path: &str) -> bool {
         started.elapsed().as_secs_f64(),
         if failed == 0 { "every command matches".to_string() } else { format!("{failed} games DIFFER") }
     );
+    let (h, m) = (nectaris_sim::model::MEMO_HITS.load(std::sync::atomic::Ordering::Relaxed), nectaris_sim::model::MEMO_MISSES.load(std::sync::atomic::Ordering::Relaxed));
+    println!("candidate lists: {h} reused, {m} generated ({:.1}% reused)", 100.0 * h as f64 / (h + m).max(1) as f64);
     failed == 0
 }
 

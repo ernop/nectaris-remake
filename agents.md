@@ -66,6 +66,11 @@ Facts we need across sessions:
   simulator in `sim/`. `test/fixtures/sim-corpus.json.gz` holds 54 recorded
   games; `test/sim-lock-tests.js` fails if any command replays to a different
   state or a recorded bot chooses differently.
+  - Players use the JavaScript game; the Rust simulator is for testing and AI
+    experiments on this machine. Both stay in lockstep (user, 2026-09-27: "in
+    terms of perf/levels/etc."): every bot, level and budget in both, playing
+    identically. Rust speed target: about 1000× one JavaScript thread, using
+    every thread here.
   - Speed work must keep the corpus passing unchanged.
   - A deliberate rule or AI change runs `node tools/sim/regenerate-lock.cjs`
     and updates the Rust simulator to match in the same change.

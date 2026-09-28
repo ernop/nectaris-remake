@@ -14,6 +14,19 @@ the simulation is much faster.
 behavior from the pov of ai, fully, and then write an ultrafast rust game sim
 tool and use that".
 
+**Lockstep and the speed target (user, 2026-09-27):** "we must keep the js and
+the rust version in lockstep in terms of perf/levels/etc. the goal is to keep
+users on the js version at home/wherever, but here on this box we will be able
+to run the rust version which should be say 1000x faster, for testing and
+experimentation with ais." The user agreed to the lockdown plan.
+- Players use the JavaScript game. The Rust simulator is for testing and AI
+  experiments on this machine.
+- Every bot, level and budget exists in both and plays identically. An AI
+  change lands in both in the same change; the behaviour lock enforces it.
+- Speed target: about 1000× the JavaScript game, measured as games per hour on
+  this machine with every thread against one JavaScript thread, as the
+  browser runs it.
+
 ## Rust simulator
 
 **Requirement: identical behaviour, not just identical rules.** The Rust
@@ -104,6 +117,24 @@ unchanged on all 674 games.
   games), one thread: JavaScript 233.5 s, Rust 27.4 s, 8.5× faster (7.6–9.6×
   per game). The 620-game wider check: 144 search games 549 s → 185 s, 476
   Classic v Tactical games 128 s → 89 s.
+
+**Phase 4, second step (2026-09-27),** decisions again unchanged on all 674
+games:
+- **Candidate lists:** cached by the position's `signature` plus the
+  request's limits. Candidate generation reads nothing about a position that
+  the signature leaves out. The sample reuses 44% of its lists, for example
+  when Apex's verification samples replay the same greedy moves until the
+  first battle.
+- **Occupancy grid:** answers `unitAt` directly, so battle forecasts cost a
+  third of what they did.
+- **Movement records:** a unit's records are cached under the same
+  neighbourhood key as enemy stopping cells.
+- **Verification:** `--verify-caches` also recomputes every reused list and
+  movement result, and checks the grid against the unit list.
+- Sample: 27.4 s → 15.7 s (14.9× JavaScript). The 144 search games: 185 s →
+  109 s.
+- Now almost all time is in rollouts, whose candidate lists are new
+  positions; no single function dominates any more.
 
 **Phase 5, the self-play runner (done 2026-09-27):**
 - `nectaris-sim tournament` plays `run.cjs` tournaments on every thread. The

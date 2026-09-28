@@ -51,6 +51,10 @@ pub struct Game<'d> {
     pub field: Vec<usize>,
     pub buildings: Vec<Building>,
     pub building_at: &'d [i32],
+    /// The unit on each cell, -1 for none: every field unit not carried and
+    /// not stored. The rules never put two such units on one cell, so this
+    /// is `unitAt`'s answer.
+    pub occ: Vec<i32>,
     pub turn: i32,
     pub turn_limit: i32,
     pub current: i32,
@@ -100,9 +104,7 @@ impl MoveSearch {
 struct Scratch {
     best: Vec<i32>,
     flags: Vec<u8>,
-    occupant: Vec<i32>,
     zone: Vec<u8>,
-    filled: Vec<usize>,
     /// The frontier by cost. Costs never decrease as the search proceeds, so
     /// taking the cheapest bucket in insertion order is exactly the heap order
     /// (cost, then first pushed).
@@ -168,6 +170,7 @@ impl<'d> Game<'d> {
             field: Vec::new(),
             buildings: Vec::new(),
             building_at: &tables.building_at,
+            occ: vec![-1; tables.cells.len()],
             turn: 1,
             turn_limit: b.turn_limit.filter(|&n| n != 0).unwrap_or(50),
             current: if first_player == 1 { 1 } else { 0 },
@@ -199,9 +202,51 @@ impl<'d> Game<'d> {
         }
         for def in &b.units {
             let u = g.make_unit(&def.t, def.o, def.x, def.y, def.str, def.exp);
+            assert!(g.in_bounds(def.x, def.y), "{}: unit at {},{} is off the board", b.name, def.x, def.y);
+            let at = g.cell(def.x, def.y);
+            assert!(g.occ[at] < 0, "{}: two units start at {},{}", b.name, def.x, def.y);
+            g.occ[at] = u as i32;
             g.field.push(u);
         }
         g
+    }
+
+    /// Moves a unit that stands on the board, keeping the occupancy grid.
+    /// The bots' what-if positions use it too.
+    pub fn relocate(&mut self, u: usize, col: i32, row: i32) {
+        let (oc, or) = (self.units[u].col, self.units[u].row);
+        let old = self.cell(oc, or);
+        assert_eq!(self.occ[old], u as i32, "unit {} is not on the board at {oc},{or}", self.units[u].id);
+        self.occ[old] = -1;
+        let new = self.cell(col, row);
+        assert!(self.occ[new] < 0, "{col},{row} is occupied");
+        self.occ[new] = u as i32;
+        self.units[u].col = col;
+        self.units[u].row = row;
+    }
+    /// Panics unless the grid holds exactly the field units that are neither
+    /// carried nor stored, each on its own cell.
+    fn verify_grid(&self) {
+        let mut expect = vec![-1i32; self.cells.len()];
+        for &i in &self.field {
+            let u = &self.units[i];
+            if u.carried_by == 0 && !u.in_factory {
+                let at = self.cell(u.col, u.row);
+                assert!(expect[at] < 0, "units {} and {} share {},{}", self.units[expect[at] as usize].id, u.id, u.col, u.row);
+                expect[at] = i as i32;
+            }
+        }
+        assert_eq!(expect, self.occ, "the occupancy grid disagrees with the unit list");
+    }
+    fn leave_board(&mut self, u: usize) {
+        let at = self.cell(self.units[u].col, self.units[u].row);
+        assert_eq!(self.occ[at], u as i32, "unit {} is not on the board", self.units[u].id);
+        self.occ[at] = -1;
+    }
+    fn enter_board(&mut self, u: usize) {
+        let at = self.cell(self.units[u].col, self.units[u].row);
+        assert!(self.occ[at] < 0, "a unit already stands at {},{}", self.units[u].col, self.units[u].row);
+        self.occ[at] = u as i32;
     }
 
     /// `AI_MODEL.clone`: the same position with its own generator and no log.
@@ -217,6 +262,7 @@ impl<'d> Game<'d> {
             field: self.field.clone(),
             buildings: self.buildings.clone(),
             building_at: self.building_at,
+            occ: self.occ.clone(),
             turn: self.turn,
             turn_limit: self.turn_limit,
             current: self.current,
@@ -287,12 +333,22 @@ impl<'d> Game<'d> {
         id as usize - 1
     }
 
-    /// `unitAt`: the first field unit in board order on the hex.
+    /// `unitAt`: the field unit, not carried or stored, on the hex.
     pub fn unit_at(&self, col: i32, row: i32) -> Option<usize> {
-        self.field.iter().copied().find(|&i| {
-            let u = &self.units[i];
-            u.carried_by == 0 && !u.in_factory && u.col == col && u.row == row
-        })
+        let found = if self.in_bounds(col, row) {
+            let o = self.occ[self.cell(col, row)];
+            (o >= 0).then_some(o as usize)
+        } else {
+            None
+        };
+        if crate::model::VERIFY_CACHES.load(std::sync::atomic::Ordering::Relaxed) {
+            let scan = self.field.iter().copied().find(|&i| {
+                let u = &self.units[i];
+                u.carried_by == 0 && !u.in_factory && u.col == col && u.row == row
+            });
+            assert_eq!(found, scan, "the occupancy grid disagrees with the unit list at {col},{row}");
+        }
+        found
     }
     pub fn building(&self, col: i32, row: i32) -> Option<usize> {
         if !self.in_bounds(col, row) {
@@ -390,8 +446,10 @@ impl<'d> Game<'d> {
             if sc.best.len() < size {
                 sc.best.resize(size, i32::MAX);
                 sc.flags.resize(size, 0);
-                sc.occupant.resize(size, -1);
                 sc.zone.resize(size, 0);
+            }
+            if crate::model::VERIFY_CACHES.load(std::sync::atomic::Ordering::Relaxed) {
+                self.verify_grid();
             }
             sc.best[start] = 0;
             sc.flags[start] = CAN_STOP;
@@ -400,17 +458,6 @@ impl<'d> Game<'d> {
             let nbr = &self.tables.neighbors;
             let air = t.move_type == MoveType::Air;
             let budget = mp;
-            for &i in &self.field {
-                let o = &self.units[i];
-                if o.carried_by != 0 || o.in_factory || !self.in_bounds(o.col, o.row) {
-                    continue;
-                }
-                let at = self.cell(o.col, o.row);
-                if sc.occupant[at] < 0 {
-                    sc.occupant[at] = i as i32;
-                    sc.filled.push(at);
-                }
-            }
             if sc.buckets.len() <= budget as usize {
                 sc.buckets.resize(budget as usize + 1, Vec::new());
             }
@@ -457,7 +504,7 @@ impl<'d> Game<'d> {
                     if new_cost > budget || new_cost >= sc.best[n] {
                         continue;
                     }
-                    let occ = sc.occupant[n];
+                    let occ = self.occ[n];
                     let mut load = false;
                     if occ >= 0 {
                         if self.units[occ as usize].player != unit.player {
@@ -470,7 +517,7 @@ impl<'d> Game<'d> {
                     let entering_zoc = if sc.zone[n] != 0 {
                         sc.zone[n] == 2
                     } else {
-                        let hit = nbr[n * 6..n * 6 + 6].iter().any(|&m| m >= 0 && sc.occupant[m as usize] >= 0 && self.units[sc.occupant[m as usize] as usize].player != unit.player);
+                        let hit = nbr[n * 6..n * 6 + 6].iter().any(|&m| m >= 0 && self.occ[m as usize] >= 0 && self.units[self.occ[m as usize] as usize].player != unit.player);
                         sc.zone[n] = if hit { 2 } else { 1 };
                         hit
                     };
@@ -503,11 +550,6 @@ impl<'d> Game<'d> {
                 sc.flags[c] = 0;
                 sc.zone[c] = 0;
             }
-            for i in 0..sc.filled.len() {
-                let at = sc.filled[i];
-                sc.occupant[at] = -1;
-            }
-            sc.filled.clear();
             MoveSearch { order, cost, flags }
         })
     }
@@ -621,6 +663,7 @@ impl<'d> Game<'d> {
             let tid = self.units[tr].id;
             self.units[tr].cargo.push(u);
             self.units[tr].transfer_used = true;
+            self.leave_board(u);
             let unit = &mut self.units[u];
             unit.carried_by = tid;
             unit.col = col;
@@ -629,9 +672,8 @@ impl<'d> Game<'d> {
             unit.mp = 0;
             return Ok(true);
         }
+        self.relocate(u, col, row);
         let unit = &mut self.units[u];
-        unit.col = col;
-        unit.row = row;
         if flags & STOP != 0 && (!t.move_after_attack || unit.attacked) {
             unit.mp = 0;
         }
@@ -671,6 +713,9 @@ impl<'d> Game<'d> {
                 let mut storing = vec![u];
                 storing.extend(std::mem::take(&mut self.units[u].cargo));
                 for s in storing {
+                    if self.units[s].carried_by == 0 && !self.units[s].in_factory {
+                        self.leave_board(s);
+                    }
                     if let Some(i) = self.field.iter().position(|&x| x == s) {
                         self.field.remove(i);
                     }
@@ -801,6 +846,9 @@ impl<'d> Game<'d> {
             }
         }
         if let Some(i) = self.field.iter().position(|&x| x == u) {
+            if self.units[u].carried_by == 0 && !self.units[u].in_factory {
+                self.leave_board(u);
+            }
             self.field.remove(i);
         }
     }
@@ -871,6 +919,7 @@ impl<'d> Game<'d> {
         unit.row = row;
         unit.moved = true;
         unit.mp = 0;
+        self.enter_board(cargo);
         let i = self.units[transport].cargo.iter().position(|&x| x == cargo).expect("cargo aboard");
         self.units[transport].cargo.remove(i);
         self.units[transport].transfer_used = true;
@@ -941,6 +990,7 @@ impl<'d> Game<'d> {
         unit.moved = true;
         unit.mp = 0;
         self.field.push(u);
+        self.enter_board(u);
         if self.building(col, row).is_some() {
             self.finish_unit(u);
         }
