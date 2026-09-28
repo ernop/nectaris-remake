@@ -662,6 +662,38 @@ var ENGINE = (function () {
     return result;
   };
 
+  /* Every command the side to move may issue now, as [method, arguments], in
+   * a fixed order any player can index: each field unit in board order (its
+   * moves in search order, attacks, unloads, then finishing its activation),
+   * then each owned building's reserves (exits, then transports), then ending
+   * the turn. The Rust simulator lists the same commands in the same order. */
+  Game.prototype.legalCommands = function () {
+    var out = [];
+    if (this.winner !== null) return out;
+    this.playerUnits(this.currentPlayer).forEach(function (unit) {
+      if (this.canMoveNow(unit)) {
+        var range = this.movementRange(unit);
+        Object.keys(range).forEach(function (key) {
+          var rec = range[key];
+          if (rec.cost > 0 && rec.canStop) out.push(["moveUnit", [unit, rec.col, rec.row]]);
+        });
+      }
+      this.legalAttackTargets(unit).forEach(function (target) { out.push(["attack", [unit, target]]); });
+      unit.cargo.forEach(function (cargo) {
+        this.unloadTargets(unit, cargo).forEach(function (n) { out.push(["unload", [unit, cargo, n.col, n.row]]); });
+      }, this);
+      if (!unit.moved) out.push(["finishUnit", [unit]]);
+    }, this);
+    this.playerFactories(this.currentPlayer).forEach(function (building) {
+      building.stored.forEach(function (unit) {
+        this.deployTargets(building, unit).forEach(function (n) { out.push(["deployFromFactory", [building, unit, n.col, n.row]]); });
+        this.transportDeployTargets(building, unit).forEach(function (transport) { out.push(["loadFromFactory", [building, unit, transport]]); });
+      }, this);
+    }, this);
+    out.push(["endTurn", []]);
+    return out;
+  };
+
   Game.prototype.moveUnit = function (unit, col, row, range) {
     if (!this.canMoveNow(unit)) throw new Error("Unit cannot move now");
     // A supplied preview may predate a move, casualty, load, deployment or

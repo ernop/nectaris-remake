@@ -136,6 +136,40 @@ games:
 - Now almost all time is in rollouts, whose candidate lists are new
   positions; no single function dominates any more.
 
+**The engine as the platform (user, 2026-09-28):** the simulator is the engine
+for evaluating, developing and training many kinds of AI players, not only
+today's five bots. "As long as they are done in a principled and maintainable
+way, we should make the best and fastest game player system we have." Speed
+work therefore uses only caches keyed on what JavaScript already defines (its
+`signature` and `stopSignature`), never hand-kept dependency lists.
+- **Engine:** rules, state, commands and fingerprints (`sim/src/game.rs`).
+  - `Game::legal_commands` lists every legal command for the side to move in
+    a fixed order, identical to JavaScript's `Game.legalCommands()`:
+    - each field unit in board order: moves in search order, attacks,
+      unloads, then finishing its activation;
+    - then each owned building's reserves: exits, then transports;
+    - then ending the turn.
+  - The corpus locks this list at every recorded position. It also records
+    12 random games over the list, which both languages must end
+    identically.
+- **Players** (`sim/src/play.rs`):
+  - `Player` plays whole turns through the engine's recording commands.
+  - `StepPlayer` picks one command at a time from the legal list.
+  - The five bots are `Player`s; `Random` is the benchmark's step player.
+- **Adding a player:** it plugs into Rust through either interface. To play
+  in the browser it also needs a JavaScript twin that decides identically,
+  locked by corpus games like today's bots.
+- **Tools:** the multi-core tournament runner and its JavaScript import check
+  (AI_OPPONENTS.md), and the random-playout benchmark: `nectaris-sim playout`
+  and `node tools/sim/playout-bench.cjs` print equal fingerprints.
+- **Speed (2026-09-28):**
+  - Engine alone: 0.65–0.8 µs per command against JavaScript's 13–20 µs
+    (20–30× per thread).
+  - Random play, listing the legal commands before every command:
+    1.55 million commands/s on 32 threads against 12,900/s on one
+    JavaScript thread (120×).
+  - Search bots: 228× one JavaScript thread (below).
+
 **Phase 4, third step (2026-09-28):**
 - **Decisions (user, 2026-09-28):**
   - No mimalloc. It measured 6% faster at 32 threads, at the cost of a

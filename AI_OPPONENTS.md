@@ -318,6 +318,19 @@ On this machine (16 cores), 144 three-round Sequence/Simulation/Apex games on
 `--threads=16`. Both archives held identical games, as did 476 full
 Classic/Tactical games on all 119 boards (Rust: 7.6 s).
 
+New AI players plug into the engine through `Player` (whole turns) or
+`StepPlayer` (one command at a time from `Game::legal_commands`, which lists
+exactly what JavaScript's `Game.legalCommands()` lists); see
+`sim/src/play.rs`. Engine speed on random play:
+
+```sh
+cd sim && cargo run --release -- playout --games=4000 --threads=32
+node tools/sim/playout-bench.cjs --games=40
+```
+
+Both print a fingerprint of every game's end; with the same options they must
+be equal.
+
 ## Validation record
 
 The correctness suite covers immediate wins, independent RNG, snapshot

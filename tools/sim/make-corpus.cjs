@@ -3,10 +3,11 @@
  *   node tools/sim/make-corpus.cjs --out=FILE.json.gz ARCHIVE_DIR [...]
  * Archives come from tools/ai-research/run.cjs with normal openings. Each game
  * keeps its board index (tools/sim/boards.cjs), seed, bots, round cap, search
- * work, its commands with unit ids numbered from 1 in creation order, and the
+ * work, its commands with unit ids numbered from 1 in creation order, the
  * state hash (tools/sim/state-hash.cjs) after construction and after every
- * command. Replaying the commands from the board and seed must reproduce every
- * hash; the same bots playing the same board and seed must reproduce every
+ * command, and `legal`: FNV-1a over `legalText` of every one of those
+ * positions, joined by newlines. Replaying the commands from the board and
+ * seed must reproduce every hash; the same bots playing the same board and seed must reproduce every
  * command. The shortest game of each pairing (fewest commands, then earliest)
  * is marked `decide` for the JavaScript suite; the Rust simulator checks
  * every game.
@@ -39,12 +40,17 @@ for (const dir of dirs) {
     const recorded = ENGINE.Game.restore(r.initial), recordedBase = H.firstId(recorded) - 1;
     const g = new ENGINE.Game(boards[board], {seed: r.seed}), base = H.firstId(g) - 1;
     const hashes = [H.stateHash(g, base)];
+    let legal = H.fnv(2166136261, H.legalText(g, base));
     if (hashes[0] !== H.stateHash(recorded, recordedBase)) throw new Error(file + ": a fresh board differs from the recorded start");
     const commands = r.commands.map(c => shift(c, recordedBase, 0));
-    commands.forEach(c => { T.command(g, shift(c, 0, base)); hashes.push(H.stateHash(g, base)); });
+    commands.forEach(c => {
+      T.command(g, shift(c, 0, base));
+      hashes.push(H.stateHash(g, base));
+      legal = H.fnv(H.fnv(legal, "\n"), H.legalText(g, base));
+    });
     if (hashes[hashes.length - 1] !== H.stateHash(ENGINE.Game.restore(r.final), recordedBase)) throw new Error(file + ": the replay differs from the recorded end");
     games.push({board, name: r.map, seed: r.seed, players: r.players, maxRounds: run.config.maxRounds, work: r.work,
-      winner: r.winner, reason: r.reason, rounds: r.rounds, commands, hashes});
+      winner: r.winner, reason: r.reason, rounds: r.rounds, commands, hashes, legal});
   }
 }
 const shortest = new Map();
@@ -53,7 +59,9 @@ games.forEach((game, i) => {
   if (!shortest.has(pair) || games[shortest.get(pair)].commands.length > game.commands.length) shortest.set(pair, i);
 });
 shortest.forEach(i => { games[i].decide = true; });
-const corpus = {version: 1, tournament: T.version, games};
+// Random play reaches positions no bot does; both engines must end every game alike.
+const playout = {games: 12, seed: 1, fingerprint: require("./playout.cjs")(12, 1, boards.map((_, i) => i)).fingerprint};
+const corpus = {version: 1, tournament: T.version, games, playout};
 fs.writeFileSync(outArg.slice(6), zlib.gzipSync(JSON.stringify(corpus)));
 const commands = games.reduce((n, g) => n + g.commands.length, 0);
 console.log(games.length + " games, " + commands + " commands, " + games.filter(g => g.decide).length + " marked for decisions -> " + outArg.slice(6));

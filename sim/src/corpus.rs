@@ -19,8 +19,34 @@ pub struct CorpusGame {
     pub rounds: i32,
     pub commands: Vec<(String, Vec<Value>)>,
     pub hashes: Vec<u32>,
+    /// FNV-1a over the legal-command list of every position, joined by
+    /// newlines (`legalText` in tools/sim/state-hash.cjs).
+    pub legal: u32,
     #[serde(default)]
     pub decide: bool,
+}
+
+/// The legal-command list as `legalText` writes it.
+pub fn legal_text(g: &Game) -> String {
+    let list: Vec<(String, Vec<Value>)> = g.legal_commands().iter().map(|c| c.to_json()).collect();
+    serde_json::to_string(&list).expect("serializable commands")
+}
+
+/// 32-bit FNV-1a continued over ASCII text.
+pub fn fnv(mut h: u32, text: &str) -> u32 {
+    for b in text.bytes() {
+        h = (h ^ u32::from(b)).wrapping_mul(16_777_619);
+    }
+    h
+}
+
+/// Random games over the legal-command list (tools/sim/playout.cjs), on
+/// every built-in board in order.
+#[derive(Deserialize)]
+pub struct PlayoutCheck {
+    pub games: usize,
+    pub seed: u32,
+    pub fingerprint: u32,
 }
 
 #[derive(Deserialize)]
@@ -28,6 +54,7 @@ pub struct Corpus {
     pub version: u32,
     pub tournament: String,
     pub games: Vec<CorpusGame>,
+    pub playout: PlayoutCheck,
 }
 
 pub fn load(path: &str) -> Corpus {

@@ -14,6 +14,11 @@
 //!   Plays Classic self-play to the round, as tools/ai-research/speed-bench.cjs
 //!   does, then times one whole side's turn for each bot from that position
 //!   and prints the resulting state fingerprint.
+//! nectaris-sim playout [--boards=all|0,1] [--games=100] [--seed=1] [--threads=N]
+//!   Plays random games: both sides pick uniformly from the legal-command
+//!   list with a seeded generator until the game ends. Prints games per
+//!   second and a fingerprint of every game's end, which
+//!   tools/sim/playout-bench.cjs must reproduce.
 //! nectaris-sim tournament --out=DIR [--opponents=classic,tactical,...]
 //!     [--boards=all|0,1] [--cycles=1] [--rounds=0] [--work=standard]
 //!     [--seed=42] [--self-play] [--threads=N]
@@ -73,6 +78,57 @@ fn turn_time(flags: &HashMap<String, String>) -> Result<(), String> {
         }
         println!("{} round {round}, {bot}: {:.3} s, fingerprint {}", data.boards[board].name, started.elapsed().as_secs_f64(), hash::state_hash(&c));
     }
+    Ok(())
+}
+
+fn board_list(data: &Data, spec: &str) -> Result<Vec<usize>, String> {
+    match spec {
+        "all" => Ok((0..data.boards.len()).collect()),
+        list => list
+            .split(',')
+            .map(|b| b.parse::<usize>().ok().filter(|&i| i < data.boards.len()).ok_or(format!("--boards: {b} is not a board index from 0 to {}", data.boards.len() - 1)))
+            .collect(),
+    }
+}
+
+fn playout(flags: &HashMap<String, String>) -> Result<(), String> {
+    let known = ["boards", "games", "seed", "threads"];
+    if let Some(k) = flags.keys().find(|k| !known.contains(&k.as_str())) {
+        return Err(format!("Unknown option --{k}"));
+    }
+    let data = Data::load(repo().join("sim/data/game-data.json").to_str().unwrap());
+    let boards = board_list(&data, flags.get("boards").map_or("all", String::as_str))?;
+    let num = |k: &str, d: u64| -> Result<u64, String> { flags.get(k).map_or(Ok(d), |v| v.parse().map_err(|_| format!("--{k} must be a whole number"))) };
+    let games = num("games", 100)? as usize;
+    let seed = num("seed", 1)? as u32;
+    let threads = match flags.get("threads") {
+        Some(_) => num("threads", 1)? as usize,
+        None => std::thread::available_parallelism().map_err(|e| e.to_string())?.get(),
+    };
+    let next = std::sync::atomic::AtomicUsize::new(0);
+    let results = std::sync::Mutex::new(vec![(0u32, 0usize); games]);
+    let started = Instant::now();
+    std::thread::scope(|scope| {
+        for _ in 0..threads.max(1) {
+            scope.spawn(|| loop {
+                let k = next.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+                if k >= games {
+                    return;
+                }
+                let r = play::random_game(&data, boards[k % boards.len()], k, seed);
+                results.lock().unwrap()[k] = r;
+            });
+        }
+    });
+    let seconds = started.elapsed().as_secs_f64();
+    let results = results.into_inner().unwrap();
+    let commands: usize = results.iter().map(|r| r.1).sum();
+    let fingerprint = play::playout_fingerprint(&results);
+    println!(
+        "{games} random games, {commands} commands in {seconds:.2} s on {threads} threads: {:.1} games/s, {:.0} commands/s; fingerprint {fingerprint}",
+        games as f64 / seconds,
+        commands as f64 / seconds
+    );
     Ok(())
 }
 
@@ -147,6 +203,7 @@ fn replay(path: &str) -> bool {
         if hash::state_hash(&g) != game.hashes[0] {
             problem = Some(format!("starts differently:\n  {}", hash::state_text(&g)));
         }
+        let mut legal = corpus::fnv(2_166_136_261, &corpus::legal_text(&g));
         for (i, (name, args)) in game.commands.iter().enumerate() {
             if problem.is_some() {
                 break;
@@ -159,6 +216,10 @@ fn replay(path: &str) -> bool {
             if hash::state_hash(&g) != game.hashes[i + 1] {
                 problem = Some(format!("differs after command {i} {name} {args:?}:\n  {}", hash::state_text(&g)));
             }
+            legal = corpus::fnv(corpus::fnv(legal, "\n"), &corpus::legal_text(&g));
+        }
+        if problem.is_none() && legal != game.legal {
+            problem = Some("lists other legal commands than JavaScript somewhere in the game".into());
         }
         if let Some(p) = problem {
             failed += 1;
@@ -170,8 +231,16 @@ fn replay(path: &str) -> bool {
         corpus.games.len(),
         commands,
         started.elapsed().as_secs_f64() * 1000.0,
-        if failed == 0 { "every state matches".to_string() } else { format!("{failed} games DIFFER") }
+        if failed == 0 { "every state and legal-command list matches".to_string() } else { format!("{failed} games DIFFER") }
     );
+    let p = &corpus.playout;
+    let results: Vec<(u32, usize)> = (0..p.games).map(|k| play::random_game(&data, k % data.boards.len(), k, p.seed)).collect();
+    let fingerprint = play::playout_fingerprint(&results);
+    if fingerprint != p.fingerprint {
+        println!("{} random games end differently from JavaScript (fingerprint {fingerprint}, recorded {})", p.games, p.fingerprint);
+        return false;
+    }
+    println!("{} random games ({} commands) end exactly as in JavaScript", p.games, results.iter().map(|r| r.1).sum::<usize>());
     failed == 0
 }
 
@@ -263,7 +332,7 @@ fn main() {
     let default = repo().join("test/fixtures/sim-corpus.json.gz");
     let path = args.get(2).map(|s| s.as_str()).unwrap_or(default.to_str().unwrap());
     let command = args.get(1).map(|s| s.as_str());
-    if command != Some("tournament") && command != Some("turn-time") {
+    if !matches!(command, Some("tournament") | Some("turn-time") | Some("playout")) {
         if let Some(k) = flags.keys().next() {
             eprintln!("Unknown option --{k}");
             std::process::exit(1);
@@ -281,6 +350,13 @@ fn main() {
             }
         },
         Some("turn-time") => match turn_time(&flags) {
+            Ok(()) => true,
+            Err(e) => {
+                eprintln!("{e}");
+                false
+            }
+        },
+        Some("playout") => match playout(&flags) {
             Ok(()) => true,
             Err(e) => {
                 eprintln!("{e}");

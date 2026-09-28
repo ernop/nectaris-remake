@@ -1055,6 +1055,76 @@ impl<'d> Game<'d> {
         self.current = 1 - self.current;
     }
 
+    /// `Game.legalCommands()`: every command the side to move may issue now,
+    /// in the same order as JavaScript lists them.
+    pub fn legal_commands(&self) -> Vec<Command> {
+        let mut out = Vec::new();
+        if self.winner >= 0 {
+            return out;
+        }
+        for u in self.player_units(self.current) {
+            let id = self.units[u].id;
+            if self.can_move_now(u) {
+                let s = self.search_moves(u, None);
+                for i in 0..s.order.len() {
+                    if s.cost[i] > 0 && s.flags[i] & CAN_STOP != 0 {
+                        out.push(Command::Move(id, s.order[i] as i32 % self.w, s.order[i] as i32 / self.w));
+                    }
+                }
+            }
+            for t in self.legal_attack_targets(u) {
+                out.push(Command::Attack(id, self.units[t].id));
+            }
+            for &c in &self.units[u].cargo {
+                for (col, row) in self.unload_targets(u, c) {
+                    out.push(Command::Unload(id, self.units[c].id, col, row));
+                }
+            }
+            if !self.units[u].moved {
+                out.push(Command::Finish(id));
+            }
+        }
+        for b in self.player_factories(self.current) {
+            let at = (self.buildings[b].col, self.buildings[b].row);
+            for &s in &self.buildings[b].stored {
+                for (col, row) in self.deploy_targets(b, s) {
+                    out.push(Command::Deploy(at, self.units[s].id, col, row));
+                }
+                for t in self.transport_deploy_targets(b, s) {
+                    out.push(Command::LoadFromFactory(at, self.units[s].id, self.units[t].id));
+                }
+            }
+        }
+        out.push(Command::EndTurn);
+        out
+    }
+
+    /// Issues a command through the recording methods; panics if the engine
+    /// refuses it.
+    pub fn do_command(&mut self, c: &Command) {
+        let unit = |id: u32| id as usize - 1;
+        let building = |g: &Game, at: (i32, i32)| g.building(at.0, at.1).unwrap_or_else(|| panic!("no building at {},{}", at.0, at.1));
+        match *c {
+            Command::Move(u, col, row) => {
+                self.do_move(unit(u), col, row);
+            }
+            Command::Finish(u) => self.do_finish(unit(u)),
+            Command::Attack(a, d) => {
+                self.do_attack(unit(a), unit(d));
+            }
+            Command::Unload(t, u, col, row) => self.do_unload(unit(t), unit(u), col, row),
+            Command::Deploy(at, u, col, row) => {
+                let b = building(self, at);
+                self.do_deploy(b, unit(u), col, row);
+            }
+            Command::LoadFromFactory(at, u, t) => {
+                let b = building(self, at);
+                self.do_load_from_factory(b, unit(u), unit(t));
+            }
+            Command::EndTurn => self.do_end_turn(),
+        }
+    }
+
     fn record(&mut self, c: Command) {
         if let Some(log) = &mut self.log {
             log.push(c);

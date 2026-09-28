@@ -51,4 +51,20 @@ function firstId(game) {
   Object.values(game.buildings).forEach(function (b) { b.stored.forEach(see); });
   return min;
 }
-module.exports = {stateText: stateText, stateHash: stateHash, firstId: firstId};
+/* `Game.legalCommands()` as JSON in the recorded command form (units as
+ * {"unit": id - base}, buildings as {"building": [col, row]}). */
+function legalText(game, base) {
+  base = base || 0;
+  return JSON.stringify(game.legalCommands().map(function (c) {
+    return [c[0], c[1].map(function (a) {
+      if (a && typeof a === "object") return a.typeId ? {unit: a.id - base} : {building: [a.col, a.row]};
+      return a;
+    })];
+  }));
+}
+/* 32-bit FNV-1a continued over a text's UTF-16 code units. */
+function fnv(h, text) {
+  for (var i = 0; i < text.length; i++) h = Math.imul(h ^ text.charCodeAt(i), 16777619);
+  return h >>> 0;
+}
+module.exports = {stateText: stateText, stateHash: stateHash, firstId: firstId, legalText: legalText, fnv: fnv};

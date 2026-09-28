@@ -71,7 +71,13 @@ Facts we need across sessions:
     terms of perf/levels/etc."): every bot, level and budget in both, playing
     identically. Rust speed target: about 1000× one JavaScript thread, using
     every thread here.
-  - Speed work must keep the corpus passing unchanged.
+  - Speed work must keep the corpus passing unchanged, and may cache only on
+    keys JavaScript already defines (`signature`, `stopSignature`), never
+    hand-kept dependency lists (user, 2026-09-28: "principled and
+    maintainable").
+  - The corpus also locks `Game.legalCommands()` at every recorded position
+    and 12 random games over it. A new AI player needs a JavaScript twin that
+    decides identically, locked by corpus games, before the browser offers it.
   - A deliberate rule or AI change runs `node tools/sim/regenerate-lock.cjs`
     and updates the Rust simulator to match in the same change.
   - `tools/sim/state-hash.cjs` defines the state fingerprint both sides compute.
