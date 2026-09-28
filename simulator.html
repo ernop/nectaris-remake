@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Rust simulator · Nectaris remake</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='24,16 20,23 12,23 8,16 12,9 20,9' fill='%23ffd94a'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="css/simulator.css?v=20260928">
+</head>
+<body>
+<header class="site-header">
+  <a class="brand" href="index.html">NECTARIS</a>
+  <nav class="page-tabs" aria-label="Sections">
+    <a href="index.html">Campaigns</a>
+    <a href="tournaments.html">Bot tournament</a>
+    <a href="simulator.html" aria-current="page">Rust simulator</a>
+    <a href="thanks.html">Thanks to the creators</a>
+  </nav>
+</header>
+
+<main>
+
+<section class="hero" aria-labelledby="title">
+  <p class="kicker">For testing and AI experiments</p>
+  <h1 id="title">The Rust simulator</h1>
+  <p class="lead">You play the JavaScript game in your browser. On the development machine, a Rust copy of the same game runs the rules and all five computer opponents much faster, for tournaments, tests and experiments with new AI players.</p>
+  <p class="lead">The two versions are kept in lockstep: the same rules, the same dice, the same legal moves, and the same choice by every bot in every position. A change to one must land in both, and the checks listed below enforce that on every push.</p>
+</section>
+
+<section aria-labelledby="speed-title">
+  <h2 id="speed-title">How much faster</h2>
+  <div class="table-scroll"><table class="headline">
+    <tr><td class="big">228×</td><td>Search-bot tournaments: Rust on all 32 threads against one JavaScript thread, as the browser plays</td></tr>
+    <tr><td class="big">120×</td><td>Random play through the legal-move list, Rust on 32 threads against one JavaScript thread</td></tr>
+    <tr><td class="big">17×</td><td>Search bots, one thread each</td></tr>
+    <tr><td class="big">16–30×</td><td>The rules alone, one thread each</td></tr>
+  </table></div>
+  <div class="table-scroll"><table>
+    <thead><tr><th>Work</th><th class="num">Rust</th><th class="num">JavaScript</th><th class="num">Faster</th></tr></thead>
+    <tbody>
+      <tr><td>Rules alone, per command, one thread each</td><td class="num">0.65–0.80 µs</td><td class="num">13.1–19.7 µs</td><td class="ratio">16–30×</td></tr>
+      <tr><td>Random play from the legal-move list, one thread each</td><td class="num">110,000 commands/s</td><td class="num">12,900 commands/s</td><td class="ratio">8.5×</td></tr>
+      <tr><td>Random play, Rust on 32 threads</td><td class="num">1,550,000 commands/s</td><td class="num">12,900 commands/s</td><td class="ratio">120×</td></tr>
+      <tr><td>Classic against Tactical, 40 full games, one thread each</td><td class="num">2.7 s</td><td class="num">18.8 s</td><td class="ratio">7×</td></tr>
+      <tr><td>Sequence, Simulation and Apex, 144 three-round games, one thread each</td><td class="num">99 s</td><td class="num">1,688 s</td><td class="ratio">17×</td></tr>
+      <tr><td>The same kind of games, Rust on 32 threads (1,152 games)</td><td class="num">19.5 games/s</td><td class="num">0.085 games/s</td><td class="ratio">228×</td></tr>
+      <tr><td>Tournament runners, 16 workers each, the 144 games</td><td class="num">8.5 s</td><td class="num">216 s</td><td class="ratio">26×</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Classic and Tactical gain least: each of their decisions looks at a position once, so the caches that let the search bots reuse work across similar positions do not apply. The runner comparison is limited by its few longest Apex games; once the short games finish, most workers wait.</p>
+</section>
+
+<section aria-labelledby="history-title">
+  <h2 id="history-title">How it got faster</h2>
+  <p>A one-thread sample of 14 search-bot games: four Apex games on large boards and ten on small ones. JavaScript plays them in 233.5 s. Every step kept every decision identical.</p>
+  <div class="table-scroll"><table>
+    <thead><tr><th>Step</th><th>Date</th><th class="num">Rust</th><th class="num">Faster than JavaScript</th></tr></thead>
+    <tbody>
+      <tr><td>First direct port of the JavaScript</td><td>Sep 27</td><td class="num">99 s</td><td class="ratio">2.4×</td></tr>
+      <tr><td>Board tables, bucket-queue movement search, cached enemy moves</td><td>Sep 27</td><td class="num">27.4 s</td><td class="ratio">8.5×</td></tr>
+      <tr><td>Reused candidate lists, occupancy grid, cached movement searches</td><td>Sep 27</td><td class="num">15.7 s</td><td class="ratio">14.9×</td></tr>
+      <tr><td>Ranks computed once, fewer allocations</td><td>Sep 28</td><td class="num">14.8 s</td><td class="ratio">15.8×</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">Tried and removed because they did not help: reusing a unit's whole action list (it slowed the sample to 16.6 s), skipping distant enemies in the threat map, reusing the previous threat map, and smaller caches.</p>
+</section>
+
+<section aria-labelledby="profile-title">
+  <h2 id="profile-title">Where Rust spends its time</h2>
+  <p>Timers around each part, on the same sample.</p>
+  <div class="table-scroll"><table>
+    <thead><tr><th>Part</th><th class="num">Cost</th></tr></thead>
+    <tbody>
+      <tr><td>Rollouts: the quick playouts inside Sequence, Simulation and Apex</td><td class="num">about 70% of all time</td></tr>
+      <tr><td>A candidate-action list for a new position (44% of lists are reused)</td><td class="num">about 87 µs</td></tr>
+      <tr><td>The enemy threat map for that list</td><td class="num">about 29 µs</td></tr>
+      <tr><td>One unit's possible actions</td><td class="num">about 14 µs</td></tr>
+      <tr><td>One movement search</td><td class="num">about 4 µs</td></tr>
+      <tr><td>One battle forecast</td><td class="num">about 0.14 µs</td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">No single part dominates any more, so further gains come in small steps. The simulator caches only on keys the JavaScript already defines, so a future AI change stays simple to mirror in both versions.</p>
+</section>
+
+<section aria-labelledby="turn-title">
+  <h2 id="turn-title">One mid-game turn</h2>
+  <p>One side's whole turn on NECTOR (30×20) at round 6 of Classic self-play from seed 3. Both versions end the turn in exactly the same position.</p>
+  <div class="table-scroll"><table>
+    <thead><tr><th>Bot</th><th class="num">JavaScript</th><th class="num">Rust</th><th class="num">Faster</th></tr></thead>
+    <tbody>
+      <tr><td>Tactical</td><td class="num">0.090 s</td><td class="num">0.008 s</td><td class="ratio">11×</td></tr>
+      <tr><td>Sequence</td><td class="num">0.90 s</td><td class="num">0.063 s</td><td class="ratio">14×</td></tr>
+      <tr><td>Simulation</td><td class="num">2.26 s</td><td class="num">0.23 s</td><td class="ratio">10×</td></tr>
+      <tr><td>Apex</td><td class="num">14.2 s</td><td class="num">1.07 s</td><td class="ratio">13×</td></tr>
+    </tbody>
+  </table></div>
+</section>
+
+<section aria-labelledby="tests-title">
+  <h2 id="tests-title">How we check that both versions match</h2>
+  <p>The checks compare whole games, not samples of single rules. They start from 54 recorded games (14,959 commands) on boards from every family: Classic against Tactical played to the end, and short games of Sequence, Simulation and Apex. Checks marked "Every push" run in GitHub's test workflow, and a failure holds the release of the live site.</p>
+  <div class="table-scroll"><table>
+    <thead><tr><th>Check</th><th>What must be identical</th><th>When</th></tr></thead>
+    <tbody>
+      <tr><td class="check">Rust replay</td><td>Each recorded game replays to the same full-state fingerprint after every one of its commands</td><td class="when">Every push</td></tr>
+      <tr><td class="check">JavaScript replay</td><td>The same games replay in JavaScript to the same fingerprints</td><td class="when">Every push</td></tr>
+      <tr><td class="check">Legal moves</td><td>Both list the same legal commands, in the same order, at all 15,013 recorded positions</td><td class="when">Every push</td></tr>
+      <tr><td class="check">Listed moves are legal</td><td>The JavaScript engine accepts every listed command at sampled positions</td><td class="when">Every push</td></tr>
+      <tr><td class="check">Random games</td><td>12 games of random legal commands (25,849 commands) end in the same position</td><td class="when">Every push</td></tr>
+      <tr><td class="check">Math</td><td>Rust's copies of Math.log and Math.tanh equal V8's, bit for bit, on 1,000,000 inputs</td><td class="when">Every push</td></tr>
+      <tr><td class="check">Rust bot decisions</td><td>The Rust bots choose every recorded command again from each game's board and seed</td><td class="when">Every push</td></tr>
+      <tr><td class="check">JavaScript bot decisions</td><td>Three recorded games are played again by their JavaScript bots, command for command</td><td class="when">Every push</td></tr>
+      <tr><td class="check">Caches</td><td>During the Rust bot check, every cached result is recomputed and compared</td><td class="when">Every push</td></tr>
+      <tr><td class="check">Tournament import</td><td>A 12-game Rust tournament passes JavaScript's check of seeds, seats, moves and results</td><td class="when">Every push</td></tr>
+      <tr><td class="check">Game data</td><td>The terrain, units, boards and combat tables Rust reads equal the JavaScript data files</td><td class="when">Every push</td></tr>
+      <tr><td class="check">Wide check</td><td>620 more games across all 119 boards: the same states, legal moves and bot commands</td><td class="when">Before speed changes</td></tr>
+      <tr><td class="check">Whole tournaments</td><td>Rust and JavaScript play the same tournaments to identical archives (476 and 144 games)</td><td class="when">Before speed changes</td></tr>
+      <tr><td class="check">Random-play benchmark</td><td>Both engines end the same 40 random games identically (74,257 commands)</td><td class="when">Before speed changes</td></tr>
+      <tr><td class="check">Turn timing</td><td>One bot turn from the same position ends in the same state in both</td><td class="when">When timing</td></tr>
+    </tbody>
+  </table></div>
+  <p>The fingerprint is text built from everything that affects future play: the turn, the side to move, the winner, the position of the dice generator, every unit's type, side, place, strength, experience, remaining movement, action flags and cargo, and every building's owner and stored units.</p>
+  <p>It includes the dice generator because both versions draw one roll per shot from the same seeded generator. If one of them drew an extra roll, the board could look identical while every later battle came out differently. With the generator in the fingerprint, the check fails at the exact command where it happened.</p>
+</section>
+
+<section aria-labelledby="use-title">
+  <h2 id="use-title">Using it</h2>
+  <p>The simulator lives in <a href="https://github.com/ernop/nectaris-remake/tree/master/sim"><code>sim/</code></a> and needs Rust from rustup. From that folder:</p>
+<pre>cargo run --release -- tournament --out=/tmp/league --opponents=classic,tactical,beam,monte-carlo,apex --boards=0,1,2 --cycles=10
+node ../tools/sim/import-rust.cjs /tmp/league
+cargo run --release -- playout --games=4000
+cargo run --release -- replay
+cargo run --release -- decide --verify-caches</pre>
+  <p>The import step checks every game in JavaScript and writes an archive; each game file opens in the Bot tournament page's replay viewer. New AI players plug into the engine through two interfaces: one plays whole turns, the other picks one command at a time from the legal-move list. Before the browser offers a new player, it needs a JavaScript twin that decides identically.</p>
+  <p class="note">Measured on 27–28 September 2026 on an AMD Ryzen 9 5950X (16 cores, 32 threads) with Node 22 and Rust 1.98. More detail on GitHub: <a href="https://github.com/ernop/nectaris-remake/blob/master/AI_TRAINING_PLAN.md#rust-simulator">the simulator's plan and measurements</a> and <a href="https://github.com/ernop/nectaris-remake/blob/master/AI_OPPONENTS.md">running tournaments</a>.</p>
+</section>
+
+</main>
+</body>
+</html>

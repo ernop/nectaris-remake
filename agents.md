@@ -78,6 +78,8 @@ Facts we need across sessions:
   - The corpus also locks `Game.legalCommands()` at every recorded position
     and 12 random games over it. A new AI player needs a JavaScript twin that
     decides identically, locked by corpus games, before the browser offers it.
+  - `simulator.html` shows readers the speed figures and lists every
+    lockstep check in plain English; update it when either changes.
   - A deliberate rule or AI change runs `node tools/sim/regenerate-lock.cjs`
     and updates the Rust simulator to match in the same change.
   - `tools/sim/state-hash.cjs` defines the state fingerprint both sides compute.

@@ -1450,7 +1450,8 @@ as its entry link. The site has its own HTTPS origin, a dedicated restricted
 deployment identity (`nectaris`, which can only upload a release for this
 site), and validated atomic releases of the explicit runtime list in
 `deploy/runtime-files.json`: the pages (game, editor, tournaments and, since
-2026-09-27, [thanks](#thanks-page-2026-09-27)), `css/`, `js/` (including the AI,
+2026-09-27, [thanks](#thanks-page-2026-09-27); since 2026-09-28, the
+[Rust simulator page](#rust-simulator-page-2026-09-28)), `css/`, `js/` (including the AI,
 opening and tournament workers), `levels/`, and the linked `MECHANICS.md` and
 `LEVEL_SOURCES.md`. Excluded: `art/` sources (the runtime draws units from the
 JavaScript art tables), `inspiration/`, the model-named proposal packs,
@@ -1510,3 +1511,33 @@ Implemented as `thanks.html`, deployed with `css/thanks.css` and
 - Implementation choices, not user requirements: the dark site palette with
   pure white text, gold years, the card layout and which people each card
   names. The Japanese text still needs a native speaker's read.
+
+## Rust simulator page (2026-09-28)
+
+Requested by the user on 2026-09-28: "a docs page on the rust version
+including rough speed profiles, like how much faster it is, etc and also an
+english list of the tests we run to compare versions, linked to from the main
+nectaris page."
+
+Implemented as `simulator.html`, deployed with `css/simulator.css`:
+
+- Sections:
+  - what the simulator is for, and the lockstep rule;
+  - how much faster: headline ratios, then a table covering the rules alone,
+    random play, Classic against Tactical, search bots on one thread and on
+    32 threads, and the tournament runners;
+  - how it got faster: each step on a fixed 14-game sample, plus what was
+    tried and removed;
+  - where Rust spends its time, and one mid-game turn per bot;
+  - how we check that both versions match: every check in plain English,
+    when it runs, and what the fingerprint covers (including the dice
+    generator);
+  - how to use it.
+- Links: a "Rust simulator" tab on the menu (`index.html`),
+  `tournaments.html` and `thanks.html`; source links go to GitHub.
+- The numbers are a snapshot measured on 2026-09-27 and 28 on the
+  development machine (AMD Ryzen 9 5950X, Node 22, Rust 1.98), not updated
+  automatically. `agents.md` asks for the page to be updated when the speed
+  or the checks change.
+- Implementation choices, not user requirements: the thanks page's dark
+  palette, and one-line table rows with gold ratios.
