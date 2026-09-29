@@ -4,7 +4,7 @@
 //! engine's `units` list in its exact order, because board order decides
 //! occupancy ties, iteration and the state fingerprint.
 
-use crate::data::{Board, Data, MoveType, StoredDef, Tables, UnitType};
+use crate::data::{Board, Data, MoveType, StoredDef, Tables, UnitType, DRAIN};
 use crate::dice::{ChaCha, Dice, Seed};
 use crate::hex;
 
@@ -55,6 +55,9 @@ pub struct Game<'d> {
     /// not stored. The rules never put two such units on one cell, so this
     /// is `unitAt`'s answer.
     pub occ: Vec<i32>,
+    /// Per side, how many of its `occ` units stand next to each cell: zones
+    /// of control without scanning neighbours. Kept wherever `occ` changes.
+    zoc: [Vec<u8>; 2],
     pub turn: i32,
     pub turn_limit: i32,
     pub current: i32,
@@ -105,7 +108,6 @@ impl MoveSearch {
 struct Scratch {
     best: Vec<i32>,
     flags: Vec<u8>,
-    zone: Vec<u8>,
     /// The frontier by cost. Costs never decrease as the search proceeds, so
     /// taking the cheapest bucket in insertion order is exactly the heap order
     /// (cost, then first pushed).
@@ -172,6 +174,7 @@ impl<'d> Game<'d> {
             buildings: Vec::new(),
             building_at: &tables.building_at,
             occ: vec![-1; tables.cells.len()],
+            zoc: [vec![0; tables.cells.len()], vec![0; tables.cells.len()]],
             turn: 1,
             turn_limit: b.turn_limit.filter(|&n| n != 0).unwrap_or(50),
             current: if first_player == 1 { 1 } else { 0 },
@@ -207,6 +210,7 @@ impl<'d> Game<'d> {
             let at = g.cell(def.x, def.y);
             assert!(g.occ[at] < 0, "{}: two units start at {},{}", b.name, def.x, def.y);
             g.occ[at] = u as i32;
+            g.mark_zone(at, g.units[u].player, true);
             g.field.push(u);
         }
         g
@@ -219,35 +223,60 @@ impl<'d> Game<'d> {
         let old = self.cell(oc, or);
         assert_eq!(self.occ[old], u as i32, "unit {} is not on the board at {oc},{or}", self.units[u].id);
         self.occ[old] = -1;
+        self.mark_zone(old, self.units[u].player, false);
         let new = self.cell(col, row);
         assert!(self.occ[new] < 0, "{col},{row} is occupied");
         self.occ[new] = u as i32;
+        self.mark_zone(new, self.units[u].player, true);
         self.units[u].col = col;
         self.units[u].row = row;
     }
+    /// Counts a board unit of `player` at `cell` into its neighbours' zones,
+    /// or takes it out.
+    fn mark_zone(&mut self, cell: usize, player: i32, add: bool) {
+        let side = &mut self.zoc[player as usize];
+        for &m in &self.tables.neighbors[6 * cell..6 * cell + 6] {
+            if m >= 0 {
+                if add {
+                    side[m as usize] += 1;
+                } else {
+                    side[m as usize] -= 1;
+                }
+            }
+        }
+    }
     /// Panics unless the grid holds exactly the field units that are neither
-    /// carried nor stored, each on its own cell.
+    /// carried nor stored, each on its own cell, and the zone counts match.
     fn verify_grid(&self) {
         let mut expect = vec![-1i32; self.cells.len()];
+        let mut zones = [vec![0u8; self.cells.len()], vec![0u8; self.cells.len()]];
         for &i in &self.field {
             let u = &self.units[i];
             if u.carried_by == 0 && !u.in_factory {
                 let at = self.cell(u.col, u.row);
                 assert!(expect[at] < 0, "units {} and {} share {},{}", self.units[expect[at] as usize].id, u.id, u.col, u.row);
                 expect[at] = i as i32;
+                for &m in &self.tables.neighbors[6 * at..6 * at + 6] {
+                    if m >= 0 {
+                        zones[u.player as usize][m as usize] += 1;
+                    }
+                }
             }
         }
         assert_eq!(expect, self.occ, "the occupancy grid disagrees with the unit list");
+        assert_eq!(zones, self.zoc, "the zone-of-control counts disagree with the unit list");
     }
     fn leave_board(&mut self, u: usize) {
         let at = self.cell(self.units[u].col, self.units[u].row);
         assert_eq!(self.occ[at], u as i32, "unit {} is not on the board", self.units[u].id);
         self.occ[at] = -1;
+        self.mark_zone(at, self.units[u].player, false);
     }
     fn enter_board(&mut self, u: usize) {
         let at = self.cell(self.units[u].col, self.units[u].row);
         assert!(self.occ[at] < 0, "a unit already stands at {},{}", self.units[u].col, self.units[u].row);
         self.occ[at] = u as i32;
+        self.mark_zone(at, self.units[u].player, true);
     }
 
     /// The dice state for the state fingerprint, which alone can make the key.
@@ -269,6 +298,7 @@ impl<'d> Game<'d> {
             buildings: self.buildings.clone(),
             building_at: self.building_at,
             occ: self.occ.clone(),
+            zoc: self.zoc.clone(),
             turn: self.turn,
             turn_limit: self.turn_limit,
             current: self.current,
@@ -457,17 +487,15 @@ impl<'d> Game<'d> {
             if sc.best.len() < size {
                 sc.best.resize(size, i32::MAX);
                 sc.flags.resize(size, 0);
-                sc.zone.resize(size, 0);
             }
             if crate::model::VERIFY_CACHES.load(std::sync::atomic::Ordering::Relaxed) {
                 self.verify_grid();
             }
             sc.best[start] = 0;
             sc.flags[start] = CAN_STOP;
-            let t = self.typ(u);
-            let step_cost = &self.tables.step[unit.t];
+            let step_cost = &self.tables.move_step[unit.t];
             let nbr = &self.tables.neighbors;
-            let air = t.move_type == MoveType::Air;
+            let enemy_zone = &self.zoc[(1 - unit.player) as usize];
             let budget = mp;
             if sc.buckets.len() <= budget as usize {
                 sc.buckets.resize(budget as usize + 1, Vec::new());
@@ -501,10 +529,10 @@ impl<'d> Game<'d> {
                     }
                     let n = n as usize;
                     let mut step = step_cost[n];
-                    if step < 0 {
+                    let drains = step == DRAIN;
+                    if step < 0 && !drains {
                         continue;
                     }
-                    let drains = self.tables.drains[n] && !air;
                     if drains {
                         step = budget - cur_cost;
                         if step < 1 {
@@ -525,13 +553,7 @@ impl<'d> Game<'d> {
                             load = true;
                         }
                     }
-                    let entering_zoc = if sc.zone[n] != 0 {
-                        sc.zone[n] == 2
-                    } else {
-                        let hit = nbr[n * 6..n * 6 + 6].iter().any(|&m| m >= 0 && self.occ[m as usize] >= 0 && self.units[self.occ[m as usize] as usize].player != unit.player);
-                        sc.zone[n] = if hit { 2 } else { 1 };
-                        hit
-                    };
+                    let entering_zoc = enemy_zone[n] != 0;
                     let (nc, nr) = (n as i32 % self.w, n as i32 / self.w);
                     let mut can_stop = occ < 0 || load;
                     if !load && self.building_at[n] >= 0 && !self.can_stop_at_building(u, nc, nr) {
@@ -559,7 +581,6 @@ impl<'d> Game<'d> {
             for &c in &order {
                 sc.best[c] = i32::MAX;
                 sc.flags[c] = 0;
-                sc.zone[c] = 0;
             }
             MoveSearch { order, cost, flags }
         })

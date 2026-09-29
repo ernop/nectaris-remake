@@ -167,6 +167,9 @@ pub struct Data {
 
 /// What never changes during a game on one board. Cells are numbered
 /// row * width + col.
+/// `Tables::move_step`'s mark for terrain that takes all remaining movement.
+pub const DRAIN: i32 = -2;
+
 pub struct Tables {
     pub w: i32,
     pub h: i32,
@@ -186,6 +189,9 @@ pub struct Tables {
     pub min_step: Vec<i32>,
     /// Per unit type: the largest cost to enter any cell, 0 if none can be entered.
     pub max_step: Vec<i32>,
+    /// Per unit type, for the movement search: `step`, except `DRAIN` where
+    /// the terrain takes all remaining movement from a unit that is not air.
+    pub move_step: Vec<Vec<i32>>,
     /// Cells whose terrain takes all remaining movement (valleys).
     pub drains: Vec<bool>,
 }
@@ -229,8 +235,13 @@ impl Tables {
         let step: Vec<Vec<i32>> = types.iter().map(|t| cells.iter().map(|&c| terrain_cost_of(terrain, c, t).unwrap_or(-1)).collect()).collect();
         let min_step = step.iter().map(|s| s.iter().copied().filter(|&c| c >= 0).fold(1, i32::min)).collect();
         let max_step = step.iter().map(|s| s.iter().copied().fold(0, i32::max)).collect();
-        let drains = cells.iter().map(|&c| terrain[c].costs_all_movement).collect();
-        Tables { w, h, cells, neighbors, building_at, building_cells, step, min_step, max_step, drains }
+        let drains: Vec<bool> = cells.iter().map(|&c| terrain[c].costs_all_movement).collect();
+        let move_step = types
+            .iter()
+            .zip(&step)
+            .map(|(t, s)| s.iter().zip(&drains).map(|(&cost, &drain)| if cost >= 0 && drain && t.move_type != MoveType::Air { DRAIN } else { cost }).collect())
+            .collect();
+        Tables { w, h, cells, neighbors, building_at, building_cells, step, min_step, max_step, move_step, drains }
     }
 }
 
