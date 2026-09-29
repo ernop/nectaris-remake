@@ -203,13 +203,13 @@ work therefore uses only caches keyed on what JavaScript already defines (its
 - **Tools:** the multi-core tournament runner and its JavaScript import check
   (AI_OPPONENTS.md), and the random-playout benchmark: `nectaris-sim playout`
   and `node tools/sim/playout-bench.cjs` print equal fingerprints.
-- **Speed (2026-09-28):**
-  - Engine alone: 0.65–0.8 µs per command against JavaScript's 13–20 µs
-    (20–30× per thread).
+- **Speed (2026-09-28, after the fourth step):**
+  - Engine alone: 0.46 µs per command against JavaScript's 13.6 µs (30× per
+    thread; 0.65–0.8 µs before).
   - Random play, listing the legal commands before every command:
-    1.55 million commands/s on 32 threads against 12,900/s on one
-    JavaScript thread (120×).
-  - Search bots: 228× one JavaScript thread (below).
+    2.36 million commands/s on 32 threads against 13,100/s on one
+    JavaScript thread (180×; 120× before).
+  - Search bots: 360–377× one JavaScript thread (fourth step, below).
 
 **Phase 4, third step (2026-09-28):**
 - **Decisions (user, 2026-09-28):**
@@ -238,6 +238,64 @@ work therefore uses only caches keyed on what JavaScript already defines (its
   - JavaScript, one thread: 0.085 games/s (144 such games in 1,687.6 s).
   - Rust is therefore 228× one JavaScript thread. On one thread it is 16.8×
     (the 144 games take 100 s).
+
+**Phase 4, fourth step (2026-09-28), after the fair dice:** "really iterate
+and think about the absolute fastest we can make the rust" (user). Every
+decision is unchanged on the lock corpus and on all 620 wide games,
+re-recorded on the new dice, with every cache verified.
+- **Profiling:** `perf` is not allowed on this machine
+  (`kernel.perf_event_paranoid` = 4; `sudo` needs a password), so
+  `tools/sim/gdb-profile.py` samples call stacks under gdb on a CPU-time
+  timer, and `tools/sim/profile-report.py` groups them by function, caller
+  and line.
+- **Kept**, each measured on the 14-game sample against the build before it
+  (fastest of four alternating runs); the sample went from 14.2 s to 8.7 s,
+  1.6× faster:
+  - Walking distances on an integer bucket queue. Every step costs a whole
+    number, so the fields equal JavaScript's float queue exactly
+    (14.2 → 13.3 s).
+  - The threat map on bitsets: an enemy's covered hexes are the OR of
+    precomputed per-cell band masks (pure board geometry), and each enemy's
+    `stopSignature` is built once per analysis (13.4 → 12.2 s).
+  - Four-lane key hashing, unit lists iterated in place, each type's base
+    value computed once, one position signature per rollout step
+    (12.2 → 10.8 s).
+  - Zone-of-control counts kept by the engine beside the occupancy grid, so
+    entering an enemy zone is one lookup; verify mode rescans them at every
+    search (10.6 → 9.8 s).
+  - `potential` stops at the first target whose worth / 1.5 cannot beat the
+    best (targets come most valuable first; every reader takes a maximum);
+    firing hexes from the band masks; the unit's danger terms once per unit;
+    a one-pass top-k for short action lists; cell coordinates from a table
+    (9.8 → 8.6 s).
+- **Measured and dropped:**
+  - Search caches kept for the whole game instead of one turn: 4% slower.
+    The candidate cache clears itself at 8,000 entries, at worse moments, and
+    bigger tables cost memory traffic.
+  - `potential` values cached by distance: the table work cost more than the
+    divisions it saved.
+  - Compiling for this CPU (`target-cpu=native`): under 1%.
+  - Keys that carry their hash: under 1% to gain, since most hashing is on
+    cache hits.
+- **Where the time goes now** (sample profile): rollouts 68%; new candidate
+  lists 80%; a unit's actions 45%; the threat map 21%; movement searches 22%,
+  half of them for enemy stopping cells, of which 61% of lookups miss.
+- **Where the 1000× target stands:** the same 1,152 three-round search games
+  on 24 boards, re-recorded on the new dice.
+  - Rust, 32 threads: 35.4–37.0 s over two runs, 31.1–32.5 games/s.
+  - JavaScript, one thread: 0.086 games/s (the 144 games in 1,668.9 s).
+  - Rust is therefore 360–377× one JavaScript thread (228× before). On one
+    thread it is 28× (the 144 games take 60.4 s; 17× before).
+  - Whole tournaments still match: the 476 Classic/Tactical and 144 search
+    games, played by `nectaris-sim tournament`, equal the JavaScript runner's
+    archives game for game and pass `import-rust.cjs`.
+- **Larger steps left:**
+  - Keys on what a movement search actually read, instead of the whole
+    neighbourhood `stopSignature` lists. Many enemy-stop misses change only
+    units the search never reached. This is not a key JavaScript defines, so
+    it needs the user's decision (agents.md rule).
+  - Profile-guided optimization. It needs rustup's `llvm-tools` component, a
+    new build dependency.
 
 **Phase 5, the self-play runner (done 2026-09-27):**
 - `nectaris-sim tournament` plays `run.cjs` tournaments on every thread. The

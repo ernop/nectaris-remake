@@ -74,7 +74,10 @@ Facts we need across sessions:
   - Speed work must keep the corpus passing unchanged, and may cache only on
     keys JavaScript already defines (`signature`, `stopSignature`), never
     hand-kept dependency lists (user, 2026-09-28: "principled and
-    maintainable").
+    maintainable"). Profile with `tools/sim/gdb-profile.py` and
+    `tools/sim/profile-report.py`: `perf` is not allowed on this machine.
+    Time a change against the build before it, alternating runs, and keep
+    only what measures faster.
   - The corpus also locks `Game.legalCommands()` at every recorded position
     and 12 random games over it. A new AI player needs a JavaScript twin that
     decides identically, locked by corpus games, before the browser offers it.

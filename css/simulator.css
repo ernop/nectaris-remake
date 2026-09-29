@@ -52,4 +52,4 @@ code, pre { font-family: ui-monospace, "Cascadia Code", Consolas, monospace; }
 code { font-size: 0.95em; }
 pre { margin: 8px 0 14px; padding: 14px 16px; border: 1px solid #685b40; border-radius: 6px; background: #1c1812;
   overflow-x: auto; font-size: 15px; line-height: 1.6; color: #fff; }
-.note { font-size: 16px; }
+.note, .note li { font-size: 16px; }
