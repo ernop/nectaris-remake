@@ -2,8 +2,8 @@
 "use strict";
 module.exports = function (ok) {
   var ENGINE = require("../js/engine.js"), COMBAT = require("../js/combat.js"), UI = require("../js/ui.js");
-  var unitView = require("../js/unit-view.js");
-  var savedDocument = global.document, savedView = global.COMBAT_VIEW, savedRender = global.RENDER;
+  var unitView = require("../js/unit-view.js"), COMBAT_PANEL = require("../js/combat-panel.js");
+  var savedDocument = global.document, savedRender = global.RENDER;
   // Any id reads as an element, however early a check looks at it.
   var nodes = new Proxy({}, {get: function (store, id) {
     return typeof id === "string" ? store[id] || (store[id] = element()) : undefined;
@@ -22,7 +22,6 @@ module.exports = function (ok) {
     };
   }
   global.document = { getElementById: function (id) { return nodes[id] || (nodes[id] = element()); }, createElement: element };
-  global.COMBAT_VIEW = require("../js/combat-view.js");
   global.RENDER = require("../js/render.js");
   function fixture(type, enemyX, commands) {
     var game = new ENGINE.Game({name: "Combat UI", grid: ["........", "........", "........"],
@@ -155,27 +154,33 @@ module.exports = function (ok) {
     ok(rejected, "reselecting cannot grant a second ordinary movement phase");
     var committed = JSON.stringify(ui.game.snapshot()), seed = ui.game.rng.state();
     ui.onMouseMove({offsetX:3,offsetY:1});
-    ok(nodes["combat-inspector"].innerHTML.includes("Polar") &&
-      nodes["combat-inspector"].innerHTML.includes("100,000") &&
-      nodes["combat-inspector"].innerHTML.includes("Joint casualty probabilities") &&
+    ok(nodes["combat-board"].innerHTML.includes("Polar") &&
+      nodes["combat-board"].innerHTML.includes("100,000") &&
+      nodes["combat-board"].innerHTML.includes("Machines lost") && !nodes["combat-board"].classList.contains("hidden") &&
+      nodes["combat-inspector"].innerHTML === "" &&
       JSON.stringify(ui.game.snapshot()) === committed && ui.game.rng.state() === seed,
-      "hover forecast uses 100k independent trials without changing the committed board or RNG");
+      "hover forecast uses 100k independent trials on the combat board, not the side panel, without changing the committed board or RNG");
     var secondTarget = ENGINE.makeUnit("CHARLIE",1,2,0,5,4);
     ui.game.units.push(secondTarget); ui.pickTargets = ui.previewTargets(unit);
     ui.onMouseMove({offsetX:2,offsetY:0});
-    ok(nodes["combat-inspector"].innerHTML.includes("Charlie") &&
-      nodes["combat-inspector"].innerHTML.includes("+30%") && nodes["combat-inspector"].innerHTML.includes("Damage bonus"), "hovering another target replaces its full forecast");
+    ok(nodes["combat-board"].innerHTML.includes("Charlie") && !nodes["combat-board"].innerHTML.includes("Polar"),
+      "hovering another target replaces its combat board");
     ui.game.units.pop(); ui.pickTargets = ui.previewTargets(unit);
     ui.onMouseMove({offsetX:3,offsetY:1});
     var cached = ui._forecastCache;
     ui.onMouseMove({offsetX:3,offsetY:1});
     ok(ui._forecastCache === cached, "repeated hover reuses the forecast cache");
     ui.onMouseMove({offsetX:5,offsetY:2});
-    ok(!nodes["combat-inspector"].classList.contains("hidden"), "last forecast remains readable away from its target");
+    ok(nodes["combat-board"].classList.contains("hidden") && ui.renderer.combatEffects === null,
+      "the combat board and its map overlay leave with the pointer, so no ring or number outlives the hover");
+    ui.onMouseMove({offsetX:3,offsetY:1});
+    ui.onMouseLeave();
+    ok(nodes["combat-board"].classList.contains("hidden") && ui.renderer.combatEffects === null,
+      "leaving the map also removes the combat board");
     ui.deselect();
     ok(unit.moved && ui.mode === "idle" && ui.undoHistory.length === 1, "Deselecting finishes the unit without adding a second undo step for the same move");
     ui.undoLast();
-    ok(JSON.stringify(ui.game.snapshot()) === before && nodes["combat-inspector"].classList.contains("hidden"),
+    ok(JSON.stringify(ui.game.snapshot()) === before && nodes["combat-board"].classList.contains("hidden"),
       "one sidebar undo reverses the move plus implicit completion and clears stale forecast state");
     ui.redoLast();
     ok(ui.game.units[0].shifted && ui.game.units[0].moved,"redo preserves the completion attached to a movement step");
@@ -253,7 +258,7 @@ module.exports = function (ok) {
       Object.keys(ui.range).length>1 && ui.renderer.fireRange[HEX.key(4,1)].ground && !ui.renderer.fireRange[HEX.key(1,1)],
       "Hadrian immediately shows blue moves and red current-hex attacks with its indirect blind spot");
     ui.onMouseMove({offsetX:4,offsetY:1});
-    ok(nodes["combat-inspector"].innerHTML.includes("100,000") && JSON.stringify(ui.game.snapshot())===readySnapshot,
+    ok(nodes["combat-board"].innerHTML.includes("100,000") && JSON.stringify(ui.game.snapshot())===readySnapshot,
       "hovering an immediate attack target previews without changing the board or RNG");
     ui.onHexClick(4,1);
     ok(ui.mode==="battle" && unit.attacked && unit.col===1 && unit.row===1,
@@ -689,32 +694,42 @@ module.exports = function (ok) {
     ui.showCombatPreview(target);
     var fx = ui.renderer.combatEffects;
     ok(fx && fx.surrounded && fx.ring.length === 6 && fx.ring.every(function (hex) { return hex.controlled; }) &&
-      JSON.stringify(fx.supporters) === JSON.stringify([{col: 5, row: 4, side: "attack"}, {col: 5, row: 1, side: "defense"}]) &&
+      JSON.stringify(fx.supporters.map(function (u) { return [u.col, u.row, u.side, u.player, u.label]; })) ===
+        JSON.stringify([[5, 4, "attack", 0, "+200 ATK"], [5, 1, "defense", 1, "+20 DEF"]]) &&
       fx.shownRing === Infinity && fx.surroundShown,
-      "aiming shows the whole ring and every supporter that changes the numbers, not a Falcon worth 0");
-    ok(nodes["combat-inspector"].innerHTML.includes("all 6 surrounding hexes are in your ZOC"),
-      "the forecast states why the target is surrounded");
+      "aiming shows the whole ring and every supporter that changes the numbers, each with its own number, not a Falcon worth 0");
+    var hover = nodes["combat-board"].innerHTML;
+    ok(hover.includes("target surrounded: attack and defense halved") && hover.includes("Surrounded ½") &&
+      hover.includes("<strong>600</strong>") && hover.includes("<strong>45</strong>") && hover.includes("<strong>32</strong>"),
+      "the hover states why the target is surrounded and ends on the totals the battle uses");
     ui.hideCombatPreview();
-    ok(ui.renderer.combatEffects === null, "closing the forecast removes the map overlay");
+    ok(ui.renderer.combatEffects === null && nodes["combat-board"].classList.contains("hidden"),
+      "closing the forecast removes the map overlay and the board");
     var timelines = [], effectsDone = false, pv = COMBAT.preview(ui.game, striker, target);
     ui.playBattleTimeline = function (duration, update, done) { timelines.push({duration: duration, update: update, done: done}); };
     UI.GameUI.prototype.playCombatEffects.call(ui, striker, target, pv, function () { effectsDone = true; });
     fx = ui.renderer.combatEffects;
-    var run = timelines[0], scene = function () { return nodes["war-scene"].innerHTML; };
-    ok(run.duration === 2 * 170 + 260 + 6 * 90 + 500 && fx.shownSupporters === 1 && fx.shownRing === 0 &&
-      !fx.surroundShown && scene().includes("Base") && !scene().includes("+ Support"),
-      "the sequence starts with the first supporter lit and only the base values");
-    run.update(2 * 170);
-    ok(fx.shownSupporters === 2 && fx.shownRing === 0 && scene().includes("+ Support") && !scene().includes("+ Terrain"),
-      "all supporters light before support is added");
-    run.update(2 * 170 + 260);
-    ok(fx.shownRing === 1 && !fx.surroundShown && scene().includes("+ Terrain") && !scene().includes("Surrounded ½"),
+    var run = timelines[0], boardNow = function () { return nodes["battle-content"].innerHTML; };
+    var model = COMBAT_PANEL.build(striker, target, pv), time = model.time;
+    ok(run.duration === time.baseEnd + 2 * 170 + 260 + 6 * 90 + 150 + 500 && fx.shownSupporters === 0 && fx.shownRing === 0 &&
+      !fx.surroundShown && boardNow().includes("cp-row-base") && !boardNow().includes("cp-row-support") &&
+      !nodes["battle-stage"].classList.contains("hidden") && nodes["combat-board"].classList.contains("hidden"),
+      "the count opens the battle screen with the machines' base attack and nothing lit on the map; the map board stays closed");
+    run.update(time.baseEnd);
+    ok(fx.shownSupporters === 1 && fx.shownRing === 0 && boardNow().includes("cp-row-support"),
+      "the first supporter lights and adds its share when the base is counted");
+    run.update(time.supportEnd - 1);
+    ok(fx.shownSupporters === 2 && fx.shownRing === 0 && boardNow().includes("cp-row-support") && !boardNow().includes("cp-row-terrain"),
+      "all supporters light before terrain is added");
+    run.update(time.supportEnd + 260);
+    ok(fx.shownRing === 1 && !fx.surroundShown && boardNow().includes("cp-row-terrain") && !boardNow().includes("cp-row-final"),
       "terrain is added before the surrounding hexes are checked one by one");
     run.update(run.duration);
-    ok(fx.shownRing === 6 && fx.surroundShown && scene().includes("Surrounded ½") && scene().includes("Final (max 100)"),
+    ok(fx.shownRing === 6 && fx.surroundShown && boardNow().includes("cp-row-surround") && boardNow().includes("cp-row-final"),
       "the surround verdict and halving come last, as in the calculation");
     run.done();
-    ok(effectsDone && ui.renderer.combatEffects === null, "the overlay clears when the battle screen takes over");
+    ok(effectsDone && ui.renderer.combatEffects === null && nodes["combat-board"].classList.contains("hidden"),
+      "the map overlay clears when the count ends");
 
     ui = fixture("BISON", 2);
     var effectsCall = null, bison = ui.game.units[0], polar = ui.game.units[1], bisonExp = bison.exp;
@@ -744,23 +759,27 @@ module.exports = function (ok) {
       strokes = []; texts = [];
       painter.combatEffects = Object.assign({target: {col: 5, row: 3}, surrounded: false,
         ring: board.surroundRing(board.units[1]).map(function (hex, i) { return Object.assign({}, hex, {controlled: i !== 0}); }),
-        supporters: [{col: 5, row: 4, side: "attack"}, {col: 5, row: 1, side: "defense"}]}, state);
-      painter.drawCombatEffects(); painter.drawSurroundBadge();
+        attackerPlayer: 0,
+        supporters: [{col: 5, row: 4, side: "attack", player: 0, label: "+200 ATK"},
+          {col: 5, row: 1, side: "defense", player: 1, label: "+20 DEF"}]}, state);
+      painter.drawCombatEffects(); painter.drawCombatBadges();
       return strokes.slice().sort().join("|");
     }
-    ok(paint({shownSupporters: 1, shownRing: 6, surroundShown: false}) ===
-      ["#63ff8e"].concat(Array(5).fill("#ffffff")).sort().join("|"),
-      "before the verdict only checked hexes inside the zone and revealed supporters are outlined");
+    var L0 = RENDER.PLAYER_COLORS[0].light, L1 = RENDER.PLAYER_COLORS[1].light;
+    ok(paint({shownSupporters: 1, shownRing: 6, surroundShown: false}) === Array(6).fill(L0).join("|") &&
+      texts.join("|") === "+200 ATK",
+      "before the verdict only checked hexes inside the zone and revealed supporters are outlined, the supporter with its number");
     ok(paint({shownSupporters: Infinity, shownRing: 6, surroundShown: true}) ===
-      ["#63ff8e", "#ffb347 dashed", "#ffd23d"].concat(Array(5).fill("#ffffff")).sort().join("|") && !texts.length,
-      "the verdict adds the open hex as a dashed gap; a broken ring shows no surround badge");
+      [L0, "#ffb347 dashed", L1].concat(Array(5).fill(L0)).sort().join("|") &&
+      texts.join("|") === "+200 ATK|+20 DEF|ZOC 5/6",
+      "the verdict adds the open hex as a dashed gap and counts the zone; supporters take their own faction's colour");
     paint({shownSupporters: 0, shownRing: 2, surroundShown: false});
-    ok(strokes.length >= 1 && strokes.length <= 2 && strokes.every(function (s) { return s === "#ffffff"; }),
+    ok(strokes.length >= 1 && strokes.length <= 2 && strokes.every(function (s) { return s === L0; }) && !texts.length,
       "the clockwise check lights only hexes reached so far, and only those inside the zone");
     painter.combatEffects = null;
     paint({shownSupporters: 0, shownRing: 6, surroundShown: true, surrounded: true,
       ring: board.surroundRing(board.units[1]).map(function (hex) { return Object.assign({}, hex, {controlled: true}); })});
-    ok(texts.indexOf("SURROUNDED ½") >= 0 && strokes.filter(function (s) { return s === "#ffffff"; }).length === 6,
+    ok(texts.indexOf("SURROUNDED ½") >= 0 && strokes.filter(function (s) { return s === L0; }).length === 6,
       "a complete ring lights all six hexes and labels the target");
 
     // Clicking during a battle skips to its last stage.
@@ -796,7 +815,6 @@ module.exports = function (ok) {
       "a click while fighting jumps to the result without ending the battle");
   } finally {
     if (savedDocument === undefined) delete global.document; else global.document = savedDocument;
-    if (savedView === undefined) delete global.COMBAT_VIEW; else global.COMBAT_VIEW = savedView;
     if (savedRender === undefined) delete global.RENDER; else global.RENDER = savedRender;
   }
 };

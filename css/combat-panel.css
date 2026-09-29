@@ -1,0 +1,65 @@
+/* The combat board: one matchup's numbers over the map (js/combat-panel.js).
+   Union is blue on the left, Xenon green on the right, as on the battle screen.
+   All neutral text is pure white; hierarchy comes from size and weight. Every
+   width is a fraction of the board, and the board's own width decides whether a
+   side's steps and loss chart sit side by side or stacked. */
+#combat-board { position: absolute; left: 1%; right: 1%; z-index: 10; box-sizing: border-box; max-height: 62%;
+  overflow: hidden; pointer-events: none; container-type: inline-size; color: #fff; background: #080b12f2;
+  border: 2px solid #f7d758; box-shadow: 0 8px 28px #000a; padding: 6px 1% 8px;
+  font-size: clamp(12px, 1.9vh, 16px); }
+#combat-board[data-dock="top"] { top: 8px; }
+#combat-board[data-dock="bottom"], #combat-board:not([data-dock]) { bottom: 8px; }
+#combat-board.hidden { display: none; }
+
+.cp-title { font-size: 1.1em; font-weight: 700; padding-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cp-title strong { font-size: 1.15em; font-weight: 800; margin-right: .5em; color: #ffe668; }
+.cp-sides { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.5%; }
+@container (max-width: 640px) { .cp-sides { grid-template-columns: 1fr; gap: 6px 0; } }
+
+.cp-side { --side: #4a90e8; --side-light: #9fd0ff; min-width: 0; border-top: 4px solid var(--side);
+  background: #0f1420; padding: 4px 8px 6px; }
+.cp-side-1 { --side: #3cb44b; --side-light: #9dffb0; }
+
+.cp-head { display: flex; align-items: center; gap: 4% ; flex-wrap: nowrap; min-width: 0; padding-bottom: 3px; }
+.cp-head .unit-label { font-size: 1.25em; font-weight: 800; color: #fff; white-space: nowrap; min-width: 0; }
+.cp-head .unit-label-icon { width: 32px; height: 32px; flex: 0 0 32px; image-rendering: pixelated; }
+.cp-role { font-size: 1.05em; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: var(--side-light); }
+.cp-count { margin-left: auto; white-space: nowrap; font-weight: 700; }
+.cp-count strong { font-size: 1.7em; font-weight: 800; font-variant-numeric: tabular-nums; }
+.cp-pips { display: inline-flex; gap: 3px; }
+.cp-pips i { width: .6em; height: 1.1em; border: 2px solid var(--side-light); box-sizing: border-box; }
+.cp-pips i.cp-lit { background: var(--side); }
+
+.cp-body { display: grid; grid-template-columns: repeat(auto-fit, minmax(15em, 1fr)); gap: 4px 3%; align-items: start; }
+
+.cp-steps { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.cp-steps th { text-align: left; font-weight: 800; font-size: 1em; padding: 1px 0; white-space: nowrap; }
+.cp-steps thead th { border-bottom: 2px solid var(--side); }
+.cp-steps thead th:not(:first-child), .cp-steps td { text-align: right; }
+.cp-steps td { padding: 1px 0 1px 3%; white-space: nowrap; }
+.cp-steps td strong { font-size: 1.75em; font-weight: 800; line-height: 1.05; }
+.cp-steps td small { font-size: .95em; font-weight: 700; margin-right: .45em; color: var(--side-light); }
+.cp-row-hidden { visibility: hidden; }
+.cp-row-live th, .cp-row-live td strong { color: #ffe668; }
+.cp-row-final th, .cp-row-final td { border-top: 2px solid #f7d758; }
+.cp-none strong { font-size: 1.2em; }
+
+.cp-losses h4 { margin: 0 0 3px; font-size: 1.05em; font-weight: 800; }
+.cp-chart { display: flex; align-items: stretch; gap: 2%; height: clamp(64px, 12vh, 120px); }
+.cp-bar { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; align-items: center; }
+.cp-pct { height: 1.25em; font-size: .95em; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1.25; }
+.cp-col { flex: 1 1 auto; width: 100%; display: flex; align-items: flex-end; border-bottom: 2px solid #fff; }
+.cp-col i { display: block; width: 100%; background: var(--side); }
+.cp-likely .cp-col i { background: var(--side-light); box-shadow: 0 0 0 2px #fff; }
+.cp-lost { font-size: 1em; font-weight: 800; font-variant-numeric: tabular-nums; }
+.cp-summary { display: flex; gap: 6%; padding-top: 3px; font-weight: 700; white-space: nowrap; }
+.cp-summary strong { font-size: 1.6em; font-weight: 800; font-variant-numeric: tabular-nums; }
+.cp-nofire { margin: 0; font-weight: 700; }
+.cp-nofire strong { font-size: 1.8em; font-weight: 800; margin-right: .3em; }
+.cp-note { margin: 4px 0 0; font-size: .95em; font-weight: 700; }
+
+/* Short windows keep the numbers and drop the chart's height first. */
+@media (max-height: 640px) {
+  .cp-pips, .cp-note { display: none; }
+  .cp-chart { height: 56px; }
+}

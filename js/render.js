@@ -1539,14 +1539,17 @@ var RENDER = (function () {
       .sort(function (a, b) { return angle(a) - angle(b); });
   };
 
-  /* combatEffects = {target, ring, supporters: [{col,row,side}], surrounded,
-   * shownSupporters, shownRing, surroundShown}. Supporters are revealed in list
-   * order and ring hexes in the clockwise sweep; a checked ring hex lights only
-   * inside the attacker's ZOC, and open hexes appear with the surround verdict. */
+  /* combatEffects = {target, ring, attackerPlayer, supporters: [{col,row,side,
+   * player,label}], surrounded, shownSupporters, shownRing, surroundShown}.
+   * Supporters are revealed in list order and ring hexes in the clockwise
+   * sweep; a checked ring hex lights only inside the attacker's ZOC, and open
+   * hexes appear with the surround verdict. Each supporter carries its number
+   * and its own faction's colour. */
   Renderer.prototype.drawCombatEffects = function () {
     var fx = this.combatEffects;
     if (!fx) return;
     var ctx = this.ctx, s = this.hexSize * this.zoom, self = this;
+    var zoc = PLAYER_COLORS[fx.attackerPlayer].light;
     ctx.save();
     ctx.lineJoin = "round";
     this.combatRing().forEach(function (hex, i) {
@@ -1555,8 +1558,8 @@ var RENDER = (function () {
       var at = self.hexCenter(hex.col, hex.row);
       pathHex(ctx, at.x, at.y, s * 0.96);
       if (lit) {
-        ctx.fillStyle = "rgba(255,255,255,0.18)"; ctx.fill();
-        ctx.setLineDash([]); ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 3;
+        ctx.globalAlpha = 0.22; ctx.fillStyle = zoc; ctx.fill(); ctx.globalAlpha = 1;
+        ctx.setLineDash([]); ctx.strokeStyle = zoc; ctx.lineWidth = 3;
       } else {
         ctx.setLineDash([6, 4]); ctx.strokeStyle = "#ffb347"; ctx.lineWidth = 2.5;
       }
@@ -1566,27 +1569,39 @@ var RENDER = (function () {
     fx.supporters.slice(0, fx.shownSupporters).forEach(function (hex) {
       var at = self.hexCenter(hex.col, hex.row);
       pathHex(ctx, at.x, at.y, s * 0.8);
-      ctx.strokeStyle = hex.side === "attack" ? "#63ff8e" : "#ffd23d"; ctx.lineWidth = 3.5;
+      ctx.strokeStyle = PLAYER_COLORS[hex.player].light; ctx.lineWidth = 3.5;
       ctx.stroke();
     });
     ctx.restore();
   };
 
-  Renderer.prototype.drawSurroundBadge = function () {
-    var fx = this.combatEffects;
-    if (!fx || !fx.surroundShown || !fx.surrounded) return;
-    var ctx = this.ctx, at = this.hexCenter(fx.target.col, fx.target.row);
-    var fontSize = Math.round(Math.max(11, Math.min(18, 12 * this.zoom)));
+  /* A white-on-black number tag inside the lower part of a hex, framed in a
+   * faction colour, so it never hides a neighbouring unit. */
+  Renderer.prototype.drawMapBadge = function (at, label, frame) {
+    var ctx = this.ctx, fontSize = Math.round(Math.max(11, Math.min(18, 12 * this.zoom)));
     ctx.save();
     ctx.font = "bold " + fontSize + "px monospace";
     ctx.textAlign = "center"; ctx.textBaseline = "middle";
-    var label = "SURROUNDED ½", width = Math.ceil(label.length * fontSize * 0.65) + 10, height = fontSize + 6;
-    // Inside the target's own hex, so the label never hides a neighbouring unit.
+    var width = Math.ceil(label.length * fontSize * 0.65) + 10, height = fontSize + 6;
     var x = Math.round(at.x - width / 2), y = Math.round(at.y + this.hexSize * this.zoom * 0.62 - height);
-    ctx.fillStyle = "#ffffff"; ctx.fillRect(x - 2, y - 2, width + 4, height + 4);
+    ctx.fillStyle = frame; ctx.fillRect(x - 2, y - 2, width + 4, height + 4);
     ctx.fillStyle = "#080b12"; ctx.fillRect(x, y, width, height);
     ctx.fillStyle = "#ffffff"; ctx.fillText(label, x + width / 2, y + height / 2 + 0.5);
     ctx.restore();
+  };
+
+  // Screen space, after the board view: the tags stay upright on a turned board.
+  Renderer.prototype.drawCombatBadges = function () {
+    var fx = this.combatEffects, self = this;
+    if (!fx) return;
+    fx.supporters.slice(0, fx.shownSupporters).forEach(function (hex) {
+      self.drawMapBadge(self.hexCenter(hex.col, hex.row), hex.label, PLAYER_COLORS[hex.player].light);
+    });
+    if (!fx.surroundShown || !fx.ring.length) return;
+    var covered = fx.ring.filter(function (hex) { return hex.controlled; }).length;
+    this.drawMapBadge(this.hexCenter(fx.target.col, fx.target.row),
+      fx.surrounded ? "SURROUNDED ½" : "ZOC " + covered + "/6",
+      fx.surrounded ? "#ffffff" : PLAYER_COLORS[fx.attackerPlayer].light);
   };
 
   Renderer.prototype.draw = function () {
@@ -1656,7 +1671,7 @@ var RENDER = (function () {
         ctx.stroke();
       }
     });
-    this.drawSurroundBadge();
+    this.drawCombatBadges();
   };
 
   return {

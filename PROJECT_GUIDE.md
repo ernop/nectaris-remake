@@ -35,6 +35,7 @@ retuned. These themes do not authorize extra features or unsourced rule changes.
 | Campaign menu for new players | Implemented from the user's 2026-09-26 request: one header row (large NECTARIS, Campaigns / Bot tournament tabs, "You are logged in as Wilson" profile menu), one settings row (Mode, hotseat, AI), default profile Wilson, no language option, Normal / Advanced / Base Nectaris first, no `?` on the original campaigns, denser entries. Match defaults: Pixel + Legacy, Watch AI on, separate Move animation toggle. [Record](PRODUCT.md#campaign-menu-for-new-players-2026-09-26). |
 | Second-player compensation offers | Updated from the user's 2026-09-25 request, then simplified on 2026-09-26 into the menu's Mode dropdown (Normal default / Offer for first, no map-default choice; tournaments have their own tab); guided private switch-point questions, 32 cumulative menus, fixed previewable sites, explicit no-deal policies and saved/replayed initiative. Each bot uses its own move policy to assess opening roles. Offer fixtures mirror both factions and tie recipients; accepted offers are not measured equal odds. [Protocol and scope](PRODUCT.md#compensation-offers-before-play-2026-09-23). |
 | Board orientation and control docking | Updated through the user's 2026-09-26 correction: fixed left controls/metadata, full-height board, no content-driven reflow and no opponent-driven camera movement. Replay following requires opt-in. Auto / Normal / Sideways orientation remains; since 2026-09-27 Legacy terrain stays upright on a turned board. The Details panel was removed on 2026-09-26; hover cards carry unit and building details (empty-hex terrain is a known gap the user left open), and the hover forecast sits under the unit's action strip. Since 2026-09-26 the panel prints the level name with no mission chooser, and its settings sit in one compact block at the bottom. Status lines and Undo/Redo/End Turn never move during play; changing content scrolls in the panel's middle section (user, 2026-09-26). [Layout behavior](PRODUCT.md#board-orientation-and-control-docking-2026-09-23), [Details removal](PRODUCT.md#optional-inspector-and-full-map-height-updated-2026-09-25). |
+| Left panel layout and playing Xenon | Implemented from the user's 2026-09-29 request: no Tournaments link in the match panel; status block of campaign, mission number and name, "You play" side (large) and unit counts; vertical one-line settings with On/Off toggles and segmented choosers; Undo / Redo and End Turn at the foot, Fit board small among the settings. Every mission-menu entry also offers **As Xenon** (the AI opens as Union), recorded separately. Awaiting the user's look. [Record](PRODUCT.md#left-panel-layout-and-playing-either-side-2026-09-29). |
 | Unit activation completion | Implemented from the user's 2026-09-23 original-game correction: leaving a started activation forfeits its remaining attack or buggy retreat; returning to the unit later cannot reopen it. Saves and Undo retain the correct action state. [Action rules](MECHANICS.md#units-and-actions), [controls](PRODUCT.md#shift-target-inspection-and-combat-controls-updated-2026-09-21). |
 | Firing-area borders | User-requested visual trial implemented: outer and inner contours replace per-hex firing outlines; awaiting user assessment. [Trial scope](PRODUCT.md#firing-area-border-trial-2026-09-23). |
 | Remake stock unit roster | Implemented: 23 types, two native 32×32 facings. Map icons scale with zoom; panel/review icons remain native. [Unit record](art/units/README.md). |
@@ -50,10 +51,11 @@ retuned. These themes do not authorize extra features or unsourced rule changes.
 | Grok 4.7 tactical gap-filling units | Experimental 15-unit proposal based on operational wargame doctrine, combined arms and tempo tradeoffs. Complete with 32×32 pixel art, verified engine definitions and fluid high-contrast viewer. [Dossiers and specifications](grok4.7/README.md), [interactive overview](grok4.7/gallery.html), [record](PRODUCT.md#grok-47-15-tactical-gap-filling-units-study-2026-09-23). |
 | Gemini 3.8 tactical gap-filling units | Experimental 15-unit proposal designed by Gemini 3.8 addressing operational gaps (Alpine infantry, frontline flak, heavy assault guns, static SAMs, tank destroyers, and attack gunships). Complete with 30 native 32×32 sprites, verified engine definitions and fluid zero-gray UI. [Dossiers and specifications](gemini38/README.md), [interactive overview](gemini38/gallery.html), [record](PRODUCT.md#gemini-38-15-tactical-gap-filling-units-study-2026-09-23). |
 | Claude Opus 5.5 gap-filling units | Experimental 15-unit proposal, not additions to the playable roster. Each unit fills one rule combination the stock roster leaves empty, checked as a test over the stock data; every printed exchange is computed by the engine and asserted by the pack's `verify.js`. In-game sprites remain stock placeholders. [Overview](opus55/index.html), [design and review](opus55/README.md), [record](PRODUCT.md#claude-opus-55-gap-filling-units-study-2026-09-23). |
+| Opus-Sonnet 5.5 gap-filling units | Experimental 15-unit proposal, not additions to the playable roster. Each unit fills a rule combination absent from the stock roster (gap test) and is neither dominated by nor dominating any stock or new unit; every printed figure comes from the engine. Own Legacy-style 32×32 icons and a one-glance stats table. [Table and dossiers](opus-sonnet-55/README.md), [interactive overview](opus-sonnet-55/index.html), [record](PRODUCT.md#opus-sonnet-55-gap-filling-units-study-2026-09-29). |
 | Exact original CPU, random stream and PCE boundary cases | Unverified research gaps, not established rules or a claim of full fidelity. [Remaining gaps](FIDELITY_AUDIT.md#remaining-gaps-in-priority-order). |
 | Search opponents and self-play tournaments | Implemented from the subsequent 2026-09-23 request: opponent picker (since 2026-09-26 chosen in the menu and fixed for the whole match), greedy/beam/MCTS/hybrid algorithms, generic existing capabilities, background workers, mirrored tournaments, durable out-of-order results, per-run Elo, reload/Resume, indexed map/pair history and full-window replays with checkpoint seeking. No personalities. Protocol 2026-09-26.2 removed the factory-exit special rules: search bots use general methods, not invented rules (user, 2026-09-26). Their position score is still a sum of hand-picked constants; the user deferred replacing it with self-play tuning or deeper simulation, then asked the same day for a training plan: [proposal and measurements](AI_TRAINING_PLAN.md). On 2026-09-27 the user put self-play speed first and asked to lock the game's behaviour as the AI sees it, then build a Rust simulator: the lock, the Rust rules engine, the five Rust bots and a Rust tournament runner are done, all matching JavaScript command for command. Using every thread, the Rust search bots play 400–407× as many games as one JavaScript thread (since the 2026-09-28 speed round and the profile-guided build), with identical archives. Since 2026-09-28 the engine is the platform for many kinds of AI players: one legal-command list and player interfaces, locked to JavaScript like the rules; speed work stays principled and maintainable (user). Also since 2026-09-28, matches roll fair dice: ChaCha20 keyed by a fresh or SHA-256-stretched 256-bit seed, which no bot can read or roll (protocol 2026-09-28.1; [Fair dice](AI_TRAINING_PLAN.md#rust-simulator)). The plan's other decisions (machine time, turn-time targets, held-out boards, milestones) are the user's next. [Rust simulator status](AI_TRAINING_PLAN.md#rust-simulator). [Implementation, usage and limits](AI_OPPONENTS.md); [earlier analysis](AI_DESIGN_RESEARCH.md). |
 | Battle review in matches and replays | Updated 2026-09-26: fixed faction sides, per-side terrain, one-way fire cues, Ready/Fighting/Result stages, glowing earned stars on header icons only, pause/resume, default replay battle pause and optional skip. Experience ranks use icon stars throughout. Fixed left reports and board camera, exact hex routes, and no per-unit End remain. [Readout and replay controls](PRODUCT.md#battle-review-2026-09-25). |
-| Soundtrack, Manual and Surrender | Excluded from the recorded fidelity implementation pass; original-style battle presentation was subsequently requested and is covered above; do not silently turn them into scheduled work. [Scope](FIDELITY_AUDIT.md#requested-implementation-pass--2026-09-20). |
+| Soundtrack, Manual and Surrender | Excluded from the recorded fidelity implementation pass; original-style battle presentation was subsequently requested and is covered above; do not silently turn them into scheduled work. Original synthesized sound effects (Sound toggle, off by default) were added on request 2026-09-29. Registered creator banks are selected by **Sound by**; GPT-5.6 Sol's **Selenographic Telemetry** and Grok 4.7's **Field calls** are included. They still need a listening pass ([PRODUCT.md](PRODUCT.md#sound-effects-user-request-2026-09-29)). [Scope](FIDELITY_AUDIT.md#requested-implementation-pass--2026-09-20). |
 | Thanks to the people who made Nectaris | Requested by the user on 2026-09-27: identify everyone who worked on any version (name, year, company, location), find their public channels (X/Twitter, LinkedIn, mail), send each a respectful letter of thanks and commemorate their work. Research completed 2026-09-27: every known version from 1989 to 2020 plus the fan community, 38 contact-list entries with an evidence-linked public channel, and letter drafts in English and Japanese. No letters sent: the user clarified the same day that he is only preparing the information and no one is to be contacted yet; when outreach starts, he sends the letters and logs each in the contact list. [Roster, contact list, drafts and open questions](NECTARIS_CREDITS.md). The public page `thanks.html` followed the same day at the user's request: English and Japanese, linked both ways with the game, freely licensed pictures only. [Page record](PRODUCT.md#thanks-page-2026-09-27). |
 | Deferred checks | Release-first mode since 2026-09-26: items to verify later are collected below and run together in one careful session. |
 
@@ -76,7 +78,7 @@ Release first, verify later (user decision). Examine together later:
    - visible after AI kills while the AI keeps moving;
    - the killer highlight clears on the next selection and at turn end;
    - mutual destruction.
-5. Per-machine battle stats and the war-dock step table on narrow windows.
+5. The battle popup's numbers panel on narrow windows.
 6. Loaded Mules: no Attack in the action menu; AI transport behavior; saves
    made with a loaded Mule.
 7. The forecast's surround sentence and map legend wording.
@@ -94,7 +96,9 @@ Release first, verify later (user decision). Examine together later:
     - bursts of deployments;
     - one-press Next action for non-battle steps.
 13. The battle volley: how the bullets look on narrow screens and at each
-    squad size; the loss burst; the single map explosion per squad.
+    squad size; the loss burst; the single map explosion per squad. Artillery
+    volleys (2026-09-29): shells climbing out of the field top and landing on
+    the target at 1-8 machines, on narrow screens, when paused, and in replay.
 14. After the tournament compatibility removal:
     - storage opens empty in a browser that ran earlier tournaments;
     - `test/tournament-storage.html` passes;
@@ -109,8 +113,7 @@ Release first, verify later (user decision). Examine together later:
     - how often search bots now strand their own factory with a mine.
 16. Left panel layout: Undo/Redo, End Turn and the settings stay put while
     selecting units, aiming, during AI turns and after battles; the middle
-    section scrolls on short windows; the forecast's heatmap is visible
-    without scrolling on a 1080-pixel screen.
+    section scrolls on short windows.
 17. The original's star art over icons:
     - ranks 0–8 on the map hover card, factory and cargo lists, battle headers
       and small list icons, on each art set and style;
@@ -125,6 +128,13 @@ Release first, verify later (user decision). Examine together later:
     - tall maps such as RAMSEY under Board: Auto;
     - frame corners and margins.
 19. The Fit board (F) button and key during AI turns, battles and replays.
+    - The left panel rearranged 2026-09-29 (unbrowsed): the status block at
+      210 px and 330 px panel widths and with two-line mission names; the
+      segmented Style / Art / Board rows at 210 px; End Turn and Undo / Redo
+      staying in view on a 600 px-high window; the end-turn confirmation
+      opening beside the panel; the menu's **As Xenon** column at three levels
+      across; a solo Xenon match from start (the CPU's opening turn) through
+      Continue, Replay and Next mission; Offer for first as Xenon.
 
 20. The thanks page (2026-09-27):
     - layout on wide and narrow windows, with English and Japanese side by
@@ -144,6 +154,16 @@ Release first, verify later (user decision). Examine together later:
       its settings line;
     - the simulator page's new "Fair dice" section;
     - a match saved before the change shows the older-version message.
+23. Combat board (2026-09-29): hovering a target, then leaving it, on Pixel,
+    Legacy, Neon and Classic and on a sideways board; where it docks (top or
+    bottom) on small windows; its rows and loss chart at 1 to 8 machines; the
+    battle-prep count (about 1 to 2.3 s) on long watched AI turns; the map
+    numbers at small zoom; no outline, link or highlight left on the board
+    after your own attack, including a kill and mutual destruction.
+    Battle popup numbers (2026-09-29): layout at 1 to 8 machines per side on
+    small and large windows and on Pixel, Legacy, Neon and Classic; the count
+    under Pause and Space; the tournament replay page's popup; the left panel
+    shows only the result headline and ledger.
 
 Research rather than a check: direct PC Engine confirmation of the Windows
 combat traces.

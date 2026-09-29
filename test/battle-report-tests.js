@@ -24,27 +24,33 @@ module.exports = function (ok) {
     parts.scene.indexOf(parts.assessed.counter.losses + "</strong> lost") >= 0, "scene states destroyed and lost");
   ok(parts.math.indexOf("Roll <strong>" + parts.assessed.attack.coefficientPercent + "%</strong>") >= 0,
     "math shows the match's actual roll");
-  ok(parts.screen.includes("battle-formation-left") && parts.screen.includes("battle-formation-right") &&
-    parts.screen.includes("data-exp='" + attacker.exp + "'") && parts.screen.includes("terrain +5 defense") &&
-    parts.screen.includes("<dt>Attack</dt><dd>" + result.preview.attacker.ap + "</dd>") &&
-    parts.screen.includes("<dt>Defense</dt><dd>" + result.preview.defender.da + "</dd>") &&
-    parts.screen.includes("damage +20%") && !parts.screen.includes("<dd>" + result.preview.attacker.ap * aBefore + "</dd>"),
-    "battle screen shows per-machine attack and defense, terrain and the experience damage bonus, never squad totals");
+  var pvNow = result.preview, screenText = parts.screen;
+  function has(text) { return screenText.includes(text); }
+  ok(has("battle-formation-left") && has("battle-formation-right") && has("data-exp='" + attacker.exp + "'") &&
+    has("battle-numbers") && has("cp-row-base") && has("cp-row-terrain") && has("cp-row-final") &&
+    has("<strong>" + pvNow.attacker.ap * aBefore + "</strong>") && has("<strong>" + pvNow.defender.da + "</strong>") &&
+    has("Experience ×1.20"),
+    "the battle screen holds the numbers panel: base, terrain, final and the experience step, with squad attack totals");
+  ok(has("Per machine") && has("Roll</span><strong>" + parts.assessed.attack.coefficientPercent + "%</strong>") &&
+    has("<strong>" + parts.assessed.attack.losses + "</strong> of " + dBefore + " destroyed"),
+    "once rolled, the panel shows damage per machine, the roll and the destroyed count");
+  ok(!has("battle-phases") && !has("NUMBERS") && !has("bn-head") && !has("battle-outcome") &&
+    has("class='cp-team'>" + REPORT.faction(attacker.player) + "</th>") &&
+    parts.outcome === REPORT.faction(attacker.player) + " attack · " + result.dmgToDefender + " destroyed · " + result.dmgToAttacker + " lost",
+    "the screen has no stage strip, facts line or side title row: the table header names each team and the status line lives in the control bar");
+  var counting = REPORT.screenHtml(attacker, defender, pvNow, aBefore, dBefore, aBefore, dBefore, aExp, dExp, undefined, undefined,
+    "ready", {count: 0});
+  ok(counting.includes("cp-row-base") && counting.includes("cp-row-hidden") && !counting.includes("cp-row-terrain") &&
+    !counting.includes("Per machine"), "at the start of the count only the base row is shown and the damage lines are held back");
+  var readyScreen = REPORT.previewHtml(attacker, defender, pvNow).screen;
+  ok(readyScreen.includes("× roll") && !readyScreen.includes("Roll</span>"),
+    "before the roll the panel shows the squad damage and its average, not a roll");
   var ring = new ENGINE.Game({name: "Effects", grid: Array(7).fill("..........."), units: [
     {t: "BISON", o: 0, x: 5, y: 2}, {t: "BISON", o: 1, x: 5, y: 3}, {t: "BISON", o: 0, x: 5, y: 4},
     {t: "BISON", o: 1, x: 5, y: 1}]}, {seed: 7});
   var ringPreview = COMBAT.preview(ring, ring.units[0], ring.units[1]);
-  var staged = [0, 1, 2, 3].map(function (stage) {
-    return REPORT.effectsHtml(ring.units[0], ring.units[1], ringPreview, stage);
-  });
-  ok(ringPreview.surrounded && staged[0].includes("Base") && !staged[0].includes("+ Support") &&
-    staged[1].includes("+ Support") && !staged[1].includes("+ Terrain") &&
-    staged[2].includes("+ Terrain") && !staged[2].includes("Surrounded ½") &&
-    staged[3].includes("Surrounded ½") && staged[3].includes("Final (max 100)"),
-    "effects panel reveals support, terrain, then surround and the final values");
-  ok(staged[3].includes("<th>Final (max 100)</th><td>" + ringPreview.defender.ap + "</td><td>" + ringPreview.defender.da + "</td>") &&
-    ringPreview.defender.da === Math.floor((40 + 20 + 5) / 2),
-    "the final panel row is the defense the battle uses: (40 + 20 support + 5 terrain) halved");
+  ok(ringPreview.surrounded && ringPreview.defender.da === Math.floor((40 + 20 + 5) / 2),
+    "a surrounded target's defense is (40 + 20 support + 5 terrain) halved");
   [0,1].forEach(function (initiator) {
     var fight = new ENGINE.Game({name:"Faction sides",grid:["....",".h-.","...."],units:[
       {t:"BISON",o:0,x:1,y:1,str:6,exp:3},{t:"POLAR",o:1,x:2,y:1,str:7,exp:7}]},{seed:7});
@@ -113,6 +119,9 @@ module.exports = function (ok) {
     ok(!models.includes("unit-stars")&&screen.includes("data-exp-glow-from"),
       "formation machines have no stars; earned stars glow only in the header marks");
     var fighting=REPORT.animate(report.snapshot,0),summary=REPORT.animate(report.snapshot,REPORT.fightingDuration(report.snapshot)+REPORT.rewardDuration(report.snapshot));
+    var arcSnap={aType:"HADRIAN",dType:"CHARLIE",hasCounter:false},flatSnap={aType:"CHARLIE",dType:"CHARLIE",hasCounter:true};
+    ok(REPORT.volleyMs(arcSnap)>REPORT.volleyMs(flatSnap)&&REPORT.fightingDuration(arcSnap)===REPORT.volleyMs(arcSnap)+450,
+      "an artillery volley lasts longer than a bullet volley, and the hit waits for the last shell");
     ok(before.includes("data-battle-phase='ready'")&&fighting.screen.includes("data-battle-phase='fighting'")&&
       !fighting.screen.includes("unit-star-new")&&fighting.math===""&&summary.screen===screen&&summary.math===report.math,
       "ready, fighting and result are distinct stages; experience and final arithmetic appear after combat");

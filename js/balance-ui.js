@@ -13,7 +13,12 @@ var BALANCE_UI = (function () {
   function Setup(game,options) {
     var self=this;
     this.game=game;this.options=options;this.plan=BALANCE.plan(game);
-    this.step=0;this.preview=0;this.viewer=0;this.responder=0;this.phase="vote";
+    // The person answers as this side; a solo bot answers as the other. A
+    // hotseat match starts with Union and hands over to Xenon.
+    this.human=options.hotseat?0:options.humanSide;
+    if(this.human!==0&&this.human!==1)throw new Error("Offer setup needs options.humanSide (0 = Union, 1 = Xenon)");
+    this.bot=1-this.human;
+    this.step=0;this.preview=0;this.viewer=this.human;this.responder=this.human;this.phase="vote";
     this.canvas=$("balance-canvas");this.renderer=new RENDER.Renderer(this.canvas,game);
     this.renderer.orientation="auto";this.drag=null;this.listeners=[];
     $("balance-screen").classList.remove("hidden");$("balance-handoff").classList.add("hidden");
@@ -66,7 +71,7 @@ var BALANCE_UI = (function () {
     var self=this,generation=this.botGeneration;this.botPending=true;
     function complete(survey){
       if(generation!==self.botGeneration)return;
-      self.botPending=false;self.surveys[1]=survey;
+      self.botPending=false;self.surveys[self.bot]=survey;
       if(self.botWorker)self.botWorker.terminate();self.botWorker=null;
       if(self.phase==="waiting")self.finish();else self.render();
     }
@@ -77,7 +82,7 @@ var BALANCE_UI = (function () {
     }
     function fallback(){
       var ai=typeof module!=="undefined"?require("./ai-opening.js"):AI_OPENING;
-      var iterator=ai.analyze(self.plan,1,self.options.opponent);
+      var iterator=ai.analyze(self.plan,self.bot,self.options.opponent);
       function pump(){
         if(generation!==self.botGeneration)return;
         try{var until=Date.now()+8,step;do{step=iterator.next();}while(!step.done&&Date.now()<until);
@@ -87,17 +92,17 @@ var BALANCE_UI = (function () {
       self.botTimer=setTimeout(pump,0);
     }
     if(typeof Worker!=="undefined")try{
-      this.botWorker=new Worker("js/opening-worker.js?v=20260928-fair-dice");
+      this.botWorker=new Worker("js/opening-worker.js?v=20260929-left-panel");
       this.botWorker.onmessage=function(e){if(e.data.error)failed(new Error(e.data.error));else complete(e.data.survey);};
       this.botWorker.onerror=function(){if(self.botWorker)self.botWorker.terminate();self.botWorker=null;fallback();};
-      this.botWorker.postMessage({state:AI_SEARCH.publicSnapshot(this.game),types:UNIT_TYPES,id:this.options.opponent});return;
+      this.botWorker.postMessage({state:AI_SEARCH.publicSnapshot(this.game),types:UNIT_TYPES,id:this.options.opponent,player:this.bot});return;
     }catch(e){if(this.botWorker)this.botWorker.terminate();this.botWorker=null;}
     fallback();
   };
   Setup.prototype.restart=function(){
     this.cancelBot();this.openingError=null;this.botPending=false;
     this.surveys=[BALANCE.begin(this.plan),BALANCE.begin(this.plan)];
-    this.responder=0;this.viewer=0;this.result=null;this.phase="vote";
+    this.responder=this.human;this.viewer=this.human;this.result=null;this.phase="vote";
     if(!this.options.hotseat)this.prepareBot();
     this.showQuestion();
     if(this.options.hotseat)this.handoff(0);

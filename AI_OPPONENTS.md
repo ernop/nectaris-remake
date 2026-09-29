@@ -120,7 +120,7 @@ algorithm changes on held-out maps and fresh seeds as well as regression cases.
 
 ## Browser tournaments
 
-Open **Tournaments** from a map, or the **Bot tournament** tab on the campaign menu.
+Open the **Bot tournament** tab on the campaign menu.
 The prominent opening panel above the campaign/level picker also links to this
 setup, with a return link back. The separate page does not alter player profiles
 or unfinished human matches.

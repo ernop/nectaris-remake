@@ -1,0 +1,764 @@
+{
+  "families": [
+    {
+      "id": "foot",
+      "label": "Foot teams",
+      "note": "Infantry chassis: mountains and valleys open, wasteland cheap"
+    },
+    {
+      "id": "wheels",
+      "label": "Wheels",
+      "note": "Fast on roads, shut out of mountains, valleys and wasteland"
+    },
+    {
+      "id": "treads",
+      "label": "Tracked",
+      "note": "The fighting-vehicle chassis"
+    },
+    {
+      "id": "fixed",
+      "label": "Fixed positions",
+      "note": "Move 0; brought in by transport or factory exit"
+    },
+    {
+      "id": "air",
+      "label": "Air",
+      "note": "Terrain-free; only anti-air weapons can shoot back"
+    }
+  ],
+  "units": [
+    {
+      "id": "IBEX",
+      "name": "Ibex",
+      "code": "MM-2",
+      "family": "foot",
+      "familyLabel": "Foot",
+      "sprite": "CHARLIE",
+      "tagline": "Mortar crew on foot: indirect fire from mountains no tracked gun can climb",
+      "move": 3,
+      "moveType": "foot",
+      "rngG": 3,
+      "rngA": 0,
+      "atkG": 40,
+      "atkA": 0,
+      "def": 6,
+      "rangeG": "2-3",
+      "rangeA": "-",
+      "reachG": 3,
+      "reachGRoad": 3,
+      "reachA": null,
+      "reachARoad": null,
+      "rules": [
+        "Move or fire"
+      ],
+      "gap": "Indirect ground fire on a chassis that enters mountains and valleys",
+      "gapStockMatches": [],
+      "gapSetMatches": [],
+      "what": "A two-man mortar crew. It shells ground targets at 2 or 3 hexes, draws no counter, and follows the guns' move-or-fire turn. What sets it apart is the chassis: mountains cost 2 and valleys are open to it, so it can stand where Hadrian, Octopus and Atlas physically cannot.",
+      "play": "A mountain ridge stops being a wall for artillery. On a peak an Ibex takes the mountain's +40 defense and shells the plain below; on the plain it is the softest target on the board. The player chooses between the slow climb to a peak and the flat, where it is exposed.",
+      "beatenBy": "Anything that gets adjacent: it cannot shoot at range 1 and never counters. The units placed beside it are its only defense.",
+      "pairsWith": "Charlie or Kilroy walking beside it to hold the adjacent ring; a Pelican to hop it onto a ridge.",
+      "watch": "Move 3 and move-or-fire make a mountain approach take many turns; the ridge must be near a front for it to matter.",
+      "exhibits": [
+        "Shells a full Bison on plains at range 3: 1.9 of 8 lost, no counter.",
+        "Mountain hexes cost it 2 movement; Hadrian, Octopus, Atlas cannot enter them at all.",
+        "A Bison attacking it costs 3.8 of 8 on plains and 2.3 of 8 on a mountain.",
+        "After any move it cannot fire until the next turn."
+      ],
+      "icons": {
+        "union": "icons/ibex-union.png",
+        "xenon": "icons/ibex-xenon.png"
+      }
+    },
+    {
+      "id": "NETTLE",
+      "name": "Nettle",
+      "code": "SM-3",
+      "family": "foot",
+      "familyLabel": "Foot",
+      "sprite": "CHARLIE",
+      "tagline": "Missile crew on foot: shoots aircraft 2-3 hexes away from any terrain",
+      "move": 3,
+      "moveType": "foot",
+      "rngG": 0,
+      "rngA": 3,
+      "atkG": 0,
+      "atkA": 60,
+      "def": 6,
+      "rangeG": "-",
+      "rangeA": "2-3",
+      "reachG": null,
+      "reachGRoad": null,
+      "reachA": 3,
+      "reachARoad": 3,
+      "rules": [
+        "Move or fire"
+      ],
+      "gap": "Anti-air fire on a chassis that enters mountains and valleys",
+      "gapStockMatches": [],
+      "gapSetMatches": [],
+      "what": "A shoulder-launched missile crew. It fires only at aircraft, only at 2 to 3 hexes, and cannot touch ground units. The only stock unit that shoots aircraft from a distance is the Hawkeye, a tracked vehicle that cannot enter mountains or valleys.",
+      "play": "Aircraft ignore terrain, but the Hawkeye can only stand where tracks can go. A Nettle on a peak covers the sky above a ridge, so a Pelican or Eagle crossing it must route around the ring of hexes or take the shot. The player chooses where the air corridors close.",
+      "beatenBy": "Any ground unit stepping adjacent: it has no ground weapon and no counter. An aircraft adjacent to it is also safe, since the missiles reach only 2-3.",
+      "pairsWith": "Ibex on the same ridge; Warden below it to cover the ring the Nettle cannot.",
+      "watch": "Fragile and single-domain; it only earns its slot in scenarios where the enemy fields aircraft.",
+      "exhibits": [
+        "Fires on a full Eagle at range 2: 3.6 of 8 lost, no counter.",
+        "At range 3 the same shot costs the Eagle 3.6 of 8.",
+        "An Eagle attacking it from an adjacent hex removes 4.9 of 8 and takes no counter.",
+        "Mountain hexes cost it 2 movement; Seeker and Hawkeye cannot enter them."
+      ],
+      "icons": {
+        "union": "icons/nettle-union.png",
+        "xenon": "icons/nettle-xenon.png"
+      }
+    },
+    {
+      "id": "FERRET",
+      "name": "Ferret",
+      "code": "RS-4",
+      "family": "foot",
+      "familyLabel": "Foot",
+      "sprite": "KILROY",
+      "tagline": "Skirmisher: strikes, then walks off with the movement it has left",
+      "move": 4,
+      "moveType": "foot",
+      "rngG": 1,
+      "rngA": 1,
+      "atkG": 35,
+      "atkA": 15,
+      "def": 6,
+      "rangeG": "1",
+      "rangeA": "1",
+      "reachG": 5,
+      "reachGRoad": 5,
+      "reachA": 5,
+      "reachARoad": 5,
+      "rules": [
+        "Move after attack"
+      ],
+      "gap": "Infantry that may move after attacking",
+      "gapStockMatches": [],
+      "gapSetMatches": [],
+      "what": "A light rifle squad that keeps its unspent movement after firing, the rule of Rabbit and Lynx on a foot chassis. It does not capture, so it never replaces Charlie; it is a screen and a harasser that crosses mountains.",
+      "play": "Move two hexes, hit a weak target, and spend the last two hexes stepping out of the enemy's reach, or across a mountain a vehicle cannot follow over. The player decides how much of its move to give to the strike.",
+      "beatenBy": "The counter on its own strike, and armor once it stops. It has 6 defense and no cover on a plain.",
+      "pairsWith": "Warden or Redoubt to hold a line while it probes; Ibex for a second shot on what it wounded.",
+      "watch": "Retreat legality follows the post-battle board, so a target that dies can open its ZOC and lengthen the walk; check how the AI uses the leftover move.",
+      "exhibits": [
+        "Move 4: after walking 3 hexes and striking a Bison it still holds 1 movement point and can step away.",
+        "Its strike on a full Bison costs 1.7 of 8 and draws 3.8 back.",
+        "Kilroy's strike on the same Bison costs 1.9 of 8 and cannot be followed by a retreat."
+      ],
+      "icons": {
+        "union": "icons/ferret-union.png",
+        "xenon": "icons/ferret-xenon.png"
+      }
+    },
+    {
+      "id": "LOCUST",
+      "name": "Locust",
+      "code": "MR-9",
+      "family": "wheels",
+      "familyLabel": "Wheels",
+      "sprite": "RABBIT",
+      "tagline": "Rocket truck: the only long-range gun that moves and fires in one turn",
+      "move": 6,
+      "moveType": "wheels",
+      "rngG": 4,
+      "rngA": 0,
+      "atkG": 45,
+      "atkA": 0,
+      "def": 10,
+      "rangeG": "2-4",
+      "rangeA": "-",
+      "reachG": 7,
+      "reachGRoad": 10,
+      "reachA": null,
+      "reachARoad": null,
+      "rules": [],
+      "gap": "Range 3 or more with a normal move-then-fire turn",
+      "gapStockMatches": [],
+      "gapSetMatches": [
+        "LANCER"
+      ],
+      "what": "A wheeled rack of rockets. It fires at 2 to 4 hexes after moving, which no stock gun can do: Hadrian, Octopus and Atlas must choose between moving and shooting, and the Lynx reaches only 2. Wheels make plains cost 2 and hills 4, and shut it out of mountains, valleys and wasteland.",
+      "play": "On a road it moves 6 hexes and then fires 4 more, so every soft unit within 10 hexes of it along a road is a target. Off the roads its reach is 7. The player decides which road to own.",
+      "beatenBy": "Anything that reaches it: 10 defense and no counter of its own. A unit parked on the road stops its advance.",
+      "pairsWith": "Panther or Rabbit to cut the road ahead; Mule to carry Ibex behind it.",
+      "watch": "Threat radius on a road map is 10 against 7 on plains; scenarios with long roads may need fewer Locusts than Octopuses.",
+      "exhibits": [
+        "Moves 4 road hexes, then hits a Bison at range 4: 2.1 of 8 lost, no counter.",
+        "Reach (farthest hex it can hit this turn): 7 on plains, 10 on roads.",
+        "Stock guns on plains: Hadrian 5, Octopus 4, Lynx 8.",
+        "Wheels: plains cost 2, hills 4; mountains, valleys and wasteland are closed to it."
+      ],
+      "icons": {
+        "union": "icons/locust-union.png",
+        "xenon": "icons/locust-xenon.png"
+      }
+    },
+    {
+      "id": "CYCLONE",
+      "name": "Cyclone",
+      "code": "DB-2",
+      "family": "treads",
+      "familyLabel": "Tracked",
+      "sprite": "OCTOPUS",
+      "tagline": "Dual battery: one gun that answers ground or air at 2-3 hexes",
+      "move": 4,
+      "moveType": "treads",
+      "rngG": 3,
+      "rngA": 3,
+      "atkG": 35,
+      "atkA": 50,
+      "def": 25,
+      "rangeG": "2-3",
+      "rangeA": "2-3",
+      "reachG": 3,
+      "reachGRoad": 3,
+      "reachA": 3,
+      "reachARoad": 3,
+      "rules": [
+        "Move or fire"
+      ],
+      "gap": "Indirect fire at both ground and air targets",
+      "gapStockMatches": [],
+      "gapSetMatches": [],
+      "what": "A tracked battery with a howitzer and an anti-air rack. It fires at 2 to 3 hexes at either domain, once a turn, move or fire. Stock artillery fires on ground only and the Hawkeye on air only; nothing fires on both from a distance.",
+      "play": "One Cyclone threatens a tank column and a Pelican at once, so the defender must screen against both. It does less than a specialist in each role (35 on ground, 50 on air), so it pays off where the player cannot predict which target will appear.",
+      "beatenBy": "Being closed on: it cannot fire at range 1 and never counters. Specialist artillery outranges it.",
+      "pairsWith": "Any front-line tank that keeps the adjacent ring clear.",
+      "watch": "35 ground and 50 air sit below Octopus (60) and Hawkeye (85); raise them only if play tests show it is ignored.",
+      "exhibits": [
+        "At range 3: 1.7 of 8 off a Bison, 3.1 of 8 off an Eagle; no counter either way.",
+        "Specialists at the same range: Octopus 2.8 on a Bison, Hawkeye 4.9 on an Eagle.",
+        "No stock unit has an indirect band against both ground and air; every indirect stock unit fires at one domain only.",
+        "An adjacent Bison removes 3.1 of 8 and takes 0.0 back: the Cyclone cannot answer at range 1."
+      ],
+      "icons": {
+        "union": "icons/cyclone-union.png",
+        "xenon": "icons/cyclone-xenon.png"
+      }
+    },
+    {
+      "id": "WARDEN",
+      "name": "Warden",
+      "code": "FG-5",
+      "family": "treads",
+      "familyLabel": "Tracked",
+      "sprite": "SEEKER",
+      "tagline": "Flak tank: guards a ring 2-3 hexes out, but adjacent aircraft are safe from it",
+      "move": 5,
+      "moveType": "treads",
+      "rngG": 1,
+      "rngA": 3,
+      "atkG": 30,
+      "atkA": 70,
+      "def": 40,
+      "rangeG": "1",
+      "rangeA": "2-3",
+      "reachG": 6,
+      "reachGRoad": 6,
+      "reachA": 8,
+      "reachARoad": 8,
+      "rules": [],
+      "gap": "Direct ground weapon plus indirect anti-air on one vehicle",
+      "gapStockMatches": [],
+      "gapSetMatches": [],
+      "what": "A tank with a hull gun and elevating missile rails. Its anti-air band is 2 to 3 hexes, so it shoots aircraft that approach and cannot answer one already adjacent. It moves and fires normally.",
+      "play": "The Seeker defends by standing next to what it protects. The Warden defends the ring around it: an aircraft that closes to attack it must enter that ring first and take a missile salvo. The attacker must choose between the Warden and the unit behind it.",
+      "beatenBy": "An aircraft that survives the approach and attacks it adjacent takes no counter; against 40 defense an Eagle removes 3.3 of 8.",
+      "pairsWith": "Nettle on the ridge above it; a Bison or Polar beside it, so aircraft have a second target.",
+      "watch": "Band 2-3 leaves the adjacent hex uncovered by design; check a single Warden does not make a whole front air-proof.",
+      "exhibits": [
+        "Missiles on a full Eagle at range 2: 4.1 of 8 lost, no counter.",
+        "An Eagle that closes to attack it removes 3.3 of 8 and takes no counter; against a Seeker it would take 3.9.",
+        "Its hull gun against an adjacent Bison: 1.5 of 8 lost, 2.3 back."
+      ],
+      "icons": {
+        "union": "icons/warden-union.png",
+        "xenon": "icons/warden-xenon.png"
+      }
+    },
+    {
+      "id": "STALKER",
+      "name": "Stalker",
+      "code": "TD-8",
+      "family": "treads",
+      "familyLabel": "Tracked",
+      "sprite": "GRIZZLY",
+      "tagline": "Hull-down hunter: 85 attack, but only when it has not moved",
+      "move": 5,
+      "moveType": "treads",
+      "rngG": 1,
+      "rngA": 0,
+      "atkG": 85,
+      "atkA": 0,
+      "def": 45,
+      "rangeG": "1",
+      "rangeA": "-",
+      "reachG": 1,
+      "reachGRoad": 1,
+      "reachA": null,
+      "reachARoad": null,
+      "rules": [
+        "Move or fire"
+      ],
+      "gap": "A direct-fire unit that must choose move or fire",
+      "gapStockMatches": [],
+      "gapSetMatches": [],
+      "what": "A low turretless tank with a long gun. Its attack is 85, against Grizzly's 70, and it may either move or shoot, never both. Every stock move-or-fire unit fires from 2 or more hexes; this is the first that must be next to its target.",
+      "play": "The enemy either walks into it and takes the 85-attack counter, or shells and bombs it from outside. The player decides when to spend a turn relocating it and give up the shot.",
+      "beatenBy": "Artillery and aircraft: neither draws a counter (indirect fire has none, and it has no anti-air). Overwhelming it with supporters.",
+      "pairsWith": "A Lynx or Hadrian behind it to punish anything that stops next to it.",
+      "watch": "Its counter is at full attack on every enemy that stops beside it, so in a chokepoint one Stalker can hold against several tanks; test that.",
+      "exhibits": [
+        "Stationary strike on an adjacent Bison: 3.9 of 8 lost, 2.2 back.",
+        "A Bison attacking it loses 3.9 of 8 to the counter and inflicts 2.2; attacking a Grizzly it loses 3.3.",
+        "Hadrian at range 4 removes 1.9 of 8 with no counter; an Eagle removes 3.1 and takes none.",
+        "It is the first move-or-fire unit that must be adjacent to fire; Hadrian, Octopus, Atlas, Hawkeye are all long-range."
+      ],
+      "icons": {
+        "union": "icons/stalker-union.png",
+        "xenon": "icons/stalker-xenon.png"
+      }
+    },
+    {
+      "id": "BADGER",
+      "name": "Badger",
+      "code": "AV-4",
+      "family": "treads",
+      "familyLabel": "Tracked",
+      "sprite": "MULE",
+      "tagline": "Armored carrier: 40 defense, tracked, carries one ground unit through wasteland",
+      "move": 4,
+      "moveType": "treads",
+      "rngG": 1,
+      "rngA": 1,
+      "atkG": 25,
+      "atkA": 15,
+      "def": 40,
+      "rangeG": "1",
+      "rangeA": "1",
+      "reachG": 5,
+      "reachGRoad": 5,
+      "reachA": 5,
+      "reachARoad": 5,
+      "rules": [
+        "Carries 1"
+      ],
+      "gap": "A ground transport with 40 defense and tracked terrain access",
+      "gapStockMatches": [],
+      "gapSetMatches": [],
+      "what": "A boxed tracked carrier with a light gun. It carries one unit from the Mule's list, the new foot teams, and the two new fixed emplacements (Redoubt, Javelin). Hills cost it 2 and wasteland 3, where the wheeled Mule pays 4 and cannot enter. With 40 defense against the Mule's 10, its cargo survives a shot that kills a Mule.",
+      "play": "A foot rush toward a base is usually stopped by killing the 10-defense Mule. A Bison removes 2.3 of 8 from a Badger and 3.6 from a Mule, but at move 4 the Badger is slower than the Mule and is caught more easily. It is also the only carrier for Redoubt and Javelin: it delivers the emplacement, unloads it, and drives away.",
+      "beatenBy": "Focused fire: a carrier that dies takes its cargo with it.",
+      "pairsWith": "Stalker or Warden to escort and hold ZOC ahead of it.",
+      "watch": "Move 4 against the Mule's 6 on roads keeps the Mule in use; on wasteland maps the Mule cannot enter, so the Badger is the only carrier.",
+      "exhibits": [
+        "Loads Charlie, Kilroy, Ibex, Nettle, Ferret, Atlas, Trigger, Redoubt or Javelin, and Panther from a factory only. The Mule loads only Charlie, Kilroy, Atlas, Trigger and Panther (factory only).",
+        "Crosses wasteland (3) and hills (2); the Mule cannot enter wasteland and pays 4 for hills.",
+        "A Bison attacking it removes 2.3 of 8; attacking a Mule removes 3.6 of 8.",
+        "Move 4 against the Mule's 6: on roads the Mule covers 2 more hexes per turn."
+      ],
+      "icons": {
+        "union": "icons/badger-union.png",
+        "xenon": "icons/badger-xenon.png"
+      }
+    },
+    {
+      "id": "RHINO",
+      "name": "Rhino",
+      "code": "AC-3",
+      "family": "treads",
+      "familyLabel": "Tracked",
+      "sprite": "TITAN",
+      "tagline": "Armored capturer: takes factories and the base at 35 defense",
+      "move": 3,
+      "moveType": "treads",
+      "rngG": 1,
+      "rngA": 0,
+      "atkG": 35,
+      "atkA": 0,
+      "def": 35,
+      "rangeG": "1",
+      "rangeA": "-",
+      "reachG": 4,
+      "reachGRoad": 4,
+      "reachA": null,
+      "reachARoad": null,
+      "rules": [
+        "Captures"
+      ],
+      "gap": "A tracked unit that can capture",
+      "gapStockMatches": [],
+      "gapSetMatches": [],
+      "what": "A slow assault vehicle. It captures like infantry and fights like a light tank, but has no anti-air. Charlie has 4 defense, Kilroy 10 and Panther 8; the Rhino has 35.",
+      "play": "Base defense assumes the capturer dies to the first hit. A Rhino survives a hit, so stopping it depends on ZOC and terrain instead of one shot. At move 3 it needs several turns to arrive, which gives the defender time to answer.",
+      "beatenBy": "Blocking its path (it cannot enter mountains or valleys), artillery, and occupying the base hex.",
+      "pairsWith": "Rabbit or Lynx to clear blockers ahead of it.",
+      "watch": "Changes the base-race calculus in every scenario it appears in; introduce with explicit brief text.",
+      "exhibits": [
+        "Moving onto the enemy base three hexes away ends the game: base capture works for any unit with the capture flag.",
+        "A Bison attacking it removes 2.5 of 8; attacking Kilroy 3.6, Charlie 3.9.",
+        "Stock capturers (Charlie, Kilroy, Panther) have defense 4, 10, 8; this is 35.",
+        "Tracked chassis: mountains and valleys are closed to it."
+      ],
+      "icons": {
+        "union": "icons/rhino-union.png",
+        "xenon": "icons/rhino-xenon.png"
+      }
+    },
+    {
+      "id": "REDOUBT",
+      "name": "Redoubt",
+      "code": "PB-1",
+      "family": "fixed",
+      "familyLabel": "Fixed",
+      "sprite": "GIANT",
+      "tagline": "Pillbox: hits adjacent ground and air hard; cannot move",
+      "move": 0,
+      "moveType": "treads",
+      "rngG": 1,
+      "rngA": 1,
+      "atkG": 80,
+      "atkA": 70,
+      "def": 50,
+      "rangeG": "1",
+      "rangeA": "1",
+      "reachG": 1,
+      "reachGRoad": 1,
+      "reachA": 1,
+      "reachARoad": 1,
+      "rules": [
+        "Fixed"
+      ],
+      "gap": "A fixed unit with a direct-fire weapon",
+      "gapStockMatches": [],
+      "gapSetMatches": [],
+      "what": "A domed concrete position with a fixed gun. It attacks and counters at range 1 in both domains and never moves. The stock fixed units are Atlas, a long gun with 20 defense, and Trigger, a mine that never fires; nothing fixed defends its neighbors by shooting.",
+      "play": "Placed on a bridge, a factory exit or a base approach, it gives every enemy that stops beside it an 80-attack (ground) or 70-attack (air) counter. The enemy needs artillery, aircraft or many supporters. The player decides which hex is worth holding, since the Redoubt cannot be moved later.",
+      "beatenBy": "Indirect fire and anything outranging adjacency. It cannot answer Atlas, Hadrian, Octopus, Lynx, Locust or Lancer.",
+      "pairsWith": "Javelin one hex behind it to cover the air band it cannot; Ibex to reach past the ring.",
+      "watch": "On a base it has 85 defense (50 plus 35); with a second unit beside it, the base is very hard to take. Check placements near a base.",
+      "exhibits": [
+        "A Bison attacking it removes 1.9 of 8 and loses 3.8; an Eagle removes 2.5 and loses 4.1.",
+        "On a base (+35 defense) the same Bison removes 0.6 of 8 and loses 3.8.",
+        "Atlas at range 5 against a Redoubt on a base removes 1.1 of 8 per shot; indirect fire is never countered.",
+        "Stock fixed units: Atlas and Trigger; neither shoots an adjacent unit."
+      ],
+      "icons": {
+        "union": "icons/redoubt-union.png",
+        "xenon": "icons/redoubt-xenon.png"
+      }
+    },
+    {
+      "id": "JAVELIN",
+      "name": "Javelin",
+      "code": "SM-8",
+      "family": "fixed",
+      "familyLabel": "Fixed",
+      "sprite": "HAWKEYE",
+      "tagline": "SAM site: 95 attack on aircraft 2-4 hexes out; nothing else",
+      "move": 0,
+      "moveType": "treads",
+      "rngG": 0,
+      "rngA": 4,
+      "atkG": 0,
+      "atkA": 95,
+      "def": 40,
+      "rangeG": "-",
+      "rangeA": "2-4",
+      "reachG": null,
+      "reachGRoad": null,
+      "reachA": 4,
+      "reachARoad": 4,
+      "rules": [
+        "Fixed"
+      ],
+      "gap": "A fixed anti-air weapon",
+      "gapStockMatches": [],
+      "gapSetMatches": [
+        "REDOUBT"
+      ],
+      "what": "A launcher pad with a radar drum. It fires only at aircraft, only at 2 to 4 hexes, and cannot move. There is no fixed anti-air in the stock roster.",
+      "play": "It turns a factory, base or bridge into an air-denial zone of 54 hexes that no aircraft can fly through unhurt. The adjacent hex is the gap: an aircraft that arrives beside it takes no counter. Air players must plan an approach lane.",
+      "beatenBy": "Ground attack (it has no ground weapon and no counter) and any aircraft that reaches an adjacent hex.",
+      "pairsWith": "Redoubt one hex away so nothing can sit adjacent unpunished.",
+      "watch": "At 95 attack it kills most aircraft in two salvos; on small maps it may make air units unusable, so use one per side at most.",
+      "exhibits": [
+        "Air denial ring: 54 hexes (2 to 4 out); the six adjacent hexes are safe from it.",
+        "One salvo at range 3: 5.4 of 8 off an Eagle, 4.0 of 8 off a Hunter; no counter.",
+        "An Eagle that reaches an adjacent hex removes 3.3 of 8 and takes no counter."
+      ],
+      "icons": {
+        "union": "icons/javelin-union.png",
+        "xenon": "icons/javelin-xenon.png"
+      }
+    },
+    {
+      "id": "HORNET",
+      "name": "Hornet",
+      "code": "AH-5",
+      "family": "air",
+      "familyLabel": "Air",
+      "sprite": "EAGLE",
+      "tagline": "Attack helicopter: strikes, then flies the rest of its move away",
+      "move": 7,
+      "moveType": "air",
+      "rngG": 1,
+      "rngA": 1,
+      "atkG": 65,
+      "atkA": 40,
+      "def": 30,
+      "rangeG": "1",
+      "rangeA": "1",
+      "reachG": 8,
+      "reachGRoad": 8,
+      "reachA": 8,
+      "reachARoad": 8,
+      "rules": [
+        "Move after attack"
+      ],
+      "gap": "An aircraft that may move after attacking",
+      "gapStockMatches": [],
+      "gapSetMatches": [],
+      "what": "A helicopter gunship with a rocket pod. It attacks adjacent targets in both domains and keeps whatever movement it did not spend. Aircraft in the stock roster end their move next to their target.",
+      "play": "It hits a wounded unit and leaves before the reply. The counterattack still happens during the exchange, so it picks targets that cannot hurt it and then goes home. The player is choosing between the attack and the distance it keeps.",
+      "beatenBy": "Anti-air, once it stops. Its 30 defense gives no help on any terrain.",
+      "pairsWith": "Ibex and Locust to weaken targets first; Merlin overhead to answer interceptors.",
+      "watch": "Threat range is move plus one, followed by a retreat with the unspent move. On open maps a Hornet is hard to punish; test against Eagle and Hunter.",
+      "exhibits": [
+        "Move 7: after flying 4 hexes and firing it still holds 3 movement points and flies away.",
+        "Against a full Bison it removes 3.1 of 8; a tank has no anti-air attack, so it takes no counter.",
+        "An Eagle removes 3.3 of 8 in the same exchange but stays next to its target."
+      ],
+      "icons": {
+        "union": "icons/hornet-union.png",
+        "xenon": "icons/hornet-xenon.png"
+      }
+    },
+    {
+      "id": "LANCER",
+      "name": "Lancer",
+      "code": "LX-2",
+      "family": "air",
+      "familyLabel": "Air",
+      "sprite": "EAGLE",
+      "tagline": "Stand-off striker: air artillery, fires at 2-3 hexes after flying",
+      "move": 8,
+      "moveType": "air",
+      "rngG": 3,
+      "rngA": 0,
+      "atkG": 45,
+      "atkA": 0,
+      "def": 15,
+      "rangeG": "2-3",
+      "rangeA": "-",
+      "reachG": 11,
+      "reachGRoad": 11,
+      "reachA": null,
+      "reachARoad": null,
+      "rules": [],
+      "gap": "An aircraft with indirect ground fire",
+      "gapStockMatches": [],
+      "gapSetMatches": [],
+      "what": "A delta-wing aircraft with one large missile under the belly. It flies its full move and then fires at ground targets 2 to 3 hexes away, unreachable and without counter. It cannot attack aircraft or adjacent targets.",
+      "play": "Tanks that cannot shoot aircraft cannot answer it, and ZOC does not block it. Its 15 defense means anything with an anti-air attack can kill it, so it forces the defender to bring anti-air forward.",
+      "beatenBy": "Any unit with an anti-air attack; a Falcon that reaches it removes 6.0 of 8 and takes no counter.",
+      "pairsWith": "Ground units to hold ZOC on what it targets; Merlin to clear enemy aircraft.",
+      "watch": "Reach is move plus range on any terrain; with no anti-air on the map it gives a free 45-attack shot every turn.",
+      "exhibits": [
+        "Flies 5 hexes, then hits a full Bison at range 3: 2.1 of 8 lost, no counter.",
+        "Reach on ground targets: Lancer 11; Eagle 11, Hunter 12.",
+        "It cannot attack aircraft, adjacent targets or a hex it has not flown to.",
+        "A Falcon that reaches it removes 6.0 of 8 and takes 0.0 back."
+      ],
+      "icons": {
+        "union": "icons/lancer-union.png",
+        "xenon": "icons/lancer-xenon.png"
+      }
+    },
+    {
+      "id": "MERLIN",
+      "name": "Merlin",
+      "code": "AX-3",
+      "family": "air",
+      "familyLabel": "Air",
+      "sprite": "FALCON",
+      "tagline": "Missile interceptor: shoots aircraft 2-3 hexes out after flying its full move",
+      "move": 10,
+      "moveType": "air",
+      "rngG": 0,
+      "rngA": 3,
+      "atkG": 0,
+      "atkA": 70,
+      "def": 15,
+      "rangeG": "-",
+      "rangeA": "2-3",
+      "reachG": null,
+      "reachGRoad": null,
+      "reachA": 13,
+      "reachARoad": 13,
+      "rules": [],
+      "gap": "An aircraft with indirect anti-air fire",
+      "gapStockMatches": [],
+      "gapSetMatches": [],
+      "what": "A slim interceptor with two long-range air-to-air missiles. It flies its full move, then fires at aircraft 2 to 3 hexes away. It cannot attack ground units or an adjacent aircraft. Eagle, Falcon and Hunter must fly adjacent to shoot another aircraft, and that adjacent exchange always allows a counter.",
+      "play": "Every stock air-to-air attack is adjacent and countered. The Merlin takes the first shot alone, then the survivors close on a 15-defense airframe. Air fights become a question of who owns the 2-3 hex ring and who must cross it.",
+      "beatenBy": "Any aircraft that closes: adjacent, the Merlin has no answer and takes the full attack. A Falcon removes 6.0 of 8.",
+      "pairsWith": "A Falcon or Hunter beside it, so nothing can close for free.",
+      "watch": "With Javelin and Warden the ring 2-3 hexes out is covered from ground and air; test whether that stack makes air offense impossible.",
+      "exhibits": [
+        "Missiles on a full Falcon at range 2: 4.1 of 8 lost, no counter.",
+        "A Falcon that closes on it removes 6.0 of 8 and takes no counter; Falcon on Falcon costs 5.4 and 5.4.",
+        "No stock aircraft can shoot an aircraft from a distance; every stock air-to-air attack is adjacent and countered.",
+        "Reach on aircraft: Merlin 13; Falcon 13, Hunter 12."
+      ],
+      "icons": {
+        "union": "icons/merlin-union.png",
+        "xenon": "icons/merlin-xenon.png"
+      }
+    },
+    {
+      "id": "DRAGONFLY",
+      "name": "Dragonfly",
+      "code": "JP-1",
+      "family": "air",
+      "familyLabel": "Air",
+      "sprite": "CHARLIE",
+      "tagline": "Jump-pack trooper: flying capturer that mountains cannot stop",
+      "move": 4,
+      "moveType": "air",
+      "rngG": 1,
+      "rngA": 1,
+      "atkG": 10,
+      "atkA": 10,
+      "def": 4,
+      "rangeG": "1",
+      "rangeA": "1",
+      "reachG": 5,
+      "reachGRoad": 5,
+      "reachA": 5,
+      "reachARoad": 5,
+      "rules": [
+        "Captures"
+      ],
+      "gap": "An aircraft that can capture",
+      "gapStockMatches": [],
+      "gapSetMatches": [],
+      "what": "A trooper on a jump pack with gliding vanes. It flies over any terrain at move 4 and captures factories and the base like Charlie. As an aircraft it takes no terrain defense and cannot be carried by a Mule or Pelican, but ground weapons without an anti-air attack cannot harm it.",
+      "play": "Mountain and valley barriers around a base stop every other capturer. A Dragonfly steps over them and threatens the base directly. The defender needs anti-air, not walls, to stop it.",
+      "beatenBy": "Any unit with an anti-air attack; 4 defense.",
+      "pairsWith": "Merlin to clear defending aircraft; Hornet to strike the units guarding the base.",
+      "watch": "It threatens a base over any terrain, and 11 of the 23 stock units cannot damage it. The unit most likely to change scenario outcomes.",
+      "exhibits": [
+        "Two mountain hexes in front of the enemy base cost Charlie 4 of its 3 movement points; the Dragonfly crosses them and captures the base in one move.",
+        "Stock capturers are all ground units (Charlie, Kilroy, Panther); this is the first that flies.",
+        "An aircraft cannot board a Pelican or Mule, so it flies its own way.",
+        "Only 12 of 23 stock units can damage it; Bison, Lenet, Polar, Grizzly, Slagger, Titan, Hadrian, Octopus, Atlas, Pelican, Trigger cannot.",
+        "A Seeker attacking it removes 4.9 of 8."
+      ],
+      "icons": {
+        "union": "icons/dragonfly-union.png",
+        "xenon": "icons/dragonfly-xenon.png"
+      }
+    }
+  ],
+  "dominanceChecked": 1110,
+  "stock": {
+    "CHARLIE": {
+      "reachG": 4,
+      "reachA": 4
+    },
+    "KILROY": {
+      "reachG": 3,
+      "reachA": 3
+    },
+    "PANTHER": {
+      "reachG": 5,
+      "reachA": 5
+    },
+    "BISON": {
+      "reachG": 7,
+      "reachA": null
+    },
+    "LENET": {
+      "reachG": 6,
+      "reachA": null
+    },
+    "POLAR": {
+      "reachG": 5,
+      "reachA": null
+    },
+    "GRIZZLY": {
+      "reachG": 5,
+      "reachA": null
+    },
+    "SLAGGER": {
+      "reachG": 8,
+      "reachA": null
+    },
+    "TITAN": {
+      "reachG": 6,
+      "reachA": null
+    },
+    "GIANT": {
+      "reachG": 3,
+      "reachA": 3
+    },
+    "EAGLE": {
+      "reachG": 11,
+      "reachA": 11
+    },
+    "FALCON": {
+      "reachG": null,
+      "reachA": 13
+    },
+    "HUNTER": {
+      "reachG": 12,
+      "reachA": 12
+    },
+    "HADRIAN": {
+      "reachG": 5,
+      "reachA": null
+    },
+    "OCTOPUS": {
+      "reachG": 4,
+      "reachA": null
+    },
+    "ATLAS": {
+      "reachG": 6,
+      "reachA": null
+    },
+    "RABBIT": {
+      "reachG": 9,
+      "reachA": 9
+    },
+    "LYNX": {
+      "reachG": 8,
+      "reachA": 7
+    },
+    "SEEKER": {
+      "reachG": 7,
+      "reachA": 7
+    },
+    "HAWKEYE": {
+      "reachG": null,
+      "reachA": 5
+    },
+    "MULE": {
+      "reachG": 4,
+      "reachA": 4
+    },
+    "PELICAN": {
+      "reachG": null,
+      "reachA": null
+    },
+    "TRIGGER": {
+      "reachG": null,
+      "reachA": null
+    }
+  }
+}

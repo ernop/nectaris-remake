@@ -54,6 +54,7 @@ editor with URL sharing.
 | `js/legacy-terrain.js` | Original-style pixel terrain and connected tile variants |
 | `art/units/pixel-art.js` | Editable indexed unit art; export with `node tools/build-unit-art.js` |
 | `js/music.js` | Original synthesized military chiptune (Web Audio; no audio files) |
+| `js/sfx.js`, `js/sfx-bank-*.js` | Selectable original synthesized soundscapes with an off-by-default toggle (Web Audio; no audio files) |
 | `js/ui.js`, `js/main.js` | Game UI and boot/menu |
 | `js/profiles.js` | Local player profiles, match saves and result history |
 | `js/editor.js` | Editor logic |
@@ -90,7 +91,7 @@ bind error rather than selecting a different port.
 ## Deployment
 
 The menu's **AI** setting selects Classic, Tactical, Sequence, Simulation
-or Apex. A new match defaults to Classic unless another choice was saved; the opponent stays fixed for the whole match. **Tournaments** opens the self-play lab with
+or Apex. A new match defaults to Classic unless another choice was saved; the opponent stays fixed for the whole match. The **Bot tournament** tab opens the self-play lab with
 board, game-count, round-cap and worker controls, Elo tables and saved replays.
 See [AI_OPPONENTS.md](AI_OPPONENTS.md) for algorithms and large disk runs.
 Serve the lab over HTTP on localhost or HTTPS; it uses Web Workers, IndexedDB
@@ -194,8 +195,9 @@ touches its button so its links remain reachable. Clicking outside or pressing E
 also closes it. Moving across an entry does not open anything. Panels close when
 the page or list scrolls or resizes.
 
-- Hovering an attackable enemy shows the outcome forecast, heatmap first,
-  directly under the unit's action strip. There is no separate Details panel;
+- Hovering an attackable enemy opens the combat board over the map: the ZOC
+  ring and support with their numbers, each side's attack and defense, and its
+  projected losses in its faction's colour. There is no separate Details panel;
   the map hover card carries unit and building details, including the terrain
   under a unit.
 - **Board: Auto / Normal / Sideways** rotates the view by 90° when useful.
@@ -236,7 +238,7 @@ the page or list scrolls or resizes.
   its current hex: solid red for ground fire, dashed violet for air fire.
   Both stay visible where they overlap, with a compact legend on the map.
 - On selection and after a Shift destination, attackable enemies turn red. Hover a target for
-  its identity, both sides' calculations and a casualty probability heatmap
+  its combat board (both sides' calculations and projected losses)
   based on 100,000 independent simulations. The forecast never uses the match's
   actual random state. Click the red target to attack; there is no automatic
   approach to a distant enemy.
@@ -323,6 +325,10 @@ the page or list scrolls or resizes.
   Labels and numbers use the same size, saturated faction colors and strong contrast.
 - **Music** starts an original square-wave/triangle/noise military
   chiptune; its check mark shows when it plays. Browsers require the button press before audio may begin.
+- **Sound** (off by default) enables original synthesized sound effects.
+  **Sound by** chooses a creator's set and remembers the choice, including
+  Grok 4.7 — Field calls and GPT-5.6 Sol — Selenographic Telemetry.
+  Details in `PRODUCT.md` § Sound effects.
 
 ## Custom levels
 

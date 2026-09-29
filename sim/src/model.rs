@@ -13,6 +13,63 @@ use std::collections::{BTreeMap, BinaryHeap, HashMap};
 use std::fmt::Write;
 use std::rc::Rc;
 
+/// Numbers the candidate scoring reads, with the shipped bots' values as the
+/// default. A search bot never changes them; the laboratory's tuned greedy
+/// player (`marshal.rs`) sets its own for the duration of its turn.
+#[derive(Clone, Copy, Debug)]
+pub struct Weights {
+    /// Score for reducing the unit's own danger (`0.6`).
+    pub danger: f64,
+    /// Expected-loss scale of the threat map (`0.085`).
+    pub danger_scale: f64,
+    /// Multiplier on the objective-progress change (`1.0`).
+    pub advance: f64,
+    /// Score per point of terrain defence gained (`0.1`).
+    pub terrain: f64,
+    /// Multiplier on the support change (`1.0`).
+    pub support: f64,
+    /// Cost of any move (`0.35`).
+    pub move_cost: f64,
+    /// Multiplier on the damage dealt in a trade (`1.0`).
+    pub trade_out: f64,
+    /// Multiplier on the damage taken in a trade (`1.0`).
+    pub trade_in: f64,
+    /// Multiplier on the kill bonus (`1.0`).
+    pub kill: f64,
+    /// Multiplier on the death penalty (`1.0`).
+    pub death: f64,
+    /// Objective worth of the enemy base for a capturer (`160`).
+    pub base_worth: f64,
+    /// Objective worth of hunting an enemy for a fighter (`65`).
+    pub hunt_worth: f64,
+}
+impl Weights {
+    pub const SHIPPED: Weights = Weights {
+        danger: 0.6,
+        danger_scale: 0.085,
+        advance: 1.0,
+        terrain: 0.1,
+        support: 1.0,
+        move_cost: 0.35,
+        trade_out: 1.0,
+        trade_in: 1.0,
+        kill: 1.0,
+        death: 1.0,
+        base_worth: 160.0,
+        hunt_worth: 65.0,
+    };
+}
+thread_local! {
+    static WEIGHTS: std::cell::Cell<Weights> = const { std::cell::Cell::new(Weights::SHIPPED) };
+}
+pub fn weights() -> Weights {
+    WEIGHTS.with(|w| w.get())
+}
+/// Sets this thread's weights; returns the previous ones.
+pub fn set_weights(w: Weights) -> Weights {
+    WEIGHTS.with(|c| c.replace(w))
+}
+
 /// `ENGINE.CostQueue` on float costs: lowest cost first, FIFO among equals.
 struct Entry(f64, u64, usize);
 impl PartialEq for Entry {
@@ -382,6 +439,7 @@ fn walk_distances(g: &Game, t_index: usize, goals: &[(i32, i32)]) -> Vec<f64> {
 }
 
 pub fn objectives(g: &Game, u: usize, ctx: &mut Ctx) -> Vec<Target> {
+    let wt = weights();
     let unit = &g.units[u];
     let t = g.typ(u);
     let player = unit.player;
@@ -391,7 +449,7 @@ pub fn objectives(g: &Game, u: usize, ctx: &mut Ctx) -> Vec<Target> {
             if b.owner == player {
                 continue;
             }
-            let worth = if b.base { 160.0 } else { 65.0 + b.stored.iter().fold(0.0, |s, &v| s + value(g, v) * 0.4) };
+            let worth = if b.base { wt.base_worth } else { 65.0 + b.stored.iter().fold(0.0, |s, &v| s + value(g, v) * 0.4) };
             targets.push((vec![(b.col, b.row)], worth));
         }
     }
@@ -410,7 +468,7 @@ pub fn objectives(g: &Game, u: usize, ctx: &mut Ctx) -> Vec<Target> {
                     }
                 }
             }
-            targets.push((goals, (if t.capture { 15.0 } else { 65.0 }) + value(g, e) * 0.08));
+            targets.push((goals, (if t.capture { 15.0 } else { wt.hunt_worth }) + value(g, e) * 0.08));
         }
     }
     for b in &g.buildings {
@@ -830,7 +888,7 @@ fn danger(g: &Game, u: usize, col: i32, row: i32, info: &Info) -> f64 {
     let air = is_air_type(t);
     let defense = (t.def + if air { 0 } else { g.terrain_at(col, row).def }).min(100);
     let power = info.threat[usize::from(air)][g.cell(col, row)];
-    let losses = f64::from(unit.strength).min(power * f64::from(100 - defense) / 100.0 * 0.085);
+    let losses = f64::from(unit.strength).min(power * f64::from(100 - defense) / 100.0 * weights().danger_scale);
     full_value(g, u) * losses / 8.0
 }
 
@@ -1094,10 +1152,13 @@ struct Scorer<'t> {
     targets: &'t [Target],
     mv: i32,
     full: f64,
+    danger_scale: f64,
+    w: Weights,
 }
 impl<'t> Scorer<'t> {
     fn new(g: &Game, u: usize, targets: &'t [Target]) -> Scorer<'t> {
-        Scorer { targets, mv: g.typ(u).mv, full: full_value(g, u) }
+        let w = weights();
+        Scorer { targets, mv: g.typ(u).mv, full: full_value(g, u), danger_scale: w.danger_scale, w }
     }
     fn potential(&self, g: &Game, col: i32, row: i32) -> f64 {
         potential(g, self.mv, self.targets, col, row)
@@ -1110,7 +1171,7 @@ impl<'t> Scorer<'t> {
         let air = is_air_type(t);
         let defense = (t.def + if air { 0 } else { g.terrain_at(col, row).def }).min(100);
         let power = info.threat[usize::from(air)][g.cell(col, row)];
-        let losses = f64::from(unit.strength).min(power * f64::from(100 - defense) / 100.0 * 0.085);
+        let losses = f64::from(unit.strength).min(power * f64::from(100 - defense) / 100.0 * self.danger_scale);
         self.full * losses / 8.0
     }
 }
@@ -1128,14 +1189,15 @@ fn origin_terms(g: &Game, u: usize, scorer: &Scorer, info: &Info) -> Origin {
 fn score_position(g: &Game, u: usize, rec: &Rec, scorer: &Scorer, info: &Info, o: &Origin) -> f64 {
     let x = &g.units[u];
     let t = g.typ(u);
-    let mut score = scorer.potential(g, rec.col, rec.row) - o.potential;
-    score += (o.danger - scorer.danger(g, u, rec.col, rec.row, info)) * 0.6;
+    let w = &scorer.w;
+    let mut score = (scorer.potential(g, rec.col, rec.row) - o.potential) * w.advance;
+    score += (o.danger - scorer.danger(g, u, rec.col, rec.row, info)) * w.danger;
     if !is_air_type(t) {
-        score += f64::from(g.terrain_at(rec.col, rec.row).def - o.def) * 0.1;
+        score += f64::from(g.terrain_at(rec.col, rec.row).def - o.def) * w.terrain;
     }
-    score += support_score(g, u, rec.col, rec.row, info) - o.support;
+    score += (support_score(g, u, rec.col, rec.row, info) - o.support) * w.support;
     if rec.cost > 0 {
-        score -= 0.35;
+        score -= w.move_cost;
     }
     if let Some(bi) = g.building(rec.col, rec.row) {
         let b = &g.buildings[bi];
@@ -1207,14 +1269,15 @@ fn distribution(g: &Game, a: usize, d: usize) -> (f64, f64, f64, f64) {
 
 fn trade_score(g: &Game, u: usize, target: usize) -> f64 {
     let (out, in_, kill, death) = distribution(g, u, target);
-    let out = full_value(g, target) * out / 8.0;
-    let incoming = full_value(g, u) * in_ / 8.0;
+    let w = weights();
+    let out = full_value(g, target) * out / 8.0 * w.trade_out;
+    let incoming = full_value(g, u) * in_ / 8.0 * w.trade_in;
     let kill_value = 25.0 + value(g, target) * 0.2 + g.units[target].cargo.iter().fold(0.0, |v, &c| v + value(g, c));
     let death_value = 20.0 + value(g, u) * 0.2 + g.units[u].cargo.iter().fold(0.0, |v, &c| v + value(g, c));
     let tt = g.typ(target);
     let (tc, tr) = (g.units[target].col, g.units[target].row);
     let emergency = tt.capture && g.buildings.iter().any(|b| b.base && b.owner == g.units[u].player && hex::distance(tc, tr, b.col, b.row) <= tt.mv.max(1));
-    out - incoming + kill * (kill_value + if emergency { 500.0 } else { 0.0 }) - death * death_value
+    out - incoming + kill * (kill_value + if emergency { 500.0 } else { 0.0 }) * w.kill - death * death_value * w.death
 }
 
 fn add(actions: &mut Vec<Action>, mut a: Action, score: f64) {

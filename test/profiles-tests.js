@@ -115,6 +115,15 @@ module.exports = function (ok) {
   match.id = "match-3"; match.options.hotseat = true;
   store.checkpoint(alice.id, match);
   ok(store.active().results[2].hotseat && store.active().results[2].winner === 1, "hotseat winner is recorded separately from solo results");
+  // Playing Xenon: Xenon's victory is the player's win, kept apart from Union records.
+  match.id = "match-4"; match.options = {campaignIndex: 7, humanSide: 1}; match.state.winner = 1;
+  store.checkpoint(alice.id, match);
+  var xenonWin = store.active().results[3];
+  ok(xenonWin.outcome === "win" && xenonWin.humanSide === 1 && store.active().cleared.indexOf(7) < 0,
+    "a Xenon victory is a win for a Xenon player and does not clear the Union campaign entry");
+  ok(PROFILES.levelRecord(store.active(), match.state.map, {campaignIndex: 7, humanSide: 1}).wins === 1 &&
+    PROFILES.levelRecord(store.active(), match.state.map, {campaignIndex: 7}).wins === 0,
+    "Xenon and Union records of one level are separate");
   store.switchTo(bob.id);
   ok(store.active().results.length === 0, "other player's history stays untouched");
   var before = storage.getItem(PROFILES.KEY);

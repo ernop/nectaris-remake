@@ -49,7 +49,7 @@ module.exports = function (ok) {
       "back on the map a destroyed defender explodes at its hex while its attacker keeps the battle highlight");
     frame(181500);
     ok(!shown.renderer.aftermath.length&&!shown._aftermath&&shown.renderer.attackingUnitId===1,
-      "the explosions stop after three bursts; the highlight stays until the next action");
+      "the explosion stops after one second; the highlight stays until the next action");
     shown.showAftermath(hunter,prey,{defenderDead:false,attackerDead:true});frame(190000);
     ok(shown.renderer.attackingUnitId===null&&shown.renderer.flashUnits[2]==="#ffffff"&&shown.renderer.aftermath[0].col===2,
       "a counterattack kill explodes at the attacker's hex and keeps the defender's ring");

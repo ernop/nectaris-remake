@@ -1,0 +1,86 @@
+/* White on dark only; hierarchy comes from size, weight and hue. Widths are
+ * fractions of the viewport, and every table cell stays on one line. */
+:root {
+  --bg: #0a0a14;
+  --panel: #14142a;
+  --edge: #4a3f8a;
+  --ground: #71343b;
+  --foot: #7dffb0;
+  --wheels: #ffd166;
+  --treads: #5cd0ff;
+  --fixed: #ff8fa3;
+  --air: #d2b4ff;
+}
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body {
+  margin: 0; padding: 0 2vw 6vh; background: var(--bg); color: #fff;
+  font: 500 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+h1 { margin: 0; font-size: 36px; font-weight: 900; letter-spacing: 0.01em; }
+h2 { margin: 6vh 0 2vh; font-size: 26px; font-weight: 900; }
+h3 { margin: 0; font-size: 26px; font-weight: 900; }
+h4 { margin: 18px 0 4px; font-size: 15px; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase; }
+.top { padding: 4vh 0 0; }
+.lead { margin: 8px 0 0; font-size: 16px; width: 90%; }
+main { width: 100%; }
+
+.filters { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 14px; }
+.filters button {
+  font-family: inherit; font-weight: 800; font-size: 14px; line-height: 1; color: #fff; background: var(--panel); border: 2px solid var(--edge);
+  border-radius: 999px; padding: 9px 16px; cursor: pointer;
+}
+.filters button[aria-pressed="true"] { background: #fff; color: #000; border-color: #fff; }
+.filters button:focus-visible, th button:focus-visible, a:focus-visible { outline: 3px solid #fff; outline-offset: 2px; }
+
+.scroll { width: 100%; overflow-x: auto; border: 2px solid var(--edge); border-radius: 10px; background: var(--panel); }
+table { width: 100%; border-collapse: collapse; min-width: 1500px; }
+th, td { padding: 6px 12px; text-align: left; vertical-align: middle; border-bottom: 1px solid var(--edge); }
+th { font-size: 13px; font-weight: 900; letter-spacing: 0.04em; text-transform: uppercase; background: #1d1b3d; white-space: nowrap; }
+th button { all: unset; cursor: pointer; display: inline-block; }
+th button::after { content: " \2195"; }
+th[aria-sort="ascending"] button::after { content: " \25B2"; }
+th[aria-sort="descending"] button::after { content: " \25BC"; }
+th.n, td.n { text-align: right; }
+td { white-space: nowrap; height: 72px; }
+td.n { font-size: 24px; font-weight: 800; font-variant-numeric: tabular-nums; }
+td.n small { font-size: 13px; font-weight: 700; margin-left: 4px; }
+td.n .none { font-size: 18px; font-weight: 500; }
+td.icons .pair { display: flex; gap: 4px; align-items: center; }
+td.name { font-size: 20px; font-weight: 900; }
+td.name a { color: #fff; text-decoration: underline; text-decoration-thickness: 2px; text-underline-offset: 4px; }
+td.name small { font-size: 13px; font-weight: 700; margin-left: 8px; }
+td.tag { font-size: 15px; }
+.chip { display: inline-block; width: 64px; height: 64px; background: var(--ground); border-radius: 6px; }
+.chip img { display: block; width: 64px; height: 64px; image-rendering: pixelated; }
+.chip.big, .chip.big img { width: 128px; height: 128px; }
+.badge { display: inline-block; font-size: 13px; font-weight: 900; padding: 3px 10px; border-radius: 999px; border: 2px solid currentColor; margin-right: 6px; }
+.badge.rule { color: #fff; }
+.fam-foot { color: var(--foot); }
+.fam-wheels { color: var(--wheels); }
+.fam-treads { color: var(--treads); }
+.fam-fixed { color: var(--fixed); }
+.fam-air { color: var(--air); }
+.key { margin: 12px 0 0; font-size: 15px; width: 90%; }
+
+.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 38rem), 1fr)); gap: 2vw; }
+.card { background: var(--panel); border: 2px solid var(--edge); border-radius: 12px; padding: 18px 20px 22px; scroll-margin-top: 16px; }
+.card:target { border-color: #fff; }
+.card header { display: flex; gap: 16px; align-items: center; }
+.card header .chips { display: flex; gap: 6px; flex: none; }
+.card header .tag { margin: 4px 0 0; font-size: 16px; font-weight: 700; }
+.stats { display: flex; flex-wrap: wrap; gap: 8px 22px; margin: 16px 0 6px; }
+.stat { display: flex; align-items: baseline; gap: 6px; white-space: nowrap; }
+.stat b { font-size: 28px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 13px; font-weight: 700; }
+.fills { margin: 10px 0 0; font-size: 16px; font-weight: 800; }
+.card p { margin: 0; }
+.card ul { margin: 0; padding-left: 20px; }
+.card li { margin: 3px 0; }
+
+.checks { padding-left: 22px; }
+.checks li { margin: 6px 0; }
+
+@media (max-width: 700px) {
+  .card header { flex-direction: column; align-items: flex-start; }
+}

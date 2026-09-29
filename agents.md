@@ -341,10 +341,11 @@ Facts we need across sessions:
   fixed left panel. There is no Details panel (removed 2026-09-26): the map hover
   card carries unit, terrain-under-unit and building contents. Empty-hex terrain
   is shown nowhere; the user chose to leave that gap, so do not add it unasked.
-  Hovering an attackable enemy shows its outcome forecast, heatmap first, in the
-  left panel directly under the unit's action strip. Status lines, Undo/Redo
+  Hovering an attackable enemy opens the combat board over the map (user,
+  2026-09-29), not in the left panel; see the combat board record in
+  `PRODUCT.md`. Status lines, Undo/Redo
   and End Turn stay fixed at the top of the panel and settings at its foot;
-  anything that appears or resizes during play (action strip, legend, forecast,
+  anything that appears or resizes during play (action strip, legend,
   battle report) lives in the middle section, which scrolls by itself, and must
   never push the commands (user, 2026-09-26). The side line stays one line.
   Enemy inspection retains orange movement and ground/air firing contours.
@@ -352,8 +353,11 @@ Facts we need across sessions:
   automatic move-and-attack shortcuts. `PRODUCT.md` records the current flow;
   `MANUAL_AUDIT.md` is the historical booklet review.
   `COMBAT.forecast` uses 100,000 independent simulation seeds and must never
-  read or advance the match RNG. `js/combat-view.js` renders the joint casualty
-  heatmap. See `PRODUCT.md`, `test/combat-ui-tests.js`, and `test/forecast-tests.js`.
+  read or advance the match RNG. `js/combat-panel.js` builds the combat board's
+  numbers and loss charts and the battle popup's numbers panel (the battle
+  screen counts the calculation up inside the popup; the left panel carries no
+  calculation). See `PRODUCT.md`, `test/combat-ui-tests.js`,
+  `test/combat-panel-tests.js` and `test/forecast-tests.js`.
 
 - **Level menu (2026-09-23):** restore its scroll position after leaving a level.
   All campaigns, packs and custom maps share dense, internally single-line entries:

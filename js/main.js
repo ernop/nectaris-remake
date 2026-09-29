@@ -90,7 +90,7 @@
       title.className = result.hotseat ? "outcome-hotseat" : "outcome-" + result.outcome;
       var detail = document.createElement("span");
       detail.textContent = PROFILES.reasonLabel(result.reason) + " · " +
-        (result.hotseat ? "Hotseat" : "Solo") + " · Turn " + result.turn + " · " +
+        (result.hotseat ? "Hotseat" : "Solo" + (result.humanSide === 1 ? " as Xenon" : "")) + " · Turn " + result.turn + " · " +
         new Date(result.endedAt).toLocaleString() + (result.balance ? " · Offers: "+
           (result.balance.secondPlayer===0?"Union":"Xenon")+" second · "+result.balance.label : "") + (!result.hotseat && result.opponent ?
           " · " + AI_SEARCH.get(result.opponent).label : "");
@@ -139,6 +139,8 @@
       throw new Error("This saved match is from an older version and cannot be loaded.");
     }
     if (!saved) { opts.opening = openingMode(opts); delete opts.balance; }
+    // Every launch states its side; a hotseat match is Union's by convention.
+    opts.humanSide = PROFILES.humanSide(opts);
     var preferredOpponent = $("menu-opponent").value || "classic";
     try { preferredOpponent = localStorage.getItem("nectaris-opponent") || preferredOpponent; } catch (e) { /* optional preference */ }
     opts.opponent = AI_SEARCH.get(saved ? opts.opponent : opts.opponent || preferredOpponent).id;
@@ -174,7 +176,11 @@
       $("menu-screen").classList.add("hidden");
       $("game-screen").classList.remove("hidden");
       $("gameover-panel").classList.add("hidden");
+      var mission = missionInfo(mapDef, opts);
+      $("status-campaign").textContent = mission.campaign;
+      $("status-mission-number").textContent = mission.number === null ? "" : String(mission.number).padStart(2, "0");
       $("map-title").textContent = mapDef.name;
+      $("map-title").title = mapDef.name;
       var balanceLabel=$("balance-match-label");
       balanceLabel.classList.toggle("hidden",!game.balance);
       balanceLabel.textContent=game.balance ? (game.firstPlayer===0?"Union":"Xenon")+" first · "+
@@ -182,6 +188,7 @@
 
       currentUI = new UI.GameUI($("game-canvas"), game, {
         hotseat: !!opts.hotseat,
+        humanSide: opts.humanSide,
         opponent: opts.opponent,
         undoHistory: saved && saved.state.undoHistory,
         redoHistory: saved && saved.state.redoHistory,
@@ -190,7 +197,7 @@
         onGameOver: function (winner) {
           var recorded = saveMatch(currentUI);
           $("gameover-record").textContent = (opts.hotseat ?
-            (winner === 0 ? "Union victory" : "Xenon victory") : (winner === 0 ? "Victory" : "Defeat")) +
+            (winner === 0 ? "Union victory" : "Xenon victory") : (winner === opts.humanSide ? "Victory" : "Defeat")) +
             (recorded ? " · Recorded for " + profile.name : " · Not saved yet — keep this page open");
           $("gameover-again").onclick = function () { startGame(mapDef, opts); };
           $("gameover-menu").onclick = function () { showMenu(); };
@@ -201,13 +208,13 @@
             next.onclick = function () {
               var ni = opts.environmentIndex + 1;
               startGame(terrain.levels[ni], {environmentCampaign:terrain.id, environmentIndex:ni,
-                hotseat:!!opts.hotseat, opponent:opts.opponent, opening:opts.opening});
+                hotseat:!!opts.hotseat, humanSide:opts.humanSide, opponent:opts.opponent, opening:opts.opening});
             };
           } else if (opts.campaignIndex !== undefined && opts.campaignIndex + 1 < ORIGINAL_CAMPAIGN.length) {
             next.classList.remove("hidden");
             next.onclick = function () {
               var ni = opts.campaignIndex + 1;
-              startGame(ORIGINAL_CAMPAIGN[ni], { campaignIndex: ni, hotseat: !!opts.hotseat, opening:opts.opening });
+              startGame(ORIGINAL_CAMPAIGN[ni], { campaignIndex: ni, hotseat: !!opts.hotseat, humanSide: opts.humanSide, opening:opts.opening });
             };
           } else {
             next.classList.add("hidden");
@@ -219,10 +226,10 @@
       readyToSave = true;
       saveMatch(currentUI);
       if (game.winner !== null) currentUI.checkGameOver();
-      else if (!opts.hotseat && game.currentPlayer === 1) currentUI.beginAITurn();
+      else if (!opts.hotseat && game.currentPlayer !== opts.humanSide) currentUI.beginAITurn();
     }
     if (!saved && opts.opening==="offers") {
-      currentSetup=new BALANCE_UI.Setup(game,{hotseat:!!opts.hotseat,opponent:opts.opponent,onCancel:showMenu,onStart:function(result,plan){
+      currentSetup=new BALANCE_UI.Setup(game,{hotseat:!!opts.hotseat,humanSide:opts.humanSide,opponent:opts.opponent,onCancel:showMenu,onStart:function(result,plan){
         try {
           if(result)opts.balance=BALANCE.apply(game,plan,result);
           else opts.opening="original";
@@ -365,6 +372,19 @@
     });
     return wrap;
   }
+  // Campaign name and menu number for the match panel, resolved from the same
+  // options the menu builds so a resumed match names itself identically.
+  function missionInfo(mapDef, opts) {
+    var group = levelGroups().find(function (candidate) {
+      if (candidate.environmentCampaign) return candidate.environmentCampaign === opts.environmentCampaign;
+      if (!candidate.pack || opts[candidate.pack] === undefined) return false;
+      var index = opts[candidate.pack] - (candidate.offset || 0);
+      return index >= 0 && index < candidate.levels.length;
+    });
+    if (group) return {campaign: group.title, number: opts[group.pack] + 1};
+    var at = getCustomLevels().findIndex(function (level) { return level.name === mapDef.name; });
+    return at >= 0 ? {campaign: "Custom levels", number: at + 1} : {campaign: "Play test", number: null};
+  }
   function levelOptions(group, index) {
     var options = {};
     if (group.pack) options[group.pack] = index + (group.offset || 0);
@@ -374,7 +394,7 @@
   }
   function levelWasWon(level, options) {
     return PROFILES.levelRecord(activeProfile, level, options).wins > 0 ||
-      !!(activeProfile && options.opening!=="offers" && options.campaignIndex !== undefined &&
+      !!(activeProfile && options.opening!=="offers" && options.campaignIndex !== undefined && PROFILES.humanSide(options) === 0 &&
         activeProfile.cleared.indexOf(options.campaignIndex) >= 0);
   }
   // The original game's campaigns had no briefings, so they show no help at all.
@@ -412,6 +432,18 @@
     return !group.originalGame && !!(lv.description || lv.blurb || lv.special ||
       (lv.tags && lv.tags.length) || lv.author || lv.sourceFile || safeSource(lv.source));
   }
+  // The same level from the other side: the player commands Xenon and the AI
+  // opens as Union. It has its own record, and hotseat has no "other side".
+  function sideButton(level, options, name) {
+    var xenon = Object.assign({}, options, {humanSide: 1, hotseat: false});
+    var won = PROFILES.levelRecord(activeProfile, level, xenon).wins > 0;
+    var button = menuText("button", "level-play-xenon", won ? "As Xenon ✓" : "As Xenon");
+    button.type = "button";
+    button.setAttribute("aria-label", LABELS.play + " " + name + " as Xenon" + (won ? ", already won" : ""));
+    button.disabled = $("chk-hotseat").checked;
+    button.onclick = function () { closeMenuHelp(); startGame(level, xenon); };
+    return button;
+  }
   function renderLevelCards(host, group) {
     var L = LABELS;
     if (group.levels.length) {
@@ -434,8 +466,9 @@
       card.className = "level-card" + (levelWasWon(lv, options) ? " cleared" : "") + (help ? "" : " no-help");
       var play = menuText("button", "level-play", "");
       play.type = "button"; play.setAttribute("aria-label", L.play + " " + name);
+      play.title = "Play as Union";
       play.onclick = function () {
-        closeMenuHelp(); options.hotseat = $("chk-hotseat").checked; startGame(lv, options);
+        closeMenuHelp(); startGame(lv, Object.assign({}, options, {hotseat: $("chk-hotseat").checked, humanSide: 0}));
       };
       var heading = document.createElement("span"); heading.className = "level-card-top";
       var title = menuText("span", "level-card-heading", name);
@@ -449,6 +482,7 @@
       forces.innerHTML = forceCountHtml(lv, L, "level-force"); play.appendChild(forces);
       appendLevelRecord(play, lv, options);
       card.appendChild(play);
+      card.appendChild(sideButton(lv, options, name));
       if (help) card.appendChild(createMenuHelp(title.id + "-details", name, function (panel) {
         addHelpText(panel, L.briefing, lv.description || lv.blurb);
         addHelpText(panel, L.design, lv.special);
@@ -572,7 +606,11 @@
     opponent.value="classic";
     try{opponent.value=AI_SEARCH.get(localStorage.getItem("nectaris-opponent")||"classic").id;}catch(e){}
     opponent.onchange=function(){try{localStorage.setItem("nectaris-opponent",opponent.value);}catch(e){}};
-    $("chk-hotseat").onchange=function(){opponent.disabled=this.checked;};
+    $("chk-hotseat").onchange=function(){
+      opponent.disabled=this.checked;
+      var sideButtons=document.getElementsByClassName("level-play-xenon");
+      for(var i=0;i<sideButtons.length;i++)sideButtons[i].disabled=this.checked;
+    };
     var openingSelect=$("opening-select"),opening=null;
     try {opening=localStorage.getItem("nectaris-opening");} catch(e) { /* optional preference */ }
     // Unset preferences and the removed "auto" map-default mode start Normal.
@@ -639,6 +677,7 @@
     });
     loadCustomUnits();
     MUSIC.init();
+    SFX.init();
     $("file-import").onchange = function (e) {
       if (e.target.files[0]) importLevelFile(e.target.files[0]);
       e.target.value = "";

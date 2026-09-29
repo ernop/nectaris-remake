@@ -10,6 +10,8 @@ pub mod fdlibm;
 pub mod game;
 pub mod hash;
 pub mod hex;
+pub mod lab;
+pub mod marshal;
 pub mod model;
 pub mod play;
 pub mod rng;

@@ -1139,6 +1139,7 @@ require("./playback-timeline-tests.js")(ok);
 
 section("movement, direct attack and undo history");
 require("./combat-ui-tests.js")(ok);
+require("./combat-panel-tests.js")(ok);
 
 section("profiles and saved matches");
 require("./profiles-tests.js")(ok);

@@ -5,8 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nectaris — hex tactics remake</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='24,16 20,23 12,23 8,16 12,9 20,9' fill='%23ffd94a'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/nectaris.css?v=20260927-unit-mark2">
-<link rel="stylesheet" href="css/battle-dock.css?v=20260927-unit-mark">
+<link rel="stylesheet" href="css/nectaris.css?v=20260929-left-panel">
+<link rel="stylesheet" href="css/battle-dock.css?v=20260929-battle-compact">
+<link rel="stylesheet" href="css/combat-panel.css?v=20260929-battle-compact">
 </head>
 <body>
 <div id="save-error" class="hidden" role="alert"></div>
@@ -141,53 +142,50 @@
 
 <!-- ============ Game ============ -->
 <div id="game-screen" class="hidden controls-left">
+  <!-- Left panel, top to bottom: way out, match status, changing middle
+       section, settings, then Undo / Redo and End Turn at the foot. -->
   <div id="topbar">
-    <div class="topbar-scroll" tabindex="0" role="region" aria-label="Match information">
-    <button id="btn-menu">◄ Save &amp; Menu</button>
-    <a class="btn-like" href="tournaments.html" target="_blank" rel="noopener">Tournaments</a>
-    <span id="map-title"></span>
-    <span id="status-turn"></span>
-    <span id="status-player"></span>
-    <span id="status-units"></span>
-    <span id="status-opponent"></span>
-    <span id="balance-match-label" class="hidden"></span>
-    </div>
-    <div class="topbar-actions">
-    <div class="history-controls" role="group" aria-label="Action history">
-      <button id="btn-undo" disabled>↶ Undo</button>
-      <button id="btn-redo" disabled>↷ Redo</button>
-    </div>
-    <button id="btn-endturn">End Turn (E)</button>
-    </div>
+    <button id="btn-menu" class="panel-back">◄ Save &amp; Menu</button>
+    <section id="match-status" aria-label="Match status">
+      <p id="status-campaign"></p>
+      <p id="status-mission"><span id="status-mission-number"></span><span id="map-title"></span></p>
+      <p id="status-side"><span id="status-side-label"></span><strong id="status-side-name"></strong></p>
+      <p id="status-turn-line"><span id="status-turn"></span><span id="status-player"></span></p>
+      <div id="status-units" role="group" aria-label="Units remaining">
+        <span class="unit-count" data-player="0"><strong id="units-union"></strong><span id="units-union-name"></span></span>
+        <span class="unit-count" data-player="1"><strong id="units-xenon"></strong><span id="units-xenon-name"></span></span>
+      </div>
+      <p id="status-opponent"></p>
+      <p id="balance-match-label" class="hidden"></p>
+    </section>
     <div id="rail-live">
       <div id="dock-unit-controls"></div>
-      <div id="combat-inspector" class="hidden" aria-live="polite"></div>
       <button id="btn-battle-map" class="hidden">Show map</button>
       <div id="war-dock" class="hidden" aria-live="polite">
         <div id="war-scene"></div>
         <div id="war-math"></div>
       </div>
     </div>
-    <div id="match-settings" role="group" aria-label="View settings">
+    <div id="match-settings" role="group" aria-label="Settings">
+      <button id="btn-sound" class="toggle" aria-pressed="false">Sound</button>
+      <div class="setting-row" id="sound-bank-row">
+        <span class="setting-name">Sound by</span>
+        <select id="sound-bank-select" aria-label="Soundscape creator"></select>
+      </div>
+      <button id="btn-music" class="toggle" aria-pressed="false">Music</button>
+      <button id="btn-watch" class="toggle" aria-pressed="true">Watch AI</button>
+      <button id="btn-animate" class="toggle" aria-pressed="true">Move animation</button>
+      <div class="setting-row"><span class="setting-name">Style</span><div id="style-select" class="segmented" role="radiogroup" aria-label="Visual style"></div></div>
+      <div class="setting-row"><span class="setting-name">Art</span><div id="icon-set-select" class="segmented" role="radiogroup" aria-label="Art set"></div></div>
+      <div class="setting-row"><span class="setting-name">Board</span><div id="board-orientation" class="segmented" role="radiogroup" aria-label="Board orientation" title="Auto chooses the orientation that fits the largest board"></div></div>
       <button id="btn-fit" title="Fit the entire board in the available space">Fit board (F)</button>
-      <select id="style-select" aria-label="Visual style">
-        <option value="pixel">Pixel style</option>
-        <option value="neon">Neon style</option>
-        <option value="classic">Classic style</option>
-      </select>
-      <select id="icon-set-select" aria-label="Art set"></select>
-      <div class="view-controls" role="group" aria-label="Board view">
-        <select id="board-orientation" aria-label="Board orientation" title="Auto chooses the orientation that fits the largest board">
-          <option value="auto">Board: Auto</option>
-          <option value="normal">Board: Normal</option>
-          <option value="sideways">Board: Sideways</option>
-        </select>
+    </div>
+    <div id="panel-actions">
+      <div class="history-controls" role="group" aria-label="Action history">
+        <button id="btn-undo" disabled>↶ Undo</button>
+        <button id="btn-redo" disabled>↷ Redo</button>
       </div>
-      <div class="playback-controls" role="group" aria-label="Playback">
-        <button id="btn-watch" aria-pressed="true">Watch AI</button>
-        <button id="btn-animate" aria-pressed="true">Move animation</button>
-        <button id="btn-music" aria-pressed="false">Music</button>
-      </div>
+      <button id="btn-endturn" class="primary">End Turn (E)</button>
     </div>
   </div>
   <div id="game-main">
@@ -203,8 +201,9 @@
     <div id="canvas-wrap">
       <canvas id="game-canvas" aria-label="Battlefield"></canvas>
       <div id="battle-stage" class="hidden" role="region" aria-label="Battle screen"><div class="battle-presentation">
-        <div id="battle-content"></div><div class="battle-controls"><button id="btn-battle-pause" type="button" aria-pressed="false">Pause</button><span class="battle-skip-hint">Click to skip ahead</span></div>
+        <div id="battle-content"></div><div class="battle-controls"><button id="btn-battle-pause" type="button" aria-pressed="false">Pause</button><span id="battle-outcome" class="battle-outcome" aria-live="polite"></span><span class="battle-skip-hint">Space: pause · click: skip</span></div>
       </div></div>
+      <div id="combat-board" class="hidden" role="region" aria-label="Combat calculation" aria-live="polite"></div>
       <div id="map-action-rail" class="hidden" aria-hidden="true"></div>
       <div id="action-menu" class="hidden" role="group" aria-label="Unit actions"></div>
       <div id="range-legend" class="hidden" role="status" aria-label="Unit movement and firing ranges"></div>
@@ -264,16 +263,21 @@
 <script src="js/data-unit-art-legacy.js?v=20260926-legacy-2x"></script>
 <script src="js/unit-icon-sets.js?v=20260926-simple-menu"></script>
 <script src="js/legacy-terrain.js?v=20260927-original-buildings"></script>
-<script src="js/render.js?v=20260927-unit-mark"></script>
+<script src="js/render.js?v=20260929-combat-board"></script>
 <script src="js/unit-view.js?v=20260927-unit-mark"></script>
-<script src="js/balance-ui.js?v=20260928-fair-dice"></script>
+<script src="js/balance-ui.js?v=20260929-left-panel"></script>
 <script src="js/music.js?v=20260926-compact-toggles"></script>
-<script src="js/combat-view.js?v=20260926-battle-effects"></script>
+<script src="js/sfx.js?v=20260929-sound-banks"></script>
+<script src="js/sfx-bank-composer.js?v=20260929-composer"></script>
+<script src="js/sfx-bank-sol.js?v=20260929-sol"></script>
+<script src="js/sfx-bank-grok.js?v=20260929-grok"></script>
+<script src="js/sfx-bank-fable.js?v=20260929-fable"></script>
 <script src="js/playback-timeline.js?v=20260926-battle-skip"></script>
 <script src="js/move-animation.js?v=20260926-air-speed"></script>
-<script src="js/battle-report.js?v=20260927-unit-mark"></script>
-<script src="js/ui.js?v=20260927-unit-mark2"></script>
-<script src="js/profiles.js?v=20260926-no-special-rules"></script>
-<script src="js/main.js?v=20260928-fair-dice"></script>
+<script src="js/combat-panel.js?v=20260929-battle-compact"></script>
+<script src="js/battle-report.js?v=20260929-battle-compact"></script>
+<script src="js/ui.js?v=20260929-one-explosion"></script>
+<script src="js/profiles.js?v=20260929-left-panel"></script>
+<script src="js/main.js?v=20260929-left-panel"></script>
 </body>
 </html>

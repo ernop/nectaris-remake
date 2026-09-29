@@ -8,9 +8,13 @@ var PROFILES = (function () {
     return typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() :
       Date.now().toString(36) + "-" + Math.random().toString(36).slice(2);
   }
+  // Which side the person at the screen commands: 0 Union, 1 Xenon. Matches
+  // saved before Xenon play existed carry no field; they were all Union.
+  function humanSide(options) { return options.humanSide === 1 && !options.hotseat ? 1 : 0; }
   function levelKey(map, options) {
     options = options || {};
-    var suffix=options.balance || options.opening==="offers" ? ":offers" : "";
+    // Union keys keep their earlier form; a Xenon record is its own entry.
+    var suffix=(options.balance || options.opening==="offers" ? ":offers" : "") + (humanSide(options) === 1 ? ":xenon" : "");
     if (options.campaignIndex !== undefined) return "campaign:" + options.campaignIndex+suffix;
     if (options.expansionIndex !== undefined) return "expansion:" + options.expansionIndex+suffix;
     if (options.baseNecIndex !== undefined) return "base:" + options.baseNecIndex+suffix;
@@ -104,13 +108,14 @@ var PROFILES = (function () {
     if (p.results.some(function (r) { return r.id === match.id; })) return;
     if (state.winner !== null) {
       p.results.push({id: match.id, name: state.map.name, endedAt: new Date().toISOString(),
-        winner: state.winner, outcome: state.winner === 0 ? "win" : "loss",
+        winner: state.winner, humanSide: humanSide(match.options),
+        outcome: state.winner === humanSide(match.options) ? "win" : "loss",
         hotseat: !!match.options.hotseat, turn: Math.min(state.turn, state.turnLimit || state.turn),
         levelKey: levelKey(state.map, match.options), reason: state.winReason,
         balance:state.balance || null,firstPlayer:state.firstPlayer || 0,
         opponent: match.options.opponent || "classic", opponentChanges: match.options.opponentChanges || []});
       var ci = match.options.campaignIndex;
-      if (state.winner === 0 && !state.balance && match.options.opening!=="offers" && ci !== undefined && p.cleared.indexOf(ci) < 0) p.cleared.push(ci);
+      if (state.winner === 0 && humanSide(match.options) === 0 && !state.balance && match.options.opening!=="offers" && ci !== undefined && p.cleared.indexOf(ci) < 0) p.cleared.push(ci);
       if (!p.savedMatch || p.savedMatch.id === match.id) p.savedMatch = null;
     } else {
       p.savedMatch = match;
@@ -118,6 +123,6 @@ var PROFILES = (function () {
     this.write(data);
   };
   return {Store: Store, KEY: KEY, DEFAULT_NAME: DEFAULT_NAME, newId: id, levelKey: levelKey,
-    outcomeLabel: outcomeLabel, reasonLabel: reasonLabel, levelRecord: levelRecord};
+    outcomeLabel: outcomeLabel, reasonLabel: reasonLabel, levelRecord: levelRecord, humanSide: humanSide};
 })();
 if (typeof module !== "undefined") module.exports = PROFILES;

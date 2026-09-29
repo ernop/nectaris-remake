@@ -48,7 +48,7 @@ module.exports = function (ok) {
     setTimeout:function(fn){timers.set(++timerId,fn);return timerId;},clearTimeout:function(id){timers.delete(id);},
     window:{scrollY:0,innerWidth:1000,innerHeight:800,confirm:function(){return true;},
       scrollTo:function(x,y){this.scrollY=y;},addEventListener:function(name,fn){listeners[name]=fn;}},
-    MUSIC:{init:function(){}},location:{search:"",protocol:"http:"},
+    MUSIC:{init:function(){}},SFX:{init:function(){}},location:{search:"",protocol:"http:"},
     CAMPAIGN:campaign,ADVANCED_CAMPAIGN:require("../js/data-advanced-maps.js"),
     EXPANSION_LEVELS:require("../js/data-expansion-maps.js"),
     BASE_NECTARIS_LEVELS:require("../js/data-basenectaris-maps.js").BASE_NECTARIS_LEVELS,
@@ -255,6 +255,16 @@ module.exports = function (ok) {
   ok(get("gameover-next").classList.contains("hidden") && !get("gameover-next").onclick,
     "mission sixteen ends its campaign instead of advancing into an unrelated collection");
   liveUI.options.onMenu();
+  var wonBefore=find(get("normal-section"),"group-progress").textContent;
+  find(cards("mission-list")[0],"level-play-xenon").onclick();
+  ok(liveUI.options.humanSide===1 && liveUI.aiStarted && store.active().savedMatch.options.humanSide===1 &&
+    get("status-campaign").textContent==="Normal campaign" && get("status-mission-number").textContent==="01",
+    "As Xenon starts the solo match on Xenon's side, lets the CPU open as Union and names the mission");
+  liveUI.game.winner=1;liveUI.game.winReason="base";liveUI.options.onGameOver(1);
+  ok(get("gameover-record").textContent.indexOf("Victory")===0,"the Xenon player's win is reported as a victory");
+  liveUI.options.onMenu();
+  ok(find(get("normal-section"),"group-progress").textContent===wonBefore,
+    "a Xenon win does not count toward the campaign's won total");
   storage.setItem("nectaris-custom-levels","[]");selectOpening("original");
   ok(find(get("custom-list"),"empty-levels") && get("custom-level-tools").parentNode.id==="custom-section",
     "an empty custom collection still has a useful empty state and import controls");

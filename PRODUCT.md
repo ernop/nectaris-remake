@@ -124,6 +124,16 @@ strength. Every loss bursts at the same moment: 0.5 s + 0.45 s, however many
 machines fall. This follows the user's 2026-09-26 request ("with bullets and
 all at once, like the orig game"); machines previously fell one by one over
 1.6–2.6 s.
+**Artillery shells fall from the sky (user request, 2026-09-29: "arti units shoot
+up into the sky and then their projectils fall down onto the enemy").** When a
+firing side's unit class is `artillery`, each of its machines sends a shell
+straight up from its own formation, out of the top of the battle field, and it
+then drops onto the enemy formation, scattered by formation column. Shells are
+staggered 35 ms and fly 600 ms, so an artillery volley lasts 0.85 s instead of
+0.5 s (the hit and loss burst follow it, then the 0.45 s burst). Other units,
+including anti-air with range 2, keep the horizontal bullet. `volleyMs` in
+`js/battle-report.js` sets the length; the play and replay timelines both use
+it, so the losses appear only after the last shell lands.
 Experience is shown only as stars in the standard unit mark (below), never
 painted on a unit sprite and never as a numeric rank. Each battle header shows
 the unit mark at 96 px (64 px on narrow screens): the portrait with its stars
@@ -265,7 +275,8 @@ the style and similar choosers too prominent. Visual style, art set, Board
 orientation with Fit, Watch AI, Move animation and Music now share one compact
 block at the bottom of the panel, below End Turn and the battle report. The top
 keeps Save & Menu, Tournaments, the level name, turn, side, unit counts and the
-fixed opponent, then Undo / Redo and End Turn. The user left the treatment open
+fixed opponent, then Undo / Redo and End Turn. (Rearranged again on 2026-09-29;
+see [Left panel layout](#left-panel-layout-and-playing-either-side-2026-09-29).) The user left the treatment open
 ("smaller/to the side or whatever"); the bottom placement and 12-pixel controls
 are implementation choices. A same-day follow-up asked for the Watch AI, Music
 and Move animation buttons to take less space: they are now unboxed toggles, a
@@ -281,6 +292,143 @@ turn shares the middle section, which scrolls by itself: the unit's action strip
 and range legend, the attack forecast under that strip, Show map and the battle
 report. The side line stays one line; while the AI plans it reads
 "Xenon (thinking…)", as the opponent line already names the bot.
+
+## Left panel layout and playing either side (2026-09-29)
+
+The user's requests, in his order: no Tournaments link in the match panel (the
+top-level tabs are enough); redo the display of his side (Union) so it is clear
+and properly laid out; End Turn at "the very natural and easy to hit very bottom"
+instead of Fit board; config buttons arranged vertically as easy choosers "which
+aren't too huge", with high contrast and no gray text. The main buttons are
+return to the outer page, End Turn, Undo / Redo and the sound toggles; the rest
+may exist but small. The status block he named: campaign name, mission name and
+number, and his side, large, plus unit counts. Behavior:
+
+- **Top to bottom:** Save & Menu; the status block; the middle section (unit
+  actions, battle report; the only part that changes size); settings; Undo /
+  Redo; End Turn. Undo / Redo and End Turn are one sticky group at the foot, so
+  they stay reachable when a short window makes the panel scroll. Nothing in the
+  status block, settings or foot changes size during play.
+- **Status block** (no Tournaments link): campaign name (as titled in the menu:
+  Normal campaign, Advanced campaign, Base Nectaris, each terrain campaign, AI-made,
+  Lunar Frontiers, Custom levels, Play test), the mission number (the menu's two
+  digits; omitted for a play test) beside the mission name (30 px number, 17 px
+  name, at most two lines), then "You play" over the side in 30 px bold in its
+  faction color with a thick faction-colored edge, then "Turn N / M" (22 px) and
+  the side to move, then the two unit counts (30 px numbers) and the opponent.
+  In a hotseat match the banner reads "Hotseat" and names the side to move.
+- **Settings**, each a single line: Sound, Music, Watch AI and Move animation as
+  full-width toggles that say **On** or **Off** in words (green On), then Style
+  (Pixel / Neon / Classic), Art (the icon sets) and Board (Auto / Normal /
+  Sideways) as segmented choosers whose chosen segment is filled yellow with
+  black text, then a small **Fit board (F)**. The F key is unchanged. Style,
+  Art and Board persist as before (segments replace the dropdowns).
+- **Undo / Redo** share a row (15 px, the enabled state in gold); **End Turn** is
+  a 52 px gold button (20 px, black text). The end-turn confirmation opens beside
+  the panel.
+- **Playing Union or Xenon:** every mission-menu entry keeps its whole-row Play
+  (as Union, the first mover) and adds an **As Xenon** button at the end of the
+  row (light green; a check mark once won). Chosen from the menu only; disabled
+  while Two players (hotseat) is ticked. The AI takes the other side and moves
+  first when it is Union. The human's side is saved with the match
+  (`humanSide`; saves without it are Union matches), so Continue restores it, and
+  **Next mission** and **Replay** keep it. Victory means the human's side won.
+  Xenon results are their own record (level keys end `:xenon`), do not count
+  toward the menu's "N / M won", and never mark an original campaign mission
+  cleared; the As Xenon check mark shows a Xenon win. The Offer for first
+  questions run as the human's side against the bot's other side. Rationale: the
+  turn limit favors Xenon (the defender), and the bots already play either side.
+- The Sound toggle's behavior is in [Sound effects](#sound-effects-user-request-2026-09-29).
+
+## Sound effects (user request, 2026-09-29)
+
+The user asked for sound effects "in a really great way", music excluded, with a
+**Sound** toggle that is **off by default**. Behavior:
+
+- **Soundscape.** A **Sound by** dropdown lists every registered procedural
+  bank (label: creator name and short title). The choice persists in
+  `localStorage` (`nectaris-sound-bank`). Banks register through
+  `SFX.registerBank` in `js/sfx.js` and optional `js/sfx-bank-*.js` files loaded
+  before `SFX.init()`.
+- **GPT-5.6 Sol — Selenographic Telemetry (user request, 2026-09-29).** This
+  selectable bank treats sound as a lunar command system: dry relay codes,
+  sparse propulsion telemetry, encoded weapon releases and structure-borne
+  impacts, with short room tails and silence between events. Frequent UI cues
+  stay brief and restrained; battle calculations serialize their information;
+  squad size raises pulse density within a fixed ceiling rather than adding one
+  full-level report per machine. Research behind the implementation: frequent
+  cues need lower intensity and shorter duration, category identity should use
+  rhythm/timbre/contour as well as pitch, masking is reduced by separating
+  analytic ticks from impacts, stereo location must remain redundant, and the
+  PC Engine's six channels and programmable 32-sample waveforms are used only as
+  creative constraints—not copied audio. The bank is entirely original runtime
+  synthesis in `js/sfx-bank-sol.js` and identifies its creator in the dropdown.
+- **Grok 4.7 — Field calls (user request, 2026-09-29).** `js/sfx-bank-grok.js`.
+  Drums count and bugles announce, so the set sits beside the square-wave march
+  and apart from the wah, the sonar pings and the relay codes. A bugle note is
+  five sine harmonics of one fundamental, third harmonic loudest, upper partials
+  dying first. End Turn is a descending recall (5th, 4th, 3rd, 2nd harmonic)
+  and a bass drum; defeat is taps; victory is a rising call. Machine ticks are
+  20 ms drum taps a semitone apart, short enough for the 30 ms count; a
+  supporter is a flam; a controlled ring hex is a rimshot and an open one a
+  muffled tap; a closed ring rolls into a stopped horn. Volleys still grow with
+  squad strength. Movement is two marching steps, a chain tick per hex, a
+  road-wheel pulse, or a turbine whose pitch rises and then falls.
+- **Claude Fable 5.1 — Helmet radio (user request, 2026-09-29).**
+  `js/sfx-bank-fable.js`. The war is heard from inside a sealed lunar vehicle,
+  because vacuum carries nothing: the low end comes through the ground on a
+  seismic bus (low-passed near 220 Hz, a 0.4 s hull resonance instead of a
+  hall), and everything else over the squad radio on a voice-band bus (320 to
+  3000 Hz, tanh soft clipping, a compressor acting as automatic gain control
+  so a loud shot pumps the channel). Transmissions open with a keying click
+  and close with a squelch tail. Turn start is a 250 ms 2525 Hz key-down tone
+  and End Turn a 250 ms 2475 Hz release tone, the Quindar tone frequencies
+  documented for the Apollo ground network; the combat board's machine ticks
+  are the 1200 / 2200 Hz Bell 202 data tones (attacker high, defender low,
+  climbing with each machine) and supporters are three-bit data bursts; deny
+  is the 480 + 620 Hz busy signal. An explosion's ground shock arrives before
+  its radio blast, and a destroyed squad's carrier drops out with a squelch.
+  Air units make no ground sound. Chimes use E natural minor, the
+  soundtrack's key. The bank needs `d.audio()` from `SFX`'s bank dependencies
+  (context, master, room), read at cue time because a bank is built before the
+  context exists; it throws if that is missing. Not yet listened to.
+- **Toggle.** Sound joins Watch AI, Move animation and Music in the settings
+  block. The choice persists in `localStorage` (`nectaris-sound`). Turning it on
+  plays a short power-up blip; turning it off plays a power-down before it
+  goes silent. Music and Sound are independent.
+- **Original audio only.** Every cue is synthesized at run time in `js/sfx.js`
+  and the selected bank file (oscillators, wavetables, filtered noise, a
+  generated reverb, a compressor).
+  No audio file exists and none of the original game's audio is imported or
+  reproduced; the wah sweep at End Turn, the counting ticks and the star chimes
+  reproduce the original's roles, not its waveforms.
+- **Cues.** Select (pitch by movement class), target, move (per movement type,
+  length by hexes), place, load, unload, deploy, factory, cancel, deny, undo,
+  redo, End Turn (a falling wah sweep), turn start, victory and defeat. In a
+  battle: the approach; each squad's volley by weapon (rifle, cannon,
+  autocannon, howitzer, heavy cannon, rockets, missile, mortar; volley length
+  scales with strength); explosions scaled by the share of the squad lost, and
+  a deflect ping when a side lost nothing; a chime per experience star. Map
+  events are panned by hex column; battle events by side (Union left, Xenon
+  right).
+- **Calculation sounds.** The combat board ticks in the order it counts: one
+  step higher for each machine that lights (attacker bright, defender hollow),
+  a tick per supporter panned to its hex, a thud for terrain, a tick per ring
+  hex sweeping around the target, then a verdict for surrounded or not (none
+  for ranged attacks, which have no ring).
+- **Timeline coupling.** Battle sounds run off the battle timeline's clock. Pausing
+  a battle suspends the audio context; skipping ahead plays only the outcome,
+  not the skipped volley or ticks.
+- **Browser rules.** The audio context is created on the first pointer press,
+  key press or toggle click; a cue requested earlier is dropped, not queued.
+- **Unknown names fail loudly.** An unknown cue, weapon, movement type or unit
+  class throws. Off is the only silent state.
+- **Scope.** Sounds are wired into the main game's `GameUI` (matches and watched
+  AI turns). Tournament and balance replay viewers do not build a `GameUI`
+  and make no sound. Sound never touches game state, dice or saves.
+- **Not yet auditioned.** The cues were written and unit-checked for syntax and
+  for the disabled and unknown-name paths, not listened to. Balance, pitch and
+  length need a listening pass by the user.
 
 ## Board orientation and control docking (2026-09-23)
 
@@ -1056,7 +1204,7 @@ the player leaves it. The separately recorded passenger-transfer allowance
 still governs unloading.
 
 On selection and after a Shift destination, only enemies attackable from that position turn
-red. Hovering one shows its identity, both units' combat stats, support, terrain,
+red. (Where the hover calculation appears was superseded 2026-09-29: see "Combat board".) Hovering one shows its identity, both units' combat stats, support, terrain,
 surround, experience, counterattack eligibility and the resulting calculation
 in the fixed left panel, outside the map. Restored at the user's 2026-09-26
 request: this forecast, with its heatmap, appears directly under the selected
@@ -1280,20 +1428,16 @@ target's defense support. Supporters worth 0, such as a Bison beside an
 aircraft, are left unmarked. The forecast states how many surrounding hexes
 are covered and when the map edge blocks surround.
 
-After an attack is committed, by the player or a watched opponent, the same
-display plays on the map before the battle screen, in the true order of the
-calculation:
+After an attack is committed, by the player or a watched opponent, the battle
+screen opens on the numbers panel, which counts in the true order of the
+calculation (see "Battle screen numbers", 2026-09-29):
 1. Supporters light one by one (170 ms each).
 2. Terrain is added (260 ms).
 3. The surrounding hexes are checked clockwise (90 ms each).
 4. The verdict holds for 500 ms.
 
-Meanwhile the war dock lists the per-machine steps: Base, + Support,
-+ Terrain, Surrounded ½, Final (max 100).
-
-The battle screen shows per-machine attack and defense with support, terrain
-(+N defense), surround and the experience damage bonus. It never shows squad
-totals.
+The battle screen shows each side's calculation as a table (Base, + Support,
++ Terrain, Surrounded ½, Final, Experience); see "Battle screen numbers".
 
 ### Skipping and the return to the map (2026-09-26)
 
@@ -1304,8 +1448,9 @@ totals.
     battle screen goes straight to its result with every earned star shown.
   - At the result, a click returns to the map at once.
   - The battle screen reads "Click to skip ahead".
-- Returning to the map after a squad was destroyed, its hex explodes three more
-  times (1.4 s) so the loss is noticed.
+- Returning to the map after a squad was destroyed, its hex explodes once
+  for about 1 s so the loss is noticed (user, 2026-09-29: it used to explode
+  three more times, 1.4 s).
   - The unit that destroyed it keeps its battle highlight until the next action:
     deep red for an attacker, the white ring for a defender that killed with its
     counterattack. After mutual destruction, nothing is highlighted.
@@ -1315,6 +1460,120 @@ totals.
   request, 2026-09-26). The marks are thin outlines, red at the attacker and
   white at the defender, and a faint dashed link between them, all drawn under
   the units. A destroyed unit's hex stays marked.
+
+## Combat board (2026-09-29)
+
+User request (2026-09-29): after an attack some highlighted hexes stayed on the
+board, and the combat calculations sat in the left panel. Wanted: two screens
+off the side bar, in the style of the TG-16 game, where the attack total is the
+sum of the living machines, support from neighbours raises it, and the
+defender's numbers gain helpful defenders and are halved for a surround.
+
+1. **Hover screen.** Pointing at a target the selected unit may attack opens the
+   combat board over the map, and it closes when the pointer leaves the target
+   (or the map, or a pan starts). It replaces the left panel's forecast, the
+   heatmap and the calculation text; nothing of it remains in the side bar.
+   - The map shows the ZOC ring around the target, tinted in the attacker's
+     colour where its zone covers a hex and dashed orange for gaps, each
+     supporter outlined in its own faction's colour with its number ("+200 ATK"
+     or "+20 DEF"), and a tag on the target: "ZOC n/6" or "SURROUNDED ½".
+   - The board docks at the top or bottom edge, whichever covers fewer of the
+     lit hexes. Its width is a fraction of the map; a narrow map stacks the two
+     squads. Union is always left and blue, Xenon right and green.
+   - Each squad has one card: unit, role, machine count, then rows Base,
+     + Support, + Terrain, Surrounded ½ (only when it applies) and Final, with
+     Attack and Defense columns.
+   - Attack is a squad total (machines × per-machine attack); its Base row also
+     shows "8×50". Defense stays a per-machine percentage, because squad size
+     never multiplies it and it caps at 100 (MECHANICS). Every total is the
+     engine's per-machine number times a count, so the Final row equals what the
+     battle uses and nothing is invented ("what we present should always be
+     true").
+   - Experience is the last row, "Experience ×1.20" and so on (1.05 at one
+     star up to 2.00 at seven and the General), for squads with at least one
+     star (user, 2026-09-29: a step should show how the experience level
+     improves the numbers). The engine applies it to the damage a machine
+     deals, after defense and after the 100 cap, so the row sits after Final
+     and shows the attack it amounts to, floor(final attack × multiplier),
+     which may pass 100. It never changes defense. Exact damage floors once
+     more after defense, so this figure can differ from the battle's by
+     rounding. The experience is not folded into Base, as the original does
+     (2026-09-26 decision).
+   - A supporter's number is its share of the support: the change in
+     floor(sum of supporter value × strength / (2 × attacker strength)), so the
+     shares add up to the engine's support figure exactly (`build` throws if
+     they do not).
+   - Each card also charts that squad's projected losses as bars 0..N in its
+     faction colour, with the percentage above each bar, the most likely count
+     highlighted, the average and the chance of losing every machine. This
+     replaces the joint heatmap: the two squads' rolls are independent, so the
+     joint table held nothing the two charts do not. Still 100,000 simulated
+     battles, never the match's dice. Without a counterattack the attacker's
+     card says so.
+2. **Battle-prep count.** Moved into the battle popup on 2026-09-29 (see
+   "Battle screen numbers"). After the attack is committed, by the player or a
+   watched opponent, the same steps count up inside the popup: machines fire their base attack one after another (30 ms each),
+   each supporter lights and adds its share (170 ms each), terrain adds to
+   defense (260 ms), the six hexes are checked clockwise (90 ms each), then
+   a surround halves the defender (150 ms), the experience multiplier lifts
+   each starred squad's attack (220 ms, only when a squad has stars) and the
+   final numbers hold 500 ms.
+   Rows appear as their step is reached; the row being counted is yellow. The
+   left panel shows nothing during it.
+3. **Nothing lingers after your own attack.** Aiming ranges and legend clear
+   when the battle starts; the outlines, link and killer highlight of the two
+   units no longer stay after the player's battle (the explosions of a destroyed
+   squad still play). A watched opponent's battle keeps its marks as before. The
+   hover board also used to stay open, with its ring and supporters, after the
+   pointer moved to empty ground; that was the source of the stray hexes.
+
+Superseded by this record: the left-panel forecast, heatmap and calculation
+text; the war dock's per-machine step table; the AI preview's "before the roll"
+text (the dock keeps the scene headline and the result report/ledger); the
+"faintly marked until the next action" rule for the player's own battles. The
+old `js/combat-view.js` and the war dock's `effectsHtml` step table were deleted.
+
+## Battle screen numbers (2026-09-29)
+
+User request (2026-09-29): the combat board still appeared in the left-hand
+area; "a better and proper location is within the actual battle popup". The
+popup's layout was redone to give the comparison of attack, defense and the
+numbers used a dedicated region, because a player learning the game must be able
+to pause and study it.
+
+- **Compact frame (user, 2026-09-29, after testing).** The screen carries no
+  Ready / Fighting / Result strip, no "NUMBERS ... hexes ..." facts line and no
+  "Union · attacking · 8 machines" title row above each card. Each card's table
+  header names its team ("Union", "Xenon") in the faction colour, over the
+  faction-coloured top edge; role and machine count stay in the combatant
+  heading. The one-line status ("Union preparing to attack", "Union attacking",
+  "Union attack · 5 destroyed · 1 lost") shares the control bar under the screen
+  with Pause and the "Space: pause · click: skip" hint; the same bar is used on
+  the tournament replay page. The hover board keeps its facts line.
+- **Where.** The numbers panel is inside the battle popup, under the two
+  formations and above the outcome line. Each side's card sits under its own
+  formation (Union left and blue, Xenon right and green), so a side's steps are
+  read beneath its machines and the two sides are compared across the same
+  rows. Every width is a fraction of the popup; type and formation sizes follow
+  the popup's height. The popup no longer has a 950 px maximum width.
+- **What.** Per side: the step table (Base with "8×50", + Support, + Terrain,
+  Surrounded ½ where it applies, Final, Experience ×N), a "Support from" line
+  with each supporter's icon and its share, then "Per machine" (attack ×
+  (100 − defense)% = damage, times the experience multiplier) and "Squad"
+  (machines × damage, times the roll, with the average destroyed). After the
+  roll the Squad line becomes "Roll 130% → 634 damage → 5 of 7 destroyed", with
+  the average and whether the result was above or below it. These are the
+  numbers the engine uses; the roll comes from the match's actual dice.
+- **When.** The popup opens on the count-up, so Pause, Space and click-to-skip
+  act on it; the formations stay apart until the count ends, then approach, fire
+  and show the result with the finished numbers in place.
+- **Left panel.** It carries no calculation. The war dock keeps the result
+  headline (destroyed/lost) and the running ledger; the roll and formula lines it
+  used to show are in the popup.
+- **Hover.** Pointing at a target still opens the combat board over the map,
+  because it needs the map's ZOC ring and supporter numbers; it has the same
+  step rows and the projected-loss charts.
+- **Replay.** The tournament replay's battle screen uses the same numbers panel.
 
 ## Grok 4.7 15 tactical gap-filling units study (2026-09-23)
 
@@ -1414,6 +1673,41 @@ maps, renderer or AI; nothing outside that folder is generated.
   can deploy a Snapper where it blocks one of its own factory exits; apex turn time
   grows with unit count (one apex turn on the 42-unit verify map took 143 s, and
   126 s with stock units of the same chassis, measured once).
+
+## Opus-Sonnet 5.5 gap-filling units study (2026-09-29)
+
+Second proposal pack for the outline item "design 15 gap-filling units", in
+`opus-sonnet-55/`, requested by the user with icons in Legacy style, a full design and
+a one-glance table of basic characteristics. It does not change the playable roster,
+maps, renderer or AI; nothing outside that folder is generated. Overview page:
+`opus-sonnet-55/index.html`; design and table: `opus-sonnet-55/README.md`.
+
+- **Design rule:** the game has no purchase cost, so a weaker copy of a stock unit is
+  not a gap. Each unit opens a rule combination or terrain access that no stock unit
+  has (a predicate over `js/data-units.js`), and no unit dominates or is dominated by
+  any stock or new unit (move, defense, both attacks, firing band, capture, cargo,
+  fire policy, terrain costs; 1110 ordered pairs).
+- **Units:** foot teams for ground that tracks cannot enter (Ibex mortar, Nettle
+  anti-air, Ferret skirmisher); Locust rocket truck (range 4 after a road move);
+  Cyclone dual battery; Warden flak tank (anti-air ring 2-3); Stalker move-or-fire
+  direct gun; Badger armored carrier (also the only carrier for the two fixed
+  emplacements); Rhino armored capturer; Redoubt pillbox and Javelin SAM site; Hornet
+  helicopter (attack, then fly on); Lancer air artillery; Merlin air-to-air missile
+  interceptor; Dragonfly flying capturer.
+- **Icons:** 16x16 art pixels doubled to 32x32, the seven Legacy chart colours, an
+  automatic black contour, left frames mirrored. `unit-art.json` follows the
+  `art/legacy` frame format; nothing is registered in `js/unit-icon-sets.js`. In-game
+  sprites stay the stock placeholder named by each unit's `sprite` field.
+- **Source and outputs:** `units.js` (rules and prose), `art.js` (icons) and
+  `analysis.js` (gap and dominance screens, engine-run exhibits) are hand-written;
+  `build.js` generates the icons, `sheet.png`, `unit-art.json`, `custom-units.json`,
+  `analysis.json`, `page-data.js` and `README.md`. `verify.js` runs every check,
+  including icon geometry (no see-through holes, 2x2 pixels, centring, distinct
+  silhouettes), banned wording, and that the files on disk match a fresh build.
+- **Open items if a unit enters play:** no CPU self-play was run with these units;
+  Dragonfly and Rhino change base-race timing; Javelin (95 attack, range 2-4) may make
+  aircraft unusable on small maps; Redoubt on a base has 85 defense; scenarios that
+  place Redoubt or Javelin by transport need a Badger.
 
 
 ## Three terrain campaigns (2026-09-23)

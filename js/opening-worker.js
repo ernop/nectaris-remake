@@ -4,7 +4,7 @@ self.onmessage=function(event){
   try{
     var job=event.data;Object.assign(UNIT_TYPES,job.types||{});
     var game=ENGINE.Game.restore(job.state),plan=BALANCE.plan(game);
-    var survey=AI_OPENING.survey(plan,1,job.id,{work:"standard"});
+    var survey=AI_OPENING.survey(plan,job.player,job.id,{work:"standard"});
     self.postMessage({survey:survey});
   }catch(error){self.postMessage({error:error.message});}
 };

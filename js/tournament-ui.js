@@ -301,7 +301,7 @@
     replayBattleParts=parts.screen?parts:null;
     var stage=$("replay-battle-stage"),button=$("replay-battle-toggle"),visible=!!parts.screen&&!$("replay-skip-battles").checked;
     if(!preserveView||!visible)stage.hidden=!visible;button.hidden=!visible;
-    if(parts.screen){$("replay-battle-content").innerHTML=parts.screen;UNIT_VIEW.paint($("replay-battle-content"));button.textContent=stage.hidden?"Show battle":"Show map";}
+    if(parts.screen){$("replay-battle-outcome").textContent=parts.outcome;$("replay-battle-content").innerHTML=parts.screen;UNIT_VIEW.paint($("replay-battle-content"));button.textContent=stage.hidden?"Show battle":"Show map";}
     if(!preserveView)stage.style.setProperty("--battle-approach",replayPhase==="intent"?1:0);playbackControls();
   }
   $("replay-battle-toggle").onclick=function(){var stage=$("replay-battle-stage");stage.hidden=!stage.hidden;this.textContent=stage.hidden?"Show battle":"Show map";};

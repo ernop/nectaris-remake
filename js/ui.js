@@ -4,7 +4,7 @@
  *   click own unit  -> show legal movement and attack targets immediately
  *   Attack          -> aim from the current hex without moving
  *   click dest hex  -> unit steps there; enemies stay directly clickable
- *   hover red enemy -> inspect calculations and independent casualty forecast
+ *   hover red enemy -> combat board over the map: numbers and casualty projection
  *   click red enemy -> resolve from the chosen position
  *   move destination -> commit movement; attack now or finish on deselection
  *   Undo last       -> reverse noncombat actions since the last battle/turn
@@ -17,7 +17,9 @@ var UI = (function () {
   var timeline = typeof module !== "undefined" ? require("./playback-timeline.js") : PLAYBACK_TIMELINE;
   var movement = typeof module !== "undefined" ? require("./move-animation.js") : MOVE_ANIMATION;
   var battleReport = typeof module !== "undefined" ? require("./battle-report.js") : BATTLE_REPORT;
+  var combatPanel = typeof module !== "undefined" ? require("./combat-panel.js") : COMBAT_PANEL;
   var opponents = typeof module !== "undefined" ? require("./ai-search.js") : AI_SEARCH;
+  var sfx = typeof module !== "undefined" ? require("./sfx.js") : SFX;
 
   function $(id) { return document.getElementById(id); }
   function factionTextColor(player) {
@@ -27,6 +29,7 @@ var UI = (function () {
     return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;")
       .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
   }
+  function clamp(value, low, high) { return Math.max(low, Math.min(high, value)); }
 
   function actionButton(parent, label, fn, disabled) {
     var button = document.createElement("button");
@@ -35,6 +38,29 @@ var UI = (function () {
     button.onclick = function () { if (!button.disabled) fn(); };
     parent.appendChild(button);
     return button;
+  }
+
+  /* A row of radio-style buttons filling one .segmented container. Returns
+     set(value) to show the current choice and disable(off) to grey out the row. */
+  function segmented(id, choices, pick) {
+    var host = $(id);
+    host.replaceChildren();
+    var entries = choices.map(function (choice) {
+      var button = document.createElement("button");
+      button.type = "button";
+      button.textContent = choice.label;
+      if (choice.title) button.title = choice.title;
+      button.setAttribute("role", "radio");
+      button.onclick = function () { pick(choice.value); };
+      host.appendChild(button);
+      return {value: choice.value, button: button};
+    });
+    return {
+      set: function (value) {
+        entries.forEach(function (e) { e.button.setAttribute("aria-checked", e.value === value ? "true" : "false"); });
+      },
+      disable: function (off) { entries.forEach(function (e) { e.button.disabled = off; }); },
+    };
   }
 
   /* Human-readable attack band vs one domain, e.g. "1", "2–5", or "—". */
@@ -68,6 +94,19 @@ var UI = (function () {
     this.animateMoves = localStorage.getItem("nectaris-animate-moves") !== "off";
     this.warLedger = battleReport.emptyLedger();
     this.onGameOver = this.options.onGameOver || function () {};
+    if (!this.options.hotseat && this.options.humanSide !== 0 && this.options.humanSide !== 1) {
+      throw new Error("A solo match needs options.humanSide (0 = Union, 1 = Xenon)");
+    }
+    this.humanSide = this.options.humanSide;
+    this.orientationControl = segmented("board-orientation", [
+      {value: "auto", label: "Auto", title: "Chooses the orientation that fits the largest board"},
+      {value: "normal", label: "Normal"}, {value: "sideways", label: "Sideways"},
+    ], function (value) {
+      self.renderer.orientation = value;
+      self.orientationControl.set(value);
+      try { localStorage.setItem("nectaris-board-orientation", value); } catch (e) { /* optional preference */ }
+      self.fitBoard();
+    });
     this.refreshViewControls();
 
     // Keep exact function references so destroy() can remove every listener.
@@ -123,11 +162,6 @@ var UI = (function () {
       stage.classList[hidden ? "remove" : "add"]("hidden");
       this.textContent = hidden ? "Show map" : "Show battle";
     };
-    $("board-orientation").onchange = function () {
-      self.renderer.orientation = this.value;
-      try { localStorage.setItem("nectaris-board-orientation", this.value); } catch (e) { /* optional preference */ }
-      self.fitBoard();
-    };
     $("btn-fit").onclick = function () { self.fitBoard(); };
     $("btn-undo").onclick = function () { self.undoLast(); };
     $("btn-redo").onclick = function () { self.redoLast(); };
@@ -153,37 +187,61 @@ var UI = (function () {
       "Opponent: " + opponents.get(this.opponent).label;
     opponentLabel.title = this.options.hotseat ? "" : opponents.get(this.opponent).description;
 
-    var styleSel = $("style-select");
-    var iconSel = $("icon-set-select");
-    iconSel.innerHTML = "";
-    RENDER.getIconSets().forEach(function (pack) {
-      var option = document.createElement("option");
-      option.value = pack.id; option.textContent = pack.label; iconSel.appendChild(option);
-    });
-    iconSel.value = RENDER.getIconSet();
-    iconSel.disabled = RENDER.getStyle() !== "pixel";
-    iconSel.onchange = function () { RENDER.setIconSet(iconSel.value); };
+    var iconSel = segmented("icon-set-select", RENDER.getIconSets().map(function (pack) {
+      return {value: pack.id, label: pack.label, title: pack.description};
+    }), function (id) { RENDER.setIconSet(id); });
+    iconSel.set(RENDER.getIconSet());
+    iconSel.disable(RENDER.getStyle() !== "pixel");
     this._unsubscribeIconSet = RENDER.onIconSetChange(function () {
-      iconSel.value = RENDER.getIconSet();
+      iconSel.set(RENDER.getIconSet());
       self.fitBoard();
       if (self.mode === "factory" && self.inspectedFactory) self.openFactoryPanel(self.inspectedFactory);
       self.draw();
     });
-    styleSel.value = RENDER.getStyle();
-    styleSel.onchange = function () {
-      RENDER.setStyle(styleSel.value);
-      iconSel.disabled = RENDER.getStyle() !== "pixel";
+    var styleSel = segmented("style-select", [
+      {value: "pixel", label: "Pixel"}, {value: "neon", label: "Neon"}, {value: "classic", label: "Classic"},
+    ], function (style) {
+      RENDER.setStyle(style);
+      styleSel.set(style);
+      iconSel.disable(RENDER.getStyle() !== "pixel");
       self.fitBoard();
       if (self.mode === "factory" && self.inspectedFactory) self.openFactoryPanel(self.inspectedFactory);
-      self.refreshStatus();   // faction names/colors differ per style
+      self.refreshSide();     // faction names/colors differ per style
+      self.refreshStatus();
       self.draw();
-    };
+    });
+    styleSel.set(RENDER.getStyle());
 
+    this.refreshSide();
     this.refreshStatus();
     this.refreshWatchButton();
     this.renderer.fitToMap();
     this.draw();
   }
+
+  /* --- sound effects ---------------------------------------------------------
+   * Sound is presentation only: nothing here reads or changes the game, the
+   * dice or a save. Every helper returns at once while the Sound toggle is off,
+   * so no option object is built and no renderer geometry is read. */
+
+  // Stereo position of a hex from its place on the visible board.
+  GameUI.prototype.hexPan = function (col, row) {
+    var x = this.renderer.hexCenter(col, row).x;
+    return clamp((x / this.canvas.width * 2 - 1) * 0.7, -0.8, 0.8);
+  };
+
+  GameUI.prototype.sound = function (name, options) {
+    if (sfx.isEnabled()) sfx.play(name, options);
+  };
+
+  GameUI.prototype.soundAt = function (name, col, row, options) {
+    if (!sfx.isEnabled()) return;
+    sfx.play(name, Object.assign({pan: this.hexPan(col, row)}, options));
+  };
+
+  // Battle screens show Union on the left and Xenon on the right, so a
+  // squad's fire and losses come from its own side.
+  function sidePan(player) { return player === 0 ? -0.55 : 0.55; }
 
   GameUI.prototype.snapshotForSave = function () {
     // Animated AI iterators have private, half-completed actions. Keep the
@@ -257,6 +315,7 @@ var UI = (function () {
     this[from].pop();
     this.closeFactoryPanel();
     this.deployPending = null; this.unloadCargo = null;
+    this.sound(from === "undoHistory" ? "undo" : "redo");
     // Keep the match object shared with main.js and the renderer; restore all
     // unit/cargo/building identities together, never individual coordinates.
     Object.assign(this.game, restored);
@@ -291,7 +350,7 @@ var UI = (function () {
   GameUI.prototype.refreshViewControls = function () {
     this.controlsDock = "left";
     $("game-screen").classList.add("controls-left");
-    $("board-orientation").value = this.renderer.orientation;
+    this.orientationControl.set(this.renderer.orientation);
     var parent = $("dock-unit-controls");
     ["range-legend", "action-menu"].forEach(function (id) {
       var el = $(id);
@@ -354,6 +413,7 @@ var UI = (function () {
     this.closeActionMenu();
     this.closeFactoryPanel();
     $("unit-hover").classList.add("hidden");
+    $("combat-board").classList.add("hidden");
     $("range-legend").classList.add("hidden");
     $("battle-panel").classList.add("hidden");
     $("watch-panel").classList.add("hidden");
@@ -365,15 +425,26 @@ var UI = (function () {
     var g = this.game;
     this.refreshUndoButton();
     $("status-turn").textContent = "Turn " + g.turn + " / " + g.turnLimit;
-    var pc = RENDER.PLAYER_COLORS[g.currentPlayer];
     var el = $("status-player");
-    el.textContent = pc.name;
-    el.style.color = factionTextColor(g.currentPlayer);
-    var counts = [g.playerUnits(0).length, g.playerUnits(1).length];
-    $("status-units").textContent = "Units " + counts[0] + " : " + counts[1];
+    el.textContent = RENDER.PLAYER_COLORS[g.currentPlayer].name + " to move";
+    el.setAttribute("data-player", String(g.currentPlayer));
+    $("units-union").textContent = String(g.playerUnits(0).length);
+    $("units-xenon").textContent = String(g.playerUnits(1).length);
+    $("units-union-name").textContent = RENDER.PLAYER_COLORS[0].name;
+    $("units-xenon-name").textContent = RENDER.PLAYER_COLORS[1].name;
     var hovered = this.renderer.hoverHex;
     if (hovered) this.updateHoverInfo();
     if (this.options && this.options.onStateChange) this.options.onStateChange(this);
+  };
+
+  /* "You play Union": the side this player commands. In a hotseat match both
+     sides are the player's, so the banner names the side to move. */
+  GameUI.prototype.refreshSide = function () {
+    var hotseat = !!this.options.hotseat;
+    var side = hotseat ? this.game.currentPlayer : this.humanSide;
+    $("status-side").setAttribute("data-player", String(side));
+    $("status-side-label").textContent = hotseat ? "Hotseat" : "You play";
+    $("status-side-name").textContent = RENDER.PLAYER_COLORS[side].name;
   };
 
   GameUI.prototype.refreshWatchButton = function () {
@@ -400,8 +471,10 @@ var UI = (function () {
     this.hideBattleScreen();
   };
 
-  GameUI.prototype.showBattleScreen = function (html) {
+  GameUI.prototype.showBattleScreen = function (html, outcome) {
+    if (typeof outcome !== "string") throw new Error("The battle screen needs its status line");
     var stage = $("battle-stage");
+    $("battle-outcome").textContent = outcome;
     $("battle-content").innerHTML = html; unitView.paint($("battle-content"));
     stage.classList.remove("hidden");
     $("btn-battle-map").classList.remove("hidden");
@@ -411,6 +484,8 @@ var UI = (function () {
   GameUI.prototype.hideBattleScreen = function () {
     if (this._battlePlayback) this._battlePlayback.cancel();
     this._battlePlayback = null;
+    // A battle abandoned while paused must not leave the audio frozen.
+    sfx.hold(false);
     $("battle-stage").classList.add("hidden");
     $("btn-battle-map").classList.add("hidden");
   };
@@ -420,6 +495,8 @@ var UI = (function () {
     button.textContent = paused ? "Resume" : "Pause";
     button.setAttribute("aria-pressed", paused ? "true" : "false");
     $("battle-stage").setAttribute("data-paused", paused ? "true" : "false");
+    // Sounds freeze and continue with the picture, including when a skip-ahead resumes it.
+    sfx.hold(!!paused);
   };
 
   GameUI.prototype.toggleBattlePause = function () {
@@ -443,11 +520,25 @@ var UI = (function () {
     if (this._movement) this._movement.cancel();
     var self = this;
     // A one-hex route draws no motion and still completes on the next frame.
-    this._movement = movement.play(this.renderer, unit, this.animateMoves ? path : path.slice(-1), {
+    var shown = this.animateMoves ? path : path.slice(-1);
+    this._movement = movement.play(this.renderer, unit, shown, {
       draw: function () { self.draw(); },
       done: function () { self._movement = null; if (!self.destroyed && done) done(); },
     });
+    this.soundMovement(unit, shown, this._movement.duration);
     return this._movement.duration;
+  };
+
+  // The engine sound follows the drawn route: same hex count and pace as the
+  // animation, panned from the first hex to the last. Without an animation
+  // the unit is simply set down.
+  GameUI.prototype.soundMovement = function (unit, shown, duration) {
+    if (!sfx.isEnabled()) return;
+    var first = shown[0], last = shown[shown.length - 1];
+    if (shown.length < 2) { this.soundAt("place", last.col, last.row); return; }
+    sfx.play("move", {moveType: unit.type.moveType, hexes: shown.length - 1,
+      step: duration / (shown.length - 1) / 1000,
+      pan: this.hexPan(first.col, first.row), panTo: this.hexPan(last.col, last.row)});
   };
 
   GameUI.prototype.showWatchPanel = function (title, detail) {
@@ -494,8 +585,8 @@ var UI = (function () {
     this.renderer.attackingUnitId = event.attacker.id;
     this.renderer.flashUnits[event.defender.id] = "#ffffff";
     var parts = battleReport.previewHtml(event.attacker, event.defender, event.preview);
-    this.openWarDock(parts.scene, parts.math);
-    this.showBattleScreen(parts.screen);
+    this.openWarDock(parts.scene, "");
+    this.showBattleScreen(parts.screen, parts.outcome);
   };
 
   GameUI.prototype.showWatchResult = function (event, done) {
@@ -505,8 +596,8 @@ var UI = (function () {
     this.renderer.flashUnits[event.defender.id] = "#ffffff";
     var parts = battleReport.resultParts(event.attacker, event.defender, event.result, event.attackerBefore, event.defenderBefore);
     battleReport.record(this.warLedger, event.attacker.player, parts.assessed);
-    this.openWarDock(parts.scene, parts.math + battleReport.ledgerHtml(this.warLedger));
-    this.showBattleScreen(parts.screen);
+    this.openWarDock(parts.scene, battleReport.ledgerHtml(this.warLedger));
+    this.showBattleScreen(parts.screen, parts.outcome);
     return this.animateBattleResult(event, $("war-scene"), done, 1400, 0);
   };
 
@@ -522,13 +613,17 @@ var UI = (function () {
         defenderLosses > event.defenderBefore) {
       throw new Error("Battle result casualties exceed the pre-battle squad count");
     }
-    var duration = battleReport.fightingDuration(), volley = battleReport.VOLLEY_MS;
+    var timing = {aType: event.attacker.typeId, dType: event.defender.typeId, hasCounter: !!result.preview.counter};
+    var duration = battleReport.fightingDuration(timing), volley = battleReport.volleyMs(timing);
     var lastCounts = "", resultMath = $("war-math").innerHTML;
+    var assessed = battleReport.assess(event.attacker, event.defender, result, event.attackerBefore, event.defenderBefore);
     if (holdMs === undefined) holdMs = 500;
     if (approachMs === undefined) approachMs = 800;
     var earned = Math.max(event.attacker.exp - result.attackerExpBefore, event.defender.exp - result.defenderExpBefore);
     holdMs = Math.max(holdMs, battleReport.rewardHoldMs(earned));
     this.renderer.battleGhosts = [event.attacker, event.defender];
+    var heard = {volley: false, impact: false, exp: [result.attackerExpBefore, result.defenderExpBefore]};
+    if (approachMs) this.sound("approach", {dur: approachMs / 1000});
 
     function frame(elapsed) {
       if (self.destroyed) return;
@@ -549,6 +644,7 @@ var UI = (function () {
       var rewardElapsed = Math.max(0, fight - duration);
       var aExp = battleReport.earnedExperience(result.attackerExpBefore, event.attacker.exp, rewardElapsed);
       var dExp = battleReport.earnedExperience(result.defenderExpBefore, event.defender.exp, rewardElapsed);
+      self.soundBattle(event, heard, fight, hit, [aExp, dExp], volley);
       var phase = elapsed < approachMs ? "ready" : !hit ? "fighting" : fight < duration ? "impact" : "result";
       var counts = attackerCurrent + ":" + defenderCurrent + ":" + aExp + ":" + dExp + ":" + phase;
       if (counts !== lastCounts) {
@@ -562,8 +658,10 @@ var UI = (function () {
         stage.innerHTML = battleReport.screenHtml(event.attacker, event.defender, result.preview,
           event.attackerBefore, event.defenderBefore, attackerCurrent, defenderCurrent,
           result.attackerExpBefore, result.defenderExpBefore,
-          aExp, dExp, phase);
+          aExp, dExp, phase, {report: hit ? assessed : undefined});
         unitView.paint(stage);
+        $("battle-outcome").textContent = battleReport.outcomeText(event.attacker, event.attackerBefore, event.defenderBefore,
+          attackerCurrent, defenderCurrent, phase);
       }
       self.draw();
 
@@ -580,6 +678,44 @@ var UI = (function () {
     this._battleResultAt = approachMs + duration + battleReport.rewardRevealMs(earned);
     if (this._advanceBattle) this.advanceBattle();
     return approachMs + duration + holdMs;
+  };
+
+  // The battle's own sounds, driven by the same clock as its picture so pause
+  // and skip-ahead keep them in step. `heard` remembers what has sounded: the
+  // volley when the fight begins, the losses when they land, and each star
+  // as it appears. A skip that jumps straight to the impact omits the volley.
+  GameUI.prototype.soundBattle = function (event, heard, fight, hit, shownExp, volley) {
+    if (!sfx.isEnabled()) return;
+    var result = event.result, countered = !!result.preview.counter;
+    var sides = [
+      {unit: event.attacker, before: event.attackerBefore, lost: result.dmgToAttacker, fires: true, hit: countered},
+      {unit: event.defender, before: event.defenderBefore, lost: result.dmgToDefender, fires: countered, hit: true},
+    ];
+    if (fight >= 0 && !heard.volley) {
+      heard.volley = true;
+      if (!hit) {
+        var span = Math.max(0.15, (volley - fight) / 1000 - 0.06);
+        sides.forEach(function (side, i) {
+          if (!side.fires) return;
+          sfx.play("fire", {typeId: side.unit.typeId, cls: side.unit.type.cls, strength: side.before,
+            span: span, pan: sidePan(side.unit.player), delay: i ? 0.06 : 0});
+        });
+      }
+    }
+    if (hit && !heard.impact) {
+      heard.impact = true;
+      sides.forEach(function (side) {
+        if (!side.hit) return;
+        var pan = sidePan(side.unit.player);
+        if (side.lost) sfx.play("explosion", {size: side.lost / side.before, destroyed: side.lost === side.before, pan: pan});
+        else sfx.play("deflect", {pan: pan});
+      });
+    }
+    shownExp.forEach(function (rank, i) {
+      if (rank <= heard.exp[i]) return;
+      heard.exp[i] = rank;
+      sfx.play("star", {rank: rank, pan: sidePan(sides[i].unit.player)});
+    });
   };
 
   // A click during a battle jumps to its last stage: from the map effects or a
@@ -728,27 +864,33 @@ var UI = (function () {
 
   /* --- action menu ------------------------------------------------------ */
 
-  // Map overlay for one matchup: the target's surrounding hexes and every unit
-  // whose support changes the numbers. Supporters worth 0 are left unmarked.
-  function combatEffects(defender, pv) {
-    function marks(list, side) {
-      return list.filter(function (u) { return u.value > 0; })
-        .map(function (u) { return {col: u.col, row: u.row, side: side}; });
-    }
-    var t = pv.tactical;
-    return {target: {col: defender.col, row: defender.row}, ring: t.ring, surrounded: pv.surrounded,
-      supporters: marks(t.attackSupporters, "attack").concat(marks(t.defenseSupporters, "defense")),
-      shownSupporters: Infinity, shownRing: Infinity, surroundShown: true};
-  }
-
   GameUI.prototype.hideCombatPreview = function () {
-    $("combat-inspector").classList.add("hidden");
+    var board = $("combat-board");
+    board.classList.add("hidden");
+    board.innerHTML = "";
     this._previewKey = null;
     this._forecastCache = {};
     this.renderer.attackingUnitId = null;
     this.renderer.flashUnits = {};
     this.renderer.combatEffects = null;
     this.renderer.battlePair = null;
+  };
+
+  // The combat board sits at the top or bottom edge of the map, wherever it
+  // covers less of the hexes the matchup lights.
+  GameUI.prototype.placeCombatBoard = function (board, units, fx) {
+    var r = this.renderer, radius = Math.max(18, r.hexSize * r.zoom), height = this.canvas.height;
+    var hexes = units.concat(fx.ring.filter(function (hex) { return hex.onMap; }), fx.supporters);
+    var low = Infinity, high = -Infinity;
+    hexes.forEach(function (hex) {
+      var y = r.hexCenter(hex.col, hex.row).y;
+      low = Math.min(low, y - radius); high = Math.max(high, y + radius);
+    });
+    var panel = board.offsetHeight, margin = 8;
+    function overlap(top) { return Math.max(0, Math.min(top + panel, high) - Math.max(top, low)); }
+    var top = overlap(margin), bottom = overlap(height - margin - panel);
+    board.setAttribute("data-dock", top < bottom ? "top" : bottom < top ? "bottom" :
+      (low + high) / 2 < height / 2 ? "bottom" : "top");
   };
 
   GameUI.prototype.showCombatPreview = function (defender) {
@@ -758,57 +900,98 @@ var UI = (function () {
     var key = JSON.stringify([attacker.id, defender.id, attacker.strength, defender.strength, attacker.exp, defender.exp, pv]);
     if (this._previewKey === key) return;
     this._previewKey = key;
+    this.soundAt("target", defender.col, defender.row);
     if (!this._forecastCache) this._forecastCache = {};
     var forecast = this._forecastCache[key];
     if (!forecast) forecast = this._forecastCache[key] = COMBAT.forecast(attacker, defender, pv);
-    var inspector = $("combat-inspector"), panel = $("rail-live");
-    inspector.innerHTML = COMBAT_VIEW.html(attacker, defender, pv, forecast);
-    unitView.paint(inspector);
-    inspector.classList.remove("hidden");
-    // Scroll the rail's middle section, never the board, when a short window hides the forecast.
-    if (inspector.getBoundingClientRect().top >= panel.getBoundingClientRect().bottom)
-      panel.scrollTop += inspector.getBoundingClientRect().top - panel.getBoundingClientRect().top;
+    var model = combatPanel.build(attacker, defender, pv), board = $("combat-board");
+    board.innerHTML = combatPanel.previewHtml(model, forecast);
+    unitView.paint(board);
+    board.classList.remove("hidden");
     this.renderer.attackingUnitId = attacker.id;
     this.renderer.flashUnits = {};
     this.renderer.flashUnits[defender.id] = "#ffffff";
-    this.renderer.combatEffects = combatEffects(defender, pv);
+    this.renderer.combatEffects = combatPanel.effects(defender, model);
+    this.placeCombatBoard(board, [attacker, defender], this.renderer.combatEffects);
     this.draw();
   };
 
-  // Before the battle screen, the original lights each surrounding hex inside
-  // the attacker's ZOC and then each supporter. This plays the same map
-  // display in the true order of the calculation (support, terrain, then the
-  // surround halving) beside the real per-machine steps.
-  var EFFECT_SUPPORT_MS = 170, EFFECT_TERRAIN_MS = 260, EFFECT_RING_MS = 90, EFFECT_HOLD_MS = 500;
+  // The battle screen opens on the calculation: its numbers panel counts the
+  // steps up in their true order (machines fire their base attack, each
+  // supporter adds its share, terrain adds to defense, the six hexes around the
+  // target are checked and a surround halves it, experience multiplies the
+  // damage). It runs on the battle timeline, so Pause and click-to-skip work,
+  // and the map behind it (behind "Show map") lights the same supporters and ring.
   GameUI.prototype.playCombatEffects = function (attacker, defender, pv, done) {
-    var self = this, fx = combatEffects(defender, pv);
+    var self = this, model = combatPanel.build(attacker, defender, pv), fx = combatPanel.effects(defender, model);
+    var lastKey = null, stage = $("battle-stage");
+    var heard = {lit: [0, 0], supporters: 0, terrain: false, ring: 0, verdict: false}, lastElapsed = 0;
     this._advanceBattle = false;
     this.renderer.battlePair = {attacker: {col: attacker.col, row: attacker.row}, defender: {col: defender.col, row: defender.row}};
-    var ringCount = fx.ring.filter(function (hex) { return hex.onMap; }).length;
-    var supportEnd = fx.supporters.length * EFFECT_SUPPORT_MS, terrainEnd = supportEnd + EFFECT_TERRAIN_MS;
-    var ringEnd = terrainEnd + ringCount * EFFECT_RING_MS, lastStage = null;
     this.renderer.combatEffects = fx;
     this.renderer.attackingUnitId = attacker.id;
     this.renderer.flashUnits = {};
     this.renderer.flashUnits[defender.id] = "#ffffff";
+    stage.style.setProperty("--battle-approach", 1);
     function frame(elapsed) {
       if (self.destroyed) return;
-      fx.shownSupporters = Math.min(fx.supporters.length, Math.floor(elapsed / EFFECT_SUPPORT_MS) + 1);
-      fx.shownRing = elapsed < terrainEnd ? 0 :
-        Math.min(ringCount, Math.floor((elapsed - terrainEnd) / EFFECT_RING_MS) + 1);
-      fx.surroundShown = elapsed >= ringEnd;
-      var stage = elapsed < supportEnd ? 0 : elapsed < terrainEnd ? 1 : elapsed < ringEnd ? 2 : 3;
-      if (stage !== lastStage) {
-        lastStage = stage;
-        self.openWarDock(battleReport.effectsHtml(attacker, defender, pv, stage), "");
+      var shown = combatPanel.state(model, elapsed);
+      // A click that skips ahead jumps many steps in one frame: sound only the verdict.
+      self.soundCalculation(model, fx, shown, heard, elapsed - lastElapsed > 250, elapsed);
+      lastElapsed = elapsed;
+      fx.shownSupporters = shown.supportersShown;
+      fx.shownRing = shown.ringShown;
+      fx.surroundShown = shown.surroundShown;
+      var key = JSON.stringify([shown.sides, shown.supportersShown, elapsed >= model.time.experienceEnd]);
+      if (key !== lastKey) {
+        lastKey = key;
+        self.showBattleScreen(battleReport.screenHtml(attacker, defender, pv, attacker.strength, defender.strength,
+          attacker.strength, defender.strength, attacker.exp, defender.exp, undefined, undefined, "ready", {count: elapsed}),
+          battleReport.outcomeText(attacker, attacker.strength, defender.strength, attacker.strength, defender.strength, "ready"));
       }
       self.draw();
     }
     frame(0);
-    this.playBattleTimeline(ringEnd + EFFECT_HOLD_MS, frame, function () {
+    this.playBattleTimeline(model.time.duration, frame, function () {
       self.renderer.combatEffects = null;
       done();
     });
+  };
+
+  // One tick per step the combat board counts: each machine lighting, each
+  // supporter, the terrain, each ring hex, then the verdict. `heard` remembers
+  // how far the sound has got, so a paused or repeated frame never repeats a
+  // tick. Map steps are panned to their hex, so the ring sweeps around the
+  // target from ear to ear; the machine count is panned to each faction's side.
+  GameUI.prototype.soundCalculation = function (model, fx, shown, heard, jumped, elapsed) {
+    if (!sfx.isEnabled()) return;
+    shown.sides.forEach(function (side, i) {
+      if (side.lit <= heard.lit[i]) return;
+      heard.lit[i] = side.lit;
+      if (!jumped) this.sound("calcMachine", {index: side.lit - 1, attacking: i === 0, pan: sidePan(model.sides[i].unit.player)});
+    }, this);
+    if (shown.supportersShown > heard.supporters) {
+      var supporter = fx.supporters[shown.supportersShown - 1];
+      heard.supporters = shown.supportersShown;
+      if (!jumped) this.soundAt("calcSupport", supporter.col, supporter.row,
+        {index: shown.supportersShown - 1, side: supporter.side});
+    }
+    if (elapsed >= model.time.supportEnd && !heard.terrain) {
+      heard.terrain = true;
+      if (!jumped) this.soundAt("calcTerrain", model.defender.col, model.defender.row,
+        {value: model.pv.defender.modifiers.terrain});
+    }
+    if (shown.ringShown > heard.ring) {
+      var hex = fx.ring[shown.ringShown - 1];
+      heard.ring = shown.ringShown;
+      if (!jumped) this.soundAt("calcRing", hex.col, hex.row, {index: shown.ringShown - 1, controlled: hex.controlled});
+    }
+    if (shown.surroundShown && !heard.verdict) {
+      heard.verdict = true;
+      // A ranged attack has no ring and so no verdict.
+      if (fx.ring.length) this.soundAt(model.pv.surrounded ? "surround" : "unsurrounded",
+        model.defender.col, model.defender.row);
+    }
   };
 
   GameUI.prototype.openActionMenu = function (unit, skipUnload) {
@@ -878,6 +1061,7 @@ var UI = (function () {
     }) : [];
     var readyCount = reserves.filter(function (entry) { return entry.ready; }).length;
     if (!readyCount) { this.closeFactoryPanel(); return; }
+    this.soundAt("factory", building.col, building.row);
     this.cancelEndTurn();
     this.closeActionMenu();
     this.deployPending = null;
@@ -981,6 +1165,9 @@ var UI = (function () {
     this.busy = true;
     this.renderer.attackingUnitId = attacker.id;
     this.renderer.highlights = null;
+    // Only the matchup stays marked while it fights; the aiming ranges do not.
+    this.renderer.fireRange = null;
+    $("range-legend").classList.add("hidden");
     $("battle-panel").classList.add("hidden");
     var attackerBefore = attacker.strength, defenderBefore = defender.strength;
     var result = g.attack(attacker, defender);
@@ -998,24 +1185,28 @@ var UI = (function () {
       Object.assign({}, attacker, {strength: attackerBefore, exp: result.attackerExpBefore}),
       Object.assign({}, defender, {strength: defenderBefore, exp: result.defenderExpBefore}),
       result.preview, function () {
-      self.openWarDock(parts.scene, parts.math + battleReport.ledgerHtml(self.warLedger));
-      self.showBattleScreen(parts.screen);
+      self.openWarDock(parts.scene, battleReport.ledgerHtml(self.warLedger));
+      self.showBattleScreen(parts.screen, parts.outcome);
       self.animateBattleResult({ attacker: attacker, defender: defender,
         attackerBefore: attackerBefore, defenderBefore: defenderBefore, result: result,
       }, $("war-scene"), function () {
         self.busy = false;
         self.hideBattleScreen();
         done(result);
-        self.showAftermath(attacker, defender, result);
+        self.showAftermath(attacker, defender, result, true);
       });
     });
   };
 
   // Back on the map, the two units that fought stay faintly marked until the
-  // next action. A destroyed squad also explodes at its hex a few more times,
-  // and the unit that destroyed it keeps its battle highlight.
-  var AFTERMATH_BURST_MS = 480, AFTERMATH_BURSTS = 3;
-  GameUI.prototype.showAftermath = function (attacker, defender, result) {
+  // next action. A destroyed squad also explodes once at its hex, for about a
+  // second (user, 2026-09-29: three explosions were too many), and the unit that
+  // destroyed it keeps its battle highlight.
+  var AFTERMATH_MS = 1000;
+  // `transient`: the player's own battle. Its explosions play, but no outline,
+  // link or killer highlight stays on the board afterwards (user report,
+  // 2026-09-29: highlighted hexes lingering after an attack).
+  GameUI.prototype.showAftermath = function (attacker, defender, result, transient) {
     var self = this, renderer = this.renderer;
     var dead = [result.defenderDead && defender, result.attackerDead && attacker].filter(Boolean);
     if (this._aftermath) this._aftermath.cancel();
@@ -1023,15 +1214,18 @@ var UI = (function () {
     renderer.aftermath = [];
     renderer.attackingUnitId = null;
     renderer.flashUnits = {};
-    renderer.battlePair = {attacker: {col: attacker.col, row: attacker.row}, defender: {col: defender.col, row: defender.row}};
-    if (dead.length === 1 && result.defenderDead) renderer.attackingUnitId = attacker.id;
-    if (dead.length === 1 && result.attackerDead) renderer.flashUnits[defender.id] = "#ffffff";
+    renderer.battlePair = transient ? null :
+      {attacker: {col: attacker.col, row: attacker.row}, defender: {col: defender.col, row: defender.row}};
+    if (!transient && dead.length === 1 && result.defenderDead) renderer.attackingUnitId = attacker.id;
+    if (!transient && dead.length === 1 && result.attackerDead) renderer.flashUnits[defender.id] = "#ffffff";
     if (!dead.length) { this.draw(); return; }
-    this._aftermath = timeline.play({duration: AFTERMATH_BURST_MS * AFTERMATH_BURSTS, update: function (elapsed) {
+    dead.forEach(function (unit) {
+      self.soundAt("explosion", unit.col, unit.row, {size: 0.4, destroyed: false});
+    });
+    this._aftermath = timeline.play({duration: AFTERMATH_MS, update: function (elapsed) {
       if (self.destroyed) return;
-      var burst = Math.min(AFTERMATH_BURSTS - 1, Math.floor(elapsed / AFTERMATH_BURST_MS));
       renderer.aftermath = dead.map(function (unit, i) {
-        return {col: unit.col, row: unit.row, phase: elapsed / AFTERMATH_BURST_MS - burst, seed: 41 + 13 * i + 7 * burst};
+        return {col: unit.col, row: unit.row, phase: elapsed / AFTERMATH_MS, seed: 41 + 13 * i};
       });
       self.draw();
     }, done: function () {
@@ -1046,6 +1240,7 @@ var UI = (function () {
   GameUI.prototype.inspectEnemy = function (unit) {
     this.deselect();
     this.selected = unit;
+    this.soundAt("target", unit.col, unit.row);
     this.mode = "enemyInspect";
     // The enemy's last activation may be spent. Preview its next full turn
     // against the current board without resetting or mutating the real unit.
@@ -1100,6 +1295,7 @@ var UI = (function () {
     }
     this.closeActionMenu();
     this.selected = unit;
+    this.soundAt("select", unit.col, unit.row, {moveType: unit.type.moveType});
     this.pickTargets = [];
     this.mode = "command";
     this.range = this.game.movementRange(unit);
@@ -1197,6 +1393,7 @@ var UI = (function () {
     this.animateMovement(unit, moved.path, function () {
       self.busy = false;
       self.refreshStatus();
+      if (unit.carriedBy) self.sound("load");
       self.showMoveEffects(events);
       self.checkGameOver();
       if (self.game.winner === null && !unit.inFactory && !unit.carriedBy &&
@@ -1241,6 +1438,15 @@ var UI = (function () {
       if (events[i].t === "capture") this.toast("Captured " + events[i].kind + "!");
       if (events[i].t === "repair") this.toast("Repaired to full strength");
     }
+    this.soundMoveEffects(events);
+  };
+
+  // A capture and a repair on the same arrival would sound as one muddle;
+  // a capture takes the moment.
+  GameUI.prototype.soundMoveEffects = function (events) {
+    var capture = events.find(function (event) { return event.t === "capture"; });
+    if (capture) this.sound("capture", {kind: capture.kind});
+    else if (events.some(function (event) { return event.t === "repair"; })) this.sound("repair");
   };
 
   GameUI.prototype.enterUnload = function (transport, cargoUnit) {
@@ -1310,6 +1516,7 @@ var UI = (function () {
         this.dragging.x = e.offsetX; this.dragging.y = e.offsetY;
         this.renderer.hoverHex = null;
         $("unit-hover").classList.add("hidden");
+        this.hideCombatPreview();
         this.draw();
         return;
       }
@@ -1321,9 +1528,14 @@ var UI = (function () {
     this.renderer.hoverHex = hex;
     // Show/hide the card in this event, before forecast work.
     this.updateHoverInfo();
-    if (hex) {
-      var u = this.game.unitAt(hex.col, hex.row);
-      if (u && (this.mode === "moved" || this.mode === "unitSelected")) this.showCombatPreview(u);
+    // The combat board follows the pointer: it shows only while the pointer is
+    // on a target this unit may attack, so no ring or number outlives the hover.
+    var over = hex && this.game.unitAt(hex.col, hex.row);
+    if (over && (this.mode === "moved" || this.mode === "unitSelected") && this.pickTargets.indexOf(over) >= 0) {
+      this.showCombatPreview(over);
+    } else if (this._previewKey) {
+      this.hideCombatPreview();
+      changed = true;
     }
     if (changed) this.draw();
   };
@@ -1331,6 +1543,7 @@ var UI = (function () {
   GameUI.prototype.onMouseLeave = function () {
     this.renderer.hoverHex = null;
     $("unit-hover").classList.add("hidden");
+    if (this._previewKey) this.hideCombatPreview();
     this.draw();
   };
 
@@ -1363,12 +1576,16 @@ var UI = (function () {
     if (confirming) return;
     if (this.busy || this.mode === "aiTurn" || this.mode === "over") return;
     if (this.mode === "battle") return;
-    if (this.mode === "unload") this.deselect();
-    else if (this.mode === "deployPick") this.cancelDeployment(true);
-    else if (this.mode === "factory") this.closeFactoryPanel();
+    if (this.mode === "unload") { this.sound("cancel"); this.deselect(); }
+    else if (this.mode === "deployPick") { this.sound("cancel"); this.cancelDeployment(true); }
+    else if (this.mode === "factory") { this.sound("cancel"); this.closeFactoryPanel(); }
     else if (undoMovement && (this.mode === "idle" ||
       (this.mode === "moved" && this.selected && this.selected.shifted)) && this.canUndo()) this.undoLast();
-    else this.deselect();
+    else {
+      // Nothing is selected in idle mode, so there is nothing to cancel.
+      if (this.mode !== "idle") this.sound("cancel");
+      this.deselect();
+    }
   };
 
   GameUI.prototype.onKey = function (e) {
@@ -1381,6 +1598,10 @@ var UI = (function () {
         if (e.shiftKey || e.key.toLowerCase() === "y") this.redoLast(); else this.undoLast();
       }
       return;
+    }
+    // Space pauses the battle screen for study; a focused button keeps its own Space.
+    if (e.key === " " && this._battlePlayback && !e.repeat && !(e.target && e.target.tagName === "BUTTON")) {
+      e.preventDefault(); this.toggleBattlePause(); return;
     }
     if (e.key === "Escape") { this.onMouseLeave(); this.onCancel(); }
     if (e.key === "e" && !e.repeat && this.mode === "idle") this.endTurn();
@@ -1426,7 +1647,8 @@ var UI = (function () {
         this.deselect();
         this.refreshStatus();
         this.checkGameOver();
-      } catch (err) { this.toast(err.message); }
+        this.soundAt("unload", col, row);
+      } catch (err) { this.sound("deny"); this.toast(err.message); }
       return;
     }
 
@@ -1452,8 +1674,9 @@ var UI = (function () {
           else g.deployFromFactory(pend.building, pend.unit, col, row);
           this.recordUndo(before, unitView.name(pend.unit) + " deployment");
           deployed = true;
+          this.soundAt(transport ? "load" : "deploy", col, row);
         }
-        catch (err) { this.toast(err.message); }
+        catch (err) { this.sound("deny"); this.toast(err.message); }
         this.refreshStatus();
       }
       if (pend && pend.building.stored.length && (!deployed || pend.building.stored.some(function (reserve) {
@@ -1523,6 +1746,7 @@ var UI = (function () {
     this.hideWatchPanel();
     this.hideBattleScreen();
     if (this.game.winner === null) this.game.endTurn();
+    if (this.game.winner === null) this.sound("turnStart");
     this.busy = false;
     this.mode = this.game.winner === null ? "idle" : "over";
     this.refreshStatus();
@@ -1539,6 +1763,7 @@ var UI = (function () {
       // Never turn a failed search into a passed turn or a different opponent.
       this.busy = true;
       $("status-player").textContent = "AI stopped — Save & Menu to retry";
+      this.sound("deny");
       this.toast("AI error: " + error.message);
       return {t:"error"};
     }
@@ -1569,7 +1794,9 @@ var UI = (function () {
       this.hideBattleScreen();
       var path = event.path || [event.from || {col: event.building.col, row: event.building.row}, event.to];
       var moving = this;
+      if (event.t === "deploy") this.soundAt("deploy", path[0].col, path[0].row);
       this.animateMovement(event.unit, path, function () {
+        moving.soundMoveEffects(event.effects || []);
         moving._aiTimer = setTimeout(function () { moving.runNextAIEvent(); }, 250);
       });
       this.refreshStatus(); this.draw();
@@ -1603,6 +1830,7 @@ var UI = (function () {
       var text = effect.t === "capture" ? "captured " + effect.kind : "repaired to full strength";
       this.showWatchPanel(battleReport.faction(event.unit.player) + " selected", "<div class='war-verb'>" +
         unitView.html(event.unit) + " " + esc(text) + "</div>");
+      this.soundMoveEffects(event.effects);
       delay = 900;
     }
 
@@ -1666,8 +1894,9 @@ var UI = (function () {
     this.refreshStatus();
     this.checkGameOver();
     if (g.winner !== null) return;
+    this.sound("turnEnd");
 
-    if (this.options.hotseat) { this.toast(RENDER.PLAYER_COLORS[g.currentPlayer].name + " — your turn"); this.draw(); return; }
+    if (this.options.hotseat) { this.refreshSide(); this.toast(RENDER.PLAYER_COLORS[g.currentPlayer].name + " — your turn"); this.draw(); return; }
 
     this.beginAITurn();
   };
@@ -1718,6 +1947,12 @@ var UI = (function () {
     var msg = RENDER.PLAYER_COLORS[g.winner].name + " wins — " + (reasons[g.winReason] || g.winReason);
     $("gameover-text").textContent = msg;
     $("gameover-panel").classList.remove("hidden");
+    // Checked again after later moves and on reload; the fanfare plays once.
+    if (sfx.isEnabled() && !this._overSounded) {
+      this._overSounded = true;
+      // A base capture has just sounded its own jingle; let it finish.
+      sfx.play(this.options.hotseat || g.winner === 0 ? "victory" : "defeat", {delay: g.winReason === "base" ? 0.8 : 0});
+    }
     this.onGameOver(g.winner);
   };
 

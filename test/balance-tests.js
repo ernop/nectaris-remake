@@ -77,9 +77,10 @@ module.exports=function(ok){
   try{
     global.BALANCE=B;global.document={getElementById:function(){return {children:[]};}};
     var Setup=require("../js/balance-ui.js").Setup;
-    function controller(hotseat){
+    function controller(hotseat,human){
       var ui=Object.create(Setup.prototype);ui.plan=p;ui.options={hotseat:hotseat};ui.render=function(){};ui.focus=function(){};
-      ui.prepareBot=function(){this.surveys[1]=surveys[8];};
+      ui.human=human||0;ui.bot=1-ui.human;
+      ui.prepareBot=function(){this.surveys[this.bot]=surveys[8];};
       ui.handoff=function(player){this.phase="handoff";this.handedTo=player;};ui.restart();return ui;
     }
     var solo=controller(false),locked=JSON.stringify(solo.surveys[1]);
@@ -87,6 +88,10 @@ module.exports=function(ok){
     ok(solo.phase==="vote"&&solo.step<15&&JSON.stringify(solo.surveys[1])===locked,"solo acceptance narrows the question while CPU answers remain committed");
     while(solo.phase==="vote")solo.submit(null);
     ok(solo.phase==="agreed"&&solo.result.thresholds.length===2,"solo agreement waits for the player's completed switch point");
+    var xenon=controller(false,1),bot=JSON.stringify(xenon.surveys[0]);
+    xenon.submit(xenon.step);
+    ok(xenon.responder===1&&xenon.viewer===1&&xenon.phase==="vote"&&JSON.stringify(xenon.surveys[0])===bot,
+      "a Xenon player answers as Xenon while the bot's Union answers stay committed");
     var hotseat=controller(true);
     ok(hotseat.phase==="handoff"&&hotseat.handedTo===0,"hotseat begins behind a private handoff");
     hotseat.phase="vote";hotseat.submit(0);

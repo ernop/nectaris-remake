@@ -180,6 +180,47 @@ fn tournament_command(flags: &HashMap<String, String>) -> Result<(), String> {
     tournament::run(&data, &c, threads, std::path::Path::new(out))
 }
 
+
+fn match_command(flags: &HashMap<String, String>) -> Result<(), String> {
+    let known = ["a", "b", "boards", "cycles", "rounds", "work", "seed", "threads"];
+    if let Some(k) = flags.keys().find(|k| !known.contains(&k.as_str())) {
+        return Err(format!("Unknown option --{k}"));
+    }
+    let data = Data::load(repo().join("sim/data/game-data.json").to_str().unwrap());
+    let a = flags.get("a").ok_or("--a=SPEC is required")?;
+    let b = flags.get("b").ok_or("--b=SPEC is required")?;
+    let boards = board_list(&data, flags.get("boards").map_or("0,1", String::as_str))?;
+    let num = |k: &str, d: i64| -> Result<i64, String> { flags.get(k).map_or(Ok(d), |v| v.parse().map_err(|_| format!("--{k} must be a whole number"))) };
+    let threads = match flags.get("threads") {
+        Some(_) => num("threads", 1)? as usize,
+        None => std::thread::available_parallelism().map_err(|e| e.to_string())?.get(),
+    };
+    let seed = seed_flag(flags)?.unwrap_or_else(Seed::fresh);
+    let started = Instant::now();
+    let s = nectaris_sim::lab::run_match(&data, a, b, &boards, num("cycles", 1)? as u32, &seed, threads, flags.get("work").map_or("standard", String::as_str), num("rounds", 0)? as i32)?;
+    let (p, lo, hi) = s.rate();
+    println!(
+        "{a} vs {b}: {} games in {:.1} s. {a} {}-{} ({} draws): score {:.1}% [{:.1}, {:.1}]; as Union {}-{}, as Xenon {}-{}; base {} elimination {} turnlimit {}; mean rounds {:.1}",
+        s.games,
+        started.elapsed().as_secs_f64(),
+        s.a_total(),
+        s.b_total(),
+        s.draws,
+        p * 100.0,
+        lo * 100.0,
+        hi * 100.0,
+        s.a_wins[0],
+        s.b_wins[1],
+        s.a_wins[1],
+        s.b_wins[0],
+        s.base,
+        s.elimination,
+        s.turnlimit,
+        s.rounds as f64 / f64::from(s.games)
+    );
+    Ok(())
+}
+
 fn repo() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("..")
 }
@@ -344,7 +385,7 @@ fn main() {
     let default = repo().join("test/fixtures/sim-corpus.json.gz");
     let path = args.get(2).map(|s| s.as_str()).unwrap_or(default.to_str().unwrap());
     let command = args.get(1).map(|s| s.as_str());
-    if !matches!(command, Some("tournament") | Some("turn-time") | Some("playout")) {
+    if !matches!(command, Some("tournament") | Some("turn-time") | Some("playout") | Some("match")) {
         if let Some(k) = flags.keys().next() {
             eprintln!("Unknown option --{k}");
             std::process::exit(1);
@@ -362,6 +403,13 @@ fn main() {
             }
         },
         Some("turn-time") => match turn_time(&flags) {
+            Ok(()) => true,
+            Err(e) => {
+                eprintln!("{e}");
+                false
+            }
+        },
+        Some("match") => match match_command(&flags) {
             Ok(()) => true,
             Err(e) => {
                 eprintln!("{e}");
