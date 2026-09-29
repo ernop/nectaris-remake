@@ -35,8 +35,7 @@ module.exports = function (ok) {
     ui.draw = ui.refreshStatus = ui.checkGameOver = ui.updateHoverInfo = function () {};
     ui.playBattleTimeline = function () {};
     ui.animateMovement = function (unit, path, done) { if (done) done(); return 0; };
-    ui.warLedger = require("../js/battle-report.js").emptyLedger();
-    ui.animateBattleResult = function (event, detail, done) { ui.battleEvent = event; ui.animationDone = done; };
+    ui.animateBattleResult = function (event, done) { ui.battleEvent = event; ui.animationDone = done; };
     ui.playCombatEffects = function (attacker, defender, preview, done) { done(); };
     ui.showAftermath = function () {};
     ui.selectUnit(game.units[0]);
@@ -501,7 +500,7 @@ module.exports = function (ok) {
     ui.renderer.fitToMap = function () { fits++; };
     var layoutState = JSON.stringify(ui.game.snapshot());
     ui.openActionMenu(ui.selected); ui.closeActionMenu();
-    ui.openWarDock("Report", "Long statistics"); ui.closeWarDock();
+    ui.openWarDock("Report"); ui.closeWarDock();
     ok(ui.canvas.width === 800 && ui.canvas.height === 600 && fits === 0 &&
       ui.renderer.originX === 40 && ui.renderer.originY === 50 &&
       JSON.stringify(ui.game.snapshot()) === layoutState,
@@ -807,7 +806,7 @@ module.exports = function (ok) {
     var outcome = ui.game.attack(fighter, foe);
     seeks = [];
     ui.animateBattleResult({attacker: fighter, defender: foe, attackerBefore: fighterBefore, defenderBefore: foeBefore,
-      result: outcome}, nodes["war-scene"], function () { battleOver = true; }, 900, 800);
+      result: outcome}, function () { battleOver = true; }, 900, 800);
     ok(!ui._advanceBattle && seeks.length === 1 && seeks[0] === ui._battleResultAt && ui._battleResultAt > 800 &&
       nodes["battle-content"].innerHTML.includes("data-battle-phase='result'") && !battleOver,
       "the battle screen opens directly at its result");

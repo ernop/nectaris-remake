@@ -232,6 +232,9 @@ the published 100-row damage table, this-roll-or-higher share, mean casualties,
 exact-loss and loss-or-more shares. Within half a machine counts as near the
 average. A disabled counter has no roll. Attack and counter remain separate draws.
 The per-side ledger and opening decisions also remain in the left panel.
+Since 2026-09-29 the report and the ledger appear only on the tournament replay
+page; a match's left panel shows no battle data
+([record](#no-battle-report-in-the-matchs-left-panel-2026-09-29)).
 
 Replay pacing (user request, 2026-09-26): every action is shown and none is
 drawn out, with no selection cursor and no slow walking.
@@ -253,7 +256,7 @@ The user's 2026-09-26 correction keeps the chosen camera still during opponent
 playback: watched moves, deployments, battles, captures and repairs never pan
 or zoom. When the opponent's turn ends, its last unit is deselected: its
 destination highlight and the "selected" entry in the left panel clear (user
-request, 2026-09-26); a report of its last battle stays until the player acts. Replays open with **Follow action** off; explicitly enabling it frames
+request, 2026-09-26). Its battles leave nothing there (2026-09-29). Replays open with **Follow action** off; explicitly enabling it frames
 the acted hexes. Fit, wheel zoom and Ctrl+drag turn following off again. This
 supersedes automatic live action framing and following by default in replays.
 The scrubber shows 0,
@@ -305,7 +308,7 @@ note, pushed every button below it down. The panel now has three parts. The top
 size and place. Everything that appears or changes size during either side's
 turn shares the middle section, which scrolls by itself: the unit's action strip
 and range legend, the attack forecast under that strip, Show map and the battle
-report. The side line stays one line; while the AI plans it reads
+report (the report left matches on 2026-09-29). The side line stays one line; while the AI plans it reads
 "Xenon (thinking…)", as the opponent line already names the bot.
 
 ## Left panel layout and playing either side (2026-09-29)
@@ -320,7 +323,8 @@ may exist but small. The status block he named: campaign name, mission name and
 number, and his side, large, plus unit counts. Behavior:
 
 - **Top to bottom:** Save & Menu; the status block; the middle section (unit
-  actions, battle report; the only part that changes size); settings; Undo /
+  actions, the watched opponent's action, Show map during a battle; the only
+  part that changes size); settings; Undo /
   Redo; End Turn. Undo / Redo and End Turn are one sticky group at the foot, so
   they stay reachable when a short window makes the panel scroll. Nothing in the
   status block, settings or foot changes size during play.
@@ -354,6 +358,27 @@ number, and his side, large, plus unit counts. Behavior:
   questions run as the human's side against the bot's other side. Rationale: the
   turn limit favors Xenon (the defender), and the bots already play either side.
 - The Sound toggle's behavior is in [Sound effects](#sound-effects-user-request-2026-09-29).
+
+## No battle report in the match's left panel (2026-09-29)
+
+User request (2026-09-29), with a screenshot of the panel during a battle: "i
+like this 'show map' concept but really the entire data about the battle is not
+useful so please remove it!" During a battle, the player's own or a watched
+opponent's, the panel's middle section shows only **Show map / Show battle**,
+which works as before, and nothing about the battle stays there afterwards.
+Removed from the match's panel:
+
+- the "N destroyed, M lost" headline, each side's icon, faction, lost or
+  destroyed count and "N left of M", and "X attacked Y";
+- the watched opponent's "Xenon selected an attack" preview;
+- the per-side ledger (attacks, destroyed, lost, attack and counter against the
+  average).
+
+The battle screen keeps all of its numbers. The watched opponent's move,
+deployment, capture and repair lines still appear in the same place between
+battles; a battle clears the line before it, and the end of the opponent's turn
+clears the last one. The tournament replay page is unchanged: its left panel
+still shows the battle summary, the roll arithmetic and the ledger.
 
 ## Sound effects (user request, 2026-09-29)
 
@@ -1563,7 +1588,8 @@ defender's numbers gain helpful defenders and are halved for a surround.
 
 Superseded by this record: the left-panel forecast, heatmap and calculation
 text; the war dock's per-machine step table; the AI preview's "before the roll"
-text (the dock keeps the scene headline and the result report/ledger); the
+text (the dock then kept the scene headline and the result report/ledger;
+matches dropped those on 2026-09-29); the
 "faintly marked until the next action" rule for the player's own battles. The
 old `js/combat-view.js` and the war dock's `effectsHtml` step table were deleted.
 
@@ -1604,9 +1630,11 @@ pass)"; the Where, When, Left panel, Hover and Replay points still hold.
 - **When.** The popup opens on the count-up, so Pause, Space and click-to-skip
   act on it; the formations stay apart until the count ends, then approach, fire
   and show the result with the finished numbers in place.
-- **Left panel.** It carries no calculation. The war dock keeps the result
-  headline (destroyed/lost) and the running ledger; the roll and formula lines it
-  used to show are in the popup.
+- **Left panel.** It carries no calculation. The war dock kept the result
+  headline (destroyed/lost) and the running ledger until the user removed them
+  from matches on 2026-09-29
+  ([record](#no-battle-report-in-the-matchs-left-panel-2026-09-29)); the roll and
+  formula lines it used to show are in the popup.
 - **Hover.** Pointing at a target still opens the combat board over the map,
   because it needs the map's ZOC ring and supporter numbers; it has the same
   step rows and the projected-loss charts.

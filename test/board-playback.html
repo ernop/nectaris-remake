@@ -38,9 +38,9 @@ document.getElementById("run").onclick=async function(){
   try{
     var x=setup(),d=x.d,w=x.w,g=x.g;await wait(50);
     var canvas=d.getElementById("game-canvas"),baseline=bounds(canvas),camera=[ui.renderer.zoom,ui.renderer.originX,ui.renderer.originY].join();
-    ui.openWarDock("<p>Short report</p>","<p>One statistic</p>");await wait(20);
+    ui.openWarDock("<p>Short report</p>");await wait(20);
     check(bounds(canvas)===baseline,"opening a report does not resize or move the board");
-    ui.openWarDock("<p>Long report</p>",Array(100).fill("<p>Battle statistics</p>").join(""));await wait(30);
+    ui.openWarDock(Array(100).fill("<p>Long report</p>").join(""));await wait(30);
     check(bounds(canvas)===baseline&&[ui.renderer.zoom,ui.renderer.originX,ui.renderer.originY].join()===camera,"growing metadata preserves board bounds and camera");
     ui.closeWarDock();
     var unit=g.units[0];ui.selectUnit(unit);ui.tryMove(unit,2,3);

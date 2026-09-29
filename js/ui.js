@@ -95,7 +95,6 @@ var UI = (function () {
     // Pause the battle screen when its result appears, so the final numbers and
     // the loss chart can be read; off by default so watched turns keep flowing.
     this.holdBattleResult = localStorage.getItem("nectaris-battle-hold") === "on";
-    this.warLedger = battleReport.emptyLedger();
     this.onGameOver = this.options.onGameOver || function () {};
     if (!this.options.hotseat && this.options.humanSide !== 0 && this.options.humanSide !== 1) {
       throw new Error("A solo match needs options.humanSide (0 = Union, 1 = Xenon)");
@@ -462,11 +461,12 @@ var UI = (function () {
     $("btn-animate").setAttribute("aria-pressed", this.animateMoves ? "true" : "false");
   };
 
-  GameUI.prototype.openWarDock = function (scene, math) {
+  // The dock holds only the watched opponent's current action. A battle puts
+  // nothing here, in play or watched (user, 2026-09-29): its numbers are on
+  // the battle screen, and the panel keeps just Show map beside it.
+  GameUI.prototype.openWarDock = function (html) {
     var dock = $("war-dock");
-    this._dockShowsSelection = false;
-    $("war-scene").innerHTML = scene || "";
-    $("war-math").innerHTML = math || "";
+    $("war-scene").innerHTML = html;
     unitView.paint(dock);
     dock.classList.remove("hidden");
     this.draw();
@@ -477,8 +477,6 @@ var UI = (function () {
     if (!dock || dock.classList.contains("hidden")) return;
     dock.classList.add("hidden");
     $("war-scene").innerHTML = "";
-    $("war-math").innerHTML = "";
-    this.hideBattleScreen();
   };
 
   GameUI.prototype.showBattleScreen = function (html, outcome) {
@@ -553,8 +551,7 @@ var UI = (function () {
 
   GameUI.prototype.showWatchPanel = function (title, detail) {
     $("watch-panel").classList.add("hidden");
-    this.openWarDock("<div class='war-scene'><div class='war-headline'>" + esc(title) + "</div>" + detail + "</div>", "");
-    this._dockShowsSelection = true;
+    this.openWarDock("<div class='war-scene'><div class='war-headline'>" + esc(title) + "</div>" + detail + "</div>");
   };
 
   GameUI.prototype.hideWatchPanel = function () {
@@ -595,7 +592,6 @@ var UI = (function () {
     this.renderer.attackingUnitId = event.attacker.id;
     this.renderer.flashUnits[event.defender.id] = "#ffffff";
     var parts = battleReport.previewHtml(event.attacker, event.defender, event.preview, this.game);
-    this.openWarDock(parts.scene, "");
     this.showBattleScreen(parts.screen, parts.outcome);
   };
 
@@ -605,13 +601,11 @@ var UI = (function () {
     this.renderer.attackingUnitId = event.attacker.id;
     this.renderer.flashUnits[event.defender.id] = "#ffffff";
     var parts = battleReport.resultParts(event.attacker, event.defender, event.result, event.attackerBefore, event.defenderBefore, this.game);
-    battleReport.record(this.warLedger, event.attacker.player, parts.assessed);
-    this.openWarDock(parts.scene, battleReport.ledgerHtml(this.warLedger));
     this.showBattleScreen(parts.screen, parts.outcome);
-    return this.animateBattleResult(event, $("war-scene"), done, 1400, 0);
+    return this.animateBattleResult(event, done, 1400, 0);
   };
 
-  GameUI.prototype.animateBattleResult = function (event, detail, onComplete, holdMs, approachMs) {
+  GameUI.prototype.animateBattleResult = function (event, onComplete, holdMs, approachMs) {
     if (this._battlePlayback) this._battlePlayback.cancel();
     var self = this;
     var result = event.result;
@@ -625,7 +619,7 @@ var UI = (function () {
     }
     var timing = {aType: event.attacker.typeId, ranged: !!result.preview.ranged};
     var duration = battleReport.fightingDuration(timing), volley = battleReport.volleyMs(timing);
-    var lastCounts = "", resultMath = $("war-math").innerHTML, held = false;
+    var lastCounts = "", held = false;
     var assessed = battleReport.assess(event.attacker, event.defender, result, event.attackerBefore, event.defenderBefore);
     var area = battleReport.battleArea(this.game, event.attacker, event.defender);
     if (holdMs === undefined) holdMs = 500;
@@ -670,11 +664,6 @@ var UI = (function () {
       var counts = attackerCurrent + ":" + defenderCurrent + ":" + aExp + ":" + dExp + ":" + phase;
       if (counts !== lastCounts) {
         lastCounts = counts;
-        detail.innerHTML = battleReport.sceneHtml(
-          Object.assign({}, event.attacker, {exp:aExp}), Object.assign({}, event.defender, {exp:dExp}),
-          event.attackerBefore, event.defenderBefore, attackerCurrent, defenderCurrent);
-        unitView.paint(detail);
-        $("war-math").innerHTML = phase === "result" ? resultMath : "";
         var stage = $("battle-content");
         stage.innerHTML = battleReport.screenHtml(event.attacker, event.defender, result.preview,
           event.attackerBefore, event.defenderBefore, attackerCurrent, defenderCurrent,
@@ -1194,7 +1183,6 @@ var UI = (function () {
     var attackerBefore = attacker.strength, defenderBefore = defender.strength;
     var result = g.attack(attacker, defender);
     var parts = battleReport.resultParts(attacker, defender, result, attackerBefore, defenderBefore, g);
-    battleReport.record(this.warLedger, attacker.player, parts.assessed);
     this.clearUndo(); // Combat is an irreversible boundary, including during animation.
     this.refreshStatus();
     // The map keeps both pre-battle squads, including a destroyed one, until the
@@ -1207,11 +1195,10 @@ var UI = (function () {
       Object.assign({}, attacker, {strength: attackerBefore, exp: result.attackerExpBefore}),
       Object.assign({}, defender, {strength: defenderBefore, exp: result.defenderExpBefore}),
       result.preview, function () {
-      self.openWarDock(parts.scene, battleReport.ledgerHtml(self.warLedger));
       self.showBattleScreen(parts.screen, parts.outcome);
       self.animateBattleResult({ attacker: attacker, defender: defender,
         attackerBefore: attackerBefore, defenderBefore: defenderBefore, result: result,
-      }, $("war-scene"), function () {
+      }, function () {
         self.busy = false;
         self.hideBattleScreen();
         // Drop the battle marks before the follow-up display. A surviving
@@ -1772,7 +1759,7 @@ var UI = (function () {
     this._aiTurn = null;
     this.selected = null;
     this.clearBattleMarks();
-    if (this._dockShowsSelection) this.closeWarDock();
+    this.closeWarDock();
     this.hideWatchPanel();
     this.hideBattleScreen();
     if (this.game.winner === null) this.game.endTurn();
@@ -1833,6 +1820,8 @@ var UI = (function () {
       return;
     } else if (event.t === "battle-preview") {
       this.selected = event.attacker;
+      // The line for the opponent's previous action would sit beside the battle.
+      this.closeWarDock();
       var previewing = this;
       this.playCombatEffects(event.attacker, event.defender, event.preview, function () {
         previewing.showWatchPreview(event);

@@ -327,11 +327,14 @@ Facts we need across sessions:
   again reopens it. Use the engine's unloadTargets, including transfer, passenger,
   occupancy and terrain restrictions. Apply this to Pelican, Mule and custom carriers.
 
-- **Battle review (2026-09-25):** matches and tournament replays share a fixed left
-  report panel and original-style opposing battle formations with stats. It shows who attacked whom, machines destroyed and lost, the
-  match's actual table roll, and whether those casualties were above, near, or
-  below the 100-row average. Replay steps selection, then the action. A ledger
-  sums each side's attacks and its gap from the average. See PRODUCT.
+- **Battle review (2026-09-25; match panel emptied 2026-09-29):** matches and
+  tournament replays share original-style opposing battle formations with stats.
+  Only the replay's fixed left panel reports who attacked whom, machines
+  destroyed and lost, the match's actual table roll, whether those casualties
+  were above, near, or below the 100-row average, and a ledger of each side's
+  attacks and its gap from the average. Replay steps selection, then the action.
+  During a match's battle the left panel shows only Show map; the user judged
+  the battle data there not useful (2026-09-29). See PRODUCT.
 
 - **Combat UI (2026-09-23, latest correction):** selecting a unit shows blue
   moves plus firing ranges and red legal attack targets from its current hex.
@@ -362,8 +365,8 @@ Facts we need across sessions:
   2026-09-29), not in the left panel; see the combat board record in
   `PRODUCT.md`. Status lines, Undo/Redo
   and End Turn stay fixed at the top of the panel and settings at its foot;
-  anything that appears or resizes during play (action strip, legend,
-  battle report) lives in the middle section, which scrolls by itself, and must
+  anything that appears or resizes during play (action strip, legend, Show map,
+  the watched opponent's action line) lives in the middle section, which scrolls by itself, and must
   never push the commands (user, 2026-09-26). The side line stays one line.
   Enemy inspection retains orange movement and ground/air firing contours.
   Never restore automatic layout changes from metadata or

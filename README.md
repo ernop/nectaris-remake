@@ -285,10 +285,8 @@ the page or list scrolls or resizes.
   that allowance: cargo already aboard can unload after moving. Loaded passengers
   appear with their icons in the transport's hover card. Unavailable Unload buttons stay visible in
   the unit's action strip, with the reason on hover.
-- **Watch AI** (checked by default) shows each Xenon selection, then the move or attack. Battle
-  results sit in the fixed left panel: machines destroyed and lost, the roll the match
-  drew, and whether that result was above, near, or below the average. The
-  same report is used for your own attacks. A dedicated battle view shows opposing
+- **Watch AI** (checked by default) shows each Xenon selection, then the move or attack. A
+  dedicated battle view, used for your own attacks too, shows opposing
   formations with Union on the left and Xenon on the right, each on its own
   terrain (one continuous ground when adjacent). Under them, each side's attack
   and defense totals count up from their parts and face the other side's, with
@@ -302,7 +300,9 @@ the page or list scrolls or resizes.
   Replay **Pause on battle screens** starts on; click anywhere on the paused
   battle to continue. **Skip battle scenes** starts off and bypasses the scenes,
   automatic pauses and holds. Show map / Show battle switches views without
-  changing the board. Units traverse each
+  changing the board; in a match it is all the left panel shows during a battle.
+  The replay page's panel also writes out each result, its roll and a running
+  tally. Units traverse each
   hex of their legal movement route in live play and replays. Turn Watch AI off for immediate
   AI turns. Unchecking **Move animation** separately places moving units straight on
   their destination while Watch AI still shows each AI step. Opponent actions preserve your chosen camera position and zoom.
