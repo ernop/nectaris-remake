@@ -84,6 +84,8 @@ pub struct UnitType {
     pub move_after_attack: bool,
     pub ai_deployment_enemies: Option<i32>,
     pub json: String,
+    /// `AI_MODEL`'s base value of the type (`model::base_value`), computed once.
+    pub base_value: f64,
 }
 
 #[derive(Deserialize, Clone)]
@@ -272,6 +274,7 @@ impl Data {
             .units
             .iter()
             .map(|t| UnitType {
+                base_value: 0.0,
                 id: t.id.clone(),
                 mv: t.mv,
                 move_type: move_type(&t.move_type),
@@ -294,6 +297,10 @@ impl Data {
                 move_after_attack: t.move_after_attack,
                 ai_deployment_enemies: t.ai_deployment_enemies,
                 json: t.json.clone(),
+            })
+            .map(|mut t| {
+                t.base_value = crate::model::base_value(&t);
+                t
             })
             .collect();
         let mut buckets = Vec::new();

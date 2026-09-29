@@ -62,7 +62,7 @@ fn random_seed(rng: &mut Rng) -> u32 {
 }
 
 fn ready_count(g: &Game) -> usize {
-    let field = g.player_units(g.current).into_iter().filter(|&u| !g.units[u].moved).count();
+    let field = g.units_of(g.current).filter(|&u| !g.units[u].moved).count();
     let stored: usize = g.player_factories(g.current).into_iter().map(|b| g.buildings[b].stored.iter().filter(|&&u| !g.units[u].moved).count()).sum();
     field + stored
 }
@@ -72,7 +72,7 @@ fn quiet(g: &Game, roots: &[(Action, f64)]) -> bool {
         return false;
     }
     let enemies = g.player_units(1 - g.current);
-    let mut units: Vec<(usize, i32, i32)> = g.player_units(g.current).into_iter().filter(|&u| !g.units[u].moved).map(|u| (u, g.units[u].col, g.units[u].row)).collect();
+    let mut units: Vec<(usize, i32, i32)> = g.units_of(g.current).filter(|&u| !g.units[u].moved).map(|u| (u, g.units[u].col, g.units[u].row)).collect();
     for b in g.player_factories(g.current) {
         for &s in &g.buildings[b].stored {
             if !g.units[s].moved {
@@ -100,6 +100,13 @@ fn normalized(score: f64) -> f64 {
 
 fn shortlist(g: &mut Game, ctx: &mut Ctx, limit: usize, unit_limit: usize) -> Vec<Action> {
     let actions = model::candidates(g, ctx, limit, 3, unit_limit);
+    without_end(actions)
+}
+/// `shortlist` for a position whose `signature` the caller already built.
+fn shortlist_keyed(g: &mut Game, ctx: &mut Ctx, signature: Vec<i32>, limit: usize, unit_limit: usize) -> Vec<Action> {
+    without_end(model::candidates_keyed(g, ctx, signature, limit, 3, unit_limit))
+}
+fn without_end(actions: Vec<Action>) -> Vec<Action> {
     if actions.len() > 1 {
         actions.into_iter().filter(|a| a.kind != Kind::End).collect()
     } else {
@@ -139,10 +146,11 @@ fn rollout(g: &mut Game, player: i32, ctx: &mut Ctx, rng: &mut Rng, horizon: usi
         if g.winner >= 0 {
             break;
         }
-        if !seen.insert(model::signature(g)) {
+        let signature = model::signature(g);
+        if !seen.insert(signature.clone()) {
             break;
         }
-        let options = shortlist(g, ctx, 5, 3);
+        let options = shortlist_keyed(g, ctx, signature, 5, 3);
         let mut action = &options[0];
         if options.len() > 1 && options[1].kind != Kind::End && options[0].score - options[1].score < 8.0 && rng.next() < 0.2 {
             action = &options[1];

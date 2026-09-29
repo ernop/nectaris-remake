@@ -318,14 +318,14 @@ impl<'d> Game<'d> {
     }
     /// `playerUnits`: field units of the player, not carried, in board order.
     pub fn player_units(&self, player: i32) -> Vec<usize> {
-        self.field
-            .iter()
-            .copied()
-            .filter(|&i| {
-                let u = &self.units[i];
-                u.player == player && u.carried_by == 0 && !u.in_factory
-            })
-            .collect()
+        self.units_of(player).collect()
+    }
+    /// `player_units` without collecting them.
+    pub fn units_of(&self, player: i32) -> impl Iterator<Item = usize> + '_ {
+        self.field.iter().copied().filter(move |&i| {
+            let u = &self.units[i];
+            u.player == player && u.carried_by == 0 && !u.in_factory
+        })
     }
     /// `playerFactories`: every building the player owns, bases included.
     pub fn player_factories(&self, player: i32) -> Vec<usize> {
@@ -441,10 +441,15 @@ impl<'d> Game<'d> {
         let unit = &self.units[u];
         assert!(self.in_bounds(unit.col, unit.row), "Unit at {},{} is outside the map", unit.col, unit.row);
         let start = self.cell(unit.col, unit.row);
-        let mut order = vec![start];
         if shifted || mp <= 0 {
-            return MoveSearch { order, cost: vec![0], flags: vec![CAN_STOP] };
+            return MoveSearch { order: vec![start], cost: vec![0], flags: vec![CAN_STOP] };
         }
+        // At most the hexes within reach of the budget: 3r(r+1)+1 for reach r.
+        let min_step = self.tables.min_step[unit.t];
+        let reach = if min_step > 0 { (mp / min_step) as usize } else { usize::MAX };
+        let within = if reach > 64 { usize::MAX } else { 3 * reach * (reach + 1) + 1 };
+        let mut order = Vec::with_capacity(within.min(self.cells.len()));
+        order.push(start);
         SCRATCH.with(|scratch| {
             let mut guard = scratch.borrow_mut();
             let sc = &mut *guard;
@@ -565,7 +570,9 @@ impl<'d> Game<'d> {
     /// AI_MODEL's `fresh(unit)`.
     pub fn stopping_cells(&self, u: usize, fresh: bool) -> Vec<usize> {
         let s = if fresh { self.search_moves_as(u, self.typ(u).mv, false, None) } else { self.search_moves(u, None) };
-        (0..s.order.len()).filter(|&i| s.flags[i] & CAN_STOP != 0 && s.flags[i] & (LOAD | ENTER) == 0).map(|i| s.order[i]).collect()
+        let mut cells = Vec::with_capacity(s.order.len());
+        cells.extend((0..s.order.len()).filter(|&i| s.flags[i] & CAN_STOP != 0 && s.flags[i] & (LOAD | ENTER) == 0).map(|i| s.order[i]));
+        cells
     }
 
     /// `attackCells`: cells from which the unit could fire on one of `among`.

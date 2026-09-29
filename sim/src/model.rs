@@ -72,6 +72,23 @@ impl std::hash::Hasher for Fnv {
         self.0
     }
     fn write(&mut self, bytes: &[u8]) {
+        let mut bytes = bytes;
+        if bytes.len() >= 32 {
+            // Four independent chains: one chain's multiply latency would
+            // bound hashing of long keys. Folded back in lane order.
+            let mut lanes = [self.0, self.0.rotate_left(16), self.0.rotate_left(32), self.0.rotate_left(48)];
+            let mut blocks = bytes.chunks_exact(32);
+            for b in &mut blocks {
+                for (i, lane) in lanes.iter_mut().enumerate() {
+                    let x = u64::from_le_bytes(b[8 * i..8 * i + 8].try_into().unwrap());
+                    *lane = (lane.rotate_left(5) ^ x).wrapping_mul(0x517c_c1b7_2722_0a95);
+                }
+            }
+            for lane in lanes {
+                self.add(lane);
+            }
+            bytes = blocks.remainder();
+        }
         let mut chunks = bytes.chunks_exact(8);
         for c in &mut chunks {
             self.add(u64::from_le_bytes(c.try_into().unwrap()));
@@ -235,7 +252,7 @@ fn value_at(g: &Game, t: &UnitType, strength: i32, exp: i32) -> f64 {
         return 0.0;
     }
     let c = &g.d.combat;
-    base_value(t) * (0.2 + 0.8 * f64::from(strength) / f64::from(c.max_strength)) * (0.75 + 0.25 * f64::from(c.exp_damage[exp as usize]) / 100.0)
+    t.base_value * (0.2 + 0.8 * f64::from(strength) / f64::from(c.max_strength)) * (0.75 + 0.25 * f64::from(c.exp_damage[exp as usize]) / 100.0)
 }
 pub fn value(g: &Game, u: usize) -> f64 {
     value_at(g, g.typ(u), g.units[u].strength, g.units[u].exp)
@@ -334,7 +351,7 @@ pub fn objectives(g: &Game, u: usize, ctx: &mut Ctx) -> Vec<Target> {
         }
     }
     if t.atk_g != 0 || t.atk_a != 0 {
-        let mut enemies: Vec<usize> = g.player_units(1 - player).into_iter().filter(|&e| range_band(t, g.is_air(e)).is_some()).collect();
+        let mut enemies: Vec<usize> = g.units_of(1 - player).filter(|&e| range_band(t, g.is_air(e)).is_some()).collect();
         enemies.sort_by_key(|&e| hex::distance(unit.col, unit.row, g.units[e].col, g.units[e].row));
         for &e in enemies.iter().take(3) {
             let (min, max) = range_band(t, g.is_air(e)).unwrap();
@@ -356,7 +373,7 @@ pub fn objectives(g: &Game, u: usize, ctx: &mut Ctx) -> Vec<Target> {
             continue;
         }
         let mut urgency: f64 = 0.0;
-        for e in g.player_units(1 - player) {
+        for e in g.units_of(1 - player) {
             let et = g.typ(e);
             if !et.capture || et.mv == 0 {
                 continue;
@@ -372,7 +389,7 @@ pub fn objectives(g: &Game, u: usize, ctx: &mut Ctx) -> Vec<Target> {
         }
     }
     if targets.is_empty() {
-        let allies: Vec<usize> = g.player_units(player).into_iter().filter(|&a| a != u && g.typ(a).capture).collect();
+        let allies: Vec<usize> = g.units_of(player).filter(|&a| a != u && g.typ(a).capture).collect();
         for &a in allies.iter().take(2) {
             targets.push((hex::neighbors(g.units[a].col, g.units[a].row).to_vec(), 30.0));
         }
@@ -701,7 +718,7 @@ fn threat_map(g: &Game, ctx: &mut Ctx) -> [Vec<f64>; 2] {
     let player = 1 - g.current;
     let mut threat = [vec![0.0f64; size], vec![0.0f64; size]];
     let mut key = std::mem::take(&mut ctx.stop_key);
-    for e in g.player_units(player) {
+    for e in g.units_of(player) {
         let t = g.typ(e);
         if t.atk_g == 0 && t.atk_a == 0 {
             continue;
@@ -744,7 +761,7 @@ pub fn analysis(g: &Game, ctx: &mut Ctx) -> Info {
         if !b.base || b.owner != g.current {
             continue;
         }
-        if g.player_units(1 - b.owner).into_iter().any(|e| g.typ(e).capture && hex::distance(g.units[e].col, g.units[e].row, b.col, b.row) <= g.typ(e).mv) {
+        if g.units_of(1 - b.owner).any(|e| g.typ(e).capture && hex::distance(g.units[e].col, g.units[e].row, b.col, b.row) <= g.typ(e).mv) {
             emergencies.push(i);
         }
     }
@@ -769,7 +786,7 @@ pub fn base_danger(g: &Game, player: i32) -> f64 {
             continue;
         }
         let at = g.cell(b.col, b.row);
-        for u in g.player_units(1 - player) {
+        for u in g.units_of(1 - player) {
             let t = g.typ(u);
             if !t.capture || hex::distance(g.units[u].col, g.units[u].row, b.col, b.row) > t.mv {
                 continue;
@@ -1269,7 +1286,14 @@ pub fn candidates(g: &mut Game, ctx: &mut Ctx, limit: usize, per_unit: usize, un
     if g.winner >= 0 {
         return Vec::new();
     }
-    let mut key = signature(g);
+    candidates_keyed(g, ctx, signature(g), limit, per_unit, unit_limit)
+}
+
+/// `candidates` for a position whose `signature` the caller already built.
+pub fn candidates_keyed(g: &mut Game, ctx: &mut Ctx, mut key: Vec<i32>, limit: usize, per_unit: usize, unit_limit: usize) -> Vec<Action> {
+    if g.winner >= 0 {
+        return Vec::new();
+    }
     key.extend([limit as i32, per_unit as i32, unit_limit as i32]);
     if let Some(hit) = ctx.memo.get(key.as_slice()).cloned() {
         MEMO_HITS.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
@@ -1291,11 +1315,7 @@ pub fn candidates(g: &mut Game, ctx: &mut Ctx, limit: usize, per_unit: usize, un
 
 fn generate(g: &mut Game, ctx: &mut Ctx, limit: usize, per_unit: usize, unit_limit: usize) -> Vec<Action> {
     let current = g.current;
-    let mut units: Vec<usize> = g
-        .player_units(current)
-        .into_iter()
-        .filter(|&u| !g.units[u].moved || g.units[u].cargo.iter().any(|&c| !g.unload_targets(u, c).is_empty()))
-        .collect();
+    let mut units: Vec<usize> = g.units_of(current).filter(|&u| !g.units[u].moved || g.units[u].cargo.iter().any(|&c| !g.unload_targets(u, c).is_empty())).collect();
     if unit_limit > 0 && units.len() > unit_limit {
         // Ranks are computed once each; the comparison is JavaScript's
         // `rank(b) - rank(a)`.
@@ -1332,7 +1352,7 @@ fn generate(g: &mut Game, ctx: &mut Ctx, limit: usize, per_unit: usize, unit_lim
             for n in g.deploy_targets(b, s) {
                 let mut score = 6.0 + value(g, s) * 0.1 + potential(g, st.mv, &goals, n.0, n.1) * 0.2 - danger(g, s, n.0, n.1, &info) * 0.45;
                 if st.mv == 0 && (st.atk_g != 0 || st.atk_a != 0) {
-                    let firing = g.player_units(1 - g.units[s].player).into_iter().any(|e| can_attack_at(st, g.is_air(e), hex::distance(n.0, n.1, g.units[e].col, g.units[e].row)));
+                    let firing = g.units_of(1 - g.units[s].player).any(|e| can_attack_at(st, g.is_air(e), hex::distance(n.0, n.1, g.units[e].col, g.units[e].row)));
                     score += if firing { 30.0 } else { -10.0 };
                 }
                 actions.push(Action { kind: Kind::Deploy, unit: s, to: Some(n), building: Some(at), score, ..Action::end(0.0) });
