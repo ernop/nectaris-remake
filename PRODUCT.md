@@ -347,7 +347,9 @@ The user asked for sound effects "in a really great way", music excluded, with a
 
 - **Soundscape.** A **Sound by** dropdown lists every registered procedural
   bank (label: creator name and short title). The choice persists in
-  `localStorage` (`nectaris-sound-bank`). Banks register through
+  `localStorage` (`nectaris-sound-bank`). **Default soundscape: Claude Fable 5.1
+  — Helmet radio** (user choice, 2026-09-29), heard until the player picks
+  another; the Sound toggle itself still starts off. Banks register through
   `SFX.registerBank` in `js/sfx.js` and optional `js/sfx-bank-*.js` files loaded
   before `SFX.init()`.
 - **GPT-5.6 Sol — Selenographic Telemetry (user request, 2026-09-29).** This

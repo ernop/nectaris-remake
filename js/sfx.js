@@ -23,6 +23,8 @@
 var SFX = (function () {
   var KEY = "nectaris-sound";
   var KEY_BANK = "nectaris-sound-bank";
+  // The soundscape a player hears until they pick another (user choice, 2026-09-29).
+  var DEFAULT_BANK = "fable";
   var enabled = false;
   var held = false;
   var ctx = null, master = null, room = null, roomSend = null, noise = null, waves = null;
@@ -1018,8 +1020,8 @@ var SFX = (function () {
       button.title = "This browser does not provide the Web Audio API.";
       return;
     }
-    var savedBank = localStorage.getItem(KEY_BANK) || "remake";
-    if (!Object.prototype.hasOwnProperty.call(banks, savedBank)) savedBank = "remake";
+    var savedBank = localStorage.getItem(KEY_BANK) || DEFAULT_BANK;
+    if (!Object.prototype.hasOwnProperty.call(banks, savedBank)) savedBank = DEFAULT_BANK;
     activateBank(savedBank);
     fillBankSelect();
     enabled = localStorage.getItem(KEY) === "on";
