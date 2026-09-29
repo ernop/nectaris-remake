@@ -523,6 +523,7 @@ var COMBAT = (function () {
     atkStat: atkStat, isAir: isAir,
     rangeBand: rangeBand, canAttackAt: canAttackAt,
     experienceBonus: experienceBonus, expectedCasualties: expectedCasualties, shotReport: shotReport, distribution: distribution,
+    marginal: marginal,
     forecast: forecast,
     MAX_EXP: MAX_EXP, MAX_STRENGTH: MAX_STRENGTH,
     EXP_DAMAGE: EXP_DAMAGE, RANDOM_WEIGHTS: RANDOM_WEIGHTS,

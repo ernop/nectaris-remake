@@ -51,9 +51,9 @@ document.getElementById("run").onclick=async function(){
     check(JSON.stringify(ui.snapshotForSave())===save&&g.rng.state()===rng,"animation leaves the committed save and RNG untouched");
     check(ui.mode==="moved"&&ui.pickTargets.length===1&&!Array.from(d.querySelectorAll("#action-menu button")).some(function(b){return b.textContent==="End";}),"a move flows directly into available attacks without an End choice");
     ui.onHexClick(3,3);await wait(30);
-    check(ui.busy&&ui.renderer.combatEffects&&d.getElementById("battle-stage").classList.contains("hidden")&&d.getElementById("war-scene").textContent.includes("Per machine"),"committing an attack first lights supporters and surrounding hexes on the map beside the per-machine steps");
-    for(var tries=0;tries<200&&d.getElementById("battle-stage").classList.contains("hidden");tries++)await wait(15);
-    check(!d.getElementById("battle-stage").classList.contains("hidden")&&!ui.renderer.combatEffects&&d.getElementById("battle-stage").textContent.includes("Per machine"),"combat then opens the opposing formations and per-machine battle stats");
+    check(ui.busy&&ui.renderer.combatEffects&&!d.getElementById("battle-stage").classList.contains("hidden")&&!!d.querySelector("#battle-content .bn-faceoff"),"committing an attack opens the battle screen on the count while the map lights supporters and surrounding hexes");
+    for(var tries=0;tries<300&&ui.renderer.combatEffects;tries++)await wait(15);
+    check(!d.getElementById("battle-stage").classList.contains("hidden")&&!ui.renderer.combatEffects&&!!d.querySelector("#battle-content .bn-ready"),"the count ends on the final numbers, then combat plays in the same screen");
     check(bounds(canvas)===baseline,"battle screen and casualty readout preserve the board viewport");
     var battleSnapshot=JSON.stringify(g.snapshot()),battleText=d.getElementById("battle-content").textContent;
     d.getElementById("btn-battle-pause").click();

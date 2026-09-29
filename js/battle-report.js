@@ -6,6 +6,7 @@ var BATTLE_REPORT = (function () {
   var combat = typeof module !== "undefined" ? require("./combat.js") : COMBAT;
   var unitView = typeof module !== "undefined" ? require("./unit-view.js") : UNIT_VIEW;
   var combatPanel = typeof module !== "undefined" ? require("./combat-panel.js") : COMBAT_PANEL;
+  var hex = typeof module !== "undefined" ? require("./hex.js") : HEX;
 
   function esc(value) {
     return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -53,21 +54,48 @@ var BATTLE_REPORT = (function () {
     return {attack: attack, counter: counter, preview: pv};
   }
 
-  function snapshot(attacker, defender, result, attackerBefore, defenderBefore) {
+  // The hexes the battle screen's minimaps draw: both units and, for an
+  // adjacent exchange, every hex touching either one, each with its terrain
+  // (null off the map). Terrain never changes in a battle, so a destroyed
+  // unit's hex is still read correctly afterwards.
+  function battleArea(game, attacker, defender) {
+    var hexes = [], seen = {};
+    function add(col, row) {
+      var key = col + "," + row;
+      if (seen[key]) return;
+      seen[key] = true;
+      hexes.push({col: col, row: row, terrain: game.inBounds(col, row) ? game.terrainAt(col, row).id : null});
+    }
+    var adjacent = hex.distance(attacker.col, attacker.row, defender.col, defender.row) === 1;
+    [attacker, defender].forEach(function (unit) {
+      add(unit.col, unit.row);
+      if (adjacent) hex.neighbors(unit.col, unit.row).forEach(function (n) { add(n.col, n.row); });
+    });
+    return hexes;
+  }
+
+  // The rank a unit is shown ending the battle on. The engine still awards a
+  // destroyed attacker its points, but a unit that is gone earns no stars on
+  // screen (user, 2026-09-29).
+  function shownRank(before, after, survivors) {
+    return survivors > 0 ? after : before;
+  }
+
+  function snapshot(attacker, defender, result, attackerBefore, defenderBefore, game) {
     var assessed = assess(attacker, defender, result, attackerBefore, defenderBefore);
-    var pv = assessed.preview;
+    var pv = assessed.preview, aAfter = attackerBefore - result.dmgToAttacker, dAfter = defenderBefore - result.dmgToDefender;
     return {
       assessed: assessed,
       aPlayer: attacker.player, dPlayer: defender.player,
       aType: attacker.typeId, dType: defender.typeId,
       aExp: result.attackerExpBefore, dExp: result.defenderExpBefore,
-      aExpAfter: attacker.exp, dExpAfter: defender.exp,
+      aExpAfter: shownRank(result.attackerExpBefore, attacker.exp, aAfter),
+      dExpAfter: shownRank(result.defenderExpBefore, defender.exp, dAfter),
       aBefore: attackerBefore, dBefore: defenderBefore,
-      aAfter: attackerBefore - result.dmgToAttacker,
-      dAfter: defenderBefore - result.dmgToDefender,
+      aAfter: aAfter, dAfter: dAfter,
       aCol: attacker.col, aRow: attacker.row, dCol: defender.col, dRow: defender.row,
       apA: pv.attacker.ap, daA: pv.attacker.da, apD: pv.defender.ap, daD: pv.defender.da,
-      hasCounter: !!pv.counter,
+      hasCounter: !!pv.counter, ranged: !!pv.ranged, area: battleArea(game, attacker, defender),
     };
   }
 
@@ -140,56 +168,128 @@ var BATTLE_REPORT = (function () {
       shotHtml("Counter", snap.assessed.counter, snap.dExp, snap.dBefore, snap.aBefore, snap.apD, snap.daA);
   }
 
-  // Original code-authored terrain scenery, shared by play and replay.
-  function groundHtml(side, position) {
-    var id = Object.keys(terrains).find(function (key) { return terrains[key].name === side.terrain; }) || "plain";
-    var relief = {
-      plain: "<path d='M0 100L70 94L150 103L240 92L320 98L400 90V260H0Z' fill='#b8b09a'/>",
-      road: "<path d='M165 80H210L340 260H35Z' fill='#77746d'/><path d='M185 92L190 110M200 125L208 145M224 168L236 198M250 220L267 256' stroke='#dbcfac' stroke-width='5'/>",
-      waste: "<path d='M0 115L22 89L50 111L95 97L129 120L160 88L196 116L234 105L271 91L310 116L354 82L400 109V260H0Z' fill='#8f7b5b'/><path d='M24 177l16 -16l23 9l-6 16zM277 226l21 -21l28 13l-5 17zM187 140l9 -10l19 7l-3 8z' fill='#625a4b'/>",
-      hill: "<path d='M0 109Q40 32 101 108Q169 15 249 105Q337 24 400 98V260H0Z' fill='#8b794e'/><path d='M0 123Q77 80 145 135Q243 74 306 132Q367 91 400 122V260H0Z' fill='#ae9b6a'/>",
-      mountain: "<path d='M0 130L72 18L142 113L214 5L291 115L350 35L400 124V260H0Z' fill='#645847'/><path d='M72 18L91 102L142 113L104 130L38 88ZM214 5L242 108L291 115L244 142L160 95ZM350 35L369 116L400 124L350 147L309 93Z' fill='#a18b65'/>",
-      valley: "<path d='M0 0H115L142 91L101 190L56 260H0ZM400 0H292L259 98L299 181L348 260H400Z' fill='#514a3e'/><path d='M115 0L125 90L84 186L35 260H56L101 190L142 91ZM292 0L280 95L321 182L371 260H348L299 181L259 98Z' fill='#9e8864'/>",
-      bridge: "<path d='M0 90L400 70V260H0Z' fill='#49443d'/><path d='M128 78H250L380 260H0Z' fill='#97918a'/><path d='M128 78L0 260M250 78L380 260' stroke='#d2c8a6' stroke-width='9'/><path d='M110 110H272M88 142H295M65 175H320M38 214H348' stroke='#66645e' stroke-width='4'/>",
-      factory: "<path d='M0 105V67H39V39H55V67H86V49L116 67V43L146 67H171V107ZM220 107V61H257V17H271V61H301V43L337 61H380V107Z' fill='#7c796e'/><path d='M14 82H63V108H14ZM101 82H151V108H101ZM239 80H285V108H239ZM312 80H362V108H312Z' fill='#3e4846'/><path d='M0 144H400M0 210H400M70 110L26 260M184 110L184 260M300 110L354 260' stroke='#9e9886' stroke-width='3'/>",
-      base: "<path d='M19 111V97a54 54 0 0 1 108 0v14ZM167 112V81a45 45 0 0 1 90 0v31ZM290 111V97a46 46 0 0 1 92 0v14Z' fill='#c8c2b4' stroke='#837d70' stroke-width='5'/><path d='M62 86H84V111H62ZM204 82H223V112H204ZM327 87H346V111H327Z' fill='#445052'/><path d='M0 162H400M0 216H400' stroke='#a69f8b' stroke-width='3'/>",
-    };
-    return "<div class='battle-ground battle-ground-" + id + "' aria-label='" + faction(side.unit.player) + " on " + esc(side.terrain) + "'>" +
-      "<svg class='battle-terrain' viewBox='0 0 400 260' preserveAspectRatio='none' aria-hidden='true'>" +
-      "<path fill='#393c40' d='M0 0H400V260H0Z'/><path fill='" + terrains[id].color + "' d='M0 100H400V260H0Z'/>" + relief[id] +
-      "<path d='M12 231h13m84 -35h10m46 49h18m97 -87h12m55 85h13m-177 -94h9' stroke='#514a3b' stroke-opacity='.35' stroke-width='3'/></svg>" +
-      formationHtml(side.unit, side.before, side.now, position, side.fresh) + "</div>";
+  // Original code-authored terrain scenery, shared by play and replay. Each
+  // relief is drawn in a 400 x 260 box whose ground starts at y = 100.
+  var RELIEF = {
+    plain: "<path d='M0 100L70 94L150 103L240 92L320 98L400 90V260H0Z' fill='#b8b09a'/>",
+    road: "<path d='M165 80H210L340 260H35Z' fill='#77746d'/><path d='M185 92L190 110M200 125L208 145M224 168L236 198M250 220L267 256' stroke='#dbcfac' stroke-width='5'/>",
+    waste: "<path d='M0 115L22 89L50 111L95 97L129 120L160 88L196 116L234 105L271 91L310 116L354 82L400 109V260H0Z' fill='#8f7b5b'/><path d='M24 177l16 -16l23 9l-6 16zM277 226l21 -21l28 13l-5 17zM187 140l9 -10l19 7l-3 8z' fill='#625a4b'/>",
+    hill: "<path d='M0 109Q40 32 101 108Q169 15 249 105Q337 24 400 98V260H0Z' fill='#8b794e'/><path d='M0 123Q77 80 145 135Q243 74 306 132Q367 91 400 122V260H0Z' fill='#ae9b6a'/>",
+    mountain: "<path d='M0 130L72 18L142 113L214 5L291 115L350 35L400 124V260H0Z' fill='#645847'/><path d='M72 18L91 102L142 113L104 130L38 88ZM214 5L242 108L291 115L244 142L160 95ZM350 35L369 116L400 124L350 147L309 93Z' fill='#a18b65'/>",
+    valley: "<path d='M0 0H115L142 91L101 190L56 260H0ZM400 0H292L259 98L299 181L348 260H400Z' fill='#514a3e'/><path d='M115 0L125 90L84 186L35 260H56L101 190L142 91ZM292 0L280 95L321 182L371 260H348L299 181L259 98Z' fill='#9e8864'/>",
+    bridge: "<path d='M0 90L400 70V260H0Z' fill='#49443d'/><path d='M128 78H250L380 260H0Z' fill='#97918a'/><path d='M128 78L0 260M250 78L380 260' stroke='#d2c8a6' stroke-width='9'/><path d='M110 110H272M88 142H295M65 175H320M38 214H348' stroke='#66645e' stroke-width='4'/>",
+    factory: "<path d='M0 105V67H39V39H55V67H86V49L116 67V43L146 67H171V107ZM220 107V61H257V17H271V61H301V43L337 61H380V107Z' fill='#7c796e'/><path d='M14 82H63V108H14ZM101 82H151V108H101ZM239 80H285V108H239ZM312 80H362V108H312Z' fill='#3e4846'/><path d='M0 144H400M0 210H400M70 110L26 260M184 110L184 260M300 110L354 260' stroke='#9e9886' stroke-width='3'/>",
+    base: "<path d='M19 111V97a54 54 0 0 1 108 0v14ZM167 112V81a45 45 0 0 1 90 0v31ZM290 111V97a46 46 0 0 1 92 0v14Z' fill='#c8c2b4' stroke='#837d70' stroke-width='5'/><path d='M62 86H84V111H62ZM204 82H223V112H204ZM327 87H346V111H327Z' fill='#445052'/><path d='M0 162H400M0 216H400' stroke='#a69f8b' stroke-width='3'/>",
+  };
+  var PEBBLES = "<path d='M12 231h13m84 -35h10m46 49h18m97 -87h12m55 85h13m-177 -94h9' stroke='#514a3b' stroke-opacity='.35' stroke-width='3'/>";
+  function terrainId(name) {
+    var id = Object.keys(terrains).find(function (key) { return terrains[key].name === name; });
+    if (!id) throw new Error("Battle scenery has no terrain named " + name);
+    return id;
   }
-  function formationHtml(unit, before, now, side, fresh) {
+  // `scenery`: the half draws its own terrain (fire from range); otherwise
+  // the field's one continuous ground shows through.
+  function groundHtml(side, position, scenery) {
+    var id = terrainId(side.terrain);
+    return "<div class='battle-ground battle-ground-" + id + "' aria-label='" + faction(side.unit.player) + " on " + esc(side.terrain) + "'>" +
+      (scenery ? "<svg class='battle-terrain' viewBox='0 0 400 260' preserveAspectRatio='none' aria-hidden='true'>" +
+        "<path fill='#393c40' d='M0 0H400V260H0Z'/><path fill='" + terrains[id].color + "' d='M0 100H400V260H0Z'/>" + RELIEF[id] + PEBBLES + "</svg>" : "") +
+      formationHtml(side.unit, side.before, side.now, position, side.fresh, side.aim) + "</div>";
+  }
+  // Adjacent units fight on one piece of ground (user, 2026-09-29: "the land
+  // between the two sides shall be flat visibly and not cut"). One horizon runs
+  // across the field; each side's relief stands behind its own formation and
+  // fades out before the middle, where the two terrain colours blend on flat
+  // ground. Only one battle screen exists per page, so the ids are unique.
+  function joinedGroundHtml(left, right) {
+    var l = terrainId(left.terrain), r = terrainId(right.terrain);
+    return "<svg class='battle-terrain' viewBox='0 0 800 260' preserveAspectRatio='none' aria-hidden='true'><defs>" +
+      "<linearGradient id='battle-joined-ground'><stop offset='.4' stop-color='" + terrains[l].color + "'/>" +
+      "<stop offset='.6' stop-color='" + terrains[r].color + "'/></linearGradient>" +
+      "<linearGradient id='battle-joined-fade-l'><stop offset='.55' stop-color='#fff'/><stop offset='.92' stop-color='#000'/></linearGradient>" +
+      "<linearGradient id='battle-joined-fade-r'><stop offset='.08' stop-color='#000'/><stop offset='.45' stop-color='#fff'/></linearGradient>" +
+      "<mask id='battle-joined-mask-l' maskContentUnits='userSpaceOnUse'><rect width='400' height='260' fill='url(#battle-joined-fade-l)'/></mask>" +
+      "<mask id='battle-joined-mask-r' maskContentUnits='userSpaceOnUse'><rect x='400' width='400' height='260' fill='url(#battle-joined-fade-r)'/></mask></defs>" +
+      "<path fill='#393c40' d='M0 0H800V260H0Z'/><path fill='url(#battle-joined-ground)' d='M0 100H800V260H0Z'/>" +
+      "<g mask='url(#battle-joined-mask-l)'>" + RELIEF[l] + "</g>" +
+      "<g mask='url(#battle-joined-mask-r)'><g transform='translate(400 0)'>" + RELIEF[r] + "</g></g>" +
+      PEBBLES + "<g transform='translate(400 0)'>" + PEBBLES + "</g></svg>";
+  }
+  function formationHtml(unit, before, now, side, fresh, aim) {
     var html = "<div class='battle-formation battle-formation-" + side + "' aria-label='" +
       faction(unit.player) + ": " + now + " machines remaining'>";
     for (var i = 0; i < before; i++) {
       var icon = Object.assign({}, unit, {strength: 8, exp: 0});
       html += "<span class='battle-machine" + (i >= now ? " battle-casualty" + (fresh ? " battle-casualty-new" : "") : "") + "'>" +
-        (i < now ? unitView.iconHtml(icon) : "<span aria-hidden='true'>✹</span>") + "</span>";
+        (i < now ? unitView.iconHtml(icon) + (aim ? barrelHtml(aim, side === "left" ? "ltr" : "rtl", i) : "") :
+          "<span aria-hidden='true'>✹</span>") + "</span>";
     }
     return html + "</div>";
   }
+
+  // Indirect fire. The gun (artillery) or launcher (a missile buggy such as
+  // the Lynx) tilts up toward the enemy, every machine fires in turn, and the
+  // shell climbs out of the top of the field, then falls onto a machine of the
+  // target formation. The sprites are flat pictures, so the barrel is drawn
+  // over each machine. Lengths are in machine-cell widths. All timings are
+  // here; the stylesheet reads them from the elements' custom properties.
+  var TILT_DEG = 55, TILT_MS = 300, FLIGHT_MS = 800, STAGGER_MS = 30, SPLASH_MS = 180;
+  var LAUNCH = {artillery: {len: 0.55, thick: 0.12}, launcher: {len: 0.45, thick: 0.2}};
+  var BARREL_TOP = 0.42; // barrel's top edge as a fraction of the machine cell
+  // A squad has at most 8 machines; the last splash ends as the volley does.
+  var ARC_VOLLEY_MS = TILT_MS + 7 * STAGGER_MS + FLIGHT_MS + SPLASH_MS;
+  // Which launcher a shooter uses when it fires from beyond an adjacent hex.
+  function launchKind(type, ranged) {
+    if (!ranged) return null;
+    if (type.cls === "artillery") return "artillery";
+    return type.cls === "buggy" && type.rngG > 1 ? "launcher" : null;
+  }
+  function fireDelay(i) { return TILT_MS + i * STAGGER_MS; }
+  function barrelHtml(kind, dir, i) {
+    var spec = LAUNCH[kind];
+    return "<i class='battle-barrel battle-barrel-" + kind + " battle-barrel-" + dir + "' style='--len:" + spec.len +
+      ";--thick:" + spec.thick + ";--top:" + BARREL_TOP + ";--tilt-deg:" + TILT_DEG + "deg;--tilt-ms:" + TILT_MS +
+      "ms;--fire:" + fireDelay(i) + "ms'></i>";
+  }
+  // Where machine `i` of an `n`-machine formation stands, as CSS expressions
+  // in the battle field's own coordinates: x in cqw, y as a share of the
+  // field's height. Mirrors .battle-formation: three columns filling the
+  // ground's padded width, rows centred vertically, tilted by its skewY.
+  var SKEW = Math.tan(8 * Math.PI / 180);
+  function slotAt(n, ground, i) {
+    var k = (i % 3 - 1) / 3, rows = Math.ceil(n / 3), row = Math.floor(i / 3) - (rows - 1) / 2;
+    var span = "(50cqw - 2 * var(--pad))";
+    return {
+      x: (ground ? 75 : 25) + "cqw + (" + k.toFixed(4) + ") * " + span,
+      y: "50% + (var(--pad-top) - var(--pad-bot)) / 2 + (" + row + ") * (var(--cell) + var(--gap)) + (" +
+        ((ground ? 1 : -1) * SKEW * k).toFixed(4) + ") * " + span,
+    };
+  }
+  function arcHtml(kind, ground, i, fromN, toN) {
+    var spec = LAUNCH[kind], sign = ground ? -1 : 1, rad = TILT_DEG * Math.PI / 180;
+    var from = slotAt(fromN, ground, i), to = slotAt(toN, 1 - ground, (i * 3 + 1) % toN);
+    var pivotY = spec.thick / 2 + BARREL_TOP - 0.5;
+    var x0 = from.x + " + (" + (sign * Math.cos(rad) * spec.len).toFixed(4) + ") * var(--cell)";
+    var y0 = from.y + " + (" + (pivotY - Math.sin(rad) * spec.len).toFixed(4) + ") * var(--cell)";
+    var style = "--x0:calc(" + x0 + ");--y0:calc(" + y0 + ");--x1:calc(" + to.x + ");--y1:calc(" + to.y +
+      ");--a0:" + -sign * TILT_DEG + "deg;--a1:" + sign * TILT_DEG + "deg;--flight:" + FLIGHT_MS + "ms;--fire:" + fireDelay(i) + "ms";
+    return "<i class='battle-" + (kind === "launcher" ? "rocket" : "shell") + " battle-arc-" + (ground ? "rtl" : "ltr") +
+      "' style='" + style + "'></i><i class='battle-splash' style='--x1:calc(" + to.x + ");--y1:calc(" + to.y +
+      ");--land:" + (fireDelay(i) + FLIGHT_MS) + "ms;--splash:" + SPLASH_MS + "ms'></i>";
+  }
   // Every firing machine sends one bullet across at once; both sides fire from
-  // their pre-battle strength, as the calculation does. Artillery shells climb
-  // out of the top of the field and fall onto the enemy's formation instead.
-  var ARC_FROM = {ltr: 24, rtl: 76}, ARC_TO = {ltr: 76, rtl: 24};
-  // A squad has at most 8 machines; the last shell must land before the hit.
-  var ARC_FLIGHT_MS = 600, ARC_STAGGER_MS = 35, ARC_VOLLEY_MS = ARC_FLIGHT_MS + 7 * ARC_STAGGER_MS;
+  // their pre-battle strength, as the calculation does. A side with an `aim`
+  // (see launchKind) lobs shells instead.
   function volleyHtml(left, right) {
     var html = "<span class='battle-volley' aria-hidden='true'>";
-    [[left, "ltr"], [right, "rtl"]].forEach(function (pair) {
-      if (!pair[0].canFire) return;
-      var arc = isArtilleryType(pair[0].unit.type);
-      for (var i = 0; i < pair[0].before; i++) {
-        var y = 18 + (i % 4) * 20;
-        if (arc) {
-          // Spread by formation column so a volley scatters over the target.
-          var x0 = ARC_FROM[pair[1]] + ((i % 3) - 1) * 4, x1 = ARC_TO[pair[1]] + (((i * 2) % 3) - 1) * 5;
-          html += "<i class='battle-shell' style='--y:" + y + "%;--x0:" + x0 + "%;--x1:" + x1 +
-            "%;animation-duration:" + ARC_FLIGHT_MS + "ms;animation-delay:" + i * ARC_STAGGER_MS + "ms'></i>";
+    [[left, right, "ltr"], [right, left, "rtl"]].forEach(function (pair) {
+      var from = pair[0], to = pair[1];
+      if (!from.canFire) return;
+      for (var i = 0; i < from.before; i++) {
+        if (from.aim) {
+          html += arcHtml(from.aim, pair[2] === "rtl" ? 1 : 0, i, from.before, to.before);
         } else {
-          html += "<i class='battle-bullet battle-bullet-" + pair[1] + "' style='top:" + y +
+          html += "<i class='battle-bullet battle-bullet-" + pair[2] + "' style='top:" + (18 + (i % 4) * 20) +
             "%;animation-delay:" + i * 25 + "ms'></i>";
         }
       }
@@ -200,27 +300,27 @@ var BATTLE_REPORT = (function () {
   // Earned ranks are revealed one per STAR_MS; each then fades in, glows and
   // settles to the normal star colour over STAR_GLOW_MS.
   var STAR_MS = 350, STAR_GLOW_MS = 1200;
-  // A new star's delay is its age on the reward clock, so rebuilding the
-  // screen for the next rank continues earlier stars mid-glow.
-  function markHtml(unit, before, shown) {
-    return unitView.markHtml(unit, {before: before, shown: shown, stepMs: STAR_MS});
-  }
 
   // Original-style opposing formations, recreated with the selected remake art.
-  // Stats describe the pre-battle squads; casualties and earned stars animate.
-  // `numbers` = {count, report}: `count` is how many ms into the calculation
-  // the numbers panel is (default: finished); `report` is assess()'s rolled
-  // shots, given once the battle has rolled.
+  // Stats describe the pre-battle units; casualties and earned stars animate.
+  // `numbers` = {count, report, area}: `count` is how many ms into the
+  // calculation the numbers panel is (default: finished); `report` is
+  // assess()'s rolled shots, given once the battle has rolled; `area` is
+  // battleArea()'s hexes, which the minimaps draw.
   function screenHtml(attacker, defender, preview, aBefore, dBefore, aNow, dNow, aExp, dExp, aExpAfter, dExpAfter, phase, numbers) {
     phase = phase || "result";
     numbers = numbers || {};
-    function head(unit, now, exp, role, after) {
-      var shown = after === undefined ? exp : after;
-      return "<div class='battle-combatant' data-player='" + unit.player + "'><span class='war-faction war-faction-" + unit.player + "'>" +
-        faction(unit.player) + " · " + role + "</span><h3><span class='unit-label'>" +
-        markHtml(Object.assign({}, unit, {strength: now}), exp, shown) +
-        "<span>" + esc(unitView.name(unit)) + "</span></span></h3>" +
-        "<div class='battle-count'><strong>" + now + "</strong><span>machines</span></div></div>";
+    // The unit's mark carries its remaining machines on the icon's corner,
+    // exactly as the map sprite does, so the count drops as machines fall.
+    // A new star's delay is its age on the reward clock, so rebuilding the
+    // screen for the next rank continues earlier stars mid-glow.
+    function head(side, position) {
+      var shown = side.after === undefined ? side.exp : side.after;
+      return "<div class='battle-combatant battle-combatant-" + position + (side.fresh && side.now < side.before ? " battle-combatant-hit" : "") +
+        "' data-player='" + side.unit.player + "'><h3><span class='unit-label'>" +
+        unitView.markHtml(Object.assign({}, side.unit, {strength: side.now}),
+          {before: side.exp, shown: shown, stepMs: STAR_MS, count: combat.strengthCaption(side.now)}) +
+        "<span>" + esc(unitView.name(side.unit)) + "</span></span></h3></div>";
     }
     var sides = [
       {unit:attacker,before:aBefore,now:aNow,exp:aExp === undefined ? attacker.exp : aExp,
@@ -229,18 +329,22 @@ var BATTLE_REPORT = (function () {
         after:dExpAfter,role:"defending",stats:preview.defender,terrain:preview.defenderTerrain,canFire:preview.counter},
     ].sort(function (a, b) { return a.unit.player - b.unit.player; });
     var left = sides[0], right = sides[1];
-    sides.forEach(function (side) { side.fresh = phase === "impact"; });
+    sides.forEach(function (side) {
+      side.fresh = phase === "impact";
+      side.aim = phase === "fighting" && side.role === "attacking" ? launchKind(side.unit.type, preview.ranged) : null;
+    });
+    // Formations tilt only when something fires upward: a shot from range or
+    // an aircraft in the fight (user, 2026-09-29). Adjacent ground units stand level.
+    var lofted = preview.ranged || combat.isAir(attacker) || combat.isAir(defender);
     return "<div class='battle-screen' data-battle-phase='" + phase + "'><div class='battle-heading'>" +
-      sides.map(function (side) { return head(side.unit, side.now, side.exp, side.role, side.after); }).join("") +
-      "</div><div class='battle-field'>" + (phase === "fighting" ? volleyHtml(left, right) : "") + groundHtml(left, "left") +
-      "<span class='battle-crossfire" + (preview.counter ? "" : " battle-one-way") + "' role='img' aria-label='" +
-      (preview.counter ? "Attack and counterattack" : "One-way attack · no counterattack") + "' title='" +
-      (preview.counter ? "Attack and counterattack" : "One-way attack · no counterattack") + "'>" +
-      (preview.counter ? "↔" : attacker.player ? "←" : "→") + "</span>" + groundHtml(right, "right") +
+      head(left, "left") + head(right, "right") +
+      "</div><div class='battle-field" + (lofted ? " battle-field-lofted" : "") + "'>" +
+      (preview.ranged ? "" : joinedGroundHtml(left, right)) + (phase === "fighting" ? volleyHtml(left, right) : "") +
+      groundHtml(left, "left", preview.ranged) + groundHtml(right, "right", preview.ranged) +
       "</div>" + combatPanel.numbersHtml(combatPanel.build(
         Object.assign({}, attacker, {strength: aBefore, exp: aExp === undefined ? attacker.exp : aExp}),
         Object.assign({}, defender, {strength: dBefore, exp: dExp === undefined ? defender.exp : dExp}), preview),
-        numbers.count === undefined ? Infinity : numbers.count, numbers.report) + "</div>";
+        numbers.count === undefined ? Infinity : numbers.count, numbers.report, numbers.area) + "</div>";
   }
 
   // The battle's one-line status. It sits in the control bar under the screen
@@ -269,15 +373,14 @@ var BATTLE_REPORT = (function () {
   // One volley, then every loss at once, however many machines fall. A volley
   // with artillery in it lasts long enough for the shells to go up and come down.
   var VOLLEY_MS = 500, IMPACT_MS = 450;
-  function isArtilleryType(type) { return type.cls === "artillery"; }
-  // `snap` needs aType, dType and hasCounter, as a snapshot has.
+  // `snap` needs aType and ranged, as a snapshot has. Only the attacker can
+  // fire from range: a counterattack needs an adjacent target.
   function volleyMs(snap) {
-    if (!snap || snap.aType === undefined || snap.dType === undefined) {
-      throw new Error("volleyMs needs the battle's unit types");
+    if (!snap || snap.aType === undefined || typeof snap.ranged !== "boolean") {
+      throw new Error("volleyMs needs the attacker's unit type and whether the shot is ranged");
     }
     var types = typeof module !== "undefined" ? require("./data-units.js").UNIT_TYPES : UNIT_TYPES;
-    var arc = isArtilleryType(types[snap.aType]) || (!!snap.hasCounter && isArtilleryType(types[snap.dType]));
-    return arc ? ARC_VOLLEY_MS : VOLLEY_MS;
+    return launchKind(types[snap.aType], snap.ranged) ? ARC_VOLLEY_MS : VOLLEY_MS;
   }
   function fightingDuration(snap) {
     return volleyMs(snap) + IMPACT_MS;
@@ -289,22 +392,22 @@ var BATTLE_REPORT = (function () {
   }
   function present(snap, rewardElapsed, frame) {
     var aExp = earnedExperience(snap.aExp, snap.aExpAfter, rewardElapsed), dExp = earnedExperience(snap.dExp, snap.dExpAfter, rewardElapsed);
-    var attacker = shown(snap.aType, snap.aPlayer, snap.aAfter, aExp === undefined ? snap.aExp : aExp);
-    var defender = shown(snap.dType, snap.dPlayer, snap.dAfter, dExp === undefined ? snap.dExp : dExp);
+    var attacker = Object.assign(shown(snap.aType, snap.aPlayer, snap.aAfter, aExp === undefined ? snap.aExp : aExp), {col: snap.aCol, row: snap.aRow});
+    var defender = Object.assign(shown(snap.dType, snap.dPlayer, snap.dAfter, dExp === undefined ? snap.dExp : dExp), {col: snap.dCol, row: snap.dRow});
     var aNow=frame?frame.aNow:snap.aAfter,dNow=frame?frame.dNow:snap.dAfter,phase=frame?frame.phase:"result";
     return {outcome: outcomeText(attacker, snap.aBefore, snap.dBefore, aNow, dNow, phase),
       scene: sceneHtml(attacker, defender, snap.aBefore, snap.dBefore, aNow, dNow), math: phase === "result" ? mathFrom(snap) : "",
       screen: screenHtml(attacker, defender, snap.assessed.preview, snap.aBefore, snap.dBefore, aNow, dNow, snap.aExp, snap.dExp, aExp, dExp, phase,
-        {report: phase === "result" || phase === "impact" ? snap.assessed : undefined})};
+        {report: phase === "result" || phase === "impact" ? snap.assessed : undefined, area: snap.area})};
   }
 
-  function resultParts(attacker, defender, result, attackerBefore, defenderBefore) {
-    var snap = snapshot(attacker, defender, result, attackerBefore, defenderBefore);
+  function resultParts(attacker, defender, result, attackerBefore, defenderBefore, game) {
+    var snap = snapshot(attacker, defender, result, attackerBefore, defenderBefore, game);
     var view = present(snap);
     return {assessed: snap.assessed, snapshot: snap, outcome: view.outcome, scene: view.scene, math: view.math, screen: view.screen};
   }
 
-  function previewHtml(attacker, defender, preview) {
+  function previewHtml(attacker, defender, preview, game) {
     var expectedD = combat.expectedCasualties(attacker, defender, preview.attacker.ap, preview.defender.da);
     var expectedA = preview.counter ? combat.expectedCasualties(defender, attacker, preview.defender.ap, preview.attacker.da) : 0;
     var scene = "<div class='war-scene'><div class='war-headline'>" + faction(attacker.player) + " selected an attack</div>" +
@@ -321,7 +424,8 @@ var BATTLE_REPORT = (function () {
       "<br>The match draws its roll when the attack resolves. The result names that table row and whether the casualties beat this average.</p>";
     return {outcome: outcomeText(attacker, attacker.strength, defender.strength, attacker.strength, defender.strength, "ready"),
       scene: scene, math: math, screen: screenHtml(attacker, defender, preview,
-      attacker.strength, defender.strength, attacker.strength, defender.strength, attacker.exp, defender.exp, undefined, undefined, "ready")};
+      attacker.strength, defender.strength, attacker.strength, defender.strength, attacker.exp, defender.exp, undefined, undefined, "ready",
+      {area: battleArea(game, attacker, defender)})};
   }
 
   function ledgerHtml(ledger) {
@@ -341,7 +445,7 @@ var BATTLE_REPORT = (function () {
   }
 
   return {faction: faction, emptyLedger: emptyLedger, cloneLedger: cloneLedger, assess: assess,
-    snapshot: snapshot, outcomeText: outcomeText, animate: animate, fightingDuration: fightingDuration, volleyMs: volleyMs, earnedExperience: earnedExperience, rewardDuration: rewardDuration, rewardHoldMs: rewardHoldMs, rewardRevealMs: rewardRevealMs, record: record, sceneHtml: sceneHtml, screenHtml: screenHtml, present: present, resultParts: resultParts,
+    battleArea: battleArea, shownRank: shownRank, snapshot: snapshot, outcomeText: outcomeText, animate: animate, fightingDuration: fightingDuration, volleyMs: volleyMs, earnedExperience: earnedExperience, rewardDuration: rewardDuration, rewardHoldMs: rewardHoldMs, rewardRevealMs: rewardRevealMs, record: record, sceneHtml: sceneHtml, screenHtml: screenHtml, present: present, resultParts: resultParts,
     previewHtml: previewHtml, ledgerHtml: ledgerHtml, noteHtml: noteHtml};
 })();
 if (typeof module !== "undefined") module.exports = BATTLE_REPORT;

@@ -210,7 +210,8 @@ machines destroyed and lost, the match's damage-table roll, and whether those
 casualties were above, near, or below the table average. A ledger sums each
 side's gap from that average. An original-style battle view shows opposing
 formations, counts, attack/defense and terrain stats. Union stays left and Xenon
-right, with each squad's own terrain and a one-way arrow when no counter is legal.
+right, each on its own terrain; the numbers panel draws no arrow for a side whose
+counter is not legal.
 Ready, Fighting and Result distinguish the approach, casualties and summary.
 Experience appears only on header icons; earned stars appear and glow after the
 fight, never on every formation machine. Pause/Resume freezes any stage and its

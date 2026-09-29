@@ -325,7 +325,7 @@
   function settle(game,entry){
     if(entry[0]!=="attack"){T.command(game,entry);return null;}
     var args=T.decode(game,entry),attacker=args[0],defender=args[1],beforeA=attacker.strength,beforeD=defender.strength;
-    return BATTLE_REPORT.snapshot(attacker,defender,T.command(game,entry),beforeA,beforeD);
+    return BATTLE_REPORT.snapshot(attacker,defender,T.command(game,entry),beforeA,beforeD,game);
   }
   function describe(game,entry){
     var args=T.decode(game,entry),name=entry[0],side=BATTLE_REPORT.faction;
@@ -363,7 +363,7 @@
   }
   function showIntent(){
     replaySpec=describe(replayGame,replayData.commands[replayAt]);replayPhase="intent";markIntent(replaySpec);focusCells(replaySpec.cells);
-    if(replaySpec.kind==="attack")showDock(BATTLE_REPORT.previewHtml(replaySpec.attacker,replaySpec.defender,COMBAT.preview(replayGame,replaySpec.attacker,replaySpec.defender)));
+    if(replaySpec.kind==="attack")showDock(BATTLE_REPORT.previewHtml(replaySpec.attacker,replaySpec.defender,COMBAT.preview(replayGame,replaySpec.attacker,replaySpec.defender),replayGame));
     else showDock(BATTLE_REPORT.noteHtml(replaySpec.select||replaySpec.done));
     drawReplay();
   }
@@ -379,7 +379,7 @@
   function commit(onDone){
     var entry=replayData.commands[replayAt],kind=entry[0],spec=replaySpec,live=null;
     if(kind==="attack"){var args=T.decode(replayGame,entry),a=args[0],d=args[1],as=a.strength,ds=d.strength;
-      live=BATTLE_REPORT.snapshot(a,d,T.command(replayGame,entry),as,ds);}
+      live=BATTLE_REPORT.snapshot(a,d,T.command(replayGame,entry),as,ds,replayGame);}
     else {
       var args=T.decode(replayGame,entry),result=T.command(replayGame,entry),unit=null,path=null;
       if(kind==="moveUnit"){unit=args[0];path=result.path;}

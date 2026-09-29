@@ -290,7 +290,11 @@ the page or list scrolls or resizes.
   drew, and whether that result was above, near, or below the average. The
   same report is used for your own attacks. A dedicated battle view shows opposing
   formations with Union on the left and Xenon on the right, each on its own
-  terrain. A one-way arrow marks attacks without a counter. Ready, Fighting and
+  terrain (one continuous ground when adjacent). Under them, each side's attack
+  and defense totals count up from their parts and face the other side's, with
+  an arrow for each side that fires; a minimap per side shows which neighbours
+  and terrain helped, and a chart shows each side's possible losses, the actual
+  result and whether it was lucky. Ready, Fighting and
   Result mark the approach, combat and summary. Each side's unit icon in
   the battle header is enlarged, with its stars beside it at the same scale; newly
   earned stars fade in, glow brightly, then

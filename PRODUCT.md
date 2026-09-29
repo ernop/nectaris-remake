@@ -112,10 +112,12 @@ formations, machine counts, attack/defense totals and terrain bonus. The user's
 2026-09-26 corrections keep Union on the left facing right and Xenon on the
 right facing left, whichever side initiated. Each half shows that squad's
 actual terrain using original code-authored scenery and the selected unit art;
-no original battle artwork is imported. A subtle arrow points only toward the
-target when the engine says there is no counterattack, including remote fire.
-Remove the terrain-name/per-machine attack-and-defense sentence. Total combat
-stats still describe the pre-battle squads.
+no original battle artwork is imported. Since the 2026-09-29 third pass,
+adjacent units share one continuous ground and only fire from range splits the
+field (see "Battle screen redesign"). The arrows showing who fires moved from
+the middle of the field into the numbers panel: a side that cannot counter has
+none. Remove the terrain-name/per-machine attack-and-defense sentence. Total
+combat stats still describe the pre-battle squads.
 
 A subtle **Ready → Fighting → Result** indicator distinguishes the approach,
 combat and final summary. Units briefly approach. Then one volley of bullets
@@ -124,20 +126,33 @@ strength. Every loss bursts at the same moment: 0.5 s + 0.45 s, however many
 machines fall. This follows the user's 2026-09-26 request ("with bullets and
 all at once, like the orig game"); machines previously fell one by one over
 1.6–2.6 s.
-**Artillery shells fall from the sky (user request, 2026-09-29: "arti units shoot
-up into the sky and then their projectils fall down onto the enemy").** When a
-firing side's unit class is `artillery`, each of its machines sends a shell
-straight up from its own formation, out of the top of the battle field, and it
-then drops onto the enemy formation, scattered by formation column. Shells are
-staggered 35 ms and fly 600 ms, so an artillery volley lasts 0.85 s instead of
-0.5 s (the hit and loss burst follow it, then the 0.45 s burst). Other units,
-including anti-air with range 2, keep the horizontal bullet. `volleyMs` in
-`js/battle-report.js` sets the length; the play and replay timelines both use
-it, so the losses appear only after the last shell lands.
+**Indirect fire arcs through the sky (user requests, 2026-09-29: "arti units
+shoot up into the sky and then their projectils fall down onto the enemy", then
+"they should tilt their barrels upwards, then fire at a high angle towards the
+enemy (or launch bazooka-like things, in case of lynx) and fire, then we see the
+projectiles descending and attacking").** When the attacker fires from beyond an
+adjacent hex and is artillery class (gun) or a `buggy` with ground range over 1
+(the Lynx: launcher), the fighting stage changes:
+1. A barrel (gun) or bazooka-like tube (launcher) is drawn over each machine and
+   tilts 55 degrees up toward the enemy in 0.3 s. The sprites are flat pictures,
+   so the barrel is an overlay.
+2. Each machine fires in turn, 30 ms apart: the barrel recoils and flashes, and
+   a shell (gun) or rocket with an exhaust trail (launcher) leaves the muzzle.
+3. The projectile climbs out of the top of the field, re-enters above the
+   target's formation, descends onto one of its machines and bursts there
+   (0.8 s flight, 0.18 s splash). The loss burst follows the last splash.
+The volley therefore lasts 1.5 s instead of 0.5 s. Adjacent shots, counterattacks
+and every other unit, including anti-air, keep the horizontal bullet.
+`launchKind` and `volleyMs` in `js/battle-report.js` decide and time it; play and
+replay both use them. Geometry is computed in the field's own units
+(`--pad`, `--cell`, `--gap` in `css/battle-dock.css`), so a change to the
+ground padding or machine size there must keep those variables authoritative.
 Experience is shown only as stars in the standard unit mark (below), never
 painted on a unit sprite and never as a numeric rank. Each battle header shows
-the unit mark at 96 px (64 px on narrow screens): the portrait with its stars
-beside it. Formation machines have no stars.
+the unit mark at 64 px (48 px on narrow screens; 96 px before the 2026-09-29
+layout pass): the portrait with its stars beside it and, below full strength,
+the remaining machines on its corner. Formation machines have no stars. A unit
+destroyed in the battle earns no stars on screen (2026-09-29).
 After fighting ends, actual earned stars appear one by one and glow beside
 the header portrait, ending at the awarded rank (including the General star).
 The user's 2026-09-26 corrections remove the "Experience gained" row, which
@@ -178,8 +193,8 @@ no grey plate behind the General star. This replaces the EXP label and box of
 2026-09-26/27 and the earlier stars laid over the icon. The box keeps its
 place at zero experience, so names line up in lists and a first earned star
 moves nothing. Contexts choose only the size, a multiple of the 32-pixel
-icon frame: 64 px in the hover card heading, 96 px in battle headers (64 px
-on narrow screens), 32 px everywhere else. The icon repeats the map sprite's
+icon frame: 64 px in the hover card heading and battle headers (battle headers
+48 px on narrow screens), 32 px everywhere else. The icon repeats the map sprite's
 look: faction colours, greyscale once its activation is finished on its own
 side's turn, red while attacking. Every view of a unit uses the mark: hover
 card, factory, base and cargo lists, factory deployment rows,
@@ -1500,8 +1515,9 @@ defender's numbers gain helpful defenders and are halved for a surround.
      + Support, + Terrain, Surrounded ½ (only when it applies) and Final, with
      Attack and Defense columns.
    - Attack is a squad total (machines × per-machine attack); its Base row also
-     shows "8×50". Defense stays a per-machine percentage, because squad size
-     never multiplies it and it caps at 100 (MECHANICS). Every total is the
+     shows "8×50". Defense stays per machine, because squad size never
+     multiplies it and it caps at 100 (MECHANICS); its column reads "Defense"
+     (not "Defense %", since 2026-09-29). Every total is the
      engine's per-machine number times a count, so the Final row equals what the
      battle uses and nothing is invented ("what we present should always be
      true").
@@ -1525,7 +1541,8 @@ defender's numbers gain helpful defenders and are halved for a surround.
      replaces the joint heatmap: the two squads' rolls are independent, so the
      joint table held nothing the two charts do not. Still 100,000 simulated
      battles, never the match's dice. Without a counterattack the attacker's
-     card says so.
+     card has no chart (since 2026-09-29 there is no "Machines lost" heading and
+     no "0 no counterattack" line).
 2. **Battle-prep count.** Moved into the battle popup on 2026-09-29 (see
    "Battle screen numbers"). After the attack is committed, by the player or a
    watched opponent, the same steps count up inside the popup: machines fire their base attack one after another (30 ms each),
@@ -1539,7 +1556,8 @@ defender's numbers gain helpful defenders and are halved for a surround.
 3. **Nothing lingers after your own attack.** Aiming ranges and legend clear
    when the battle starts; the outlines, link and killer highlight of the two
    units no longer stay after the player's battle (the explosions of a destroyed
-   squad still play). A watched opponent's battle keeps its marks as before. The
+   squad still play). Since the 2026-09-29 "Battle screen layout" decision this also
+   holds for a watched opponent's battle and at the end of its turn. The
    hover board also used to stay open, with its ring and supporters, after the
    pointer moved to empty ground; that was the source of the stray hexes.
 
@@ -1555,7 +1573,10 @@ User request (2026-09-29): the combat board still appeared in the left-hand
 area; "a better and proper location is within the actual battle popup". The
 popup's layout was redone to give the comparison of attack, defense and the
 numbers used a dedicated region, because a player learning the game must be able
-to pause and study it.
+to pause and study it. The per-side cards, team headers, step tables and the
+"Support from", "Per machine" and "Squad" rows below were replaced the same day
+by the face-off, minimaps and luck charts in "Battle screen redesign (third
+pass)"; the Where, When, Left panel, Hover and Replay points still hold.
 
 - **Compact frame (user, 2026-09-29, after testing).** The screen carries no
   Ready / Fighting / Result strip, no "NUMBERS ... hexes ..." facts line and no
@@ -1590,6 +1611,157 @@ to pause and study it.
   because it needs the map's ZOC ring and supporter numbers; it has the same
   step rows and the projected-loss charts.
 - **Replay.** The tournament replay's battle screen uses the same numbers panel.
+
+## Battle screen layout (2026-09-29, second pass)
+
+User requests (2026-09-29): "make sure that the battle screen shows the actual
+unit area large"; "don't leave highlighted hexes from older attacks living on
+the board, i still see this"; "the calculation area should be clearly and simply
+laid out and not expand as text is added; premake it the right size"; "make sure
+its easy and obvious how users can pause this screen then resume, to see the
+resulting calculations and also see the kill distribution". This supersedes the
+sizing and the "watched opponent keeps its marks" parts of the records above.
+The third pass (next record) replaced the heading's role and count, the cards'
+contents, the chart heading and the control order; the fixed regions, the fixed
+panel height (now 17 x `--nf`), Pause and Resume, Skip, "Stop at result" and the
+cleared marks still hold.
+
+- **Three fixed regions in one column** (`css/battle-dock.css`): a slim heading
+  (unit mark 64 px, 48 px on narrow screens; name, role and machine count on one
+  row), the unit field, and the numbers panel. The field takes all the height the
+  others leave, about half the window, and the machines scale to it (`--cell`:
+  the window's height less the fixed regions, over three rows, at most 112 px and
+  9vw). The popup fills the board area; nothing scrolls.
+- **The numbers panel never resizes.** Its height is 19.5 x `--nf` (its type
+  size, from the window's height and width), reserved before any number arrives.
+  Each side has a card: on the left the step table (header naming the team, up to
+  six rows of fixed height, the row being counted in yellow), on the right the
+  loss chart, and under both three one-line rows of fixed height ("Support
+  from", "Per machine", "Squad" that becomes "Roll ... destroyed"). A row that is
+  not reached yet is blank and keeps its height; the roll's verdict wording
+  ("above the average") is left to the war dock, so the Roll row fits one line.
+- **Kill distribution.** Each card's chart, "Machines lost · chance %", gives the
+  chance of that squad losing 0..N machines to the other side's shot: exact, from
+  the published 100-row roll table via `COMBAT.marginal`, never the match's dice
+  and not the hover board's 100,000-battle simulation. The most likely count is
+  light, the average is written under it, and the chart appears with the final
+  numbers. After the roll the actual loss is drawn solid yellow with a white
+  outline and its label reversed, and the line under the chart reads "Result N
+  lost · avg X". Without a counterattack the attacker's card says so.
+- **Pause and resume.** One large button (48 px tall, 20 px type) with a drawn
+  icon and the "Space" key on it: it reads Pause while running and turns solid
+  yellow, reads Resume and shows a play icon while paused, and a yellow PAUSED
+  tag sits on the field. A "Skip" button jumps to the result, then to the map
+  (clicking the screen still does the same). "Stop at result" (off by default,
+  remembered in `localStorage` key `nectaris-battle-hold`) pauses the screen once
+  the result and every earned star are showing, so the final numbers and chart can
+  be read without racing the 1.4 s hold; Resume then closes it. The tournament
+  replay's bar uses the same button styling and PAUSED tag.
+- **Nothing stays marked after a battle.** `GameUI.clearBattleMarks` clears the
+  attacker and defender outlines, the link, the killer/target highlight, the
+  support and surround overlay and aiming hexes when a battle's aftermath starts
+  and when an AI turn ends, for the player's battles and a watched opponent's
+  alike. Explosions of destroyed squads still play for one second. The tournament
+  replay keeps marking the step it is showing and clears them on the next step.
+
+## Battle screen redesign (2026-09-29, third pass)
+
+The user reviewed the battle screen point by point on 2026-09-29 ("so basically
+we're redoing this page"). This record supersedes, in the records above: the
+heading's role label and machine-count box, the field's tilt and split scenery
+for adjacent fights, the centre arrow, the numbers panel's step tables and its
+"Support from", "Per machine" and "Squad" rows, the loss chart's heading and
+no-counter text, and the control order. Implemented in `js/battle-report.js`,
+`js/combat-panel.js` and `css/battle-dock.css`, for play, watched AI and the
+tournament replay alike; not yet looked at in a browser (release first).
+
+1. **Level formations.** "why are the units angled upwards? They shouldn't be
+   given this is not an artillery or air battle." Formations tilt (8 degrees)
+   only when a shot goes up: fire from range, or an aircraft in the fight
+   (`battle-field-lofted`). Adjacent ground units stand level.
+2. **Heading: unit mark and name only.** "'Union - Attacking' is not useful";
+   "N Machines is not useful ... We can see this." Xenon's heading mirrors
+   Union's toward the right edge. The remaining machines appear on the icon's
+   corner exactly as on the map sprite (blank at full strength, 8) and drop,
+   with a brief flash, the moment machines fall ("the number next to the unit
+   on the main map and on the top unit icon should immediately go down as
+   units die, that's it"). The status line in the control bar still names the
+   attacker.
+3. **One ground for adjacent units.** "the land between the two sides shall be
+   flat visibly and not cut. If it were arti or some other distance attack, the
+   visible division would make sense." An adjacent exchange draws one horizon
+   across the field; each side's relief stands behind its own formation and
+   fades out before the middle, where the two terrain colours blend on flat
+   ground. Fire from range keeps the two separate halves. The arrow in the
+   middle of the field is removed; the numbers panel's arrows (item 6) show who
+   fires.
+4. **No team names in the numbers panel** ("it's obvious the left is you").
+5. **Defense is a number, not a percentage.** The user asked "Is defense really a
+   %?". Defense is per machine: base + support + terrain, halved when
+   surrounded, capped at 100. The damage formula then uses it as the share of
+   each machine's hit that it stops: hit = attack × (100 − defense) / 100. The
+   number of machines never multiplies it. The original's screen showed defense
+   times machines with terrain as a percentage, which its own calculation does
+   not use; the 2026-09-26 rule "What we present should always be true" keeps
+   the real value. The battle screen labels it DEF; the hover board's column
+   reads "Defense" (was "Defense %").
+6. **Face-off totals.** "make it big and make it clearly shown ... rising as we
+   calculate things, til it's done ... perfectly lined up and visually clearly
+   going against the enemy". Two rows cross the panel, whoever attacked:
+   Union's ATK → Xenon's DEF, then Union's DEF ← Xenon's ATK. Each total has its
+   own column beside the arrows, so the two rows line up. Totals are the
+   largest type on the screen (2.7 × the panel's type), white while counting
+   and yellow once final. Each grows from a one-line equation of its parts,
+   written outward from its "=": "8×70 +240 support ×1.40 exp = 800",
+   "20 +5 Plains ½ surrounded = 12", with "cap" where the 100 limit cut it; the
+   term being added is yellow. A lone unmodified value reads "20", not
+   "20 = 20". The count keeps the Battle-prep count timing, both sides at once
+   ("on the defender side, same thing, same time"). A side that cannot fire
+   shows ATK "—" and has no arrow. Once rolled, each arrow names its roll
+   ("roll ×1.3"); the fight then plays as before.
+7. **Minimaps** ("a nearby hex little minimap for each side showing exactly how
+   much each neighbor helped, how much surround helped, support, terrain").
+   One per side, under its numbers: the two units and every hex touching
+   either, in terrain colours. The map is drawn points-up and turned (never
+   mirrored) so the Union unit is left of the Xenon unit on one row, as on the
+   screen. The side's own hex is outlined white with its terrain bonus
+   ("+5 DEF"). Its supporters are outlined in its colour with their shares
+   ("+240 ATK", "+20 DEF"), each appearing as the count adds it. The attacker's
+   map lights the six hexes around the target in the count's clockwise sweep
+   (open hexes dashed orange), and "½" marks a surrounded target on both maps.
+   Fire from range shows only the two hexes and their distance.
+8. **No per-machine, squad or "Machines lost" text.** "rethink the entire method
+   we visually show the calculations neither hiding nor belaboring it"; "the
+   squad info - what's that?"; "we don't need this 'Machines lost' text at all";
+   "we also don't need this 0 or the 'no counterattack' text". The equations,
+   minimaps and the roll on each arrow replace the step tables and the "Support
+   from", "Per machine" and "Squad" rows. The hover board also drops the
+   "Machines lost" heading and "0 no counterattack". **Terminology:** the
+   interface says unit (of 1 to 8 machines), never squad; code comments may.
+9. **Loss charts with luck** ("show the distribution of outcomes, and the actual
+   one we get ... so that we know if we were lucky/unlucky both in terms of
+   number killed of enemy, and number lost self"). Each side's chart of its own
+   losses (exact, from the published table) keeps its percentages and most
+   likely count, marks the average under the axis ("avg 2.9") and, once rolled,
+   shows the actual count in yellow with LUCKY, UNLUCKY or AS EXPECTED for that
+   side. Within half a machine of the average counts as expected, as in the left
+   panel's verdict. A side nothing shoots at has an empty chart area.
+10. **No stars for a destroyed unit** ("if our unit dies completely we shall not
+    gain any exp visually"). The engine still awards a destroyed attacker its
+    points, which no longer matter; the screen, its sounds and the replay show
+    no new stars for it (`BATTLE_REPORT.shownRank`).
+11. **Controls.** Status on the left, then "Stop at result" (a toggle reading
+    On / Off, same stored setting), Skip, and Pause / Resume at the lower right.
+    The replay bar has the status, its hint and Pause / Resume, in that order.
+
+How the dice relate to the numbers (the user asked whether the final attack
+number is the only input to the random generator): the dice take no input. Each
+shot draws one multiplier from the published 14-row table (×0.2 to ×4, average
+×1.09). Damage is the attack total (experience included) × (100 − defense)% ×
+that multiplier, floored at each step; the target keeps one machine per whole
+100 of its hit points left, where it has 100 per machine plus 50 when it has
+more than one. Attack, defense, experience and both machine counts shape the
+result; the roll only scales it.
 
 ## Grok 4.7 15 tactical gap-filling units study (2026-09-23)
 

@@ -156,7 +156,7 @@ module.exports = function (ok) {
     ui.onMouseMove({offsetX:3,offsetY:1});
     ok(nodes["combat-board"].innerHTML.includes("Polar") &&
       nodes["combat-board"].innerHTML.includes("100,000") &&
-      nodes["combat-board"].innerHTML.includes("Machines lost") && !nodes["combat-board"].classList.contains("hidden") &&
+      nodes["combat-board"].innerHTML.includes("cp-chart") && !nodes["combat-board"].classList.contains("hidden") &&
       nodes["combat-inspector"].innerHTML === "" &&
       JSON.stringify(ui.game.snapshot()) === committed && ui.game.rng.state() === seed,
       "hover forecast uses 100k independent trials on the combat board, not the side panel, without changing the committed board or RNG");
@@ -710,22 +710,23 @@ module.exports = function (ok) {
     UI.GameUI.prototype.playCombatEffects.call(ui, striker, target, pv, function () { effectsDone = true; });
     fx = ui.renderer.combatEffects;
     var run = timelines[0], boardNow = function () { return nodes["battle-content"].innerHTML; };
+    var litRing = function () { return boardNow().split("bn-ring-lit").length - 1; };
     var model = COMBAT_PANEL.build(striker, target, pv), time = model.time;
     ok(run.duration === time.baseEnd + 2 * 170 + 260 + 6 * 90 + 150 + 500 && fx.shownSupporters === 0 && fx.shownRing === 0 &&
-      !fx.surroundShown && boardNow().includes("cp-row-base") && !boardNow().includes("cp-row-support") &&
+      !fx.surroundShown && boardNow().includes("bn-term-base") && !boardNow().includes("bn-term-support") &&
       !nodes["battle-stage"].classList.contains("hidden") && nodes["combat-board"].classList.contains("hidden"),
       "the count opens the battle screen with the machines' base attack and nothing lit on the map; the map board stays closed");
     run.update(time.baseEnd);
-    ok(fx.shownSupporters === 1 && fx.shownRing === 0 && boardNow().includes("cp-row-support"),
+    ok(fx.shownSupporters === 1 && fx.shownRing === 0 && boardNow().includes("bn-term-support"),
       "the first supporter lights and adds its share when the base is counted");
     run.update(time.supportEnd - 1);
-    ok(fx.shownSupporters === 2 && fx.shownRing === 0 && boardNow().includes("cp-row-support") && !boardNow().includes("cp-row-terrain"),
+    ok(fx.shownSupporters === 2 && fx.shownRing === 0 && boardNow().includes("bn-term-support") && !boardNow().includes("bn-term-terrain"),
       "all supporters light before terrain is added");
     run.update(time.supportEnd + 260);
-    ok(fx.shownRing === 1 && !fx.surroundShown && boardNow().includes("cp-row-terrain") && !boardNow().includes("cp-row-final"),
-      "terrain is added before the surrounding hexes are checked one by one");
+    ok(fx.shownRing === 1 && litRing() === 1 && !fx.surroundShown && boardNow().includes("bn-term-terrain") && !boardNow().includes("bn-ready"),
+      "terrain is added before the surrounding hexes are checked one by one, on the map and the attacker's minimap");
     run.update(run.duration);
-    ok(fx.shownRing === 6 && fx.surroundShown && boardNow().includes("cp-row-surround") && boardNow().includes("cp-row-final"),
+    ok(fx.shownRing === 6 && litRing() === 6 && fx.surroundShown && boardNow().includes("bn-term-surround") && boardNow().includes("bn-ready"),
       "the surround verdict and halving come last, as in the calculation");
     run.done();
     ok(effectsDone && ui.renderer.combatEffects === null && nodes["combat-board"].classList.contains("hidden"),

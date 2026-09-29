@@ -271,19 +271,30 @@ Facts we need across sessions:
   history plus full-window replays with compact 128-command checkpoints. Preserve
   separate compensated results and original map data. See PRODUCT's compensation record and `test/balance-tests.js`.
 
-- **Battle presentation (2026-09-26):** Union always left, Xenon always right,
-  with each squad's own terrain. No per-machine prose. Engine counter eligibility
-  controls the one-way arrow. Ready / Fighting / Result stages, a brief approach,
-  and a pausable clock cover live play, watched AI and replay. Replay defaults:
+- **Battle presentation (2026-09-26, redesigned 2026-09-29):** Union always left,
+  Xenon always right, each on its own terrain; adjacent units share one level,
+  continuous ground, and only fire from range splits the field and tilts the
+  formations (aircraft tilt too). Headings are the unit mark and name, with the
+  remaining machines on the icon's corner as on the map; no role label or count
+  box. The numbers panel is two face-off rows (Union ATK → Xenon DEF, Union DEF
+  ← Xenon ATK) whose big totals count up from one-line equations; defense is the
+  per-machine 0–100 value, never a percentage or times machines. Engine counter
+  eligibility decides each row's arrow. A minimap per side shows supporters'
+  shares, terrain and the surround ring; each side's loss chart marks the rolled
+  result and luck. No "Machines lost", "no counterattack", per-machine or squad
+  text; the interface says unit, never squad. Ready / Fighting / Result stages, a
+  brief approach, and a pausable clock cover live play, watched AI and replay;
+  controls read Stop at result, Skip, Pause at the lower right. Replay defaults:
   pause before battles on, skip scenes off; click a paused scene to resume.
   Experience ranks are stars on unit icons everywhere, never numeric or separate
-  badges. Only battle header icons have stars, not individual formation machines. The
-  header icon is enlarged (96 px) with the original's star box on top (pixel
-  copy in `js/render.js`, re-derived by `tools/read-original-stars.py`; see
-  PRODUCT); newly earned stars fade in, glow, then settle to the normal
-  colour. No "Experience gained" row (2026-09-26). The opponent's last unit is
-  deselected when its turn ends. See PRODUCT's battle review
-  record and `test/board-playback.html` / `test/battle-replay.html` browser fixtures.
+  badges. Only battle header icons have stars, not individual formation machines,
+  and a unit destroyed in the battle shows no new stars. The header mark (64 px)
+  has the original's star box beside it (pixel copy in `js/render.js`,
+  re-derived by `tools/read-original-stars.py`; see PRODUCT); newly earned stars
+  fade in, glow, then settle to the normal colour. No "Experience gained" row
+  (2026-09-26). The opponent's last unit is deselected when its turn ends. See
+  PRODUCT's battle review and "Battle screen redesign" records and
+  `test/board-playback.html` / `test/battle-replay.html` browser fixtures.
 
 - **Unit labels and factory hovers (updated 2026-09-23):** use `UNIT_VIEW` for short
   unit names and accompanying icons. Omit serial/model designations in the UI.

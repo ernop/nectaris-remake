@@ -54,7 +54,7 @@ retuned. These themes do not authorize extra features or unsourced rule changes.
 | Opus-Sonnet 5.5 gap-filling units | Experimental 15-unit proposal, not additions to the playable roster. Each unit fills a rule combination absent from the stock roster (gap test) and is neither dominated by nor dominating any stock or new unit; every printed figure comes from the engine. Own Legacy-style 32×32 icons and a one-glance stats table. [Table and dossiers](opus-sonnet-55/README.md), [interactive overview](opus-sonnet-55/index.html), [record](PRODUCT.md#opus-sonnet-55-gap-filling-units-study-2026-09-29). |
 | Exact original CPU, random stream and PCE boundary cases | Unverified research gaps, not established rules or a claim of full fidelity. [Remaining gaps](FIDELITY_AUDIT.md#remaining-gaps-in-priority-order). |
 | Search opponents and self-play tournaments | Implemented from the subsequent 2026-09-23 request: opponent picker (since 2026-09-26 chosen in the menu and fixed for the whole match), greedy/beam/MCTS/hybrid algorithms, generic existing capabilities, background workers, mirrored tournaments, durable out-of-order results, per-run Elo, reload/Resume, indexed map/pair history and full-window replays with checkpoint seeking. No personalities. Protocol 2026-09-26.2 removed the factory-exit special rules: search bots use general methods, not invented rules (user, 2026-09-26). Their position score is still a sum of hand-picked constants; the user deferred replacing it with self-play tuning or deeper simulation, then asked the same day for a training plan: [proposal and measurements](AI_TRAINING_PLAN.md). On 2026-09-27 the user put self-play speed first and asked to lock the game's behaviour as the AI sees it, then build a Rust simulator: the lock, the Rust rules engine, the five Rust bots and a Rust tournament runner are done, all matching JavaScript command for command. Using every thread, the Rust search bots play 400–407× as many games as one JavaScript thread (since the 2026-09-28 speed round and the profile-guided build), with identical archives. Since 2026-09-28 the engine is the platform for many kinds of AI players: one legal-command list and player interfaces, locked to JavaScript like the rules; speed work stays principled and maintainable (user). Also since 2026-09-28, matches roll fair dice: ChaCha20 keyed by a fresh or SHA-256-stretched 256-bit seed, which no bot can read or roll (protocol 2026-09-28.1; [Fair dice](AI_TRAINING_PLAN.md#rust-simulator)). The plan's other decisions (machine time, turn-time targets, held-out boards, milestones) are the user's next. [Rust simulator status](AI_TRAINING_PLAN.md#rust-simulator). [Implementation, usage and limits](AI_OPPONENTS.md); [earlier analysis](AI_DESIGN_RESEARCH.md). |
-| Battle review in matches and replays | Updated 2026-09-26: fixed faction sides, per-side terrain, one-way fire cues, Ready/Fighting/Result stages, glowing earned stars on header icons only, pause/resume, default replay battle pause and optional skip. Experience ranks use icon stars throughout. Fixed left reports and board camera, exact hex routes, and no per-unit End remain. [Readout and replay controls](PRODUCT.md#battle-review-2026-09-25). |
+| Battle review in matches and replays | Updated 2026-09-26: fixed faction sides, per-side terrain, one-way fire cues, Ready/Fighting/Result stages, glowing earned stars on header icons only, pause/resume, default replay battle pause and optional skip. Experience ranks use icon stars throughout. Fixed left reports and board camera, exact hex routes, and no per-unit End remain. [Readout and replay controls](PRODUCT.md#battle-review-2026-09-25). Redesigned from the user's point-by-point review on 2026-09-29: level formations and one continuous ground for adjacent fights, headings of mark and name with the machine count on the icon, big face-off totals counted up from their equations (defense per machine, not %), a minimap per side of supporters, terrain and the surround ring, loss charts with the actual result and luck, no stars for a destroyed unit, controls Stop at result / Skip / Pause at the lower right; the interface says unit, not squad. Not yet looked at in a browser. [Record](PRODUCT.md#battle-screen-redesign-2026-09-29-third-pass). |
 | Soundtrack, Manual and Surrender | Excluded from the recorded fidelity implementation pass; original-style battle presentation was subsequently requested and is covered above; do not silently turn them into scheduled work. Original synthesized sound effects (Sound toggle, off by default) were added on request 2026-09-29. Registered creator banks are selected by **Sound by**; GPT-5.6 Sol's **Selenographic Telemetry** and Grok 4.7's **Field calls** are included. They still need a listening pass ([PRODUCT.md](PRODUCT.md#sound-effects-user-request-2026-09-29)). [Scope](FIDELITY_AUDIT.md#requested-implementation-pass--2026-09-20). |
 | Thanks to the people who made Nectaris | Requested by the user on 2026-09-27: identify everyone who worked on any version (name, year, company, location), find their public channels (X/Twitter, LinkedIn, mail), send each a respectful letter of thanks and commemorate their work. Research completed 2026-09-27: every known version from 1989 to 2020 plus the fan community, 38 contact-list entries with an evidence-linked public channel, and letter drafts in English and Japanese. No letters sent: the user clarified the same day that he is only preparing the information and no one is to be contacted yet; when outreach starts, he sends the letters and logs each in the contact list. [Roster, contact list, drafts and open questions](NECTARIS_CREDITS.md). The public page `thanks.html` followed the same day at the user's request: English and Japanese, linked both ways with the game, freely licensed pictures only. [Page record](PRODUCT.md#thanks-page-2026-09-27). |
 | Deferred checks | Release-first mode since 2026-09-26: items to verify later are collected below and run together in one careful session. |
@@ -96,9 +96,11 @@ Release first, verify later (user decision). Examine together later:
     - bursts of deployments;
     - one-press Next action for non-battle steps.
 13. The battle volley: how the bullets look on narrow screens and at each
-    squad size; the loss burst; the single map explosion per squad. Artillery
-    volleys (2026-09-29): shells climbing out of the field top and landing on
-    the target at 1-8 machines, on narrow screens, when paused, and in replay.
+    squad size; the loss burst; the single map explosion per squad. Ranged
+    artillery and Lynx volleys (2026-09-29): barrel tilt, muzzle position,
+    projectile leaving the field top and landing on a target machine, at 1-8
+    machines on both sides, with skewed formations, narrow screens, short
+    windows, when paused, and in replay.
 14. After the tournament compatibility removal:
     - storage opens empty in a browser that ran earlier tournaments;
     - `test/tournament-storage.html` passes;
@@ -164,6 +166,33 @@ Release first, verify later (user decision). Examine together later:
     small and large windows and on Pixel, Legacy, Neon and Classic; the count
     under Pause and Space; the tournament replay page's popup; the left panel
     shows only the result headline and ledger.
+    Battle screen layout, second pass (2026-09-29): the unit field is about half
+    the window at 700 to 1200 px tall and 900 to 2500 px wide, with 8 machines
+    on both sides; the numbers panel never changes size across a battle with and
+    without support, surround, experience and counterattack; the loss chart's
+    bars, labels and yellow result bar fit at 1 to 8 machines and at the
+    smallest type size; Pause and Resume, the PAUSED tag, Skip and "Stop at
+    result" on your own battle, a watched one and the replay page; no mark
+    left on the board after a watched opponent's battle or at the end of its
+    turn.
+    Battle screen redesign, third pass (2026-09-29, unbrowsed):
+    - the joined ground for every pair of terrains (hills beside road, valley
+      beside base and so on): one horizon, reliefs fading before the middle,
+      no visible seam; split halves and tilt only for fire from range and
+      aircraft;
+    - the face-off rows at 900 to 2500 px board widths: totals aligned across
+      the two rows, the longest equations ("40 +20 support +5 Plains ½
+      surrounded", "8×70 +320 support cap ×2.00 exp") on one line, the roll on
+      each arrow, the white-to-yellow change when final;
+    - the minimaps: every A-to-D direction and a sideways board, supporters on
+      both sides, map-edge rings (void hexes), tags and "½" legible and not
+      covering each other at small type, and the two-hex range view;
+    - the loss charts' average marker, LUCKY / UNLUCKY / AS EXPECTED, and the
+      empty area when nothing shoots at a side;
+    - the header count on the icon's corner dropping with a flash at impact,
+      mirrored Xenon heading, no new stars after the attacker is destroyed;
+    - the control bar order and the Stop at result On / Off toggle, and the
+      replay bar.
 
 Research rather than a check: direct PC Engine confirmation of the Windows
 combat traces.

@@ -92,6 +92,9 @@ var UI = (function () {
     this.destroyed = false;
     this.watchAI = localStorage.getItem("nectaris-watch-ai") !== "off";
     this.animateMoves = localStorage.getItem("nectaris-animate-moves") !== "off";
+    // Pause the battle screen when its result appears, so the final numbers and
+    // the loss chart can be read; off by default so watched turns keep flowing.
+    this.holdBattleResult = localStorage.getItem("nectaris-battle-hold") === "on";
     this.warLedger = battleReport.emptyLedger();
     this.onGameOver = this.options.onGameOver || function () {};
     if (!this.options.hotseat && this.options.humanSide !== 0 && this.options.humanSide !== 1) {
@@ -154,6 +157,13 @@ var UI = (function () {
     }
 
     $("btn-battle-pause").onclick = function () { self.toggleBattlePause(); };
+    $("btn-battle-skip").onclick = function () { self.advanceBattle(); };
+    $("btn-battle-hold").setAttribute("aria-pressed", this.holdBattleResult ? "true" : "false");
+    $("btn-battle-hold").onclick = function () {
+      self.holdBattleResult = !self.holdBattleResult;
+      this.setAttribute("aria-pressed", self.holdBattleResult ? "true" : "false");
+      localStorage.setItem("nectaris-battle-hold", self.holdBattleResult ? "on" : "off");
+    };
     $("battle-stage").onclick = function (e) {
       if (!e.target.closest("button")) self.advanceBattle();
     };
@@ -584,7 +594,7 @@ var UI = (function () {
     this.renderer.highlights = null;
     this.renderer.attackingUnitId = event.attacker.id;
     this.renderer.flashUnits[event.defender.id] = "#ffffff";
-    var parts = battleReport.previewHtml(event.attacker, event.defender, event.preview);
+    var parts = battleReport.previewHtml(event.attacker, event.defender, event.preview, this.game);
     this.openWarDock(parts.scene, "");
     this.showBattleScreen(parts.screen, parts.outcome);
   };
@@ -594,7 +604,7 @@ var UI = (function () {
     this.renderer.highlights = null;
     this.renderer.attackingUnitId = event.attacker.id;
     this.renderer.flashUnits[event.defender.id] = "#ffffff";
-    var parts = battleReport.resultParts(event.attacker, event.defender, event.result, event.attackerBefore, event.defenderBefore);
+    var parts = battleReport.resultParts(event.attacker, event.defender, event.result, event.attackerBefore, event.defenderBefore, this.game);
     battleReport.record(this.warLedger, event.attacker.player, parts.assessed);
     this.openWarDock(parts.scene, battleReport.ledgerHtml(this.warLedger));
     this.showBattleScreen(parts.screen, parts.outcome);
@@ -613,13 +623,16 @@ var UI = (function () {
         defenderLosses > event.defenderBefore) {
       throw new Error("Battle result casualties exceed the pre-battle squad count");
     }
-    var timing = {aType: event.attacker.typeId, dType: event.defender.typeId, hasCounter: !!result.preview.counter};
+    var timing = {aType: event.attacker.typeId, ranged: !!result.preview.ranged};
     var duration = battleReport.fightingDuration(timing), volley = battleReport.volleyMs(timing);
-    var lastCounts = "", resultMath = $("war-math").innerHTML;
+    var lastCounts = "", resultMath = $("war-math").innerHTML, held = false;
     var assessed = battleReport.assess(event.attacker, event.defender, result, event.attackerBefore, event.defenderBefore);
+    var area = battleReport.battleArea(this.game, event.attacker, event.defender);
     if (holdMs === undefined) holdMs = 500;
     if (approachMs === undefined) approachMs = 800;
-    var earned = Math.max(event.attacker.exp - result.attackerExpBefore, event.defender.exp - result.defenderExpBefore);
+    var aRank = battleReport.shownRank(result.attackerExpBefore, event.attacker.exp, event.attackerBefore - attackerLosses);
+    var dRank = battleReport.shownRank(result.defenderExpBefore, event.defender.exp, event.defenderBefore - defenderLosses);
+    var earned = Math.max(aRank - result.attackerExpBefore, dRank - result.defenderExpBefore);
     holdMs = Math.max(holdMs, battleReport.rewardHoldMs(earned));
     this.renderer.battleGhosts = [event.attacker, event.defender];
     var heard = {volley: false, impact: false, exp: [result.attackerExpBefore, result.defenderExpBefore]};
@@ -642,10 +655,18 @@ var UI = (function () {
       self.renderer.strengthOverrides[event.attacker.id] = attackerCurrent;
       self.renderer.strengthOverrides[event.defender.id] = defenderCurrent;
       var rewardElapsed = Math.max(0, fight - duration);
-      var aExp = battleReport.earnedExperience(result.attackerExpBefore, event.attacker.exp, rewardElapsed);
-      var dExp = battleReport.earnedExperience(result.defenderExpBefore, event.defender.exp, rewardElapsed);
+      var aExp = battleReport.earnedExperience(result.attackerExpBefore, aRank, rewardElapsed);
+      var dExp = battleReport.earnedExperience(result.defenderExpBefore, dRank, rewardElapsed);
       self.soundBattle(event, heard, fight, hit, [aExp, dExp], volley);
       var phase = elapsed < approachMs ? "ready" : !hit ? "fighting" : fight < duration ? "impact" : "result";
+      // Once, when every earned star is showing. Paused after this frame, not
+      // inside it: a skip that seeks here is still finishing its own update.
+      if (self.holdBattleResult && !held && phase === "result" && rewardElapsed >= battleReport.rewardRevealMs(earned)) {
+        held = true;
+        Promise.resolve().then(function () {
+          if (self._battlePlayback && !self._battlePlayback.paused) self.toggleBattlePause();
+        });
+      }
       var counts = attackerCurrent + ":" + defenderCurrent + ":" + aExp + ":" + dExp + ":" + phase;
       if (counts !== lastCounts) {
         lastCounts = counts;
@@ -658,7 +679,7 @@ var UI = (function () {
         stage.innerHTML = battleReport.screenHtml(event.attacker, event.defender, result.preview,
           event.attackerBefore, event.defenderBefore, attackerCurrent, defenderCurrent,
           result.attackerExpBefore, result.defenderExpBefore,
-          aExp, dExp, phase, {report: hit ? assessed : undefined});
+          aExp, dExp, phase, {report: hit ? assessed : undefined, area: area});
         unitView.paint(stage);
         $("battle-outcome").textContent = battleReport.outcomeText(event.attacker, event.attackerBefore, event.defenderBefore,
           attackerCurrent, defenderCurrent, phase);
@@ -924,7 +945,7 @@ var UI = (function () {
   // and the map behind it (behind "Show map") lights the same supporters and ring.
   GameUI.prototype.playCombatEffects = function (attacker, defender, pv, done) {
     var self = this, model = combatPanel.build(attacker, defender, pv), fx = combatPanel.effects(defender, model);
-    var lastKey = null, stage = $("battle-stage");
+    var lastKey = null, stage = $("battle-stage"), area = battleReport.battleArea(this.game, attacker, defender);
     var heard = {lit: [0, 0], supporters: 0, terrain: false, ring: 0, verdict: false}, lastElapsed = 0;
     this._advanceBattle = false;
     this.renderer.battlePair = {attacker: {col: attacker.col, row: attacker.row}, defender: {col: defender.col, row: defender.row}};
@@ -942,11 +963,12 @@ var UI = (function () {
       fx.shownSupporters = shown.supportersShown;
       fx.shownRing = shown.ringShown;
       fx.surroundShown = shown.surroundShown;
-      var key = JSON.stringify([shown.sides, shown.supportersShown, elapsed >= model.time.experienceEnd]);
+      var key = JSON.stringify([shown.sides, shown.supportersShown, shown.ringShown, shown.surroundShown,
+        elapsed >= model.time.experienceEnd]);
       if (key !== lastKey) {
         lastKey = key;
         self.showBattleScreen(battleReport.screenHtml(attacker, defender, pv, attacker.strength, defender.strength,
-          attacker.strength, defender.strength, attacker.exp, defender.exp, undefined, undefined, "ready", {count: elapsed}),
+          attacker.strength, defender.strength, attacker.exp, defender.exp, undefined, undefined, "ready", {count: elapsed, area: area}),
           battleReport.outcomeText(attacker, attacker.strength, defender.strength, attacker.strength, defender.strength, "ready"));
       }
       self.draw();
@@ -1171,7 +1193,7 @@ var UI = (function () {
     $("battle-panel").classList.add("hidden");
     var attackerBefore = attacker.strength, defenderBefore = defender.strength;
     var result = g.attack(attacker, defender);
-    var parts = battleReport.resultParts(attacker, defender, result, attackerBefore, defenderBefore);
+    var parts = battleReport.resultParts(attacker, defender, result, attackerBefore, defenderBefore, g);
     battleReport.record(this.warLedger, attacker.player, parts.assessed);
     this.clearUndo(); // Combat is an irreversible boundary, including during animation.
     this.refreshStatus();
@@ -1193,7 +1215,7 @@ var UI = (function () {
         self.busy = false;
         self.hideBattleScreen();
         done(result);
-        self.showAftermath(attacker, defender, result, true);
+        self.showAftermath(attacker, defender, result);
       });
     });
   };
@@ -1203,21 +1225,26 @@ var UI = (function () {
   // second (user, 2026-09-29: three explosions were too many), and the unit that
   // destroyed it keeps its battle highlight.
   var AFTERMATH_MS = 1000;
-  // `transient`: the player's own battle. Its explosions play, but no outline,
-  // link or killer highlight stays on the board afterwards (user report,
-  // 2026-09-29: highlighted hexes lingering after an attack).
-  GameUI.prototype.showAftermath = function (attacker, defender, result, transient) {
+  // Everything a battle marked on the board (attacker and defender outlines,
+  // the link between them, the killer or target highlight, the support and
+  // surround overlay, aiming hexes) ends with the battle, for the player's own
+  // attacks and a watched opponent's alike (user reports, 2026-09-29:
+  // highlighted hexes lingering after an attack). Explosions still play.
+  GameUI.prototype.clearBattleMarks = function () {
+    var renderer = this.renderer;
+    renderer.attackingUnitId = null;
+    renderer.flashUnits = {};
+    renderer.battlePair = null;
+    renderer.combatEffects = null;
+    renderer.highlights = null;
+  };
+  GameUI.prototype.showAftermath = function (attacker, defender, result) {
     var self = this, renderer = this.renderer;
     var dead = [result.defenderDead && defender, result.attackerDead && attacker].filter(Boolean);
     if (this._aftermath) this._aftermath.cancel();
     this._aftermath = null;
     renderer.aftermath = [];
-    renderer.attackingUnitId = null;
-    renderer.flashUnits = {};
-    renderer.battlePair = transient ? null :
-      {attacker: {col: attacker.col, row: attacker.row}, defender: {col: defender.col, row: defender.row}};
-    if (!transient && dead.length === 1 && result.defenderDead) renderer.attackingUnitId = attacker.id;
-    if (!transient && dead.length === 1 && result.attackerDead) renderer.flashUnits[defender.id] = "#ffffff";
+    this.clearBattleMarks();
     if (!dead.length) { this.draw(); return; }
     dead.forEach(function (unit) {
       self.soundAt("explosion", unit.col, unit.row, {size: 0.4, destroyed: false});
@@ -1741,7 +1768,7 @@ var UI = (function () {
     if (this._aiTurn && this._aiTurn.destroy) this._aiTurn.destroy();
     this._aiTurn = null;
     this.selected = null;
-    this.renderer.highlights = null;
+    this.clearBattleMarks();
     if (this._dockShowsSelection) this.closeWarDock();
     this.hideWatchPanel();
     this.hideBattleScreen();

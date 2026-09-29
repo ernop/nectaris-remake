@@ -43,16 +43,18 @@ module.exports = function (ok) {
     shown.renderer = {aftermath:[], flashUnits:{}, attackingUnitId:null};
     shown.draw = function () {};
     var hunter = {id:1,col:2,row:3}, prey = {id:2,col:3,row:3};
+    shown.renderer.attackingUnitId=1;shown.renderer.flashUnits={2:"#ffffff"};shown.renderer.battlePair={};shown.renderer.combatEffects={};shown.renderer.highlights={a:1};
     shown.showAftermath(hunter,prey,{defenderDead:true,attackerDead:false});frame(180000);
-    ok(shown.renderer.attackingUnitId===1&&!Object.keys(shown.renderer.flashUnits).length&&
+    ok(shown.renderer.attackingUnitId===null&&!Object.keys(shown.renderer.flashUnits).length&&shown.renderer.battlePair===null&&
+      shown.renderer.combatEffects===null&&shown.renderer.highlights===null&&
       shown.renderer.aftermath.length===1&&shown.renderer.aftermath[0].col===3&&shown.renderer.aftermath[0].row===3,
-      "back on the map a destroyed defender explodes at its hex while its attacker keeps the battle highlight");
+      "back on the map a destroyed defender explodes at its hex and no battle mark, outline or highlight stays on the board");
     frame(181500);
-    ok(!shown.renderer.aftermath.length&&!shown._aftermath&&shown.renderer.attackingUnitId===1,
-      "the explosion stops after one second; the highlight stays until the next action");
+    ok(!shown.renderer.aftermath.length&&!shown._aftermath&&shown.renderer.attackingUnitId===null&&shown.renderer.battlePair===null,
+      "the explosion stops after one second and leaves nothing marked");
     shown.showAftermath(hunter,prey,{defenderDead:false,attackerDead:true});frame(190000);
-    ok(shown.renderer.attackingUnitId===null&&shown.renderer.flashUnits[2]==="#ffffff"&&shown.renderer.aftermath[0].col===2,
-      "a counterattack kill explodes at the attacker's hex and keeps the defender's ring");
+    ok(shown.renderer.attackingUnitId===null&&!Object.keys(shown.renderer.flashUnits).length&&shown.renderer.aftermath[0].col===2,
+      "a counterattack kill explodes at the attacker's hex with no ring left on the defender");
     shown.showAftermath(hunter,prey,{defenderDead:true,attackerDead:true});frame(200000);
     ok(shown.renderer.attackingUnitId===null&&!Object.keys(shown.renderer.flashUnits).length&&shown.renderer.aftermath.length===2,
       "mutual destruction explodes at both hexes with no survivor highlighted");

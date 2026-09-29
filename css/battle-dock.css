@@ -160,29 +160,53 @@
 .war-ledger-side .war-faction-1 { color: #9dffb0; }
 
 /* The battle screen occupies the board's existing viewport without resizing it. */
-#battle-stage, #replay-battle-stage { position: absolute; inset: 0; z-index: 12; display: grid;
-  place-items: center; padding: clamp(8px, 2vw, 24px); background: #080a18; overflow: auto; }
-.battle-screen { width: 100%; color: #fff; background: #121d53; border: 3px solid #d5bc43;
-  box-shadow: 0 12px 50px #0008; font-family: monospace; }
-.battle-heading { display: grid; grid-template-columns: 1fr 1fr; }
-.battle-combatant { padding: 6px 12px; display: grid; grid-template-columns: 1fr auto; gap: 4px 8px; }
-.battle-combatant h3 { font-size: clamp(16px, 2vw, 26px); color: white; margin: 0; }
-.battle-combatant .war-faction { grid-column: 1 / -1; }
-.battle-count { grid-column: 2; grid-row: 2 / 4; display: flex; align-items: center; gap: 6px; }
-.battle-count strong { border: 2px solid #f7d758; padding: 3px 9px; color: #ffe668; font-size: clamp(26px, 4vw, 48px); }
-.battle-count span { font-size: 12px; }
+/* The popup is three fixed regions in one column: a slim heading, the unit
+   field, which takes everything left over, and the numbers panel, whose height
+   is set in advance from --nf (its type size) so no number, row or chart can
+   resize it. --cell, the machines' size, is what is left of the window's
+   height once the fixed regions are taken out (heading, controls and padding
+   about 170px, the numbers panel 17 x --nf), split over three rows. */
+#battle-stage, #replay-battle-stage { --nf: clamp(11px, min(1.9vh, 1.15vw), 17px);
+  position: absolute; inset: 0; z-index: 12; display: grid; grid-template-rows: minmax(0, 1fr);
+  padding: clamp(6px, 1vw, 14px); background: #080a18; overflow: hidden; }
+.battle-presentation { min-height: 0; display: flex; flex-direction: column; }
+#battle-content, #replay-battle-content { flex: 1 1 auto; min-height: 0; display: flex; }
+.battle-screen { flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; flex-direction: column; color: #fff;
+  background: #121d53; border: 3px solid #d5bc43; box-shadow: 0 12px 50px #0008; font-family: monospace; }
+.battle-heading { flex: none; display: grid; grid-template-columns: 1fr 1fr; }
+/* A heading is the unit mark and name only (user, 2026-09-29). The mark
+   carries the remaining machines on the icon's corner, as the map sprite
+   does, and the number drops the moment machines fall. Xenon's heading
+   mirrors Union's toward the right edge. */
+.battle-combatant { padding: 4px 12px; display: flex; align-items: center; min-width: 0; }
+.battle-combatant-right { justify-content: flex-end; }
+.battle-combatant-right .unit-label { flex-direction: row-reverse; }
+.battle-combatant h3 { font-size: clamp(16px, 2.6vh, 26px); color: white; margin: 0; }
+.battle-combatant .unit-mark > .unit-strength { padding: 0 4px; font-size: 22px; line-height: 24px; }
+.battle-combatant-hit .unit-mark > .unit-strength { animation: battle-count-drop 450ms ease-out both; }
+@keyframes battle-count-drop {
+  0% { color: #fff; background: #ff5a00; transform: scale(1.6); }
+  100% { color: #ffca92; background: #211d16; transform: scale(1); }
+}
 /* Each faction keeps its own terrain, including when Xenon initiates. */
-.battle-field { position: relative; display: grid; grid-template-columns: 1fr 1fr;
+.battle-field { --pad: 22px; --pad-top: 14px; --pad-bot: 10px; --gap: 8px;
+  --cell: clamp(28px, min((100vh - 17 * var(--nf) - 170px) / 3.6, 9vw), 112px);
+  flex: 1 1 0; min-height: 0; container-type: inline-size; position: relative; display: grid; grid-template-columns: 1fr 1fr;
   border-block: 2px solid #dabf4d; overflow: hidden; }
-.battle-ground { position: relative; display: grid; align-items: center; min-height: clamp(120px, 24vh, 230px);
-  padding: 14px 22px 10px; overflow: hidden; }
+.battle-ground { position: relative; display: grid; align-items: center; min-height: 0;
+  padding: var(--pad-top) var(--pad) var(--pad-bot); overflow: hidden; }
 .battle-terrain { position: absolute; width: 100%; height: 100%; inset: 0; }
-.battle-formation { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; align-items: center; justify-items: center; }
-.battle-formation-left { transform: translateX(calc(var(--battle-approach, 0) * -70px)) skewY(-8deg); }
-.battle-formation-right { transform: translateX(calc(var(--battle-approach, 0) * 70px)) skewY(8deg); }
-.battle-machine { display: grid; place-items: center; width: clamp(28px, min(5vw, 6.5vh), 64px); height: clamp(28px, min(5vw, 6.5vh), 64px); }
+.battle-formation { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--gap); align-items: center; justify-items: center; }
+/* Adjacent ground units stand level (user, 2026-09-29: "why are the units
+   angled upwards?"). Formations tilt only when a shot goes up: fire from
+   range, or an aircraft in the fight (.battle-field-lofted). */
+.battle-formation-left { transform: translateX(calc(var(--battle-approach, 0) * -70px)); }
+.battle-formation-right { transform: translateX(calc(var(--battle-approach, 0) * 70px)); }
+.battle-field-lofted .battle-formation-left { transform: translateX(calc(var(--battle-approach, 0) * -70px)) skewY(-8deg); }
+.battle-field-lofted .battle-formation-right { transform: translateX(calc(var(--battle-approach, 0) * 70px)) skewY(8deg); }
+.battle-machine { display: grid; place-items: center; width: var(--cell); height: var(--cell); }
 .battle-machine .unit-label-icon { width: 100%; height: 100%; image-rendering: pixelated; }
-.battle-casualty { color: #ffd54f; font-size: clamp(24px, 4vw, 48px); text-shadow: 0 0 10px #f50; }
+.battle-casualty { color: #ffd54f; font-size: calc(var(--cell) * .8); text-shadow: 0 0 10px #f50; }
 /* One volley of bullets crosses the field, then every loss bursts at once. */
 .battle-volley { position: absolute; inset: 0; z-index: 3; pointer-events: none; }
 .battle-bullet { position: absolute; width: 12px; height: 4px; border-radius: 2px; background: #fff3a6;
@@ -191,61 +215,165 @@
 .battle-bullet-rtl { animation: battle-bullet-rtl 300ms linear both; }
 @keyframes battle-bullet-ltr { from { left: 22%; } to { left: 76%; } }
 @keyframes battle-bullet-rtl { from { left: 76%; } to { left: 22%; } }
-/* Artillery: the shell climbs from its own formation, leaves the top of the
-   field (clipped by .battle-field), then drops onto the target's formation.
-   --y is the row, --x0 the launch column, --x1 the landing column. Duration
-   and stagger are set inline from ARC_FLIGHT_MS / ARC_STAGGER_MS. */
-.battle-shell { position: absolute; width: 5px; height: 16px; margin-left: -2px; border-radius: 3px;
-  background: #fff3a6; box-shadow: 0 0 6px #ffc53d, 0 0 12px #ff7a1a;
-  animation: battle-shell-arc 600ms linear backwards; left: var(--x0); top: var(--y); opacity: 0; }
-@keyframes battle-shell-arc {
-  0% { left: var(--x0); top: var(--y); opacity: 0; }
-  3% { left: var(--x0); top: var(--y); opacity: 1; animation-timing-function: cubic-bezier(.2, .6, .4, 1); }
-  45% { left: var(--x0); top: -25%; opacity: 1; }
-  46% { left: var(--x1); top: -25%; opacity: 1; animation-timing-function: cubic-bezier(.6, 0, .8, .4); }
-  100% { left: var(--x1); top: var(--y); opacity: 1; }
+/* Indirect fire (Lynx launchers and artillery when firing from range). All
+   timings and coordinates arrive as custom properties from battle-report.js.
+   The barrel is drawn over the machine and tilts about its rear end; the shell
+   moves in field coordinates: x steadily across, y up out of the top of the
+   field (clipped by .battle-field) and down onto the target. */
+.battle-machine { position: relative; }
+.battle-barrel { position: absolute; z-index: 2; top: calc(var(--cell) * var(--top));
+  width: calc(var(--cell) * var(--len)); height: calc(var(--cell) * var(--thick));
+  background: linear-gradient(#8d97a3, #353c45); border: 1px solid #0d1116; border-radius: 2px; box-sizing: border-box; }
+.battle-barrel-launcher { background: linear-gradient(#b0b478, #4d5130); border-radius: 3px 5px 5px 3px; }
+.battle-barrel-ltr { left: 50%; transform-origin: 0 50%;
+  animation: battle-barrel-raise-ltr var(--tilt-ms) ease-out both, battle-barrel-kick 140ms ease-out var(--fire) both; }
+.battle-barrel-rtl { right: 50%; transform-origin: 100% 50%;
+  animation: battle-barrel-raise-rtl var(--tilt-ms) ease-out both, battle-barrel-kick 140ms ease-out var(--fire) both; }
+@keyframes battle-barrel-raise-ltr { from { rotate: 0deg; } to { rotate: calc(-1 * var(--tilt-deg)); } }
+@keyframes battle-barrel-raise-rtl { from { rotate: 0deg; } to { rotate: var(--tilt-deg); } }
+@keyframes battle-barrel-kick { 0% { scale: 1 1; } 30% { scale: .8 1; } 100% { scale: 1 1; } }
+.battle-barrel::after { content: ""; position: absolute; top: 50%; width: calc(var(--cell) * .3); height: calc(var(--cell) * .3);
+  margin: calc(var(--cell) * -.15) 0 0 calc(var(--cell) * -.15); border-radius: 50%; opacity: 0;
+  background: radial-gradient(#fff 15%, #ffd23d 45%, #ff7a1a 65%, transparent 72%);
+  animation: battle-muzzle 180ms ease-out var(--fire) forwards; }
+.battle-barrel-ltr::after { left: 100%; }
+.battle-barrel-rtl::after { left: 0; }
+@keyframes battle-muzzle { 0% { opacity: 1; scale: .4; } 100% { opacity: 0; scale: 1.5; } }
+.battle-shell, .battle-rocket { --yp: -12%; position: absolute; left: var(--x0); top: var(--y0); opacity: 0;
+  border-radius: 3px; animation:
+    battle-arc-x var(--flight) linear var(--fire) both,
+    battle-arc-y var(--flight) linear var(--fire) both,
+    battle-arc-turn var(--flight) linear var(--fire) both,
+    battle-arc-show var(--flight) linear var(--fire) both; }
+.battle-shell { width: 16px; height: 6px; margin: -3px 0 0 -8px; background: #fff3a6;
+  box-shadow: 0 0 6px #ffc53d, 0 0 12px #ff7a1a; }
+/* A rocket's nose leads and its exhaust trails, whichever way it is heading. */
+.battle-rocket { width: 26px; height: 7px; margin: -3.5px 0 0 -13px; box-shadow: 0 0 8px #ff7a1a; }
+.battle-rocket.battle-arc-ltr { background: linear-gradient(90deg, #ff5a00, #ffd23d 55%, #fff 80%); }
+.battle-rocket.battle-arc-rtl { background: linear-gradient(270deg, #ff5a00, #ffd23d 55%, #fff 80%); }
+@keyframes battle-arc-x { from { left: var(--x0); } to { left: var(--x1); } }
+@keyframes battle-arc-y {
+  0% { top: var(--y0); animation-timing-function: cubic-bezier(.25, .46, .45, .94); }
+  50% { top: var(--yp); animation-timing-function: cubic-bezier(.55, .085, .68, .53); }
+  100% { top: var(--y1); }
 }
+@keyframes battle-arc-turn { from { rotate: var(--a0); } to { rotate: var(--a1); } }
+@keyframes battle-arc-show { 0% { opacity: 0; } 2%, 98% { opacity: 1; } 100% { opacity: 0; } }
+.battle-splash { position: absolute; left: var(--x1); top: var(--y1); width: 36px; height: 36px; margin: -18px 0 0 -18px;
+  border-radius: 50%; opacity: 0; background: radial-gradient(#fff 15%, #ffd23d 40%, #ff5a00 62%, transparent 70%);
+  animation: battle-splash var(--splash) ease-out var(--land) forwards; }
+@keyframes battle-splash { 0% { opacity: 1; scale: .3; } 100% { opacity: 0; scale: 1.6; } }
 .battle-casualty-new { animation: battle-burst 450ms ease-out both; }
 @keyframes battle-burst {
   0% { transform: scale(0.3); color: #fff; text-shadow: 0 0 16px #fff, 0 0 30px #ff9d2e; }
   45% { transform: scale(1.7); color: #fff6c4; text-shadow: 0 0 14px #ffd23d, 0 0 26px #ff6a00; }
   100% { transform: scale(1); color: #ffd54f; text-shadow: 0 0 10px #f50; }
 }
-.battle-crossfire { position: absolute; z-index: 2; left: 50%; top: 50%; transform: translate(-50%, -50%);
-  font-size: 30px; color: #ffdf77; text-shadow: 0 1px 3px #000; }
-.battle-one-way { font-size: 25px; padding: 0 5px; border-radius: 3px; background: #24251ed9; }
-/* The numbers panel: each side's calculation under its own formation, so the
-   player reads a side's steps below the machines they belong to and compares
-   the two sides across the same rows. Sizes follow the popup's height. */
-.battle-numbers { padding: 6px 1% 8px; font-size: clamp(12px, 2vh, 18px); border-bottom: 1px solid #5e6281; }
-.battle-numbers .cp-title { font-size: 1.05em; }
-.battle-stat-panels { display: grid; grid-template-columns: 1fr 1fr; gap: 0 1.5%; }
-.cp-steps thead th.cp-team { font-size: 1.3em; font-weight: 800; color: var(--side-light); }
-.bn-side { min-width: 0; padding: 4px 1.5% 6px; }
-.bn-line { display: flex; flex-wrap: wrap; align-items: center; gap: 0 .5em; margin: 3px 0 0; font-size: 1em; font-weight: 700;
+/* The numbers panel: two face-off rows across the full width, then each
+   side's minimap and loss chart under its own formation. Its height is fixed
+   from --nf, so nothing arriving during the count moves anything. Every
+   size inside is in em of --nf. */
+.battle-numbers { flex: none; box-sizing: border-box; height: calc(var(--nf) * 17); overflow: hidden;
+  display: flex; flex-direction: column; gap: .4em; padding: .45em 1% .5em; font-size: var(--nf); border-top: 2px solid #dabf4d; }
+.battle-numbers [data-player="0"] { --side: #4a90e8; --side-light: #9fd0ff; }
+.battle-numbers [data-player="1"] { --side: #3cb44b; --side-light: #9dffb0; }
+/* Row one is Union's attack against Xenon's defense, row two Xenon's attack
+   against Union's defense. Each total has its own column beside the arrows,
+   so the two rows' numbers line up; the equations grow outward from them. */
+.bn-faceoff { flex: none; display: grid; height: 6.6em; gap: .15em .6em; align-items: center;
+  grid-template-columns: minmax(0, 1fr) auto minmax(6em, 15%) auto minmax(0, 1fr); grid-template-rows: 1fr 1fr;
   font-variant-numeric: tabular-nums; }
-.bn-line strong { font-size: 1.4em; font-weight: 800; color: #ffe668; }
-.bn-key { min-width: 7.5em; font-weight: 800; color: var(--side-light); }
-.bn-none { font-weight: 800; }
+.bn-eq { display: flex; align-items: baseline; gap: .55em; min-width: 0; overflow: hidden; white-space: nowrap; }
+.bn-eq-left { justify-content: flex-end; }
+.bn-term b, .bn-equals { font-size: 1.3em; font-weight: 800; }
+.bn-term small { margin-left: .25em; font-size: .85em; font-weight: 700; color: var(--side-light); }
+.bn-live b, .bn-live small { color: #ffe668; }
+.bn-total { display: flex; align-items: baseline; gap: .35em; }
+.bn-total b { min-width: 4ch; font-size: 2.7em; font-weight: 800; line-height: 1; text-align: right; }
+.bn-total i { font-style: normal; font-size: 1.1em; font-weight: 800; letter-spacing: .05em; color: var(--side-light); }
+/* Totals are white while they count and turn yellow once final. */
+.bn-ready .bn-total b { color: #ffe668; }
+.bn-arrow { position: relative; height: 1.6em; display: flex; align-items: center; justify-content: center; }
+.bn-arrow-ltr::before, .bn-arrow-rtl::before { content: ""; position: absolute; top: 50%; left: 0; right: 0; height: .32em;
+  transform: translateY(-50%); background: var(--side-light); }
+.bn-arrow-ltr::before { right: .9em; }
+.bn-arrow-rtl::before { left: .9em; }
+.bn-arrow-ltr::after, .bn-arrow-rtl::after { content: ""; position: absolute; top: 50%; transform: translateY(-50%);
+  border-block: .6em solid transparent; }
+.bn-arrow-ltr::after { right: 0; border-left: 1em solid var(--side-light); }
+.bn-arrow-rtl::after { left: 0; border-right: 1em solid var(--side-light); }
+.bn-roll { position: relative; z-index: 1; padding: 0 .45em; font-style: normal; font-size: 1.15em; font-weight: 800;
+  color: #fff; background: #121d53; white-space: nowrap; }
+.battle-screen[data-battle-phase="fighting"] :is(.bn-arrow-ltr, .bn-arrow-rtl) { animation: bn-arrow-pulse 250ms ease-in-out infinite alternate; }
+@keyframes bn-arrow-pulse { from { filter: brightness(1); } to { filter: brightness(1.5) drop-shadow(0 0 6px #fff); } }
+.bn-detail { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0 2%; }
+.bn-half { display: flex; gap: 3%; min-width: 0; min-height: 0; }
+.bn-half[data-player="1"] { flex-direction: row-reverse; }
+/* The minimap keeps its layout's proportions (7.128 x 5.2 hex radii, see
+   combat-panel.js), so percentages put its units and tags on their hexes. */
+.bn-map { position: relative; flex: none; height: 100%; aspect-ratio: 7.128 / 5.2; font-size: .9em; }
+.bn-map svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.bn-map-unit { position: absolute; width: 17%; transform: translate(-50%, -65%); line-height: 0; }
+.bn-map-unit .unit-label-icon { width: 100%; height: auto; image-rendering: pixelated; }
+.bn-own { fill: none; stroke: #fff; stroke-width: .1; }
+.bn-support { fill: none; stroke: var(--side-light); stroke-width: .11; }
+.bn-ring-lit { fill: var(--side-light); fill-opacity: .3; stroke: var(--side-light); stroke-width: .07; }
+.bn-ring-open { fill: none; stroke: #ffb347; stroke-width: .07; stroke-dasharray: .2 .13; }
+.bn-range { stroke: #fff; stroke-width: .06; stroke-dasharray: .2 .15; }
+.bn-tag { position: absolute; z-index: 1; transform: translate(-50%, 30%); display: inline-flex; align-items: baseline; gap: .1em;
+  padding: 0 .25em; white-space: nowrap; color: #fff; background: #080b12; border: 2px solid var(--side-light); line-height: 1.2; }
+.bn-tag-high { transform: translate(-50%, -150%); border-color: #fff; }
+.bn-tag b { font-weight: 800; }
+.bn-tag small { font-size: .7em; font-weight: 800; }
+.bn-range-label { position: absolute; transform: translate(-50%, -50%); font-weight: 800; white-space: nowrap; }
+.bn-chart { flex: 1 1 0; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+.bn-chart .cp-chart { flex: 1 1 auto; min-height: 0; height: auto; }
+.bn-chart .cp-pct { font-size: .85em; height: 1.35em; line-height: 1.35; }
+.bn-chart .cp-lost { font-size: .95em; }
+.bn-chart .cp-actual .cp-col i { background: #ffe668; box-shadow: 0 0 0 2px #fff; }
+.bn-chart .cp-actual .cp-lost { color: #000; background: #ffe668; }
+.bn-chart .cp-actual .cp-pct { color: #ffe668; }
+.bn-mean-strip { position: relative; flex: none; height: .6em; }
+.bn-mean { position: absolute; top: 0; margin-left: -.4em; border-bottom: .55em solid #fff; border-inline: .4em solid transparent; }
+.bn-foot { flex: none; display: flex; align-items: center; gap: 1em; height: 1.5em; margin: 0; white-space: nowrap; font-weight: 700; }
+.bn-foot b { font-size: 1.25em; font-weight: 800; }
+.bn-luck { font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: #ffe668; }
 .bn-hidden { visibility: hidden; }
-.bn-supporter { display: inline-flex; align-items: center; gap: 2px; margin-right: .6em; }
-.bn-supporter .unit-label-icon { width: 1.6em; height: 1.6em; image-rendering: pixelated; }
-.battle-outcome { flex: 1 1 auto; text-align: center; font-size: clamp(16px, 2.6vh, 22px); font-weight: 800; color: #ffe668; }
+.battle-outcome { flex: 1 1 auto; min-width: 0; text-align: left; font-size: clamp(16px, 2.6vh, 22px); font-weight: 800; color: #ffe668; }
 @media (max-width: 700px) {
   #game-screen { --controls-left-width: 190px; }
   #lab-viewer.replay-viewer { grid-template-columns: 190px minmax(0, 1fr); }
-  .battle-count span { display: none; }
   .battle-combatant { padding: 6px; }
-  .battle-ground { min-height: 150px; padding: 15px 4px 10px; }
-  .battle-numbers { padding: 4px 1% 6px; }
+  .battle-field { --pad: 4px; --pad-top: 15px; --pad-bot: 10px; }
 }
 
 .battle-presentation { width: 100%; }
 .battle-presentation .battle-screen { width: 100%; box-sizing: border-box; }
-.battle-controls { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px 14px;
+/* Status on the left; Stop at result, Skip and Pause / Resume at the lower
+   right, Pause last (user, 2026-09-29). */
+.battle-controls { flex: none; display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 6px 12px;
   padding: 6px 10px; color: #fff; background: #121d53; border: 3px solid #d5bc43; border-top: 0; }
 .battle-controls button { min-width: 100px; color: #fff; background: #24376e; border: 2px solid #f7d758; font-size: 16px; padding: 7px 15px; }
-.battle-controls button[aria-pressed="true"] { background: #614c16; }
+/* Pause is the one large control, and its state cannot be missed: while
+   running it offers Pause, while paused it turns solid yellow, says Resume and
+   a PAUSED tag sits on the field. The icon is drawn, so it never depends on a
+   font. */
+.battle-controls button.battle-pause { display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-width: 210px; min-height: 48px; font-size: 20px; font-weight: 800; }
+.battle-pause::before { content: ""; flex: none; width: 16px; height: 18px;
+  border-left: 5px solid currentColor; border-right: 5px solid currentColor; box-sizing: border-box; }
+.battle-pause[aria-pressed="true"]::before { width: 0; height: 0; border-left: 16px solid currentColor;
+  border-right: 0; border-top: 10px solid transparent; border-bottom: 10px solid transparent; }
+.battle-pause::after { content: "Space"; flex: none; font-size: 13px; font-weight: 700; padding: 1px 6px; border: 1px solid currentColor; border-radius: 3px; }
+.battle-controls button.battle-pause[aria-pressed="true"] { color: #000; background: #ffd94a; border-color: #fff; }
+#battle-stage[data-paused="true"] .battle-field::after, #replay-battle-stage[data-paused="true"] .battle-field::after {
+  content: "PAUSED"; position: absolute; z-index: 5; top: 10px; left: 50%; transform: translateX(-50%);
+  padding: 4px 22px; font-size: 22px; font-weight: 800; letter-spacing: .08em; color: #000; background: #ffd94a; border: 2px solid #fff; }
+/* A toggle that states its value in words, like the match settings. */
+.battle-controls button.battle-hold { display: inline-flex; align-items: center; gap: 10px; min-width: 0; font-weight: 700; }
+.battle-hold::after { content: "Off"; min-width: 2.4em; padding: 1px 6px; font-size: 14px; font-weight: 800;
+  border: 1px solid currentColor; border-radius: 3px; }
+.battle-hold[aria-pressed="true"]::after { content: "On"; color: #000; background: #bfe95c; border-color: #bfe95c; }
 #replay-battle-stage[data-paused="true"] { cursor: pointer; }
 #battle-stage { cursor: pointer; }
 .battle-skip-hint { font-size: 14px; font-weight: 700; }
@@ -269,21 +397,21 @@
 .unit-star { position: absolute; width: 31.25%; height: 25%; }
 .unit-general { position: absolute; inset: 0; }
 .unit-star, .unit-general { filter: brightness(1) drop-shadow(0 0 0 transparent); }
-.battle-combatant .unit-mark { --unit-size: 96px; }
+.battle-combatant .unit-mark { --unit-size: 64px; }
 .unit-star-new { animation: unit-star-glow 1200ms ease-out both; }
 #battle-stage[data-paused="true"] .unit-star-new,
 #replay-battle-stage[data-paused="true"] .unit-star-new,
 #battle-stage[data-paused="true"] .battle-bullet,
 #replay-battle-stage[data-paused="true"] .battle-bullet,
-#battle-stage[data-paused="true"] .battle-shell,
-#replay-battle-stage[data-paused="true"] .battle-shell,
-#battle-stage[data-paused="true"] .battle-casualty-new,
-#replay-battle-stage[data-paused="true"] .battle-casualty-new { animation-play-state: paused; }
+#battle-stage[data-paused="true"] :is(.battle-shell, .battle-rocket, .battle-splash, .battle-barrel, .battle-barrel::after),
+#replay-battle-stage[data-paused="true"] :is(.battle-shell, .battle-rocket, .battle-splash, .battle-barrel, .battle-barrel::after),
+#battle-stage[data-paused="true"] :is(.battle-casualty-new, .bn-arrow-ltr, .bn-arrow-rtl, .unit-strength),
+#replay-battle-stage[data-paused="true"] :is(.battle-casualty-new, .bn-arrow-ltr, .bn-arrow-rtl, .unit-strength) { animation-play-state: paused; }
 @keyframes unit-star-glow {
   0% { opacity: 0; transform: scale(2.4); filter: brightness(1.8) drop-shadow(0 0 6px #ffe98a); }
   17%, 67% { opacity: 1; transform: scale(1.3); filter: brightness(1.5) drop-shadow(0 0 6px #ffe98a); }
   100% { opacity: 1; transform: scale(1); filter: brightness(1) drop-shadow(0 0 0 transparent); }
 }
 @media (max-width: 700px) {
-  .battle-combatant .unit-mark { --unit-size: 64px; }
+  .battle-combatant .unit-mark { --unit-size: 48px; }
 }
