@@ -33,7 +33,7 @@
   openingSettings();
   function config(){return T.normalize({opponents:Array.from(document.querySelectorAll("#lab-opponents input:checked")).map(function(e){return e.value;}),
     maps:rows.filter(function(r){return chosen.has(r.key);}).map(function(r){return r.map;}),cycles:Number($("lab-cycles").value),
-    maxRounds:Number($("lab-rounds").value),seed:Number($("lab-seed").value),workers:Number($("lab-workers").value),work:$("lab-work").value,k:Number($("lab-k").value),selfPlay:$("lab-self").checked,
+    maxRounds:Number($("lab-rounds").value),seed:$("lab-seed").value.trim()||undefined,workers:Number($("lab-workers").value),work:$("lab-work").value,k:Number($("lab-k").value),selfPlay:$("lab-self").checked,
     opening:document.querySelector('input[name="lab-opening"]:checked').value,noDeal:$("lab-no-deal").value});}
   function estimate(){try{var c=config();$("lab-estimate").textContent=c.total.toLocaleString()+" games · "+c.pairs.length+" matchups × "+c.maps.length+" boards × "+c.cycles+" repeats × "+c.legs+" mirrored games";}
     catch(e){$("lab-estimate").textContent=e.message;}$("lab-board-count").textContent=chosen.size+" boards selected across collections";}
@@ -45,7 +45,7 @@
     i.type="checkbox";i.value=m.id;i.checked=true;text.textContent=m.label;note.textContent=m.description;text.appendChild(note);l.append(i,text);$("lab-opponents").appendChild(l);});
   groups.forEach(function(g){option($("lab-collection"),g.id,g.name);});boards();
   $("lab-workers").value=Math.min(4,Math.max(1,(navigator.hardwareConcurrency||4)-1));
-  $("lab-randomize").onclick=function(){var seed=new Uint32Array(1);crypto.getRandomValues(seed);$("lab-seed").value=seed[0];estimate();};
+  $("lab-randomize").onclick=function(){$("lab-seed").value=COMBAT.diceSeed();estimate();};
   $("lab-form").oninput=function(){openingSettings();estimate();};$("lab-collection").onchange=boards;
   $("lab-boards").onchange=function(){Array.from(this.options).forEach(function(o){if(o.selected)chosen.add(o.value);else chosen.delete(o.value);});estimate();};
   $("lab-all").onclick=function(){rows.filter(function(r){return r.group===$("lab-collection").value;}).forEach(function(r){chosen.add(r.key);});boards();};
@@ -163,7 +163,7 @@
     recovered.forEach(function(g){pending.set(g.index,g);});run.status="running";sessionBase=run.wallMs||0;sessionStart=Date.now();await store.save(run);
     await flushFinished();if(run.status!=="running")return;
     for(var i=0;i<run.config.workers;i++){
-      var worker=new Worker("js/tournament-worker.js?v=20260927-fast-search-2"),slot={worker:worker,job:null,progress:null};pool.push(slot);
+      var worker=new Worker("js/tournament-worker.js?v=20260928-fair-dice"),slot={worker:worker,job:null,progress:null};pool.push(slot);
       (function(s){worker.onmessage=function(event){var data=event.data;
         if(data.type==="progress"){if(data.index!==s.job)return;s.progress=data.progress;render();return;}
         if(data.type!=="result"||data.result.index!==s.job)return;

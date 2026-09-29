@@ -248,7 +248,7 @@ var AI_SEARCH = (function () {
   function choose(game,id,options,ctx){var it=decide(game,id,options,ctx),step;do{step=it.next();}while(!step.done);return step.value;}
 
   function publicSnapshot(game) {
-    // Build directly instead of calling snapshot(), which reads the match RNG.
+    // Build directly instead of calling snapshot(), which saves the match's dice.
     var units={},types={};
     function add(u){if(units[u.id])return;var copy=Object.assign({},u);delete copy.type;
       copy.cargo=u.cargo.map(function(c){return c.id;});units[u.id]=copy;types[u.typeId]=u.type;u.cargo.forEach(add);}
@@ -257,7 +257,7 @@ var AI_SEARCH = (function () {
       buildings[k]=Object.assign({},b,{stored:b.stored.map(function(u){return u.id;})});});
     return {version:1,map:game.map,types:types,units:Object.values(units),field:game.units.map(function(u){return u.id;}),
       buildings:buildings,turn:game.turn,currentPlayer:game.currentPlayer,firstPlayer:game.firstPlayer,balance:game.balance||null,turnLimit:game.turnLimit,
-      winner:game.winner,winReason:game.winReason,rngState:0,log:[]};
+      winner:game.winner,winReason:game.winReason,dice:null,log:[]};
   }
 
   function createTurn(game,player,options) {
@@ -276,7 +276,7 @@ var AI_SEARCH = (function () {
     }
     if(async&&typeof Worker!=="undefined"){
       try{
-        worker=new Worker("js/ai-worker.js?v=20260927-fast-search-2");
+        worker=new Worker("js/ai-worker.js?v=20260928-fair-dice");
         worker.onmessage=function(e){
           if(ended||e.data.sequence!==sequence)return;
           if(e.data.error){error=new Error(e.data.error);pending=false;return;}

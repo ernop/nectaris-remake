@@ -10,6 +10,7 @@
 
 use crate::classic;
 use crate::data::Data;
+use crate::dice::Seed;
 use crate::game::{Command, Game};
 use crate::hash;
 use crate::rng::Rng;
@@ -18,7 +19,7 @@ use std::time::Instant;
 
 /// `AI_TOURNAMENT.version` this port implements. A corpus recorded under
 /// another protocol is refused.
-pub const PROTOCOL: &str = "2026-09-26.2";
+pub const PROTOCOL: &str = "2026-09-28.1";
 
 /// A controller for one side: plays a whole turn through the engine's
 /// recording commands and returns without ending the turn.
@@ -91,12 +92,12 @@ impl StepPlayer for Random {
     }
 }
 
-/// One random game (tools/sim/playout.cjs): game `k`'s dice seed is
-/// (k+1) * 0x9e3779b1 XOR `seed`. Returns the final fingerprint and the
-/// number of commands.
+/// One random game (tools/sim/playout.cjs): game `k`'s seed is
+/// (k+1) * 0x9e3779b1 XOR `seed`, stretched into the dice's 256-bit seed.
+/// Returns the final fingerprint and the number of commands.
 pub fn random_game(d: &Data, board: usize, k: usize, seed: u32) -> (u32, usize) {
     let game_seed = (k as u32 + 1).wrapping_mul(0x9e37_79b1) ^ seed;
-    let mut g = Game::new(d, board, game_seed, 0);
+    let mut g = Game::new(d, board, &Seed::from_text(&game_seed.to_string()), 0);
     let mut player = Random(Rng::new(game_seed ^ 0x9e37_79b9));
     let mut n = 0;
     while g.winner < 0 {
@@ -133,7 +134,7 @@ pub struct Outcome {
 
 /// Plays a game between two players until a side wins, the board's turn
 /// limit passes or the round cap (0 for none) is reached.
-pub fn play_with(d: &Data, board: usize, seed: u32, players: &mut [Box<dyn Player>; 2], max_rounds: i32) -> Outcome {
+pub fn play_with(d: &Data, board: usize, seed: &Seed, players: &mut [Box<dyn Player>; 2], max_rounds: i32) -> Outcome {
     let mut g = Game::new(d, board, seed, 0);
     g.log = Some(Vec::new());
     let mut turns = 0;
@@ -166,7 +167,7 @@ pub fn play_with(d: &Data, board: usize, seed: u32, players: &mut [Box<dyn Playe
 }
 
 /// A tournament game between two bots by id.
-pub fn play(d: &Data, board: usize, seed: u32, players: [&str; 2], max_rounds: i32, work: &str) -> Outcome {
+pub fn play(d: &Data, board: usize, seed: &Seed, players: [&str; 2], max_rounds: i32, work: &str) -> Outcome {
     let mut p = [bot(players[0], work), bot(players[1], work)];
     play_with(d, board, seed, &mut p, max_rounds)
 }

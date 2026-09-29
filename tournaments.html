@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Nectaris · AI tournament lab</title><link rel="stylesheet" href="css/tournaments.css?v=20260926-simple-menu"><link rel="stylesheet" href="css/battle-dock.css?v=20260927-unit-mark"></head>
+<title>Nectaris · AI tournament lab</title><link rel="stylesheet" href="css/tournaments.css?v=20260928-fair-dice"><link rel="stylesheet" href="css/battle-dock.css?v=20260927-unit-mark"></head>
 <body>
 <header><nav class="page-tabs" aria-label="Sections"><a href="index.html">Campaigns</a><a href="tournaments.html" aria-current="page">Bot tournament</a><a href="simulator.html">Rust simulator</a><a href="thanks.html">Thanks to the creators</a></nav><span>NECTARIS / RESEARCH LAB</span><h1>AI tournaments</h1>
 <p>Run both sides of every matchup. Measure the results. Watch any game.</p></header>
@@ -28,8 +28,8 @@
 <small>One repeat plays every pairing on every selected board: 2 games with normal opening, 4 with offers.</small>
 <label>Maximum rounds per game <input id="lab-rounds" type="number" min="0" max="1000" value="0" required></label>
 <small>One round gives both armies a turn. 0 uses the board’s own limit; an earlier cutoff is a draw. The board’s normal Xenon timeout win still applies at its own limit.</small>
-<div class="seed-row"><label>Random seed <input id="lab-seed" type="number" min="0" max="4294967295" value="42" required></label><button type="button" id="lab-randomize">Randomize</button></div>
-<small>Same seed and settings reproduce the same games. Each repeat uses fresh dice; mirrored games share a seed.</small>
+<div class="seed-row"><label>Seed <input id="lab-seed" type="text" spellcheck="false" autocomplete="off"></label><button type="button" id="lab-randomize">Randomize</button></div>
+<small>Blank draws a fresh 256-bit seed, recorded with the run. A number or text is stretched to 256 bits; the same seed and settings reproduce the same games. Each repeat uses fresh dice; mirrored games share a seed.</small>
 <label>Parallel workers <input id="lab-workers" type="number" min="1" max="16" value="2" required></label>
 <small>Workers are simultaneous games in background CPU threads. More can finish sooner but make your computer busier. They do not change results.</small>
 <label>Search work <select id="lab-work"><option value="fast">Fast</option><option value="standard" selected>Standard</option><option value="deep">Deep</option></select></label>
@@ -64,9 +64,9 @@
 <div id="replay-ledger"></div>
 <p id="replay-hover">Wheel to zoom · Ctrl+drag to pan · Hover units to inspect</p></aside><div id="replay-board"><canvas id="replay-canvas" aria-label="Recorded battlefield"></canvas><div id="replay-battle-stage" hidden role="region" aria-label="Battle screen"><div class="battle-presentation"><div id="replay-battle-content"></div><div class="battle-controls"><button id="replay-battle-pause" type="button" aria-pressed="false">Resume</button><span id="replay-battle-hint"></span></div></div></div></div></section>
 </main>
-<script src="js/hex.js?v=20260927-fast-search-2"></script><script src="js/data-terrain.js"></script><script src="js/data-units.js"></script>
-<script src="js/combat.js?v=20260927-fast-search-2"></script><script src="js/engine.js?v=20260927-fast-search-2"></script><script src="js/ai.js?v=20260925-board-playback"></script>
-<script src="js/balance.js?v=20260926-no-special-rules"></script><script src="js/ai-model.js?v=20260927-fast-search-2"></script><script src="js/ai-search.js?v=20260927-fast-search-2"></script><script src="js/ai-opening.js?v=20260925-tournaments-2"></script><script src="js/ai-tournament.js?v=20260926-no-special-rules"></script>
+<script src="js/hex.js?v=20260928-fair-dice"></script><script src="js/data-terrain.js"></script><script src="js/data-units.js"></script>
+<script src="js/combat.js?v=20260928-fair-dice"></script><script src="js/engine.js?v=20260928-fair-dice"></script><script src="js/ai.js?v=20260925-board-playback"></script>
+<script src="js/balance.js?v=20260926-no-special-rules"></script><script src="js/ai-model.js?v=20260928-fair-dice"></script><script src="js/ai-search.js?v=20260928-fair-dice"></script><script src="js/ai-opening.js?v=20260928-fair-dice"></script><script src="js/ai-tournament.js?v=20260928-fair-dice"></script>
 <script src="js/data-maps.js"></script><script src="js/data-advanced-maps.js"></script><script src="js/data-expansion-maps.js"></script><script src="js/data-basenectaris-maps.js"></script><script src="js/data-ai-maps.js"></script>
 <script src="js/data-environment-campaigns.js?v=20260923-terrain-campaigns"></script>
 <script src="js/data-unit-art.js"></script><script src="js/data-unit-art-legacy.js?v=20260926-legacy-2x"></script><script src="js/unit-icon-sets.js?v=20260926-simple-menu"></script><script src="js/legacy-terrain.js?v=20260927-original-buildings"></script><script src="js/render.js?v=20260927-unit-mark"></script>
@@ -74,5 +74,5 @@
 <script src="js/playback-timeline.js?v=20260926-battle-skip"></script>
 <script src="js/move-animation.js?v=20260926-air-speed"></script>
 <script src="js/battle-report.js?v=20260927-unit-mark"></script>
-<script src="js/tournament-store.js?v=20260926-clean-forward"></script><script src="js/tournament-ui.js?v=20260927-fast-search-2"></script>
+<script src="js/tournament-store.js?v=20260926-clean-forward"></script><script src="js/tournament-ui.js?v=20260928-fair-dice"></script>
 </body></html>

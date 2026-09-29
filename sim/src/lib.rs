@@ -5,6 +5,7 @@
 pub mod classic;
 pub mod corpus;
 pub mod data;
+pub mod dice;
 pub mod fdlibm;
 pub mod game;
 pub mod hash;

@@ -7,7 +7,7 @@
 use crate::data::{MoveType, UnitType};
 use crate::game::{atk_stat, can_attack_at, range_band, Game, MoveSearch, CAN_STOP, ENTER, LOAD};
 use crate::hex;
-use crate::rng::Rng;
+use crate::dice::Dice;
 use std::cmp::Ordering;
 use std::collections::{BTreeMap, BinaryHeap, HashMap};
 use std::fmt::Write;
@@ -1198,7 +1198,7 @@ pub fn unit_actions(g: &mut Game, u: usize, ctx: &mut Ctx, info: &Info, limit: u
             if !ready {
                 continue;
             }
-            let mut sim = g.sim_clone(Rng::new(0));
+            let mut sim = g.sim_clone(Dice::look_ahead(0));
             let (cargo, drop) = (prefix.cargo.unwrap(), prefix.drop.unwrap());
             sim.unload(u, cargo, drop.0, drop.1).expect("a listed unload is legal");
             for next in unit_actions(&mut sim, u, ctx, info, 3).into_iter().take(3) {
@@ -1398,7 +1398,7 @@ pub fn execute(g: &mut Game, action: &Action, ctx: &mut Ctx) {
 /// `simulate`: the action applied to a copy with its own dice, or with every
 /// roll at 0.5 for a representative outcome.
 pub fn simulate<'d>(g: &Game<'d>, action: &Action, ctx: &mut Ctx, seed: u32, representative: bool) -> Game<'d> {
-    let mut state = g.sim_clone(if representative { Rng::half() } else { Rng::new(seed) });
+    let mut state = g.sim_clone(if representative { Dice::Half } else { Dice::look_ahead(seed) });
     execute(&mut state, action, ctx);
     state
 }

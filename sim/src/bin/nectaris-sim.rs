@@ -21,13 +21,15 @@
 //!   tools/sim/playout-bench.cjs must reproduce.
 //! nectaris-sim tournament --out=DIR [--opponents=classic,tactical,...]
 //!     [--boards=all|0,1] [--cycles=1] [--rounds=0] [--work=standard]
-//!     [--seed=42] [--self-play] [--threads=N]
+//!     [--seed=TEXT] [--self-play] [--threads=N]
 //!   Plays the tournament tools/ai-research/run.cjs would play with the same
 //!   settings (normal openings) on N threads, one compact record per game.
+//!   Without --seed the run draws a fresh 256-bit root seed, recorded in
+//!   rust-run.json; a given seed is read as `COMBAT.diceSeed` reads it.
 //!   node tools/sim/import-rust.cjs DIR checks every game in JavaScript and
 //!   writes the standard archive the replay viewer opens.
 
-use nectaris_sim::{corpus, data::Data, fdlibm, game::Game, hash, play, tournament};
+use nectaris_sim::{corpus, data::Data, dice::Seed, fdlibm, game::Game, hash, play, tournament};
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::time::Instant;
@@ -54,22 +56,27 @@ fn turn_time(flags: &HashMap<String, String>) -> Result<(), String> {
     if board >= data.boards.len() {
         return Err(format!("--board must be below {}", data.boards.len()));
     }
-    let seed = flags.get("seed").map_or(Ok(3), |v| v.parse::<u32>().map_err(|_| "--seed must be a whole number".to_string()))?;
+    let seed = seed_flag(flags)?.unwrap_or_else(|| Seed::from_text("3"));
     let round = flags.get("round").map_or(Ok(6), |v| v.parse::<i32>().map_err(|_| "--round must be a whole number".to_string()))?;
     let work = flags.get("work").map_or("standard", String::as_str);
-    let mut g = Game::new(&data, board, seed, 0);
-    while g.winner < 0 && g.turn < round {
-        let side = g.current;
-        nectaris_sim::classic::play_turn(&mut g, side);
-        if g.winner < 0 {
-            g.end_turn();
+    // Each bot starts from the same position and dice: Classic self-play from
+    // the seed, replayed for each (milliseconds).
+    let position = || {
+        let mut g = Game::new(&data, board, &seed, 0);
+        while g.winner < 0 && g.turn < round {
+            let side = g.current;
+            nectaris_sim::classic::play_turn(&mut g, side);
+            if g.winner < 0 {
+                g.end_turn();
+            }
         }
-    }
-    if g.winner >= 0 {
+        g
+    };
+    if position().winner >= 0 {
         return Err(format!("{} ended before round {round}", data.boards[board].name));
     }
     for bot in flags.get("bots").map_or("tactical,beam,monte-carlo,apex", String::as_str).split(',') {
-        let mut c = g.sim_clone(g.rng);
+        let mut c = position();
         let side = c.current;
         let started = Instant::now();
         match bot {
@@ -161,17 +168,13 @@ fn tournament_command(flags: &HashMap<String, String>) -> Result<(), String> {
     if threads == 0 {
         return Err("--threads must be at least 1".into());
     }
-    let seed = number("seed", "42")?;
-    if !(0..=u32::MAX as i64).contains(&seed) {
-        return Err("Seed must be an integer from 0 to 4294967295.".into());
-    }
     let c = tournament::Config::new(
         &opponents,
         boards,
         number("cycles", "1")? as u32,
         number("rounds", "0")? as i32,
         flags.get("work").map_or("standard", String::as_str),
-        seed as u32,
+        seed_flag(flags)?.unwrap_or_else(Seed::fresh),
         flags.contains_key("self-play"),
     )?;
     tournament::run(&data, &c, threads, std::path::Path::new(out))
@@ -179,6 +182,15 @@ fn tournament_command(flags: &HashMap<String, String>) -> Result<(), String> {
 
 fn repo() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("..")
+}
+
+/// `--seed=TEXT` as `COMBAT.diceSeed` reads it; None when absent.
+fn seed_flag(flags: &HashMap<String, String>) -> Result<Option<Seed>, String> {
+    match flags.get("seed").map(String::as_str) {
+        None => Ok(None),
+        Some("true") | Some("") => Err("--seed needs a value, e.g. --seed=42".into()),
+        Some(text) => Ok(Some(Seed::from_text(text))),
+    }
 }
 
 fn replay(path: &str) -> bool {
@@ -198,7 +210,7 @@ fn replay(path: &str) -> bool {
     let (mut commands, mut failed) = (0usize, 0usize);
     for (n, game) in corpus.games.iter().enumerate() {
         assert_eq!(data.boards[game.board].name, game.name, "board {} is not {}", game.board, game.name);
-        let mut g = Game::new(&data, game.board, game.seed, 0);
+        let mut g = Game::new(&data, game.board, &Seed::from_text(&game.seed), 0);
         let mut problem = None;
         if hash::state_hash(&g) != game.hashes[0] {
             problem = Some(format!("starts differently:\n  {}", hash::state_text(&g)));
@@ -255,7 +267,7 @@ fn decide(path: &str) -> bool {
     for (n, game) in corpus.games.iter().enumerate() {
         let t = Instant::now();
         let players = [game.players[0].as_str(), game.players[1].as_str()];
-        let out = play::play(&data, game.board, game.seed, players, game.max_rounds, &game.work);
+        let out = play::play(&data, game.board, &Seed::from_text(&game.seed), players, game.max_rounds, &game.work);
         let got: Vec<(String, Vec<serde_json::Value>)> = out.commands.iter().map(|c| c.to_json()).collect();
         let first = (0..got.len().max(game.commands.len())).find(|&i| got.get(i) != game.commands.get(i));
         let label = format!("game {n} ({}, {}, seed {})", game.name, game.players.join(" v "), game.seed);
@@ -298,7 +310,7 @@ fn bench(path: &str) -> bool {
     for _ in 0..5 {
         let started = Instant::now();
         for (n, game) in corpus.games.iter().enumerate() {
-            let mut g = Game::new(&data, game.board, game.seed, 0);
+            let mut g = Game::new(&data, game.board, &Seed::from_text(&game.seed), 0);
             for (name, args) in &game.commands {
                 corpus::apply(&mut g, name, args).unwrap_or_else(|e| panic!("game {n}: {name} {args:?} failed: {e}"));
             }

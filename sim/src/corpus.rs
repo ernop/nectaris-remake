@@ -10,7 +10,8 @@ use std::io::Read;
 pub struct CorpusGame {
     pub board: usize,
     pub name: String,
-    pub seed: u32,
+    /// The dice seed, 64 hex digits.
+    pub seed: String,
     pub players: Vec<String>,
     pub max_rounds: i32,
     pub work: String,

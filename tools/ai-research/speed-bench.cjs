@@ -36,7 +36,7 @@ function start(p) {
 }
 function fingerprint(g) {
   const s = g.snapshot();
-  return crypto.createHash("sha256").update(JSON.stringify([s.units, s.field, s.buildings, s.winner, s.rngState, s.currentPlayer])).digest("hex").slice(0, 16);
+  return crypto.createHash("sha256").update(JSON.stringify([s.units, s.field, s.buildings, s.winner, s.dice, s.currentPlayer])).digest("hex").slice(0, 16);
 }
 const results = [];
 for (const bot of chosen) for (const i of BOTS[bot]) {

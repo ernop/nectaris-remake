@@ -23,10 +23,10 @@ module.exports = function (ok) {
   S.modes.filter(function(m){return m.id!=="classic";}).forEach(function(mode){
     var savedRng=original.rng;
     original.rng=function(){throw new Error("Planner tried to consume real randomness");};
-    original.rng.getState=function(){throw new Error("Planner tried to inspect real randomness");};
+    original.rng.state=function(){throw new Error("Planner tried to inspect real randomness");};
     var action,err=null;
     try{action=S.choose(original,mode.id,{iterations:8,width:2,depth:2,branches:4,horizon:4});
-      ok(S.publicSnapshot(original).rngState===0,mode.id+" worker input masks RNG without reading it");
+      ok(S.publicSnapshot(original).dice===null,mode.id+" worker input masks RNG without reading it");
     }catch(e){err=e;}finally{original.rng=savedRng;}
     ok(!err,mode.id+" plans using only public information"+(err?": "+err.message:""));
     ok(JSON.stringify(original.snapshot())===snapshot,mode.id+" leaves live state and identities untouched");

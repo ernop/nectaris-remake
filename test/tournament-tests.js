@@ -8,7 +8,7 @@ module.exports=function(ok){
     ok(a.seed===b.seed&&a.map===b.map&&a.players[0]===b.players[1]&&a.players[1]===b.players[0],"paired fixtures swap factions and preserve board/seed "+i);
   }
   ok(T.fixture(config,0).seed!==T.fixture(config,40).seed,"cycles use distinct reproducible seeds");
-  var invalid=[{opponents:[]},{opponents:["bogus"]},{maps:[]},{cycles:0},{cycles:1.1},{workers:17},{seed:-1},{maxRounds:-1},{k:0},{work:"invalid"},{opening:"auto"},{noDeal:"force"}];
+  var invalid=[{opponents:[]},{opponents:["bogus"]},{maps:[]},{cycles:0},{cycles:1.1},{workers:17},{seed:1.5},{seed:true},{maxRounds:-1},{k:0},{work:"invalid"},{opening:"auto"},{noDeal:"force"}];
   invalid.forEach(function(v){var threw=false;try{T.normalize(Object.assign({opponents:["classic"],maps:[tiny]},v));}catch(e){threw=true;}ok(threw,"invalid tournament setting is rejected: "+JSON.stringify(v));});
   var elo=T.standings(["classic","tactical"]),r={players:["classic","tactical"],winner:0,thinkingMs:[1,2]};T.rate(elo,r,32);
   ok(elo.classic.elo===1516&&elo.tactical.elo===1484,"equal Elo win changes ratings by K/2 symmetrically");
@@ -49,7 +49,7 @@ module.exports=function(ok){
   }
   ok(canonical(offered)===canonical(again),"offer negotiation and combat repeat with the same fixture seed, independent of process-global IDs");
   ok(JSON.stringify(T.replay(offered).snapshot())===JSON.stringify(offered.final),"compensated replay starts with the bonus and reproduces its final state");
-  ok(offered.initial.rngState===new E.Game(offerMap,{seed:offerSpec.seed}).snapshot().rngState,"tournament opening tie-break leaves combat RNG unchanged");
+  ok(offered.initial.dice===new E.Game(offerMap,{seed:offerSpec.seed}).snapshot().dice,"tournament opening tie-break leaves combat RNG unchanged");
   var blocked={name:"Blocked opening",grid:["BMMM","MMMM","MMMB"],turnLimit:3,
     buildings:[{col:0,row:0,owner:0},{col:3,row:2,owner:1}],units:[{t:"CHARLIE",o:0,x:0,y:0},{t:"CHARLIE",o:1,x:3,y:2}]};
   var blockedConfig=T.normalize({opponents:["classic"],maps:[blocked],opening:"offers",maxRounds:1}),blockedSpec=T.fixture(blockedConfig,0);
@@ -73,8 +73,8 @@ module.exports=function(ok){
     ai.createTurn=function(game,side,opts){calls.push(opts.id);return createTurn(game,side,opts);};
     S.modes.forEach(function(mode){
       var game=new E.Game(offerMap,{seed:123}),before=JSON.stringify(game.snapshot()),plan=balance.plan(game);
-      var getState=game.rng.getState;game.rng.getState=function(){throw new Error("Opening read real dice");};calls=[];
-      var survey=openingAI.survey(plan,0,mode.id,{work:"fast"});game.rng.getState=getState;
+      var getState=game.rng.state;game.rng.state=function(){throw new Error("Opening read real dice");};calls=[];
+      var survey=openingAI.survey(plan,0,mode.id,{work:"fast"});game.rng.state=getState;
       ok(calls.length>0&&calls.every(function(id){return id===mode.id;}),mode.id+" opening uses its own real move-selection algorithm");
       ok(survey.policy===mode.id&&balance.question(survey)===null&&survey.analysis.scores.length>0,mode.id+" records role scores and completes a private switch point");
       ok(JSON.stringify(game.snapshot())===before,mode.id+" opening does not alter the live state or RNG");
@@ -110,7 +110,7 @@ module.exports=function(ok){
   try{
     global.Worker=function(){this.terminated=false;this.postMessage=function(m){this.message=m;};this.terminate=function(){this.terminated=true;};workers.push(this);};
     var runner=S.createTurn(losing,0,{id:"apex",async:true}),thinking=runner.next();
-    ok(thinking.t==="thinking"&&workers[0].message.state.rngState===0,"asynchronous search starts with sanitized public state");
+    ok(thinking.t==="thinking"&&workers[0].message.state.dice===null,"asynchronous search starts with sanitized public state");
     runner.destroy();workers[0].onmessage({data:{sequence:1,action:action}});
     ok(workers[0].terminated&&runner.next()===null&&JSON.stringify(losing.snapshot())===old,"cancelling a worker ignores late replies and leaves the match untouched");
   }finally{if(savedWorker===undefined)delete global.Worker;else global.Worker=savedWorker;}

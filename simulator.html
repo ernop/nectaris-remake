@@ -96,22 +96,29 @@
   </table></div>
 </section>
 
+<section aria-labelledby="dice-title">
+  <h2 id="dice-title">Fair dice</h2>
+  <p>Every match rolls its own dice: ChaCha20, a cryptographic stream cipher, keyed by a 256-bit seed. However many rolls a player or bot has seen, the next one cannot be predicted without the seed. A match with no seed, which includes every game in the browser and every tournament run started without one, draws a fresh seed from the operating system's random source. A given seed, such as 42, is stretched to 256 bits with SHA-256, so even a short seed cannot be searched.</p>
+  <p>No bot sees the dice. Bots imagine battles with their own separate generator, seeded from the public position. In Rust the dice cannot be reached from bot code: only the engine's attack rolls them, and only the state fingerprint can read them. In JavaScript a test plays tournament games with every bot and fails if anything other than an attack rolls the match's dice, or if anything reads them while a bot is thinking.</p>
+  <p>A tournament records its seed, so its games can be replayed exactly. It draws a fresh seed unless given one.</p>
+</section>
+
 <section aria-labelledby="tests-title">
   <h2 id="tests-title">How we check that both versions match</h2>
-  <p>The checks compare whole games, not samples of single rules. They start from 54 recorded games (14,959 commands) on boards from every family: Classic against Tactical played to the end, and short games of Sequence, Simulation and Apex. Checks marked "Every push" run in GitHub's test workflow, and a failure holds the release of the live site.</p>
+  <p>The checks compare whole games, not samples of single rules. They start from 54 recorded games (16,481 commands) on boards from every family: Classic against Tactical played to the end, and short games of Sequence, Simulation and Apex. Checks marked "Every push" run in GitHub's test workflow, and a failure holds the release of the live site.</p>
   <div class="table-scroll"><table>
     <thead><tr><th>Check</th><th>What must be identical</th><th>When</th></tr></thead>
     <tbody>
       <tr><td class="check">Rust replay</td><td>Each recorded game replays to the same full-state fingerprint after every one of its commands</td><td class="when">Every push</td></tr>
       <tr><td class="check">JavaScript replay</td><td>The same games replay in JavaScript to the same fingerprints</td><td class="when">Every push</td></tr>
-      <tr><td class="check">Legal moves</td><td>Both list the same legal commands, in the same order, at all 15,013 recorded positions</td><td class="when">Every push</td></tr>
+      <tr><td class="check">Legal moves</td><td>Both list the same legal commands, in the same order, at all 16,535 recorded positions</td><td class="when">Every push</td></tr>
       <tr><td class="check">Listed moves are legal</td><td>The JavaScript engine accepts every listed command at sampled positions</td><td class="when">Every push</td></tr>
-      <tr><td class="check">Random games</td><td>12 games of random legal commands (25,849 commands) end in the same position</td><td class="when">Every push</td></tr>
+      <tr><td class="check">Random games</td><td>12 games of random legal commands (24,044 commands) end in the same position</td><td class="when">Every push</td></tr>
       <tr><td class="check">Math</td><td>Rust's copies of Math.log and Math.tanh equal V8's, bit for bit, on 1,000,000 inputs</td><td class="when">Every push</td></tr>
       <tr><td class="check">Rust bot decisions</td><td>The Rust bots choose every recorded command again from each game's board and seed</td><td class="when">Every push</td></tr>
       <tr><td class="check">JavaScript bot decisions</td><td>Three recorded games are played again by their JavaScript bots, command for command</td><td class="when">Every push</td></tr>
       <tr><td class="check">Caches</td><td>During the Rust bot check, every cached result is recomputed and compared</td><td class="when">Every push</td></tr>
-      <tr><td class="check">Tournament import</td><td>A 12-game Rust tournament passes JavaScript's check of seeds, seats, moves and results</td><td class="when">Every push</td></tr>
+      <tr><td class="check">Tournament import</td><td>A 12-game Rust tournament on a fresh seed passes JavaScript's check of seeds, seats, moves and results</td><td class="when">Every push</td></tr>
       <tr><td class="check">Game data</td><td>The terrain, units, boards and combat tables Rust reads equal the JavaScript data files</td><td class="when">Every push</td></tr>
       <tr><td class="check">Wide check</td><td>620 more games across all 119 boards: the same states, legal moves and bot commands</td><td class="when">Before speed changes</td></tr>
       <tr><td class="check">Whole tournaments</td><td>Rust and JavaScript play the same tournaments to identical archives (476 and 144 games)</td><td class="when">Before speed changes</td></tr>
@@ -119,8 +126,8 @@
       <tr><td class="check">Turn timing</td><td>One bot turn from the same position ends in the same state in both</td><td class="when">When timing</td></tr>
     </tbody>
   </table></div>
-  <p>The fingerprint is text built from everything that affects future play: the turn, the side to move, the winner, the position of the dice generator, every unit's type, side, place, strength, experience, remaining movement, action flags and cargo, and every building's owner and stored units.</p>
-  <p>It includes the dice generator because both versions draw one roll per shot from the same seeded generator. If one of them drew an extra roll, the board could look identical while every later battle came out differently. With the generator in the fingerprint, the check fails at the exact command where it happened.</p>
+  <p>The fingerprint is text built from everything that affects future play: the turn, the side to move, the winner, the dice's position, every unit's type, side, place, strength, experience, remaining movement, action flags and cargo, and every building's owner and stored units.</p>
+  <p>It includes the dice's position because both versions draw one roll per shot from the same seeded dice. If one of them drew an extra roll, the board could look identical while every later battle came out differently. With the dice's position in the fingerprint, the check fails at the exact command where it happened.</p>
 </section>
 
 <section aria-labelledby="use-title">

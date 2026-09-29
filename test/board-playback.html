@@ -45,10 +45,10 @@ document.getElementById("run").onclick=async function(){
     ui.closeWarDock();
     var unit=g.units[0];ui.selectUnit(unit);ui.tryMove(unit,2,3);
     check(ui.busy&&ui.renderer.motion&&unit.col===2,"movement locks commands while the engine has committed the destination");
-    var save=JSON.stringify(ui.snapshotForSave()),rng=g.rng.getState(),visited=new Set();
+    var save=JSON.stringify(ui.snapshotForSave()),rng=g.rng.state(),visited=new Set();
     while(ui.busy){if(ui.renderer.motion)visited.add(ui.renderer.motion.from.col+","+ui.renderer.motion.from.row);await wait(15);}
     check(visited.has("0,3")&&visited.size>=2,"movement visibly traverses intermediate hexes ("+Array.from(visited).join(" → ")+")");
-    check(JSON.stringify(ui.snapshotForSave())===save&&g.rng.getState()===rng,"animation leaves the committed save and RNG untouched");
+    check(JSON.stringify(ui.snapshotForSave())===save&&g.rng.state()===rng,"animation leaves the committed save and RNG untouched");
     check(ui.mode==="moved"&&ui.pickTargets.length===1&&!Array.from(d.querySelectorAll("#action-menu button")).some(function(b){return b.textContent==="End";}),"a move flows directly into available attacks without an End choice");
     ui.onHexClick(3,3);await wait(30);
     check(ui.busy&&ui.renderer.combatEffects&&d.getElementById("battle-stage").classList.contains("hidden")&&d.getElementById("war-scene").textContent.includes("Per machine"),"committing an attack first lights supporters and surrounding hexes on the map beside the per-machine steps");

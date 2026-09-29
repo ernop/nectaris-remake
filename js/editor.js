@@ -102,7 +102,7 @@
 
   function validate() {
     var lv = toLevel();
-    new ENGINE.Game(lv, { seed: 1 }); // throws with a precise message on bad data
+    new ENGINE.Game(lv, { dice: null }); // throws with a precise message on bad data
     // gameplay sanity: each side needs a unit or a deployable stored unit
     var counts = [0, 0];
     lv.units.forEach(function (u) { counts[u.o]++; });
@@ -121,7 +121,7 @@
     var lv = toLevel();
     var g;
     try {
-      g = new ENGINE.Game(lv, { seed: 1 });
+      g = new ENGINE.Game(lv, { dice: null });
     } catch (e) {
       // While mid-edit the level may be transiently invalid (e.g. a building
       // entry pointing at repainted terrain); render terrain-only then.

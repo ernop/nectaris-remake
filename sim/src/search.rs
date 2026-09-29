@@ -6,6 +6,7 @@ use crate::fdlibm;
 use crate::game::Game;
 use crate::hex;
 use crate::model::{self, sort_desc, Action, Ctx, Key, Kind};
+use crate::dice::Dice;
 use crate::rng::Rng;
 use std::collections::{HashMap, HashSet};
 
@@ -237,7 +238,7 @@ fn beam(g: &Game, roots: &[(Action, f64)], ctx: &mut Ctx, c: &Config, rng: &mut 
         let mut sum = 0.0;
         for _ in 0..2 {
             let _seed = random_seed(rng);
-            let mut response = node.game.sim_clone(Rng::half());
+            let mut response = node.game.sim_clone(Dice::Half);
             if response.winner < 0 && response.current == player {
                 response.end_turn();
             }
@@ -283,7 +284,7 @@ fn tree_search(g: &Game, roots: &[(Action, f64)], ctx: &mut Ctx, c: &Config, rng
     table.insert(root_key.clone(), TreeNode { visits: 0, choices: root_choices });
     let tree_depth = if c.algorithm == Algorithm::Hybrid { 6 } else { 4 };
     for _ in 0..c.iterations {
-        let mut gg = g.sim_clone(Rng::new(random_seed(rng)));
+        let mut gg = g.sim_clone(Dice::look_ahead(random_seed(rng)));
         let mut path: Vec<(Vec<i32>, usize)> = Vec::new();
         let mut depth = 0;
         while gg.winner < 0 && depth < tree_depth {
@@ -375,7 +376,7 @@ fn verify(g: &Game, actions: [Action; 4], ctx: &mut Ctx, c: &Config, rng: &mut R
     for choice in choices {
         let (mut total, mut worst) = (0.0, f64::INFINITY);
         for &seed in &seeds {
-            let mut gg = g.sim_clone(Rng::new(seed));
+            let mut gg = g.sim_clone(Dice::look_ahead(seed));
             let (mut start, mut switches) = (gg.current, 0);
             model::execute(&mut gg, &choice, ctx);
             let mut step = 0;
@@ -401,7 +402,7 @@ fn verify(g: &Game, actions: [Action; 4], ctx: &mut Ctx, c: &Config, rng: &mut R
 /// `AI_SEARCH.decide`: the next action for the side to move.
 pub fn decide(game: &Game, id: &str, work: &str, ctx: &mut Ctx) -> Action {
     let mut c = config(id, work);
-    let mut root = game.sim_clone(Rng::new(0));
+    let mut root = game.sim_clone(Dice::look_ahead(0));
     let mut rng = Rng::new(model::seed_for(game));
     model::prepare_evaluation(&root, ctx);
     let actions = shortlist(&mut root, ctx, if c.algorithm == Algorithm::Greedy { 24 } else { 32 }, 0);

@@ -266,13 +266,19 @@ var ENGINE = (function () {
     this.turnLimit = mapDef.turnLimit || 50;
     this.winner = null;
     this.winReason = null;
-    this.rng = COMBAT.makeRng(options.seed !== undefined ? options.seed : (Date.now() & 0xffffffff));
+    this.rng = options.dice === null ? noDice :
+      options.dice !== undefined ? COMBAT.restoreDice(options.dice) : COMBAT.makeDice(COMBAT.diceSeed(options.seed));
     this.log = [];
   }
+
+  /* Public copies (the AI worker's, the opening analysis's) carry no dice. */
+  function noDice() { throw new Error("This copy of the match has no dice; only the match itself rolls."); }
+  noDice.state = function () { return null; };
 
   /* Versioned saves use IDs for cargo/factory membership, preserving shared
    * unit identities and the exact random stream across a browser restart. */
   Game.prototype.snapshot = function () {
+    if (typeof this.rng.state !== "function") throw new Error("A bot's look-ahead copy cannot be saved.");
     var all = {}, types = Object.assign({}, UNIT_TYPES);
     function collect(unit) {
       if (all[unit.id]) return;
@@ -295,14 +301,14 @@ var ENGINE = (function () {
       buildings: buildings, turn: this.turn, currentPlayer: this.currentPlayer, firstPlayer: this.firstPlayer,
       balance: this.balance || null,
       turnLimit: this.turnLimit, winner: this.winner, winReason: this.winReason,
-      rngState: this.rng.getState(), log: this.log}));
+      dice: this.rng.state(), log: this.log}));
   };
 
   Game.restore = function (snapshot) {
     var data = JSON.parse(JSON.stringify(snapshot));
     if (!data || data.version !== 1 || !Array.isArray(data.units) ||
         !Array.isArray(data.field) || !data.types || !data.buildings ||
-        !Number.isInteger(data.rngState) || !Number.isInteger(data.turn) || data.turn < 1 ||
+        (data.dice !== null && typeof data.dice !== "string") || !Number.isInteger(data.turn) || data.turn < 1 ||
         !wholeNumber(data.turnLimit, 1, Number.MAX_SAFE_INTEGER) ||
         (data.winner !== null && data.winner !== 0 && data.winner !== 1) ||
         (data.currentPlayer !== 0 && data.currentPlayer !== 1) ||
@@ -311,7 +317,7 @@ var ENGINE = (function () {
       throw new Error("This saved match is invalid or from an older version and cannot be loaded.");
     }
     mergeUnitTypes(data.types);
-    var game = new Game(data.map, {seed: data.rngState, firstPlayer:data.firstPlayer});
+    var game = new Game(data.map, {dice: data.dice, firstPlayer:data.firstPlayer});
     if(data.balance)game.balance=data.balance;
     var byId = {};
     data.units.forEach(function (u) {

@@ -39,6 +39,7 @@ module.exports = function (ok) {
     ui.warLedger = require("../js/battle-report.js").emptyLedger();
     ui.animateBattleResult = function (event, detail, done) { ui.battleEvent = event; ui.animationDone = done; };
     ui.playCombatEffects = function (attacker, defender, preview, done) { done(); };
+    ui.showAftermath = function () {};
     ui.selectUnit(game.units[0]);
     return ui;
   }
@@ -152,12 +153,12 @@ module.exports = function (ok) {
     var rejected = false;
     try { ui.game.moveUnit(unit,1,1); } catch (error) { rejected = true; }
     ok(rejected, "reselecting cannot grant a second ordinary movement phase");
-    var committed = JSON.stringify(ui.game.snapshot()), seed = ui.game.rng.getState();
+    var committed = JSON.stringify(ui.game.snapshot()), seed = ui.game.rng.state();
     ui.onMouseMove({offsetX:3,offsetY:1});
     ok(nodes["combat-inspector"].innerHTML.includes("Polar") &&
       nodes["combat-inspector"].innerHTML.includes("100,000") &&
       nodes["combat-inspector"].innerHTML.includes("Joint casualty probabilities") &&
-      JSON.stringify(ui.game.snapshot()) === committed && ui.game.rng.getState() === seed,
+      JSON.stringify(ui.game.snapshot()) === committed && ui.game.rng.state() === seed,
       "hover forecast uses 100k independent trials without changing the committed board or RNG");
     var secondTarget = ENGINE.makeUnit("CHARLIE",1,2,0,5,4);
     ui.game.units.push(secondTarget); ui.pickTargets = ui.previewTargets(unit);

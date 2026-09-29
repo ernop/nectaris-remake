@@ -513,7 +513,7 @@
         var lv = JSON.parse(reader.result);
         if (lv.customUnits) mergeUnitTypes(lv.customUnits);
         // Validate by constructing a game; a bad file throws with a clear message.
-        new ENGINE.Game(lv, { seed: 1 });
+        new ENGINE.Game(lv, { dice: null });
         var customs = getCustomLevels();
         var replaced = false;
         for (var i = 0; i < customs.length; i++) {
@@ -546,7 +546,7 @@
       levels.forEach(function (lv) {
         if (!lv.name) throw new Error("Every online level needs a name.");
         if (lv.customUnits) mergeUnitTypes(lv.customUnits);
-        new ENGINE.Game(lv, { seed: 1 });
+        new ENGINE.Game(lv, { dice: null });
         lv.source = lv.source || url;
         var replaced = false;
         for (var i = 0; i < customs.length; i++) {

@@ -3,6 +3,7 @@
 //! games, seeds and seats as `tools/ai-research/run.cjs`.
 
 use crate::data::Data;
+use crate::dice::{sha256, Seed};
 use crate::play::{self, Outcome};
 use serde_json::json;
 use std::path::Path;
@@ -19,14 +20,15 @@ pub struct Config {
     pub cycles: u32,
     pub max_rounds: i32,
     pub work: String,
-    pub seed: u32,
+    /// The run's root seed; every game's seed derives from it.
+    pub seed: Seed,
     pub self_play: bool,
     pub pairs: Vec<(String, String)>,
     pub total: usize,
 }
 
 impl Config {
-    pub fn new(opponents: &[String], boards: Vec<usize>, cycles: u32, max_rounds: i32, work: &str, seed: u32, self_play: bool) -> Result<Config, String> {
+    pub fn new(opponents: &[String], boards: Vec<usize>, cycles: u32, max_rounds: i32, work: &str, seed: Seed, self_play: bool) -> Result<Config, String> {
         let mut ids: Vec<String> = Vec::new();
         for o in opponents {
             if !ids.contains(o) {
@@ -63,11 +65,9 @@ impl Config {
     }
 }
 
-/// `AI_TOURNAMENT`'s per-fixture seed.
-pub fn seed_for(seed: u32, cycle: u32, map: u32, pair: u32) -> u32 {
-    let mut n = seed ^ (cycle + 1).wrapping_mul(0x9e37_79b1) ^ (map + 1).wrapping_mul(0x85eb_ca6b) ^ (pair + 1).wrapping_mul(0xc2b2_ae35);
-    n = (n ^ (n >> 16)).wrapping_mul(0x045d_9f3b);
-    n ^ (n >> 16)
+/// `AI_TOURNAMENT`'s per-fixture seed: SHA-256 of "<root hex>:cycle:map:pair".
+pub fn seed_for(root: &Seed, cycle: u32, map: u32, pair: u32) -> Seed {
+    Seed(sha256(format!("{}:{cycle}:{map}:{pair}", root.hex()).as_bytes()))
 }
 
 pub struct Fixture {
@@ -76,7 +76,7 @@ pub struct Fixture {
     /// Position in the selected boards, as the JavaScript `mapIndex`.
     pub map_index: usize,
     pub board: usize,
-    pub seed: u32,
+    pub seed: Seed,
     pub leg: usize,
     pub players: [String; 2],
 }
@@ -92,7 +92,7 @@ pub fn fixture(c: &Config, index: usize) -> Fixture {
     let cycle = (n / c.boards.len()) as u32;
     let (a, b) = &c.pairs[pair];
     let players = if leg % 2 == 1 { [b.clone(), a.clone()] } else { [a.clone(), b.clone()] };
-    Fixture { index, cycle, map_index: map, board: c.boards[map], seed: seed_for(c.seed, cycle, map as u32, pair as u32), leg, players }
+    Fixture { index, cycle, map_index: map, board: c.boards[map], seed: seed_for(&c.seed, cycle, map as u32, pair as u32), leg, players }
 }
 
 fn record(d: &Data, c: &Config, f: &Fixture, out: &Outcome, ms: f64) -> serde_json::Value {
@@ -102,7 +102,7 @@ fn record(d: &Data, c: &Config, f: &Fixture, out: &Outcome, ms: f64) -> serde_js
     }).collect();
     json!({
         "index": f.index, "board": f.board, "name": d.boards[f.board].name, "mapIndex": f.map_index, "cycle": f.cycle,
-        "leg": f.leg, "seed": f.seed, "players": f.players, "maxRounds": c.max_rounds, "work": c.work,
+        "leg": f.leg, "seed": f.seed.hex(), "players": f.players, "maxRounds": c.max_rounds, "work": c.work,
         "winner": if out.winner < 0 { serde_json::Value::Null } else { json!(out.winner) },
         "reason": out.reason, "rounds": out.rounds, "halfTurns": out.half_turns,
         "hash": out.final_hash, "ms": ms, "thinkingMs": out.thinking_ms, "commands": commands,
@@ -129,7 +129,7 @@ pub fn run(d: &Data, c: &Config, threads: usize, dir: &Path) -> Result<(), Strin
                 }
                 let f = fixture(c, i);
                 let t = Instant::now();
-                let out = play::play(d, f.board, f.seed, [&f.players[0], &f.players[1]], c.max_rounds, &c.work);
+                let out = play::play(d, f.board, &f.seed, [&f.players[0], &f.players[1]], c.max_rounds, &c.work);
                 let ms = t.elapsed().as_secs_f64() * 1000.0;
                 let path = dir.join("rust-games").join(format!("{:04}", i / 1000)).join(format!("{i:07}.json"));
                 std::fs::create_dir_all(path.parent().unwrap()).expect("create the game directory");
@@ -155,7 +155,7 @@ pub fn run(d: &Data, c: &Config, threads: usize, dir: &Path) -> Result<(), Strin
     let (by_bot, by_seat) = tally.into_inner().unwrap();
     let summary = json!({
         "protocol": play::PROTOCOL, "opponents": c.opponents, "boards": c.boards, "cycles": c.cycles,
-        "maxRounds": c.max_rounds, "work": c.work, "seed": c.seed, "selfPlay": c.self_play, "total": c.total,
+        "maxRounds": c.max_rounds, "work": c.work, "seed": c.seed.hex(), "selfPlay": c.self_play, "total": c.total,
         "threads": threads, "elapsedSeconds": elapsed,
         "wins": by_bot.iter().map(|(k, v)| (k.clone(), json!({"won": v[0], "lost": v[1], "drawn": v[2]}))).collect::<serde_json::Map<_, _>>(),
         "seats": {"union": by_seat[0], "xenon": by_seat[1], "drawn": by_seat[2]},

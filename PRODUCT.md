@@ -69,6 +69,16 @@ a recorded policy is refused as an older format. All play under the same engine
 rules and cannot
 read future match randomness.
 
+**Fair dice** (user instruction, 2026-09-28):
+- Every match rolls ChaCha20 dice keyed by a 256-bit seed. A new browser match
+  draws the seed fresh from the browser's random source.
+- Only attacks roll the dice; no bot reads or rolls them. Bots imagine battles
+  with their own separate generator.
+- The seed and the dice's position are saved with the match, so a resumed match
+  continues the same dice.
+- A match saved before this change is refused with the older-version message.
+- Details and enforcement: AI_TRAINING_PLAN.md, "Fair dice".
+
 **The opponent is fixed for the whole match** (user instruction, 2026-09-26): it
 is chosen before play with the menu's **AI** setting, and the match panel only
 names it ("Opponent: …", or "Two players (hotseat)"). This supersedes the
@@ -79,8 +89,11 @@ Watch AI controls animation without changing decisions. Failures preserve the
 turn-start checkpoint and show an actionable error.
 
 **Tournaments** opens a separate lab with opponent and board selection, paired
-cycles, round limits, seed, worker count and Elo K. Each matchup swaps faction
-assignments at a common seed. An earlier lab cutoff is a draw; original map
+cycles, round limits, seed, worker count and Elo K. A blank seed draws a fresh
+256-bit seed, recorded with the run. A typed number or text is stretched to 256
+bits with SHA-256, and the same seed and settings reproduce the same games. Each
+matchup swaps faction assignments at a common seed. An earlier lab cutoff is a
+draw; original map
 timeouts retain their ordinary winner. The lab has pause/stop/resume, ordered
 per-run Elo, W/D/L and faction counts, head-to-head tables, saved game replays,
 CSV and archive export, and individual replay import/download. Large disk runs
@@ -846,7 +859,7 @@ rules or hand-picked penalties for particular situations.
 
 The same follow-up requires durable long runs, visible progress, intelligible
 controls, map/pair history, efficient replay and a fullscreen board for review.
-Implemented: Randomize seed, help for repeats/rounds/workers/K, immediate focus
+Implemented: Randomize seed (fills in a fresh 64-hex-digit seed), help for repeats/rounds/workers/K, immediate focus
 on live worker cards, progress and rough ETA, saved-through status, local Elo and
 replay persistence. Completed out-of-order games are saved before ordered atomic
 rating updates; reload offers Resume without discarding those records. Unfinished

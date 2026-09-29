@@ -3,6 +3,10 @@
 use crate::game::Game;
 use std::fmt::Write;
 
+/// The key to a game's dice state. Its field is private, so only this module
+/// can make one: bots cannot read the dice.
+pub struct DiceAccess(());
+
 fn flag(v: bool) -> u8 {
     u8::from(v)
 }
@@ -55,7 +59,7 @@ pub fn state_text(g: &Game) -> String {
     }
     out.push_str(";R");
     out.push_str(if g.reason.is_empty() { "-" } else { g.reason });
-    write!(out, ";G{}", g.rng.state).unwrap();
+    write!(out, ";G{}", g.dice_text(&DiceAccess(()))).unwrap();
     for &u in &g.field {
         out.push_str(";u");
         unit_text(g, u, &mut out);

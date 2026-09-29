@@ -8,6 +8,7 @@ var AI_OPENING=(function(){
   var search=typeof module!=="undefined"?require("./ai-search.js"):AI_SEARCH;
   var model=typeof module!=="undefined"?require("./ai-model.js"):AI_MODEL;
   var balance=typeof module!=="undefined"?require("./balance.js"):BALANCE;
+  var combat=typeof module!=="undefined"?require("./combat.js"):COMBAT;
   function budget(work){
     var deep=work==="deep",fast=work==="fast";
     return {events:fast?4:deep?12:8,rounds:deep?2:1,
@@ -15,8 +16,7 @@ var AI_OPENING=(function(){
         iterations:fast?4:deep?12:8,horizon:fast?3:deep?6:4,verification:deep?2:1}};
   }
   function* role(plan,player,id,offer,second,limits,seed){
-    var state=search.publicSnapshot(plan.game);state.rngState=seed>>>0;
-    var g=engine.Game.restore(state);
+    var g=engine.Game.restore(search.publicSnapshot(plan.game));g.rng=combat.makeRng(seed>>>0);
     balance.apply(g,plan,{status:"agreed",firstPlayer:1-second,secondPlayer:second,offer:offer,step:offer,tied:false});
     var ctx=model.context(g);model.prepareEvaluation(g,ctx);
     for(var half=0;half<limits.rounds*2 && g.winner===null;half++){

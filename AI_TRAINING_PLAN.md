@@ -34,13 +34,53 @@ simulator must reach the same state after every command. Its bots must choose
 the same commands as the JavaScript bots for the same board and seed. Then each
 implementation can check the other on every game, and weights trained in Rust
 behave the same in the browser. This needs Rust to reproduce, exactly:
-- **Randomness:** the mulberry32-style generator (`COMBAT.makeRng`).
+- **Randomness:** the match's ChaCha20 dice (`COMBAT.makeDice`) and the
+  bots' own mulberry32 look-ahead generator (`COMBAT.makeRng`).
 - **Math:** V8's results for `Math.log` and `Math.tanh` (search uses them), and
   JavaScript float arithmetic order.
 - **Order:** insertion order where objects and maps are iterated, and stable
   sorting.
 - **Search seed:** the JSON text behind `AI_MODEL.seedFor`, which includes each
   unit type's definition as `JSON.stringify` writes it.
+
+**Fair dice (decided 2026-09-28).** The user: "we must not do things like use
+the random seed values to change anything; infact we should change it so that
+even if the original seed were something too small like a 16bit int, we should
+chaneg that to some huge 64bit int or larger, and also make an option within
+rust such that it tries its best while running ther game to either never
+precalculate (obviously) results with any knowledge of the seed". Decisions
+(user, 2026-09-28): ChaCha20 dice, fresh seeds, no online randomness source.
+- **Dice:** ChaCha20 (RFC 8439) keyed by a 256-bit seed, nonce zero, read as
+  32-bit words divided by 2^32 (`COMBAT.makeDice`, `sim/src/dice.rs`). The
+  next roll cannot be predicted from earlier rolls without the seed.
+- **Seeds:**
+  - 64 lowercase hex digits are the key as they are.
+  - Any other seed, a number or a text, becomes SHA-256("nectaris-seed:" +
+    seed).
+  - No seed draws 32 bytes from `crypto.getRandomValues` or `/dev/urandom`.
+    Browser games and tournaments started without a seed are fresh.
+  - A tournament records its root seed; game seeds are
+    SHA-256("<root>:<cycle>:<map>:<pair>").
+- **Saves** hold `dice: "<seed>/<block>/<word>"`. A save with the old
+  `rngState` is refused with the older-version message, so a match saved in
+  the browser before this change cannot be resumed.
+- **Bots** keep their own mulberry32 look-ahead, seeded from the public
+  position (`seedFor`); their decisions and speed did not change. Public
+  copies (the AI worker's, the opening analysis's, editor validation) carry
+  no dice (`dice: null`), and rolling them throws.
+- **Enforcement:**
+  - In Rust the dice field is private to `game.rs` and `ChaCha` cannot be
+    copied. Reading the dice state needs a key that only `hash.rs` (the
+    fingerprint) can construct.
+  - In JavaScript, `test/dice-tests.js` plays a tournament game with every
+    bot. It fails if anything other than the engine's attack on the match
+    rolls its dice, or if anything reads the dice while a bot is thinking. A
+    read or a roll planted in `AI_MODEL.clone` fails it.
+- **No online source:** the bots cannot read the operating system's random
+  bytes behind a seed, so for them the dice are unknown future values.
+- **Costs accepted:** every game's dice changed; tournament protocol
+  `2026-09-28.1`; archives from earlier protocols no longer resume or replay;
+  the corpus was regenerated; seeded tests were updated.
 
 The browser game stays plain JavaScript. Rust is a development tool
 (installed with rustup on 2026-09-27; `~/.cargo/bin`).
@@ -54,8 +94,9 @@ The browser game stays plain JavaScript. Rust is a development tool
   - Sequence v Simulation for 4 rounds on 3 small boards;
   - Apex v Tactical for 3 rounds on 2 small boards.
 
-  It converts them into `test/fixtures/sim-corpus.json.gz` (14,959 commands,
-  a fingerprint after each). Regenerating gives a byte-identical file.
+  It converts them into `test/fixtures/sim-corpus.json.gz` (16,481 commands
+  since the fair dice, a fingerprint after each). Regenerating gives a
+  byte-identical file.
 - `test/sim-lock-tests.js`, in the main suite, replays every command and
   re-plays one game per pairing with its bots.
 

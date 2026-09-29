@@ -102,13 +102,13 @@ module.exports=function(ok){
     if(oldBalance===undefined)delete global.BALANCE;else global.BALANCE=oldBalance;
     if(oldDocument===undefined)delete global.document;else global.document=oldDocument;
   }
-  var initial=g.units.length,rng=g.rng.getState(),expected=B.placements(p,0,2),mapBefore=JSON.stringify(g.map);
+  var initial=g.units.length,rng=g.rng.state(),expected=B.placements(p,0,2),mapBefore=JSON.stringify(g.map);
   B.apply(g,p,a);
   ok(g.currentPlayer===1&&g.firstPlayer===1&&g.units.length===initial+1,"acceptance adds exactly the chosen package and starts the opposite army");
   var added=g.units.slice(initial);
   ok(added.every(function(u,i){return u.player===0&&u.col===expected[i].col&&u.row===expected[i].row&&u.typeId===expected[i].typeId&&u.strength===8&&u.exp===0&&!u.moved;}),
     "actual unit type, ownership, strength, readiness and location exactly match the preview");
-  ok(g.rng.getState()===rng&&JSON.stringify(g.map)===mapBefore,"applying a bonus never retunes map data or consumes combat dice");
+  ok(g.rng.state()===rng&&JSON.stringify(g.map)===mapBefore,"applying a bonus never retunes map data or consumes combat dice");
   ok(fails(function(){B.apply(g,p,a);}),"a package cannot be applied twice");
   var restored=E.Game.restore(g.snapshot());
   ok(restored.firstPlayer===1&&restored.balance.label===g.balance.label&&restored.units.length===g.units.length,"save/resume preserves the accepted opening and bonus once");

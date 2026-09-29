@@ -282,7 +282,9 @@ node tools/ai-research/run.cjs --out=/tmp/nectaris-league --resume
 ```
 
 Use `--boards=all`, `--rounds=10`, `--seed=123`, `--work=fast`, `--k=24` and `--self-play`
-as needed. `--config=experiment.json` accepts the full configuration with
+as needed. Without `--seed` a run draws a fresh 256-bit root seed, recorded in
+`run.json`; a given seed is stretched with SHA-256 (see AI_TRAINING_PLAN.md,
+"Fair dice"). `--config=experiment.json` accepts the full configuration with
 embedded map definitions and optional custom `types`; `maps` is an array of
 map objects. Use `--help` for all options. Board indices are listed explicitly;
 the older `tournament.cjs` pilot used a smaller, differently indexed map list.

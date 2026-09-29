@@ -1,7 +1,8 @@
 /* Random playouts: both sides pick uniformly from Game.legalCommands() with a
  * seeded generator until the game ends. Game k plays board list[k mod n] with
- * dice seed (k+1) * 0x9e3779b1 XOR seed and picks with generator seed that
- * XOR 0x9e3779b9. The fingerprint is FNV-1a over "stateHash,commands\n" per
+ * game seed (k+1) * 0x9e3779b1 XOR seed, which the engine stretches into the
+ * dice's 256-bit seed, and picks with mulberry32 seeded by the game seed XOR
+ * 0x9e3779b9. The fingerprint is FNV-1a over "stateHash,commands\n" per
  * game. sim/src/play.rs `random_game` plays the same games.
  */
 "use strict";

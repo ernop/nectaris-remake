@@ -83,6 +83,14 @@ Facts we need across sessions:
   - A deliberate rule or AI change runs `node tools/sim/regenerate-lock.cjs`
     and updates the Rust simulator to match in the same change.
   - `tools/sim/state-hash.cjs` defines the state fingerprint both sides compute.
+  - **Fair dice (user, 2026-09-28):** a match rolls ChaCha20 dice keyed by a
+    256-bit seed. The seed is fresh from the operating system when none is
+    given, and a given seed is stretched with SHA-256. Only the engine's
+    attack rolls them. Bots imagine battles with their own look-ahead
+    generator and must never read or roll the match's dice:
+    `test/dice-tests.js` fails a bot that does, and in Rust the dice field is
+    private with a state key only the fingerprint can construct. Details:
+    AI_TRAINING_PLAN.md, "Fair dice".
   - The Rust simulator must replay the corpus exactly, checked in `sim/` with
     `cargo run --release -- replay`, and its bots must choose every recorded
     command, checked with `cargo run --release -- decide` (Rust from rustup,
@@ -225,7 +233,7 @@ Facts we need across sessions:
 
 - **Profiles/save state:** `js/profiles.js` stores browser-local profiles; a first
   visit starts as **Wilson** (no username prompt) and Rename keeps the profile's
-  records. Engine snapshots preserve cargo identity and RNG state. UI checkpoints
+  records. Engine snapshots preserve cargo identity and the dice state. UI checkpoints
   committed human actions and complete AI turns; unfinished AI turns resume from
   their start. Tests in `test/profiles-tests.js` run through the main suite. See `PRODUCT.md`.
 

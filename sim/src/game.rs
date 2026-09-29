@@ -5,8 +5,8 @@
 //! occupancy ties, iteration and the state fingerprint.
 
 use crate::data::{Board, Data, MoveType, StoredDef, Tables, UnitType};
+use crate::dice::{ChaCha, Dice, Seed};
 use crate::hex;
-use crate::rng::Rng;
 
 #[derive(Clone, Debug)]
 pub struct Unit {
@@ -62,7 +62,8 @@ pub struct Game<'d> {
     /// -1 while the match is undecided.
     pub winner: i32,
     pub reason: &'static str,
-    pub rng: Rng,
+    /// Private: only the engine's attack rolls them (see dice.rs).
+    dice: Dice,
     /// Commands issued through the `do_` methods, as the tournament records
     /// them: only outermost calls, never the engine's own nested ones.
     pub log: Option<Vec<Command>>,
@@ -156,7 +157,7 @@ fn cap(v: i32) -> i32 {
 }
 
 impl<'d> Game<'d> {
-    pub fn new(d: &'d Data, board: usize, seed: u32, first_player: i32) -> Game<'d> {
+    pub fn new(d: &'d Data, board: usize, seed: &Seed, first_player: i32) -> Game<'d> {
         let b: &Board = &d.boards[board];
         let tables = &d.tables[board];
         let mut g = Game {
@@ -177,7 +178,7 @@ impl<'d> Game<'d> {
             first: if first_player == 1 { 1 } else { 0 },
             winner: -1,
             reason: "",
-            rng: Rng::new(seed),
+            dice: Dice::Match(ChaCha::new(seed)),
             log: None,
         };
         for def in &b.buildings {
@@ -249,8 +250,13 @@ impl<'d> Game<'d> {
         self.occ[at] = u as i32;
     }
 
-    /// `AI_MODEL.clone`: the same position with its own generator and no log.
-    pub fn sim_clone(&self, rng: Rng) -> Game<'d> {
+    /// The dice state for the state fingerprint, which alone can make the key.
+    pub fn dice_text(&self, _: &crate::hash::DiceAccess) -> String {
+        self.dice.state_text()
+    }
+
+    /// `AI_MODEL.clone`: the same position with a bot's own dice and no log.
+    pub fn sim_clone(&self, dice: Dice) -> Game<'d> {
         Game {
             d: self.d,
             board: self.board,
@@ -269,7 +275,7 @@ impl<'d> Game<'d> {
             first: self.first,
             winner: self.winner,
             reason: self.reason,
-            rng,
+            dice,
             log: None,
         }
     }
@@ -784,7 +790,7 @@ impl<'d> Game<'d> {
     }
 
     fn random_coefficient(&mut self) -> i32 {
-        let roll = self.rng.next();
+        let roll = self.dice.next();
         self.d.buckets[(roll * self.d.buckets.len() as f64).floor() as usize]
     }
 

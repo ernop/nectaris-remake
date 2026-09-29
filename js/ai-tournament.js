@@ -9,17 +9,21 @@ var AI_TOURNAMENT = (function () {
   var model=typeof module!=="undefined"?require("./ai-model.js"):AI_MODEL;
   var balance=typeof module!=="undefined"?require("./balance.js"):BALANCE;
   var openingAI=typeof module!=="undefined"?require("./ai-opening.js"):AI_OPENING;
-  var VERSION="2026-09-26.2";
+  var combat=typeof module!=="undefined"?require("./combat.js"):COMBAT;
+  var VERSION="2026-09-28.1";
   function canResume(run){return run.version===VERSION;}
   function integer(v,min,max,label){if(!Number.isInteger(v)||v<min||v>max)throw new Error(label+" must be an integer from "+min+" to "+max+".");return v;}
   function normalize(input){
-    var c=Object.assign({cycles:1,seed:42,maxRounds:0,k:24,selfPlay:false,workers:2,work:"standard",opening:"original",noDeal:"skip"},input);
+    var c=Object.assign({cycles:1,maxRounds:0,k:24,selfPlay:false,workers:2,work:"standard",opening:"original",noDeal:"skip"},input);
+    // The run's 256-bit root seed: fresh unless given, and recorded so every
+    // game's dice can be replayed.
+    c.seed=combat.diceSeed(c.seed);
     c.opponents=Array.from(new Set(c.opponents||[]));
     if(!c.opponents.length||c.opponents.some(function(id){return !search.modes.some(function(m){return m.id===id;});}))throw new Error("Select at least one known opponent.");
     if(c.opponents.length===1)c.selfPlay=true;
     if(!Array.isArray(c.maps)||!c.maps.length)throw new Error("Select at least one board.");
     c.maps.forEach(function(m){if(!m||!Array.isArray(m.grid)||!m.grid.length||!Array.isArray(m.units))throw new Error("Invalid board definition.");});
-    integer(c.cycles,1,100000,"Cycles");integer(c.seed,0,4294967295,"Seed");
+    integer(c.cycles,1,100000,"Cycles");
     integer(c.maxRounds,0,1000,"Round cap");integer(c.k,1,100,"Elo K");integer(c.workers,1,16,"Workers");
     if(["fast","standard","deep"].indexOf(c.work)<0)throw new Error("Search work must be fast, standard or deep.");
     if(["original","offers"].indexOf(c.opening)<0)throw new Error("Choose normal opening or offer for first.");
@@ -31,10 +35,7 @@ var AI_TOURNAMENT = (function () {
     if(c.total>1000000)throw new Error("Limit each tournament to 1,000,000 games; reduce cycles or boards.");
     return c;
   }
-  function seedFor(seed,cycle,map,pair){
-    var n=(seed^Math.imul(cycle+1,0x9e3779b1)^Math.imul(map+1,0x85ebca6b)^Math.imul(pair+1,0xc2b2ae35))>>>0;
-    n=Math.imul(n^(n>>>16),0x45d9f3b);return (n^(n>>>16))>>>0;
-  }
+  function seedFor(root,cycle,map,pair){return combat.sha256(root+":"+cycle+":"+map+":"+pair);}
   function fixture(c,index){
     integer(index,0,c.total-1,"Game index");
     var legs=c.legs||2,leg=index%legs,side=leg%2,n=Math.floor(index/legs),pair=n%c.pairs.length;
@@ -103,7 +104,7 @@ var AI_TOURNAMENT = (function () {
       // Four legs cover both faction assignments and both tie recipients.
       // Responses are private commitments, so answering first gives no edge.
       negotiation=plan.error ? {status:"unavailable",message:plan.error} :
-        balance.settle(plan,surveys,function(){return spec.tieSecond===undefined?seedFor(spec.seed,0,0,0)/4294967296:spec.tieSecond/2+.25;});
+        balance.settle(plan,surveys,function(){return spec.tieSecond===undefined?parseInt(combat.sha256(spec.seed+":tie").slice(0,8),16)/4294967296:spec.tieSecond/2+.25;});
       if(!plan.error)negotiation.policies=surveys.map(function(s){return {id:s.policy,analysis:s.analysis};});
       if(negotiation.status==="agreed")balance.apply(game,plan,negotiation);
       else if(spec.noDeal==="original")opening="original";
