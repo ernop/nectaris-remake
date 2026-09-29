@@ -2,13 +2,12 @@
 //! the shared action model. Each decision draws from its own generator,
 //! seeded from the public position, in exactly JavaScript's order.
 
+use crate::dice::Dice;
 use crate::fdlibm;
 use crate::game::Game;
 use crate::hex;
-use crate::model::{self, sort_desc, Action, Ctx, Key, Kind};
-use crate::dice::Dice;
+use crate::model::{self, sort_desc, Action, Ctx, FastMap, FastSet, Key, Kind};
 use crate::rng::Rng;
-use std::collections::{HashMap, HashSet};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum Algorithm {
@@ -134,7 +133,7 @@ fn order_root(g: &Game, actions: Vec<Action>, ctx: &mut Ctx, rng: &mut Rng) -> V
 }
 
 fn rollout(g: &mut Game, player: i32, ctx: &mut Ctx, rng: &mut Rng, horizon: usize) -> f64 {
-    let mut seen: HashSet<Vec<i32>> = HashSet::new();
+    let mut seen: FastSet<Vec<i32>> = FastSet::default();
     let (start_turn, mut switches, mut previous) = (g.turn, 0, g.current);
     for i in 0..horizon {
         if g.winner >= 0 {
@@ -172,7 +171,7 @@ struct BeamNode<'d> {
     score: f64,
 }
 
-fn beam(g: &Game, roots: &[(Action, f64)], ctx: &mut Ctx, c: &Config, rng: &mut Rng) -> HashMap<Key, f64> {
+fn beam(g: &Game, roots: &[(Action, f64)], ctx: &mut Ctx, c: &Config, rng: &mut Rng) -> FastMap<Key, f64> {
     let player = g.current;
     let initial: Vec<&(Action, f64)> = roots.iter().filter(|r| r.0.kind != Kind::End).take(c.branches).collect();
     let mut nodes: Vec<BeamNode> = initial
@@ -186,7 +185,7 @@ fn beam(g: &Game, roots: &[(Action, f64)], ctx: &mut Ctx, c: &Config, rng: &mut 
     for _ in 1..c.depth {
         let mut next: Vec<BeamNode> = Vec::new();
         let mut transpositions: Vec<BeamNode> = Vec::new();
-        let mut at: HashMap<(Key, Vec<i32>), usize> = HashMap::new();
+        let mut at: FastMap<(Key, Vec<i32>), usize> = FastMap::default();
         for mut node in nodes {
             if node.game.winner >= 0 || node.game.current != player {
                 next.push(node);
@@ -215,7 +214,7 @@ fn beam(g: &Game, roots: &[(Action, f64)], ctx: &mut Ctx, c: &Config, rng: &mut 
         next.extend(transpositions);
         sort_desc(&mut next, |n| n.score);
         let mut kept_flag = vec![false; next.len()];
-        let mut roots_seen: HashSet<Key> = HashSet::new();
+        let mut roots_seen: FastSet<Key> = FastSet::default();
         for (i, n) in next.iter().enumerate() {
             if roots_seen.insert(n.root.key()) {
                 kept_flag[i] = true;
@@ -233,7 +232,7 @@ fn beam(g: &Game, roots: &[(Action, f64)], ctx: &mut Ctx, c: &Config, rng: &mut 
         kept.truncate(initial.len() + c.width);
         nodes = kept;
     }
-    let mut values: HashMap<Key, f64> = HashMap::new();
+    let mut values: FastMap<Key, f64> = FastMap::default();
     for node in &nodes {
         let mut sum = 0.0;
         for _ in 0..2 {
@@ -267,9 +266,9 @@ struct TreeNode {
     choices: Vec<Choice>,
 }
 
-fn tree_search(g: &Game, roots: &[(Action, f64)], ctx: &mut Ctx, c: &Config, rng: &mut Rng, beam_values: Option<&HashMap<Key, f64>>) -> Action {
+fn tree_search(g: &Game, roots: &[(Action, f64)], ctx: &mut Ctx, c: &Config, rng: &mut Rng, beam_values: Option<&FastMap<Key, f64>>) -> Action {
     let player = g.current;
-    let mut table: HashMap<Vec<i32>, TreeNode> = HashMap::new();
+    let mut table: FastMap<Vec<i32>, TreeNode> = FastMap::default();
     let root_key = model::signature(g);
     let root_choices = roots
         .iter()
@@ -357,7 +356,7 @@ fn tree_search(g: &Game, roots: &[(Action, f64)], ctx: &mut Ctx, c: &Config, rng
 
 fn verify(g: &Game, actions: [Action; 4], ctx: &mut Ctx, c: &Config, rng: &mut Rng) -> Action {
     let mut choices: Vec<Action> = Vec::new();
-    let mut at: HashMap<Key, usize> = HashMap::new();
+    let mut at: FastMap<Key, usize> = FastMap::default();
     for a in actions {
         match at.get(&a.key()) {
             Some(&i) => choices[i] = a,

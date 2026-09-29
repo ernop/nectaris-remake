@@ -100,6 +100,7 @@ impl std::hash::Hasher for Fnv {
     }
 }
 pub type FastMap<K, V> = HashMap<K, V, std::hash::BuildHasherDefault<Fnv>>;
+pub type FastSet<K> = std::collections::HashSet<K, std::hash::BuildHasherDefault<Fnv>>;
 
 /// Recompute every cached stopping-cell list and panic on a difference, as
 /// `AI_MODEL.verifyCachedStops` does in the JavaScript tests.
@@ -115,8 +116,7 @@ pub struct Ctx {
     stop_key: Vec<i32>,
     /// Hexes one enemy's weapon band covers from its stopping cells, keyed by
     /// the stop key plus the band's domain.
-    covered: FastMap<Vec<i32>, Rc<Vec<usize>>>,
-    offsets: FastMap<(i32, i32, i32), Rc<Vec<(i32, i32)>>>,
+    covered: FastMap<Vec<i32>, Rc<Vec<u64>>>,
     /// Candidate lists by position signature and request. `candidates` reads
     /// nothing about a position that `signature` leaves out.
     memo: FastMap<Vec<i32>, Rc<Vec<Action>>>,
@@ -127,9 +127,9 @@ pub struct Ctx {
     fire_from: Vec<u8>,
     /// Each unit's last threatened-hex key and result, by unit index and
     /// domain, checked before the map.
-    last_covered: Vec<[Option<(Vec<i32>, Rc<Vec<usize>>)>; 2]>,
+    last_covered: Vec<[Option<(Vec<i32>, Rc<Vec<u64>>)>; 2]>,
     /// `evaluationGoals`: each field unit's objectives at the decision's root.
-    pub goals: HashMap<usize, Rc<Vec<Target>>>,
+    pub goals: FastMap<usize, Rc<Vec<Target>>>,
 }
 
 pub static MEMO_HITS: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(0);
@@ -483,24 +483,6 @@ pub struct Info {
     emergencies: Vec<usize>,
 }
 
-fn offsets(ctx: &mut Ctx, min: i32, max: i32, parity: i32) -> Rc<Vec<(i32, i32)>> {
-    ctx.offsets
-        .entry((min, max, parity))
-        .or_insert_with(|| {
-            let mut out = Vec::new();
-            for r in -max - 1..=max + 1 {
-                for c in -max..=max {
-                    let d = hex::distance(parity, 0, parity + c, r);
-                    if d >= min && d <= max {
-                        out.push((c, r));
-                    }
-                }
-            }
-            Rc::new(out)
-        })
-        .clone()
-}
-
 /// Most hexes the chassis crosses on a full budget (`reachOf`).
 fn reach_of(g: &Game, t_index: usize) -> i32 {
     let min = g.tables.min_step[t_index];
@@ -557,52 +539,61 @@ fn neighbourhood(g: &Game, e: usize, reach: i32, sig: &mut Vec<i32>) {
     }
 }
 
-/// The hexes the enemy's weapon band against `air` targets covers from
-/// every cell it could stop on. Each enemy adds its power once to each.
-fn covered_cells(g: &Game, e: usize, air: bool, (min, max): (i32, i32), ctx: &mut Ctx) -> Rc<Vec<usize>> {
-    let move_or_fire = g.typ(e).move_or_fire;
-    let mut key = std::mem::take(&mut ctx.stop_key);
-    if move_or_fire {
+/// The key of an enemy's covered hexes without the domain: its stop key, or
+/// for a unit that moves or fires only its cell and type.
+fn cover_key(g: &Game, e: usize, key: &mut Vec<i32>) {
+    if g.typ(e).move_or_fire {
         key.clear();
         key.extend([g.cell(g.units[e].col, g.units[e].row) as i32, g.units[e].t as i32, -2]);
     } else {
-        stop_key(g, e, &mut key);
+        stop_key(g, e, key);
     }
+}
+
+/// The hexes the enemy's weapon band against `air` targets covers from
+/// every cell it could stop on, as a bitset over the board's cells. Each
+/// enemy adds its power once to each, so the set's order never mattered.
+/// `key` holds `cover_key`; the domain is appended and removed here.
+fn covered_cells(g: &Game, e: usize, air: bool, band: (i32, i32), key: &mut Vec<i32>, ctx: &mut Ctx) -> Rc<Vec<u64>> {
+    let move_or_fire = g.typ(e).move_or_fire;
+    let fresh_positions = |g: &Game| if move_or_fire { vec![g.cell(g.units[e].col, g.units[e].row)] } else { g.stopping_cells(e, true) };
     key.push(i32::from(air));
     if ctx.last_covered.len() <= e {
         ctx.last_covered.resize(e + 1, [None, None]);
     }
     if let Some((last, cells)) = &ctx.last_covered[e][usize::from(air)] {
-        if *last == key {
+        if last == key {
             let cells = cells.clone();
-            ctx.stop_key = key;
             if VERIFY_CACHES.load(std::sync::atomic::Ordering::Relaxed) {
-                let positions = if move_or_fire { vec![g.cell(g.units[e].col, g.units[e].row)] } else { g.stopping_cells(e, true) };
-                assert_eq!(*cells, cover(g, &positions, (min, max), ctx), "Remembered threatened hexes differ for unit {} ({})", g.units[e].id, g.typ(e).id);
+                assert_eq!(*cells, cover(g, &fresh_positions(g), band), "Remembered threatened hexes differ for unit {} ({})", g.units[e].id, g.typ(e).id);
             }
+            key.pop();
             return cells;
         }
     }
-    let remember = |ctx: &mut Ctx, key: &Vec<i32>, cells: &Rc<Vec<usize>>| {
-        ctx.last_covered[e][usize::from(air)] = Some((key.clone(), cells.clone()));
-    };
-    if let Some(cells) = ctx.covered.get(key.as_slice()).cloned() {
-        remember(ctx, &key, &cells);
-        ctx.stop_key = key;
-        if VERIFY_CACHES.load(std::sync::atomic::Ordering::Relaxed) {
-            let positions = if move_or_fire { vec![g.cell(g.units[e].col, g.units[e].row)] } else { g.stopping_cells(e, true) };
-            assert_eq!(*cells, cover(g, &positions, (min, max), ctx), "Cached threatened hexes differ for unit {} ({})", g.units[e].id, g.typ(e).id);
+    let cells = match ctx.covered.get(key.as_slice()).cloned() {
+        Some(cells) => {
+            if VERIFY_CACHES.load(std::sync::atomic::Ordering::Relaxed) {
+                assert_eq!(*cells, cover(g, &fresh_positions(g), band), "Cached threatened hexes differ for unit {} ({})", g.units[e].id, g.typ(e).id);
+            }
+            cells
         }
-        return cells;
-    }
-    let positions = if move_or_fire { Rc::new(vec![g.cell(g.units[e].col, g.units[e].row)]) } else { enemy_stops(g, e, ctx) };
-    let cells = Rc::new(cover(g, &positions, (min, max), ctx));
-    if ctx.covered.len() >= 50000 {
-        ctx.covered.clear();
-    }
-    ctx.covered.insert(key.clone(), cells.clone());
-    remember(ctx, &key, &cells);
-    ctx.stop_key = key;
+        None => {
+            let cells = if move_or_fire {
+                Rc::new(cover(g, &[g.cell(g.units[e].col, g.units[e].row)], band))
+            } else {
+                let stops = enemy_stops(g, e, &key[..key.len() - 1], ctx);
+                Rc::new(cover(g, &stops, band))
+            };
+            if ctx.covered.len() >= 50000 {
+                ctx.covered.clear();
+            }
+            ctx.covered.insert(key.clone(), cells.clone());
+            cells
+        }
+    };
+    ctx.last_covered[e][usize::from(air)] = Some((key.clone(), cells.clone()));
+    key.pop();
     cells
 }
 
@@ -637,46 +628,56 @@ fn unit_records(g: &Game, u: usize, ctx: &mut Ctx) -> Rc<Vec<Rec>> {
     recs
 }
 
-/// The hexes within the band of any of the positions, each once, in the
-/// order the positions first reach them.
-fn cover(g: &Game, positions: &[usize], (min, max): (i32, i32), ctx: &mut Ctx) -> Vec<usize> {
-    let mut marks = vec![false; g.cells.len()];
-    let mut out = Vec::new();
-    if min == 1 && max == 1 {
-        for &p in positions.iter() {
-            for at in neighbor_cells(g, p) {
-                if !marks[at] {
-                    marks[at] = true;
-                    out.push(at);
-                }
-            }
-        }
-    } else {
-        let steps = [offsets(ctx, min, max, 0), offsets(ctx, min, max, 1)];
-        for &p in positions.iter() {
-            let (col, row) = (p as i32 % g.w, p as i32 / g.w);
-            for &(dc, dr) in steps[(col & 1) as usize].iter() {
-                let (c, r) = (col + dc, row + dr);
-                if g.in_bounds(c, r) {
-                    let at = g.cell(c, r);
-                    if !marks[at] {
-                        marks[at] = true;
-                        out.push(at);
+thread_local! {
+    /// Per board size and weapon band: each cell's in-band cells as a bitset,
+    /// `words` per cell. Pure geometry: terrain plays no part.
+    static BAND_MASKS: std::cell::RefCell<FastMap<(i32, i32, i32, i32), Rc<Vec<u64>>>> = std::cell::RefCell::new(FastMap::default());
+}
+
+fn band_masks(g: &Game, (min, max): (i32, i32)) -> Rc<Vec<u64>> {
+    BAND_MASKS.with(|m| {
+        m.borrow_mut()
+            .entry((g.w, g.h, min, max))
+            .or_insert_with(|| {
+                let size = g.cells.len();
+                let words = size.div_ceil(64);
+                let mut masks = vec![0u64; size * words];
+                for p in 0..size {
+                    let (col, row) = (p as i32 % g.w, p as i32 / g.w);
+                    let mask = &mut masks[p * words..(p + 1) * words];
+                    for r in (row - max - 1).max(0)..=(row + max + 1).min(g.h - 1) {
+                        for c in (col - max).max(0)..=(col + max).min(g.w - 1) {
+                            let d = hex::distance(col, row, c, r);
+                            if d >= min && d <= max {
+                                let at = (r * g.w + c) as usize;
+                                mask[at / 64] |= 1 << (at % 64);
+                            }
+                        }
                     }
                 }
-            }
+                Rc::new(masks)
+            })
+            .clone()
+    })
+}
+
+/// The hexes within the band of any of the positions, as a bitset.
+fn cover(g: &Game, positions: &[usize], band: (i32, i32)) -> Vec<u64> {
+    let masks = band_masks(g, band);
+    let words = g.cells.len().div_ceil(64);
+    let mut out = vec![0u64; words];
+    for &p in positions {
+        for (o, m) in out.iter_mut().zip(&masks[p * words..(p + 1) * words]) {
+            *o |= m;
         }
     }
     out
 }
 
 /// `enemyStops`: the enemy's stopping cells, shared by every position with
-/// the same signature.
-fn enemy_stops(g: &Game, e: usize, ctx: &mut Ctx) -> Rc<Vec<usize>> {
-    let mut key = std::mem::take(&mut ctx.stop_key);
-    stop_key(g, e, &mut key);
-    let found = ctx.stops.get(key.as_slice()).cloned();
-    let cells = match found {
+/// the same stop key (`key`, from `stop_key`).
+fn enemy_stops(g: &Game, e: usize, key: &[i32], ctx: &mut Ctx) -> Rc<Vec<usize>> {
+    match ctx.stops.get(key).cloned() {
         Some(cells) => {
             if VERIFY_CACHES.load(std::sync::atomic::Ordering::Relaxed) {
                 assert_eq!(*cells, g.stopping_cells(e, true), "Cached stopping cells differ for unit {} ({})", g.units[e].id, g.typ(e).id);
@@ -688,12 +689,10 @@ fn enemy_stops(g: &Game, e: usize, ctx: &mut Ctx) -> Rc<Vec<usize>> {
             if ctx.stops.len() >= 50000 {
                 ctx.stops.clear();
             }
-            ctx.stops.insert(key.clone(), cells.clone());
+            ctx.stops.insert(key.to_vec(), cells.clone());
             cells
         }
-    };
-    ctx.stop_key = key;
-    cells
+    }
 }
 
 /// The enemy threat on every hex, each hex summing its enemies in board order.
@@ -701,20 +700,31 @@ fn threat_map(g: &Game, ctx: &mut Ctx) -> [Vec<f64>; 2] {
     let size = g.cells.len();
     let player = 1 - g.current;
     let mut threat = [vec![0.0f64; size], vec![0.0f64; size]];
+    let mut key = std::mem::take(&mut ctx.stop_key);
     for e in g.player_units(player) {
         let t = g.typ(e);
         if t.atk_g == 0 && t.atk_a == 0 {
             continue;
         }
+        let mut keyed = false;
         for air in [false, true] {
             let Some(band) = range_band(t, air) else { continue };
+            if !keyed {
+                cover_key(g, e, &mut key);
+                keyed = true;
+            }
             let power = f64::from(atk_stat(t, air).min(100)) * f64::from(g.units[e].strength) / 8.0 * f64::from(g.d.combat.exp_damage[g.units[e].exp as usize]) / 100.0;
             let array = &mut threat[usize::from(air)];
-            for &at in covered_cells(g, e, air, band, ctx).iter() {
-                array[at] += power;
+            for (w, &word) in covered_cells(g, e, air, band, &mut key, ctx).iter().enumerate() {
+                let mut bits = word;
+                while bits != 0 {
+                    array[w * 64 + bits.trailing_zeros() as usize] += power;
+                    bits &= bits - 1;
+                }
             }
         }
     }
+    ctx.stop_key = key;
     threat
 }
 
