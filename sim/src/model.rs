@@ -51,11 +51,11 @@ pub struct Target {
     pub worth: f64,
     /// `worth / 1.5`: no distance makes the target worth more.
     pub cap: f64,
-    pub field: Rc<Vec<f64>>,
+    pub field: Rc<[f64]>,
 }
 pub struct Plan {
-    field: Rc<Vec<f64>>,
-    foot: Rc<Vec<f64>>,
+    field: Rc<[f64]>,
+    foot: Rc<[f64]>,
     worth: f64,
 }
 
@@ -128,11 +128,11 @@ pub static VERIFY_CACHES: std::sync::atomic::AtomicBool = std::sync::atomic::Ato
 #[derive(Default)]
 pub struct Ctx {
     /// Walking-distance fields by unit type, then goal list.
-    routes: FastMap<usize, FastMap<Vec<(i32, i32)>, Rc<Vec<f64>>>>,
+    routes: FastMap<usize, FastMap<Vec<(i32, i32)>, Rc<[f64]>>>,
     route_count: usize,
     /// Fields to a single cell, by type * cells + cell.
-    single_routes: Vec<Option<Rc<Vec<f64>>>>,
-    deliveries: FastMap<(usize, usize, Vec<(i32, i32)>), Rc<Vec<f64>>>,
+    single_routes: Vec<Option<Rc<[f64]>>>,
+    deliveries: FastMap<(usize, usize, Vec<(i32, i32)>), Rc<[f64]>>,
     stops: FastMap<Vec<i32>, Rc<Vec<usize>>>,
     stop_key: Vec<i32>,
     /// Hexes one enemy's weapon band covers from its stopping cells, keyed by
@@ -298,7 +298,7 @@ thread_local! {
 /// Reverse multi-source walking distances to the goals over chassis terrain,
 /// cached per type and goal list. A single on-board goal (a building) has a
 /// dense slot per type and cell instead of a keyed entry.
-fn distances(g: &Game, t_index: usize, goals: &[(i32, i32)], ctx: &mut Ctx) -> Rc<Vec<f64>> {
+fn distances(g: &Game, t_index: usize, goals: &[(i32, i32)], ctx: &mut Ctx) -> Rc<[f64]> {
     if let [(c, r)] = *goals {
         if g.in_bounds(c, r) {
             let size = g.cells.len();
@@ -309,7 +309,7 @@ fn distances(g: &Game, t_index: usize, goals: &[(i32, i32)], ctx: &mut Ctx) -> R
             if let Some(f) = &ctx.single_routes[slot] {
                 return f.clone();
             }
-            let field = Rc::new(walk_distances(g, t_index, goals));
+            let field: Rc<[f64]> = Rc::from(walk_distances(g, t_index, goals));
             ctx.single_routes[slot] = Some(field.clone());
             return field;
         }
@@ -322,7 +322,7 @@ fn distances(g: &Game, t_index: usize, goals: &[(i32, i32)], ctx: &mut Ctx) -> R
         ctx.routes.clear();
         ctx.route_count = 0;
     }
-    let field = Rc::new(result);
+    let field: Rc<[f64]> = Rc::from(result);
     ctx.routes.entry(t_index).or_default().insert(goals.to_vec(), field.clone());
     ctx.route_count += 1;
     field
@@ -523,7 +523,7 @@ fn delivery_plans(g: &Game, carrier: usize, cargo: usize, ctx: &mut Ctx) -> Vec<
                     if ctx.deliveries.len() > 4096 {
                         ctx.deliveries.clear();
                     }
-                    let field = Rc::new(field);
+                    let field: Rc<[f64]> = Rc::from(field);
                     ctx.deliveries.insert(key, field.clone());
                     field
                 }
