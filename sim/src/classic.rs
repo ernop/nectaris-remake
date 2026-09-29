@@ -143,7 +143,7 @@ fn walking_distances(g: &Game, passenger: usize, goal: (i32, i32)) -> Vec<i32> {
         if g.d.terrain[g.cells[c]].costs_all_movement && t.move_type != MoveType::Air {
             step = t.mv.max(1);
         }
-        let (col, row) = (c as i32 % g.w, c as i32 / g.w);
+        let (col, row) = g.tables.coords[c];
         for (nc, nr) in hex::neighbors(col, row) {
             if !g.in_bounds(nc, nr) || g.d.terrain_cost(g.cells[g.cell(nc, nr)], t).is_none() {
                 continue;

@@ -522,8 +522,7 @@ impl<'d> Game<'d> {
                 if sc.flags[c] & STOP != 0 && c != start {
                     continue;
                 }
-                for s in c * 6..c * 6 + 6 {
-                    let n = nbr[s];
+                for &n in &nbr[c * 6..c * 6 + 6] {
                     if n < 0 {
                         continue;
                     }
@@ -554,12 +553,15 @@ impl<'d> Game<'d> {
                         }
                     }
                     let entering_zoc = enemy_zone[n] != 0;
-                    let (nc, nr) = (n as i32 % self.w, n as i32 / self.w);
                     let mut can_stop = occ < 0 || load;
-                    if !load && self.building_at[n] >= 0 && !self.can_stop_at_building(u, nc, nr) {
-                        can_stop = false;
+                    let mut enters = false;
+                    if !load && self.building_at[n] >= 0 {
+                        let (nc, nr) = self.tables.coords[n];
+                        if !self.can_stop_at_building(u, nc, nr) {
+                            can_stop = false;
+                        }
+                        enters = can_stop && self.enters_building(u, nc, nr);
                     }
-                    let enters = can_stop && !load && self.building_at[n] >= 0 && self.enters_building(u, nc, nr);
                     if sc.best[n] == i32::MAX {
                         order.push(n);
                     }
@@ -1096,7 +1098,7 @@ impl<'d> Game<'d> {
                 let s = self.search_moves(u, None);
                 for i in 0..s.order.len() {
                     if s.cost[i] > 0 && s.flags[i] & CAN_STOP != 0 {
-                        out.push(Command::Move(id, s.order[i] as i32 % self.w, s.order[i] as i32 / self.w));
+                        out.push(Command::Move(id, self.tables.coords[s.order[i]].0, self.tables.coords[s.order[i]].1));
                     }
                 }
             }

@@ -199,6 +199,26 @@ pub fn sort_desc<T>(list: &mut [T], score: impl Fn(&T) -> f64) {
 /// sorting the rest: (score descending, position ascending) is a total order
 /// whose first entries are exactly the stable sort's.
 pub fn best_actions(list: Vec<Action>, limit: usize) -> Vec<Action> {
+    if limit == 0 {
+        return Vec::new();
+    }
+    if limit <= 8 {
+        // One pass keeping the best `limit` in order. Entries arrive in
+        // position order, so a newcomer displaces only on a higher score and
+        // goes after every kept entry that scores at least as much.
+        let mut top: Vec<(f64, usize)> = Vec::with_capacity(limit + 1);
+        for (i, a) in list.iter().enumerate() {
+            let s = a.score;
+            assert!(!s.is_nan(), "an action scored NaN");
+            if top.len() == limit && s <= top[limit - 1].0 {
+                continue;
+            }
+            let at = top.iter().position(|&(t, _)| s > t).unwrap_or(top.len());
+            top.insert(at, (s, i));
+            top.truncate(limit);
+        }
+        return top.into_iter().map(|(_, i)| list[i].clone()).collect();
+    }
     let mut order: Vec<(f64, u32)> = list.iter().enumerate().map(|(i, a)| {
         assert!(!a.score.is_nan(), "an action scored NaN");
         (a.score, i as u32)
@@ -1034,7 +1054,7 @@ impl Rec {
 }
 /// `movementRange`'s records in key order: the start, then first-reached order.
 pub fn records(g: &Game, s: &MoveSearch) -> Vec<Rec> {
-    s.order.iter().enumerate().map(|(i, &c)| Rec { col: c as i32 % g.w, row: c as i32 / g.w, cost: s.cost[i], flags: s.flags[i] }).collect()
+    s.order.iter().enumerate().map(|(i, &c)| Rec { col: g.tables.coords[c].0, row: g.tables.coords[c].1, cost: s.cost[i], flags: s.flags[i] }).collect()
 }
 
 /// The mover's own terms at its origin, identical in every `scorePosition`

@@ -175,6 +175,8 @@ pub struct Tables {
     pub h: i32,
     /// Terrain index of every cell.
     pub cells: Vec<usize>,
+    /// Column and row of every cell.
+    pub coords: Vec<(i32, i32)>,
     /// The six neighbours of each cell in `hex::neighbors` order, -1 off the board.
     pub neighbors: Vec<i32>,
     /// Index into the game's buildings, -1 where there is none: explicit
@@ -241,7 +243,8 @@ impl Tables {
             .zip(&step)
             .map(|(t, s)| s.iter().zip(&drains).map(|(&cost, &drain)| if cost >= 0 && drain && t.move_type != MoveType::Air { DRAIN } else { cost }).collect())
             .collect();
-        Tables { w, h, cells, neighbors, building_at, building_cells, step, min_step, max_step, move_step, drains }
+        let coords = (0..w * h).map(|i| (i % w, i / w)).collect();
+        Tables { w, h, cells, coords, neighbors, building_at, building_cells, step, min_step, max_step, move_step, drains }
     }
 }
 
