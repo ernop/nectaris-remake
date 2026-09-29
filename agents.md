@@ -77,7 +77,10 @@ Facts we need across sessions:
     maintainable"). Profile with `tools/sim/gdb-profile.py` and
     `tools/sim/profile-report.py`: `perf` is not allowed on this machine.
     Time a change against the build before it, alternating runs, and keep
-    only what measures faster.
+    only what measures faster. Long runs on this machine use the
+    profile-guided binary from `tools/sim/build-pgo.sh` (about 7% faster;
+    rustup's `llvm-tools`, installed with the user's approval 2026-09-29).
+    CI checks the plain release build.
   - The corpus also locks `Game.legalCommands()` at every recorded position
     and 12 random games over it. A new AI player needs a JavaScript twin that
     decides identically, locked by corpus games, before the browser offers it.

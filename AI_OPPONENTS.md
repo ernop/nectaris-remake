@@ -315,10 +315,15 @@ and seats, every command's legality, and the final position and result. It
 then writes the `run.json` and `games/` archive `run.cjs` would write, so the
 replay viewer opens each game.
 
+For long runs, `tools/sim/build-pgo.sh` builds the profile-guided binary
+(about 7% faster), checks it against the lock corpus and prints its path; run
+`tournament` with that binary instead of `cargo run`.
+
 On this machine (16 cores), 144 three-round Sequence/Simulation/Apex games on
-24 boards took 216 s with `run.cjs --workers=16` and 15 s with
-`--threads=16`. Both archives held identical games, as did 476 full
-Classic/Tactical games on all 119 boards (Rust: 7.6 s).
+24 boards took 214 s with `run.cjs --workers=16` and 4.7 s with
+`--threads=16` (the profile-guided build, 2026-09-29; 15 s on 2026-09-27).
+Both archives held identical games, as did 476 full Classic/Tactical games on
+all 119 boards (Rust: 4.3 s).
 
 New AI players plug into the engine through `Player` (whole turns) or
 `StepPlayer` (one command at a time from `Game::legal_commands`, which lists

@@ -30,24 +30,24 @@
 <section aria-labelledby="speed-title">
   <h2 id="speed-title">How much faster</h2>
   <div class="table-scroll"><table class="headline">
-    <tr><td class="big">360–377×</td><td>Search-bot tournaments: Rust on all 32 threads against one JavaScript thread, as the browser plays</td></tr>
-    <tr><td class="big">180×</td><td>Random play through the legal-move list, Rust on 32 threads against one JavaScript thread</td></tr>
-    <tr><td class="big">28×</td><td>Search bots, one thread each</td></tr>
-    <tr><td class="big">30×</td><td>The rules alone, one thread each</td></tr>
+    <tr><td class="big">400–407×</td><td>Search-bot tournaments: Rust on all 32 threads against one JavaScript thread, as the browser plays</td></tr>
+    <tr><td class="big">188×</td><td>Random play through the legal-move list, Rust on 32 threads against one JavaScript thread</td></tr>
+    <tr><td class="big">30×</td><td>Search bots, one thread each</td></tr>
+    <tr><td class="big">31×</td><td>The rules alone, one thread each</td></tr>
   </table></div>
   <div class="table-scroll"><table>
     <thead><tr><th>Work</th><th class="num">Rust</th><th class="num">JavaScript</th><th class="num">Faster</th></tr></thead>
     <tbody>
-      <tr><td>Rules alone, per command, one thread each</td><td class="num">0.46 µs</td><td class="num">13.6 µs</td><td class="ratio">30×</td></tr>
-      <tr><td>Random play from the legal-move list, one thread each</td><td class="num">171,000 commands/s</td><td class="num">13,100 commands/s</td><td class="ratio">13×</td></tr>
-      <tr><td>Random play, Rust on 32 threads</td><td class="num">2,357,000 commands/s</td><td class="num">13,100 commands/s</td><td class="ratio">180×</td></tr>
-      <tr><td>Classic against Tactical, 40 full games, one thread each</td><td class="num">1.5 s</td><td class="num">17.5 s</td><td class="ratio">12×</td></tr>
-      <tr><td>Sequence, Simulation and Apex, 144 three-round games, one thread each</td><td class="num">60.4 s</td><td class="num">1,669 s</td><td class="ratio">28×</td></tr>
-      <tr><td>The same kind of games, Rust on 32 threads (1,152 games, two runs)</td><td class="num">31.1–32.5 games/s</td><td class="num">0.086 games/s</td><td class="ratio">360–377×</td></tr>
-      <tr><td>Tournament runners, 16 workers each, the 144 games</td><td class="num">5.0 s</td><td class="num">214 s</td><td class="ratio">43×</td></tr>
+      <tr><td>Rules alone, per command, one thread each</td><td class="num">0.44 µs</td><td class="num">13.6 µs</td><td class="ratio">31×</td></tr>
+      <tr><td>Random play from the legal-move list, one thread each</td><td class="num">177,000 commands/s</td><td class="num">13,100 commands/s</td><td class="ratio">13.5×</td></tr>
+      <tr><td>Random play, Rust on 32 threads</td><td class="num">2,460,000 commands/s</td><td class="num">13,100 commands/s</td><td class="ratio">188×</td></tr>
+      <tr><td>Classic against Tactical, 40 full games, one thread each</td><td class="num">1.4 s</td><td class="num">17.5 s</td><td class="ratio">12×</td></tr>
+      <tr><td>Sequence, Simulation and Apex, 144 three-round games, one thread each</td><td class="num">55.2 s</td><td class="num">1,669 s</td><td class="ratio">30×</td></tr>
+      <tr><td>The same kind of games, Rust on 32 threads (1,152 games, five runs)</td><td class="num">34.5–35.1 games/s</td><td class="num">0.086 games/s</td><td class="ratio">400–407×</td></tr>
+      <tr><td>Tournament runners, 16 workers each, the 144 games</td><td class="num">4.7 s</td><td class="num">214 s</td><td class="ratio">46×</td></tr>
     </tbody>
   </table></div>
-  <p class="note">Classic and Tactical gain least: each of their decisions looks at a position once, so the caches that let the search bots reuse work across similar positions do not apply. The runner comparison is limited by its few longest Apex games; once the short games finish, most workers wait.</p>
+  <p class="note">Rust figures are for the profile-guided build that <code>tools/sim/build-pgo.sh</code> makes. A plain release build is about 7% slower. Classic and Tactical gain least: each of their decisions looks at a position once, so the caches that let the search bots reuse work across similar positions do not apply. The runner comparison is limited by its few longest Apex games; once the short games finish, most workers wait.</p>
 </section>
 
 <section aria-labelledby="history-title">
@@ -66,6 +66,7 @@
       <tr><td>Faster key hashing, fewer allocations, one position signature per step</td><td>Sep 28</td><td class="num">10.8 s</td><td class="ratio">21.5×</td></tr>
       <tr><td>Zone-of-control counts kept by the engine</td><td>Sep 28</td><td class="num">9.8 s</td><td class="ratio">23.7×</td></tr>
       <tr><td>Position scoring and action selection that skip work they cannot use</td><td>Sep 28</td><td class="num">8.7 s</td><td class="ratio">26.7×</td></tr>
+      <tr><td>Profile-guided build: the compiler lays out the code by measured use</td><td>Sep 29</td><td class="num">7.9 s</td><td class="ratio">29.4×</td></tr>
     </tbody>
   </table></div>
   <p class="note">Tried and removed because they did not help:</p>
@@ -103,10 +104,10 @@
   <div class="table-scroll"><table>
     <thead><tr><th>Bot</th><th class="num">JavaScript</th><th class="num">Rust</th><th class="num">Faster</th></tr></thead>
     <tbody>
-      <tr><td>Tactical</td><td class="num">0.095 s</td><td class="num">0.005 s</td><td class="ratio">19×</td></tr>
-      <tr><td>Sequence</td><td class="num">1.07 s</td><td class="num">0.037 s</td><td class="ratio">29×</td></tr>
-      <tr><td>Simulation</td><td class="num">2.47 s</td><td class="num">0.129 s</td><td class="ratio">19×</td></tr>
-      <tr><td>Apex</td><td class="num">19.6 s</td><td class="num">0.81 s</td><td class="ratio">24×</td></tr>
+      <tr><td>Tactical</td><td class="num">0.095 s</td><td class="num">0.006 s</td><td class="ratio">16×</td></tr>
+      <tr><td>Sequence</td><td class="num">1.07 s</td><td class="num">0.035 s</td><td class="ratio">31×</td></tr>
+      <tr><td>Simulation</td><td class="num">2.47 s</td><td class="num">0.120 s</td><td class="ratio">21×</td></tr>
+      <tr><td>Apex</td><td class="num">19.6 s</td><td class="num">0.72 s</td><td class="ratio">27×</td></tr>
     </tbody>
   </table></div>
 </section>
@@ -153,8 +154,8 @@ node ../tools/sim/import-rust.cjs /tmp/league
 cargo run --release -- playout --games=4000
 cargo run --release -- replay
 cargo run --release -- decide --verify-caches</pre>
-  <p>The import step checks every game in JavaScript and writes an archive; each game file opens in the Bot tournament page's replay viewer. New AI players plug into the engine through two interfaces: one plays whole turns, the other picks one command at a time from the legal-move list. Before the browser offers a new player, it needs a JavaScript twin that decides identically.</p>
-  <p class="note">Measured on 27–28 September 2026 on an AMD Ryzen 9 5950X (16 cores, 32 threads) with Node 22 and Rust 1.98. More detail on GitHub: <a href="https://github.com/ernop/nectaris-remake/blob/master/AI_TRAINING_PLAN.md#rust-simulator">the simulator's plan and measurements</a> and <a href="https://github.com/ernop/nectaris-remake/blob/master/AI_OPPONENTS.md">running tournaments</a>.</p>
+  <p>The import step checks every game in JavaScript and writes an archive; each game file opens in the Bot tournament page's replay viewer. For long runs, <code>tools/sim/build-pgo.sh</code> builds the profile-guided binary, checks it against the recorded games, and prints its path. It needs rustup's <code>llvm-tools</code> component. New AI players plug into the engine through two interfaces: one plays whole turns, the other picks one command at a time from the legal-move list. Before the browser offers a new player, it needs a JavaScript twin that decides identically.</p>
+  <p class="note">Measured on 27–29 September 2026 on an AMD Ryzen 9 5950X (16 cores, 32 threads) with Node 22 and Rust 1.98. More detail on GitHub: <a href="https://github.com/ernop/nectaris-remake/blob/master/AI_TRAINING_PLAN.md#rust-simulator">the simulator's plan and measurements</a> and <a href="https://github.com/ernop/nectaris-remake/blob/master/AI_OPPONENTS.md">running tournaments</a>.</p>
 </section>
 
 </main>

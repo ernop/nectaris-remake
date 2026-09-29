@@ -203,13 +203,13 @@ work therefore uses only caches keyed on what JavaScript already defines (its
 - **Tools:** the multi-core tournament runner and its JavaScript import check
   (AI_OPPONENTS.md), and the random-playout benchmark: `nectaris-sim playout`
   and `node tools/sim/playout-bench.cjs` print equal fingerprints.
-- **Speed (2026-09-28, after the fourth step):**
-  - Engine alone: 0.46 µs per command against JavaScript's 13.6 µs (30× per
+- **Speed (2026-09-29, after the fourth step, profile-guided build):**
+  - Engine alone: 0.44 µs per command against JavaScript's 13.6 µs (31× per
     thread; 0.65–0.8 µs before).
   - Random play, listing the legal commands before every command:
-    2.36 million commands/s on 32 threads against 13,100/s on one
-    JavaScript thread (180×; 120× before).
-  - Search bots: 360–377× one JavaScript thread (fourth step, below).
+    2.46 million commands/s on 32 threads against 13,100/s on one
+    JavaScript thread (188×; 120× before).
+  - Search bots: 400–407× one JavaScript thread (fourth step, below).
 
 **Phase 4, third step (2026-09-28):**
 - **Decisions (user, 2026-09-28):**
@@ -282,20 +282,28 @@ re-recorded on the new dice, with every cache verified.
   half of them for enemy stopping cells, of which 61% of lookups miss.
 - **Where the 1000× target stands:** the same 1,152 three-round search games
   on 24 boards, re-recorded on the new dice.
-  - Rust, 32 threads: 35.4–37.0 s over two runs, 31.1–32.5 games/s.
+  - Rust, 32 threads, plain build: 35.1–37.0 s, 31.1–32.8 games/s.
+  - Rust, 32 threads, profile-guided build: 32.8–33.4 s over five runs,
+    34.5–35.1 games/s.
   - JavaScript, one thread: 0.086 games/s (the 144 games in 1,668.9 s).
-  - Rust is therefore 360–377× one JavaScript thread (228× before). On one
-    thread it is 28× (the 144 games take 60.4 s; 17× before).
+  - Rust is therefore 400–407× one JavaScript thread (228× before this
+    round). On one thread it is 30× (the 144 games take 55.2 s; 17× before).
   - Whole tournaments still match: the 476 Classic/Tactical and 144 search
     games, played by `nectaris-sim tournament`, equal the JavaScript runner's
     archives game for game and pass `import-rust.cjs`.
-- **Larger steps left:**
-  - Keys on what a movement search actually read, instead of the whole
-    neighbourhood `stopSignature` lists. Many enemy-stop misses change only
-    units the search never reached. This is not a key JavaScript defines, so
-    it needs the user's decision (agents.md rule).
-  - Profile-guided optimization. It needs rustup's `llvm-tools` component, a
-    new build dependency.
+- **Profile-guided optimization (user, 2026-09-29: "Try it: install,
+  measure, keep it only if faster"):** kept.
+  - `tools/sim/build-pgo.sh` builds an instrumented binary, trains it on
+    boards the benchmarks do not use, merges the counts with rustup's
+    `llvm-tools`, rebuilds, and runs the lock checks on the result.
+  - 7–8% faster: the sample 8.55 s → 7.86 s; the 1,152 games on 32 threads
+    35.1 s → 32.8–33.4 s. Every command identical, and both whole
+    tournaments still equal the JavaScript archives.
+  - CI keeps checking the plain release build.
+- **Larger step left:** keys on what a movement search actually read,
+  instead of the whole neighbourhood `stopSignature` lists. Many enemy-stop
+  misses change only units the search never reached. This is not a key
+  JavaScript defines, so it needs the user's decision (agents.md rule).
 
 **Phase 5, the self-play runner (done 2026-09-27):**
 - `nectaris-sim tournament` plays `run.cjs` tournaments on every thread. The
