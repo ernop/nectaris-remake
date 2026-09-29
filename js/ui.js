@@ -1214,8 +1214,11 @@ var UI = (function () {
       }, $("war-scene"), function () {
         self.busy = false;
         self.hideBattleScreen();
-        done(result);
+        // Drop the battle marks before the follow-up display. A surviving
+        // buggy paints its remaining movement in done(); clearing afterwards
+        // leaves only the selection ring on its current hex.
         self.showAftermath(attacker, defender, result);
+        done(result);
       });
     });
   };

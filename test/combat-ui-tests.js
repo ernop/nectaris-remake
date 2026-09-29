@@ -298,10 +298,14 @@ module.exports = function (ok) {
       ui.onHexClick(firingCol,1);
       ok(unit.shifted && unit.movePointsLeft === allowance - approachCost && ui.pickTargets.length,
         type + " stores remaining allowance while preventing a second preattack move");
-      ui.onHexClick(4,1); ui.animationDone();
+      ui.onHexClick(4,1);
+      ui.showAftermath = function () { UI.GameUI.prototype.clearBattleMarks.call(ui); };
+      ui.animationDone();
+      var reachable = Object.keys(ui.range).filter(function (key) { return ui.range[key].canStop && ui.range[key].cost > 0; });
       ok(ui.mode === "unitSelected" && unit.attacked && !unit.shifted && !unit.moved &&
-        unit.movePointsLeft === allowance - approachCost && !ui.canUndo(),
-        type + " unlocks remaining movement immediately after combat without undoing that battle");
+        unit.movePointsLeft === allowance - approachCost && !ui.canUndo() &&
+        reachable.length > 1 && reachable.every(function (key) { return ui.renderer.highlights[key]; }),
+        type + " unlocks and shows its full remaining movement immediately after combat without undoing that battle");
       before = JSON.stringify(ui.game.snapshot());
       ui.onHexClick(firingCol-1,1);
       ok(ui.mode === "idle" && unit.moved && unit.attacked && ui.canUndo(), type + " retreat ends immediately");

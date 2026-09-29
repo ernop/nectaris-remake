@@ -1218,7 +1218,7 @@ correction supersedes the earlier separate Shift-selection step.
 A destination click commits the movement immediately. With a legal shot, show
 red targets directly, with no per-unit **End** choice. Without a legal shot, end the unit automatically and
 return to the map. Shift-or-fire units therefore end immediately after moving.
-Surviving buggies immediately show their remaining movement after attacking.
+Surviving buggies immediately show their remaining movement after attacking: every hex the engine still allows, not only the hex they occupy. Clearing the battle marks happens before that overlay is drawn, so the retreat range stays on the map.
 Enemy clicks outside the legal attack targets still inspect; never add automatic move-and-attack.
 
 **Uninterrupted unit activations (2026-09-23 user correction, implemented):**
