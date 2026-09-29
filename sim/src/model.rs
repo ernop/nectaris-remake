@@ -49,6 +49,8 @@ impl CostQueue {
 pub struct Target {
     pub goals: Rc<Vec<(i32, i32)>>,
     pub worth: f64,
+    /// `worth / 1.5`: no distance makes the target worth more.
+    pub cap: f64,
     pub field: Rc<Vec<f64>>,
 }
 pub struct Plan {
@@ -261,9 +263,9 @@ fn full_value(g: &Game, u: usize) -> f64 {
     value_at(g, g.typ(u), g.d.combat.max_strength, g.units[u].exp)
 }
 
+/// The cell's on-board neighbours in `hex::neighbors` order.
 fn neighbor_cells<'a>(g: &'a Game<'_>, cell: usize) -> impl Iterator<Item = usize> + 'a {
-    let (col, row) = (cell as i32 % g.w, cell as i32 / g.w);
-    hex::neighbors(col, row).into_iter().filter(|&(c, r)| g.in_bounds(c, r)).map(|(c, r)| g.cell(c, r))
+    g.tables.neighbors[6 * cell..6 * cell + 6].iter().filter(|&&n| n >= 0).map(|&n| n as usize)
 }
 
 thread_local! {
@@ -352,7 +354,7 @@ pub fn objectives(g: &Game, u: usize, ctx: &mut Ctx) -> Vec<Target> {
     }
     if t.atk_g != 0 || t.atk_a != 0 {
         let mut enemies: Vec<usize> = g.units_of(1 - player).filter(|&e| range_band(t, g.is_air(e)).is_some()).collect();
-        enemies.sort_by_key(|&e| hex::distance(unit.col, unit.row, g.units[e].col, g.units[e].row));
+        enemies.sort_by_cached_key(|&e| hex::distance(unit.col, unit.row, g.units[e].col, g.units[e].row));
         for &e in enemies.iter().take(3) {
             let (min, max) = range_band(t, g.is_air(e)).unwrap();
             let enemy = &g.units[e];
@@ -394,18 +396,28 @@ pub fn objectives(g: &Game, u: usize, ctx: &mut Ctx) -> Vec<Target> {
             targets.push((hex::neighbors(g.units[a].col, g.units[a].row).to_vec(), 30.0));
         }
     }
-    targets
+    let mut out: Vec<Target> = targets
         .into_iter()
         .map(|(goals, worth)| {
             let field = distances(g, unit.t, &goals, ctx);
-            Target { goals: Rc::new(goals), worth, field }
+            Target { goals: Rc::new(goals), worth, cap: worth / 1.5, field }
         })
-        .collect()
+        .collect();
+    // Every reader takes a maximum over the targets, which their order cannot
+    // change; most valuable first lets `potential` stop early.
+    out.sort_by(|a, b| b.worth.partial_cmp(&a.worth).expect("finite target worth"));
+    out
 }
 
+/// The best `worth / (1.5 + turns)` over the targets. Division and addition
+/// are monotone, so a target whose `cap` does not beat the best so far adds
+/// nothing, and neither does any later, less valuable one.
 fn potential(g: &Game, mv: i32, targets: &[Target], col: i32, row: i32) -> f64 {
     let (mut best, mv, at) = (0.0f64, f64::from(mv.max(1)), g.cell(col, row));
     for t in targets {
+        if t.cap <= best {
+            break;
+        }
         let d = t.field[at];
         if d.is_finite() {
             best = best.max(t.worth / (1.5 + d / mv));
