@@ -353,29 +353,35 @@ The user asked for sound effects "in a really great way", music excluded, with a
   `SFX.registerBank` in `js/sfx.js` and optional `js/sfx-bank-*.js` files loaded
   before `SFX.init()`.
 - **GPT-5.6 Sol — Selenographic Telemetry (user request, 2026-09-29).** This
-  selectable bank treats sound as a lunar command system: dry relay codes,
-  sparse propulsion telemetry, encoded weapon releases and structure-borne
-  impacts, with short room tails and silence between events. Frequent UI cues
-  stay brief and restrained; battle calculations serialize their information;
-  squad size raises pulse density within a fixed ceiling rather than adding one
-  full-level report per machine. Research behind the implementation: frequent
-  cues need lower intensity and shorter duration, category identity should use
-  rhythm/timbre/contour as well as pitch, masking is reduced by separating
-  analytic ticks from impacts, stereo location must remain redundant, and the
-  PC Engine's six channels and programmable 32-sample waveforms are used only as
-  creative constraints—not copied audio. The bank is entirely original runtime
-  synthesis in `js/sfx-bank-sol.js` and identifies its creator in the dropdown.
-- **Grok 4.7 — Field calls (user request, 2026-09-29).** `js/sfx-bank-grok.js`.
-  Drums count and bugles announce, so the set sits beside the square-wave march
-  and apart from the wah, the sonar pings and the relay codes. A bugle note is
-  five sine harmonics of one fundamental, third harmonic loudest, upper partials
-  dying first. End Turn is a descending recall (5th, 4th, 3rd, 2nd harmonic)
-  and a bass drum; defeat is taps; victory is a rising call. Machine ticks are
-  20 ms drum taps a semitone apart, short enough for the 30 ms count; a
-  supporter is a flam; a controlled ring hex is a rimshot and an open one a
-  muffled tap; a closed ring rolls into a stopped horn. Volleys still grow with
-  squad strength. Movement is two marching steps, a chain tick per hex, a
-  road-wheel pulse, or a turbine whose pitch rises and then falls.
+  selectable bank treats sound as a lunar command system: relay codes, layered
+  propulsion telemetry, encoded weapon releases and structure-borne impacts.
+  The user's same-day revision kept the "beeps & boops" but asked for meatier
+  sound because the generation and playback hardware was sophisticated by the
+  TG-16's release. Machinery and combat therefore combine sub fundamentals,
+  asymmetric harmonic bodies, detuned upper layers, filtered noise, inharmonic
+  metal resonance and a wider short room; cannon weight, explosions and vehicle
+  motion no longer inherit the restrained UI-pip scale. This follows the
+  HuC6280's documented capabilities—six programmable 32-sample wavetable
+  channels, noise, channel modulation, independent stereo levels and direct-D/A
+  playback—without copying its games' waveforms or audio. Frequent UI cues stay
+  brief; battle calculations serialize their information; squad size raises
+  pulse density within a fixed ceiling rather than adding one full-level report
+  per machine. The bank is entirely original runtime synthesis in
+  `js/sfx-bank-sol.js` and identifies its creator in the dropdown.
+- **Grok 4.7 — Field calls (user request, 2026-09-29; thickened the same day).**
+  `js/sfx-bank-grok.js`. Drums count and bugles announce. The user liked the
+  beeps and asked for more weight: the PC Engine's HuC6280 was a wavetable
+  generator, six channels of 32-step 5-bit waveforms, separate left and right
+  volume, noise on two channels, and an LFO. Each bugle note is that kind of
+  waveform, two channels a few cents apart and spread left and right, with an
+  octave underneath and a short noise chiff so the beep is still the attack.
+  Counting taps keep a short pitched beep and add a low body and a noise thump,
+  short enough for the 30 ms machine count. End Turn is a descending recall and
+  a bass drum; defeat is taps; victory is a rising call. A supporter is a flam;
+  a held ring hex is a bright tap and an open one is muffled; a closed ring
+  rolls into a horn that falls. Volleys grow with squad strength. Movement is
+  two steps a hex, a chain over a low motor, a road-wheel pulse, or a turbine
+  whose pitch rises and then falls.
 - **Claude Fable 5.1 — Helmet radio (user request, 2026-09-29).**
   `js/sfx-bank-fable.js`. The war is heard from inside a sealed lunar vehicle,
   because vacuum carries nothing: the low end comes through the ground on a
