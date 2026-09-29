@@ -130,6 +130,8 @@ pub struct Ctx {
     /// Walking-distance fields by unit type, then goal list.
     routes: FastMap<usize, FastMap<Vec<(i32, i32)>, Rc<Vec<f64>>>>,
     route_count: usize,
+    /// Fields to a single cell, by type * cells + cell.
+    single_routes: Vec<Option<Rc<Vec<f64>>>>,
     deliveries: FastMap<(usize, usize, Vec<(i32, i32)>), Rc<Vec<f64>>>,
     stops: FastMap<Vec<i32>, Rc<Vec<usize>>>,
     stop_key: Vec<i32>,
@@ -293,20 +295,49 @@ thread_local! {
     static ROUTE_SCRATCH: std::cell::RefCell<(Vec<u32>, Vec<Vec<u32>>)> = const { std::cell::RefCell::new((Vec::new(), Vec::new())) };
 }
 
-/// Reverse multi-source walking distances to the goals over chassis terrain.
-/// JavaScript runs a float cost queue; every step costs a whole number, so the
-/// distances are whole numbers, and shortest distances do not depend on the
-/// order equal costs leave the queue. A bucket queue on integers gives the
-/// same values.
+/// Reverse multi-source walking distances to the goals over chassis terrain,
+/// cached per type and goal list. A single on-board goal (a building) has a
+/// dense slot per type and cell instead of a keyed entry.
 fn distances(g: &Game, t_index: usize, goals: &[(i32, i32)], ctx: &mut Ctx) -> Rc<Vec<f64>> {
+    if let [(c, r)] = *goals {
+        if g.in_bounds(c, r) {
+            let size = g.cells.len();
+            if ctx.single_routes.is_empty() {
+                ctx.single_routes = vec![None; g.d.types.len() * size];
+            }
+            let slot = t_index * size + g.cell(c, r);
+            if let Some(f) = &ctx.single_routes[slot] {
+                return f.clone();
+            }
+            let field = Rc::new(walk_distances(g, t_index, goals));
+            ctx.single_routes[slot] = Some(field.clone());
+            return field;
+        }
+    }
     if let Some(f) = ctx.routes.get(&t_index).and_then(|m| m.get(goals)) {
         return f.clone();
     }
+    let result = walk_distances(g, t_index, goals);
+    if ctx.route_count > 4096 {
+        ctx.routes.clear();
+        ctx.route_count = 0;
+    }
+    let field = Rc::new(result);
+    ctx.routes.entry(t_index).or_default().insert(goals.to_vec(), field.clone());
+    ctx.route_count += 1;
+    field
+}
+
+/// The distances themselves. JavaScript runs a float cost queue; every step
+/// costs a whole number, so the distances are whole numbers, and shortest
+/// distances do not depend on the order equal costs leave the queue. A bucket
+/// queue on integers gives the same values.
+fn walk_distances(g: &Game, t_index: usize, goals: &[(i32, i32)]) -> Vec<f64> {
     let t = &g.d.types[t_index];
     let costs = &g.tables.step[t_index];
     let air = is_air_type(t);
     let drain = t.mv.max(1) as u32;
-    let result = ROUTE_SCRATCH.with(|scratch| {
+    ROUTE_SCRATCH.with(|scratch| {
         let (dist, buckets) = &mut *scratch.borrow_mut();
         dist.clear();
         dist.resize(costs.len(), u32::MAX);
@@ -347,15 +378,7 @@ fn distances(g: &Game, t_index: usize, goals: &[(i32, i32)], ctx: &mut Ctx) -> R
             cost += 1;
         }
         dist.iter().map(|&d| if d == u32::MAX { f64::INFINITY } else { f64::from(d) }).collect::<Vec<f64>>()
-    });
-    if ctx.route_count > 4096 {
-        ctx.routes.clear();
-        ctx.route_count = 0;
-    }
-    let field = Rc::new(result);
-    ctx.routes.entry(t_index).or_default().insert(goals.to_vec(), field.clone());
-    ctx.route_count += 1;
-    field
+    })
 }
 
 pub fn objectives(g: &Game, u: usize, ctx: &mut Ctx) -> Vec<Target> {
