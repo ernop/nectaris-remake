@@ -282,13 +282,17 @@ Facts we need across sessions:
   continuous ground, and only fire from range splits the field and tilts the
   formations (aircraft tilt too). Headings are the unit mark and name, with the
   remaining machines on the icon's corner as on the map; no role label or count
-  box. The numbers panel is two face-off rows (Union ATK → Xenon DEF, Union DEF
-  ← Xenon ATK) whose big totals count up from one-line equations; defense is the
-  per-machine 0–100 value, never a percentage or times machines. Engine counter
-  eligibility decides each row's arrow. A minimap per side shows supporters'
-  shares, terrain and the surround ring; each side's loss chart marks the rolled
-  result and luck. No "Machines lost", "no counterattack", per-machine or squad
-  text; the interface says unit, never squad. Ready / Fighting / Result stages, a
+  box. The popup is sized to its contents over the dimmed board, never
+  stretched to fill it. The numbers panel gives each side, laid out the same,
+  its attack row over its defense row ("equation = total LABEL roll"), big
+  totals counting up; every value is a unit total, and only the first term
+  shows the per-machine value ("6×40 +30 Plains = 270 DEF"). Between the two
+  nine-column loss charts, a crop of the real board (`RENDER.paintScene` from
+  `BATTLE_REPORT.battleArea`) lights where support, terrain and the surround
+  ring come from as they are counted. No luck words, "avg" line, "Machines
+  lost", "no counterattack", per-machine or squad text; the interface says
+  unit, never squad. An equation is never cut: the panel's type shrinks to fit
+  a narrow board. Ready / Fighting / Result stages, a
   brief approach, and a pausable clock cover live play, watched AI and replay;
   controls read Stop at result, Skip, Pause at the lower right. Replay defaults:
   pause before battles on, skip scenes off; click a paused scene to resume.

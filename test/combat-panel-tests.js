@@ -15,15 +15,19 @@ module.exports = function (ok) {
       shown++;
       var pv = COMBAT.preview(game, a, d), m = PANEL.build(a, d, pv);
       var end = PANEL.state(m, Infinity), rows = m.sides.map(function (s, i) { return end.sides[i].rows.final; });
-      ok(rows[0].atk === pv.attacker.ap * a.strength && rows[0].def === pv.attacker.da &&
-        rows[1].def === pv.defender.da && rows[1].atk === (pv.counter ? pv.defender.ap * d.strength : null) &&
+      ok(rows[0].atk === pv.attacker.ap * a.strength && rows[0].def === pv.attacker.da * a.strength &&
+        rows[1].def === pv.defender.da * d.strength && rows[1].atk === (pv.counter ? pv.defender.ap * d.strength : null) &&
         end.supportersShown === m.supporters.length,
-        attackerType + " vs " + defenderType + ": the final row is the battle's attack total and defense");
+        attackerType + " vs " + defenderType + ": the final row is the battle's attack and defense, each times the unit's machines");
       var boost = function (unit) { return COMBAT.EXP_DAMAGE[unit.exp]; };
       var bonus = end.sides.map(function (side) { return side.rows.experience; });
-      ok(bonus[0].atk === Math.floor(pv.attacker.ap * boost(a) / 100) * a.strength && bonus[0].def === pv.attacker.da &&
-        bonus[1].def === pv.defender.da && bonus[1].atk === (pv.counter ? Math.floor(pv.defender.ap * boost(d) / 100) * d.strength : null),
+      ok(bonus[0].atk === Math.floor(pv.attacker.ap * boost(a) / 100) * a.strength && bonus[0].def === pv.attacker.da * a.strength &&
+        bonus[1].def === pv.defender.da * d.strength && bonus[1].atk === (pv.counter ? Math.floor(pv.defender.ap * boost(d) / 100) * d.strength : null),
         attackerType + " vs " + defenderType + ": the experience row is the final attack times the damage multiplier, defense unchanged");
+      var shares = {attack: 0, defense: 0};
+      m.supporters.forEach(function (sup) { shares[sup.side] += +sup.label.split(" ")[0]; });
+      ok(shares.attack === pv.attacker.modifiers.supportAttack * a.strength && shares.defense === pv.defender.modifiers.supportDefense * d.strength,
+        attackerType + " vs " + defenderType + ": supporters' shares are unit totals that add up to the support in the totals");
       ok(PANEL.previewHtml(m, null).includes("Experience ×1.20") && PANEL.previewHtml(m, null).includes("Experience ×1.60"),
         attackerType + " vs " + defenderType + ": each side's row names its own multiplier");
       var last = -1;

@@ -15,7 +15,9 @@ document.getElementById("run").onclick=async function(){
    {t:"HADRIAN",o:1,x:1,y:1,exp:3},{t:"BISON",o:0,x:3,y:1,exp:2},{t:"CHARLIE",o:0,x:5,y:2}]},{seed:7});
   game.currentPlayer=1;
   var initial=game.snapshot(),commands=[["attack",[{unit:game.units[0].id},{unit:game.units[1].id}]]];
-  var data={initial:initial,commands:commands,players:["classic","classic"],version:w.AI_TOURNAMENT.version,index:0,map:game.map.name,seed:7,reason:"browser fixture"};
+  var after=w.ENGINE.Game.restore(initial);commands.forEach(function(entry){w.AI_TOURNAMENT.command(after,entry);});
+  var data={initial:initial,commands:commands,checkpoints:[],turns:[{at:0,turn:game.turn,side:game.currentPlayer}],final:after.snapshot(),
+    players:["classic","classic"],version:w.AI_TOURNAMENT.version,index:0,map:game.map.name,seed:7,reason:"browser fixture"};
   var transfer=new w.DataTransfer();transfer.items.add(new w.File([JSON.stringify(data)],"battle.json",{type:"application/json"}));
   $("replay-import").files=transfer.files;$("replay-import").dispatchEvent(new w.Event("change"));
   await until(function(){return !$("lab-viewer").hidden;});await wait(100);
@@ -24,14 +26,14 @@ document.getElementById("run").onclick=async function(){
   check($("replay-battle-stage").dataset.paused==="true"&&$("replay-battle-hint").textContent.includes("Paused before battle")&&$("replay-position").textContent.includes("Selecting 1"),"automatic pause stops before the attack commits");
   var before=$("replay-battle-content").innerHTML;await wait(900);
   check($("replay-battle-content").innerHTML===before,"paused preview stays unchanged beyond its normal duration");
-  check(d.querySelector(".battle-screen").dataset.battlePhase==="ready"&&!!d.querySelector(".bn-arrow-rtl[data-player='1']")&&!d.querySelector(".bn-arrow-ltr")&&
-    d.querySelector(".battle-ground-road").getAttribute("aria-label")==="Union on Road"&&d.querySelector(".battle-ground-hill").getAttribute("aria-label")==="Xenon on Hills","green stays right, fires left, and each side shows its actual terrain");
+  check(d.querySelector(".battle-screen").dataset.battlePhase==="ready"&&!d.querySelector(".bn-arrow")&&!!d.querySelector(".bn-map")&&
+    d.querySelector(".battle-ground-road").getAttribute("aria-label")==="Union on Road"&&d.querySelector(".battle-ground-hill").getAttribute("aria-label")==="Xenon on Hills","green stays right, the hex map is shared, and each side shows its actual terrain");
   $("replay-battle-content").click();await until(function(){return d.querySelector(".battle-screen").dataset.battlePhase==="fighting";});
   check($("replay-battle-stage").dataset.paused==="false","clicking the battle resumes into the fighting stage");
   $("replay-battle-pause").click();before=$("replay-battle-content").innerHTML;await wait(1900);
   check($("replay-battle-content").innerHTML===before&&$("replay-battle-pause").textContent==="Resume","battle Pause freezes fighting even on the final replay command");
   $("replay-battle-content").click();await until(function(){return d.querySelector(".battle-screen").dataset.battlePhase==="result";});
-  check(d.querySelector(".battle-outcome").textContent.includes("destroyed"),"the result stage shows the completed battle summary");
+  check(d.querySelector(".battle-screen").dataset.battlePhase==="result"&&d.querySelector(".battle-outcome").textContent==="","the result stage does not print the destroyed and lost line");
   $("replay-battle-toggle").click();await wait(450);
   check($("replay-battle-stage").hidden,"earned-star updates respect Show map");
   $("replay-battle-toggle").click();await until(function(){return $("replay-battle-pause").disabled;});

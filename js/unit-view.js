@@ -74,9 +74,15 @@ var UNIT_VIEW = (function () {
   function html(unit, state) {
     return "<span class='unit-label'>" + markHtml(unit, {state: state}) + "<span>" + esc(name(unit)) + "</span></span>";
   }
+  // Draws every canvas the HTML describes: unit icons, and the battle screen's
+  // hex map (a crop of the board, see RENDER.paintScene).
   function paint(container) {
     if (!container.querySelectorAll) return;
     var types = typeof module !== "undefined" ? require("./data-units.js").UNIT_TYPES : UNIT_TYPES;
+    container.querySelectorAll("canvas[data-scene]").forEach(function (canvas) {
+      renderer().paintScene(canvas, JSON.parse(canvas.getAttribute("data-scene")),
+        canvas.getAttribute("data-crop").split(" ").map(Number));
+    });
     container.querySelectorAll("canvas[data-unit-type]").forEach(function (canvas) {
       var id = canvas.getAttribute("data-unit-type"), type = types[id];
       if (!type) return;

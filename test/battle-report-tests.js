@@ -28,28 +28,70 @@ module.exports = function (ok) {
   function has(text) { return screenText.includes(text); }
   var attackTotal = Math.floor(pvNow.attacker.ap * COMBAT.EXP_DAMAGE[aExp] / 100) * aBefore;
   ok(has("battle-formation-left") && has("battle-formation-right") && has("data-exp='" + attacker.exp + "'") &&
-    has("<b>" + attackTotal + "</b><i>ATK</i>") && has("<i>DEF</i><b>" + pvNow.defender.da + "</b>") && has("<b>×1.20</b><small>exp</small>"),
-    "the face-off ends on the battle's attack total, experience included, against the target's defense per machine");
+    has(">" + attackTotal + "</b><i class='bn-unit'>ATK</i>") && has(">" + pvNow.defender.da * dBefore + "</b><i class='bn-unit'>DEF</i>") &&
+    has("<b>×1.20</b><small>exp</small>"),
+    "the face-off ends on unit totals: the attack with experience, and the target's defense times its machines");
+  var sections = screenText.split("class='bn-stats'").slice(1).map(function (html) { return html.split("</div>")[0]; });
+  var order = function (html) { return (html.match(/class='bn-(eq|num|unit|roll)['\s]/g) || []).map(function (m) { return m.slice(10, -1); }).join(" "); };
+  ok(sections.length === 2 && order(sections[0]) === order(sections[1]) && order(sections[0]) === "eq num unit roll eq num unit roll" &&
+    sections.every(function (html) { return html.indexOf(">ATK<") < html.indexOf(">DEF<"); }),
+    "both sides are laid out the same: equation, total, label and roll, attack on the first row and defense on the second");
+  var attackerSide = sections[attacker.player], defenderSide = sections[defender.player];
+  ok(attackerSide.includes("<b>" + aBefore + "×" + attacker.type.def + "</b>") &&
+    attackerSide.includes("<b>+" + (pvNow.attacker.modifiers.terrain * aBefore) + "</b><small>Plains</small>") &&
+    defenderSide.includes("<b>" + dBefore + "×" + defender.type.def + "</b>"),
+    "defense equations start from machines × defense and add terrain for the whole unit");
   ok(has("roll ×" + parts.assessed.attack.coefficientPercent / 100 + "</em>") && has("roll ×" + parts.assessed.counter.coefficientPercent / 100 + "</em>") &&
-    count(screenText, "cp-actual") === 2,
-    "once rolled, each arrow names its roll and each side's loss chart marks the losses it took");
+    count(screenText, "cp-actual") === 2 && !screenText.includes("bn-arrow") && !screenText.includes("unlucky") && !screenText.includes("as expected"),
+    "once rolled, each attack names its roll and each side's loss chart marks the losses it took, with no luck verdict");
   var shownText = screenText.slice(screenText.indexOf("battle-numbers")).replace(/<[^>]+>/g, " ");
   ok(!has("battle-count") && !has("· attacking") && !/Union|Xenon|Machines lost|Per machine|Squad|no counterattack/.test(shownText) &&
-    parts.outcome === REPORT.faction(attacker.player) + " attack · " + result.dmgToDefender + " destroyed · " + result.dmgToAttacker + " lost",
-    "no role label, machine-count box, team name, per-machine or squad line on the screen; the status line lives in the control bar");
+    parts.outcome === "",
+    "no role label, machine-count box, team name, per-machine or squad line on the screen, and no destroyed/lost line under it");
   var counting = REPORT.screenHtml(attacker, defender, pvNow, aBefore, dBefore, aBefore, dBefore, aExp, dExp, undefined, undefined,
     "ready", {count: 0, area: REPORT.battleArea(game, attacker, defender)});
   ok(counting.includes("bn-term-base") && !counting.includes("bn-term-terrain") && !counting.includes("bn-term-experience") &&
     count(counting, "bn-chart bn-hidden") === 2, "at the start of the count only the base is shown and the loss charts are held back");
   var readyScreen = REPORT.previewHtml(attacker, defender, pvNow, game).screen;
-  ok(count(readyScreen, "avg <b>") === 2 && !readyScreen.includes("roll ×") && !readyScreen.includes("cp-actual"),
-    "before the roll each loss chart shows its chances and average, and no roll or result");
+  ok(count(readyScreen, "class='bn-mean'") === 2 && !readyScreen.includes("avg") && !readyScreen.includes("roll ×") && !readyScreen.includes("cp-actual"),
+    "before the roll each loss chart shows its chances with the average marked on the axis and no avg line, roll or result");
   var ring = new ENGINE.Game({name: "Effects", grid: Array(7).fill("..........."), units: [
     {t: "BISON", o: 0, x: 5, y: 2}, {t: "BISON", o: 1, x: 5, y: 3}, {t: "BISON", o: 0, x: 5, y: 4},
     {t: "BISON", o: 1, x: 5, y: 1}]}, {seed: 7});
   var ringPreview = COMBAT.preview(ring, ring.units[0], ring.units[1]);
   ok(ringPreview.surrounded && ringPreview.defender.da === Math.floor((40 + 20 + 5) / 2),
     "a surrounded target's defense is (40 + 20 support + 5 terrain) halved");
+  // The hex map is the board itself around the battle, lit step by step.
+  var PANEL = require("../js/combat-panel.js");
+  var ringArea = REPORT.battleArea(ring, Object.assign({}, ring.units[0], {strength: 5}), ring.units[1]);
+  ok(ringArea.c0 === 0 && ringArea.r0 === 0 && ringArea.rows.length === 7 && ringArea.rows.every(function (r) { return r === "..........."; }) &&
+    ringArea.units.length === 4 && JSON.stringify(ringArea.units[2]) === JSON.stringify(["BISON", 0, 5, 5, 2]),
+    "the battle area records the terrain, every unit near the fight and the combatants as passed, at pre-battle strength");
+  var ringModel = PANEL.build(ring.units[0], ring.units[1], ringPreview), ringTime = ringModel.time;
+  var mapAt = function (elapsed) { var html = PANEL.numbersHtml(ringModel, elapsed, undefined, ringArea); return html.slice(html.indexOf("class='bn-map'")); };
+  var needs = [0, ringTime.baseEnd, ringTime.terrainEnd, Infinity].map(function (elapsed) {
+    return PANEL.numbersHtml(ringModel, elapsed, undefined, ringArea).match(/--need:(\d+)'/)[1];
+  });
+  ok(needs.every(function (need) { return need === needs[0]; }) && +needs[0] > 30,
+    "the panel states one width for the whole count, from the finished equations, so its type fits a narrow board from the start");
+  var firstSupporter = mapAt(ringTime.baseEnd), firstRing = mapAt(ringTime.terrainEnd), settled = mapAt(Infinity);
+  ok(/<canvas class='bn-terrain' data-scene='[^']+' data-crop='[-\d. ]+'/.test(settled) && settled.includes("&quot;rows&quot;"),
+    "the hex map is a canvas painted from the board record, with the crop it shows");
+  ok(count(firstSupporter, "bn-link") === 1 && count(firstSupporter, "bn-tag bn-p0 bn-now") === 1 && firstSupporter.includes("<b>+200</b><small>ATK</small>"),
+    "the supporter being added is lit, tagged with its unit total and joined to the unit it helps");
+  ok(count(firstRing, "bn-zoc'") >= 1 && count(firstRing, "bn-zoc-source") === count(firstRing, "bn-zoc'") && count(firstRing, "bn-ring-lit") === 1 &&
+    count(firstRing, "<b>+40</b><small>DEF</small>") === 2,
+    "the ring hex being checked is joined to the units whose zone covers it, after the terrain tags of 8 × 5");
+  ok(count(settled, "bn-ring-lit") === 6 && !settled.includes("bn-now") && !settled.includes("bn-zoc") && !settled.includes("bn-link") &&
+    /class='bn-tag bn-verdict bn-tag-at'[^>]*><b>½<\/b><\/span>/.test(settled) && settled.includes("<b>+160</b><small>DEF</small>"),
+    "once counted, all six ring hexes stay lit in the attacker's colour, the target reads ½, and shares are unit totals");
+  var far = new ENGINE.Game({name: "Range map", grid: Array(5).fill("........"), units: [
+    {t: "HADRIAN", o: 0, x: 1, y: 2}, {t: "BISON", o: 1, x: 4, y: 2}]}, {seed: 3});
+  var farPv = COMBAT.preview(far, far.units[0], far.units[1]), farModel = PANEL.build(far.units[0], far.units[1], farPv);
+  var farMap = PANEL.numbersHtml(farModel, Infinity, undefined, REPORT.battleArea(far, far.units[0], far.units[1]));
+  var farCrop = farMap.match(/data-crop='([^']+)'/)[1].split(" ").map(Number);
+  ok(farMap.includes("bn-range") && farMap.includes("3 hexes</span>") && farCrop[2] / farCrop[3] <= 1.35 + 1e-9 && farCrop[2] / farCrop[3] >= 1,
+    "fire from range shows both units and the hexes between, with a dashed line, the distance, and a box within its proportions");
   [0,1].forEach(function (initiator) {
     var fight = new ENGINE.Game({name:"Faction sides",grid:["....",".h-.","...."],units:[
       {t:"BISON",o:0,x:1,y:1,str:6,exp:3},{t:"POLAR",o:1,x:2,y:1,str:7,exp:7}]},{seed:7});
@@ -163,22 +205,23 @@ module.exports = function (ok) {
     "a Lynx firing from two hexes launches rockets from tilted launchers");
   // The numbers panel is premade: every state has the same boxes and rows.
   var early=REPORT.animate(rangedParts.snapshot,0).screen,late=REPORT.animate(rangedParts.snapshot,REPORT.fightingDuration(rangedParts.snapshot)+REPORT.rewardDuration(rangedParts.snapshot)).screen;
-  var boxes=function(html){return ["class='bn-eq ","class='bn-total ","class='bn-arrow ","class='bn-half'","class='bn-map'","class='bn-chart"].map(function(box){return count(html,box);}).join(":");};
-  ok(boxes(early)===boxes(late)&&boxes(late)==="4:4:2:2:2:2",
-    "the numbers panel has the same face-off cells, minimaps and chart boxes before and after the roll");
-  ok(count(late,"cp-actual")===1&&count(early,"cp-actual")===0&&count(late,"cp-bar")>count(late,"cp-actual"),
-    "the rolled loss is marked on exactly one bar of the loss chart, and on none before the roll");
-  var chart=late.slice(late.indexOf("class='bn-chart'")),chance=0;
-  chart.replace(/cp-pct'>(\d+)</g,function(m,v){chance+=+v;});
-  ok(chance>=97&&chance<=103,"a loss chart's percentages add up to 100, allowing for rounding");
+  var boxes=function(html){return ["class='bn-eq'","class='bn-num","class='bn-map'","class='bn-chart"].map(function(box){return count(html,box);}).join(":");};
+  ok(boxes(early)===boxes(late)&&boxes(late)==="4:4:1:2"&&count(late,"cp-bar")===18&&!late.includes("bn-arrow"),
+    "the numbers panel has the same face-off cells, one hex map and two nine-column charts before and after the roll");
+  ok(count(late,"cp-actual")===2&&count(early,"cp-actual")===0&&count(late,"cp-bar")>count(late,"cp-actual"),
+    "each chart marks the rolled loss, including 0 when nothing shot back, and none are marked before the roll");
+  var halves=late.split("class='bn-side'").slice(1);
+  function sumPct(html){var chance=0;html.replace(/cp-pct'>(\d+)</g,function(m,v){chance+=+v;});return chance;}
+  ok(halves.length===2&&[0,1].every(function(i){return sumPct(halves[i])>=97&&sumPct(halves[i])<=103;}),
+    "each loss chart's percentages add up to 100, allowing for rounding");
   [0,1].forEach(function (side) {
     ["HADRIAN","LYNX"].forEach(function (type) {
       var indirect=new ENGINE.Game({name:"One-way",grid:[".....",".....","....."],units:[
         {t:type,o:side,x:1,y:1},{t:"BISON",o:1-side,x:3,y:1}]},{seed:3});
       var a=indirect.units[0],d=indirect.units[1],html=REPORT.previewHtml(a,d,COMBAT.preview(indirect,a,d),indirect).screen;
-      ok(count(html,"bn-arrow-"+(side?"rtl":"ltr"))===1&&count(html,"bn-arrow-none")===1&&count(html,"class='bn-chart bn-chart-none'")===1&&
+      ok(!html.includes("bn-arrow")&&count(html,"class='bn-chart")===2&&count(html,"cp-lost'>0<")>=1&&
         !html.includes("no counterattack")&&count(html,"class='battle-terrain'")===2&&html.includes("battle-field-lofted"),
-        type+" remote fire: one arrow toward its target, no counter chart, split ground and tilted formations for faction "+side);
+        type+" remote fire: no connecting arrow, both loss charts, split ground and tilted formations for faction "+side);
     });
   });
   // The engine still awards a destroyed attacker its points; the screen shows none.

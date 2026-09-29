@@ -698,13 +698,14 @@ module.exports = function (ok) {
     var fx = ui.renderer.combatEffects;
     ok(fx && fx.surrounded && fx.ring.length === 6 && fx.ring.every(function (hex) { return hex.controlled; }) &&
       JSON.stringify(fx.supporters.map(function (u) { return [u.col, u.row, u.side, u.player, u.label]; })) ===
-        JSON.stringify([[5, 4, "attack", 0, "+200 ATK"], [5, 1, "defense", 1, "+20 DEF"]]) &&
+        JSON.stringify([[5, 4, "attack", 0, "+200 ATK"], [5, 1, "defense", 1, "+160 DEF"]]) &&
       fx.shownRing === Infinity && fx.surroundShown,
-      "aiming shows the whole ring and every supporter that changes the numbers, each with its own number, not a Falcon worth 0");
+      "aiming shows the whole ring and every supporter that changes the numbers, each with its unit total, not a Falcon worth 0");
     var hover = nodes["combat-board"].innerHTML;
     ok(hover.includes("target surrounded: attack and defense halved") && hover.includes("Surrounded ½") &&
-      hover.includes("<strong>600</strong>") && hover.includes("<strong>45</strong>") && hover.includes("<strong>32</strong>"),
-      "the hover states why the target is surrounded and ends on the totals the battle uses");
+      hover.includes("<strong>600</strong>") && hover.includes("<strong>360</strong>") && hover.includes("<strong>256</strong>") &&
+      hover.includes("<small>8×40</small>"),
+      "the hover states why the target is surrounded and ends on unit totals: 8 × 45 and 8 × 32 defense");
     ui.hideCombatPreview();
     ok(ui.renderer.combatEffects === null && nodes["combat-board"].classList.contains("hidden"),
       "closing the forecast removes the map overlay and the board");

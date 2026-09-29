@@ -159,17 +159,19 @@
 .war-ledger-side .war-faction-0 { color: #9fd0ff; }
 .war-ledger-side .war-faction-1 { color: #9dffb0; }
 
-/* The battle screen occupies the board's existing viewport without resizing it. */
-/* The popup is three fixed regions in one column: a slim heading, the unit
-   field, which takes everything left over, and the numbers panel, whose height
-   is set in advance from --nf (its type size) so no number, row or chart can
-   resize it. --cell, the machines' size, is what is left of the window's
-   height once the fixed regions are taken out (heading, controls and padding
-   about 170px, the numbers panel 17 x --nf), split over three rows. */
+/* The battle screen sits over the board's viewport without resizing it. The
+   popup is sized to its contents, not to the board (user, 2026-09-29: "no
+   need to fully expand this much"): as wide as its numbers need, at least
+   58 x --nf, and never wider or taller than the board; the board shows
+   through the dimmed margin around it. It is three regions in one column: a
+   slim heading, the unit field and the numbers panel, whose height is set in
+   advance from --nf (its type size) so no number, row or chart can resize
+   it. */
 #battle-stage, #replay-battle-stage { --nf: clamp(11px, min(1.9vh, 1.15vw), 17px);
-  position: absolute; inset: 0; z-index: 12; display: grid; grid-template-rows: minmax(0, 1fr);
-  padding: clamp(6px, 1vw, 14px); background: #080a18; overflow: hidden; }
-.battle-presentation { min-height: 0; display: flex; flex-direction: column; }
+  position: absolute; inset: 0; z-index: 12; display: grid; grid-template: minmax(0, 1fr) / minmax(0, 1fr); place-items: center;
+  container-type: size; padding: clamp(6px, 1vw, 14px); background: #080a18cc; overflow: hidden; }
+.battle-presentation { width: fit-content; min-width: min(100%, calc(58 * var(--nf))); max-width: 100%; max-height: 100%;
+  min-height: 0; display: flex; flex-direction: column; }
 #battle-content, #replay-battle-content { flex: 1 1 auto; min-height: 0; display: flex; }
 .battle-screen { flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; flex-direction: column; color: #fff;
   background: #121d53; border: 3px solid #d5bc43; box-shadow: 0 12px 50px #0008; font-family: monospace; }
@@ -188,11 +190,15 @@
   0% { color: #fff; background: #ff5a00; transform: scale(1.6); }
   100% { color: #ffca92; background: #211d16; transform: scale(1); }
 }
-/* Each faction keeps its own terrain, including when Xenon initiates. */
+/* Each faction keeps its own terrain, including when Xenon initiates. --cell
+   is the machine sprite: twice the 32px frame, smaller only when the board is
+   too short for the popup (100cqh is the stage's height; the heading, the
+   control bar and the borders take about 150px, the numbers panel 22 x --nf).
+   The field is 4.7 sprites tall: three rows of machines and the sky. */
 .battle-field { --pad: 22px; --pad-top: 14px; --pad-bot: 10px; --gap: 8px;
-  --cell: clamp(28px, min((100vh - 17 * var(--nf) - 170px) / 3.6, 9vw), 112px);
-  flex: 1 1 0; min-height: 0; container-type: inline-size; position: relative; display: grid; grid-template-columns: 1fr 1fr;
-  border-block: 2px solid #dabf4d; overflow: hidden; }
+  --cell: clamp(24px, (100cqh - 22 * var(--nf) - 150px) / 4.7, 64px);
+  flex: 0 1 auto; height: calc(var(--cell) * 4.7); min-height: 0; container-type: inline-size; position: relative;
+  display: grid; grid-template-columns: 1fr 1fr; border-block: 2px solid #dabf4d; overflow: hidden; }
 .battle-ground { position: relative; display: grid; align-items: center; min-height: 0;
   padding: var(--pad-top) var(--pad) var(--pad-bot); overflow: hidden; }
 .battle-terrain { position: absolute; width: 100%; height: 100%; inset: 0; }
@@ -269,75 +275,85 @@
   45% { transform: scale(1.7); color: #fff6c4; text-shadow: 0 0 14px #ffd23d, 0 0 26px #ff6a00; }
   100% { transform: scale(1); color: #ffd54f; text-shadow: 0 0 10px #f50; }
 }
-/* The numbers panel: two face-off rows across the full width, then each
-   side's minimap and loss chart under its own formation. Its height is fixed
-   from --nf, so nothing arriving during the count moves anything. Every
-   size inside is in em of --nf. */
-.battle-numbers { flex: none; box-sizing: border-box; height: calc(var(--nf) * 17); overflow: hidden;
-  display: flex; flex-direction: column; gap: .4em; padding: .45em 1% .5em; font-size: var(--nf); border-top: 2px solid #dabf4d; }
-.battle-numbers [data-player="0"] { --side: #4a90e8; --side-light: #9fd0ff; }
-.battle-numbers [data-player="1"] { --side: #3cb44b; --side-light: #9dffb0; }
-/* Row one is Union's attack against Xenon's defense, row two Xenon's attack
-   against Union's defense. Each total has its own column beside the arrows,
-   so the two rows' numbers line up; the equations grow outward from them. */
-.bn-faceoff { flex: none; display: grid; height: 6.6em; gap: .15em .6em; align-items: center;
-  grid-template-columns: minmax(0, 1fr) auto minmax(6em, 15%) auto minmax(0, 1fr); grid-template-rows: 1fr 1fr;
+/* The numbers panel: each side's attack on the first row and defense on the
+   second, then each side's loss chart with the hex map between them. Its
+   height is fixed from --nf, so nothing arriving during the count moves
+   anything. Every size inside is in em of its type size, which is --nf
+   unless the board is narrower than the panel needs: --need, set by
+   combat-panel.js from the finished equations, is that width in em, so the
+   type shrinks until every equation fits whole. */
+.battle-numbers { flex: none; box-sizing: border-box; height: 22em; overflow: hidden;
+  display: flex; flex-direction: column; gap: .4em; padding: .45em .6em .5em; border-top: 2px solid #dabf4d;
+  font-size: min(var(--nf), (100cqw - 8px) / var(--need)); }
+.battle-numbers [data-player="0"], .battle-numbers .bn-p0 { --side: #4a90e8; --side-light: #9fd0ff; }
+.battle-numbers [data-player="1"], .battle-numbers .bn-p1 { --side: #3cb44b; --side-light: #9dffb0; }
+/* Both sides are laid out the same (user, 2026-09-29): an equation, its
+   total, the label, and on the attack row the roll. A side's two totals
+   share a column, so they line up; each side's block is centred in its half,
+   with a rule between the halves. The finished equation sits invisibly under
+   the one being counted (.bn-eq-size) and fixes the width. */
+.bn-faceoff { flex: none; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); height: 6.6em;
   font-variant-numeric: tabular-nums; }
-.bn-eq { display: flex; align-items: baseline; gap: .55em; min-width: 0; overflow: hidden; white-space: nowrap; }
-.bn-eq-left { justify-content: flex-end; }
-.bn-term b, .bn-equals { font-size: 1.3em; font-weight: 800; }
-.bn-term small { margin-left: .25em; font-size: .85em; font-weight: 700; color: var(--side-light); }
+.bn-stats { display: grid; grid-template-columns: repeat(3, auto) minmax(5.4em, auto); grid-template-rows: 1fr 1fr;
+  justify-content: center; align-items: baseline; align-content: center; column-gap: .5em; min-width: 0; padding: 0 .5em; }
+.bn-stats + .bn-stats { border-left: 2px solid #dabf4d; }
+/* When a narrow board squeezes an equation, it loses its first terms, never
+   the "=" beside its total. */
+.bn-eq { position: relative; display: flex; justify-content: flex-end; min-width: 0; overflow: hidden; white-space: nowrap; }
+.bn-eq-size, .bn-eq-now { display: flex; align-items: baseline; gap: .45em; }
+.bn-eq-size { visibility: hidden; }
+.bn-eq-now { position: absolute; top: 0; right: 0; }
+.bn-term b, .bn-equals { font-size: 1.1em; font-weight: 800; }
+.bn-term small { margin-left: .2em; font-size: .75em; font-weight: 700; color: var(--side-light); }
 .bn-live b, .bn-live small { color: #ffe668; }
-.bn-total { display: flex; align-items: baseline; gap: .35em; }
-.bn-total b { min-width: 4ch; font-size: 2.7em; font-weight: 800; line-height: 1; text-align: right; }
-.bn-total i { font-style: normal; font-size: 1.1em; font-weight: 800; letter-spacing: .05em; color: var(--side-light); }
+.bn-num { min-width: 4ch; font-size: 2.7em; font-weight: 800; line-height: 1.1; text-align: right; }
+.bn-unit { font-style: normal; font-size: 1.1em; font-weight: 800; letter-spacing: .05em; color: var(--side-light); }
 /* Totals are white while they count and turn yellow once final. */
-.bn-ready .bn-total b { color: #ffe668; }
-.bn-arrow { position: relative; height: 1.6em; display: flex; align-items: center; justify-content: center; }
-.bn-arrow-ltr::before, .bn-arrow-rtl::before { content: ""; position: absolute; top: 50%; left: 0; right: 0; height: .32em;
-  transform: translateY(-50%); background: var(--side-light); }
-.bn-arrow-ltr::before { right: .9em; }
-.bn-arrow-rtl::before { left: .9em; }
-.bn-arrow-ltr::after, .bn-arrow-rtl::after { content: ""; position: absolute; top: 50%; transform: translateY(-50%);
-  border-block: .6em solid transparent; }
-.bn-arrow-ltr::after { right: 0; border-left: 1em solid var(--side-light); }
-.bn-arrow-rtl::after { left: 0; border-right: 1em solid var(--side-light); }
-.bn-roll { position: relative; z-index: 1; padding: 0 .45em; font-style: normal; font-size: 1.15em; font-weight: 800;
-  color: #fff; background: #121d53; white-space: nowrap; }
-.battle-screen[data-battle-phase="fighting"] :is(.bn-arrow-ltr, .bn-arrow-rtl) { animation: bn-arrow-pulse 250ms ease-in-out infinite alternate; }
-@keyframes bn-arrow-pulse { from { filter: brightness(1); } to { filter: brightness(1.5) drop-shadow(0 0 6px #fff); } }
-.bn-detail { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 0 2%; }
-.bn-half { display: flex; gap: 3%; min-width: 0; min-height: 0; }
-.bn-half[data-player="1"] { flex-direction: row-reverse; }
-/* The minimap keeps its layout's proportions (7.128 x 5.2 hex radii, see
-   combat-panel.js), so percentages put its units and tags on their hexes. */
-.bn-map { position: relative; flex: none; height: 100%; aspect-ratio: 7.128 / 5.2; font-size: .9em; }
-.bn-map svg { position: absolute; inset: 0; width: 100%; height: 100%; }
-.bn-map-unit { position: absolute; width: 17%; transform: translate(-50%, -65%); line-height: 0; }
-.bn-map-unit .unit-label-icon { width: 100%; height: auto; image-rendering: pixelated; }
-.bn-own { fill: none; stroke: #fff; stroke-width: .1; }
-.bn-support { fill: none; stroke: var(--side-light); stroke-width: .11; }
-.bn-ring-lit { fill: var(--side-light); fill-opacity: .3; stroke: var(--side-light); stroke-width: .07; }
-.bn-ring-open { fill: none; stroke: #ffb347; stroke-width: .07; stroke-dasharray: .2 .13; }
-.bn-range { stroke: #fff; stroke-width: .06; stroke-dasharray: .2 .15; }
-.bn-tag { position: absolute; z-index: 1; transform: translate(-50%, 30%); display: inline-flex; align-items: baseline; gap: .1em;
-  padding: 0 .25em; white-space: nowrap; color: #fff; background: #080b12; border: 2px solid var(--side-light); line-height: 1.2; }
-.bn-tag-high { transform: translate(-50%, -150%); border-color: #fff; }
+.bn-ready .bn-num { color: #ffe668; }
+.bn-roll { font-style: normal; font-size: .95em; font-weight: 800; color: #ffe668; white-space: nowrap; }
+.bn-detail { flex: none; height: 13.4em; display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); column-gap: 1.2em; }
+.bn-side { display: flex; justify-content: center; min-width: 0; min-height: 0; }
+/* The hex map: the painted crop of the board fills the box, the highlights
+   (an SVG in the same board coordinates) and the tags lie over it. Strokes
+   keep their screen width at any zoom. */
+.bn-map { position: relative; overflow: hidden; outline: 2px solid #dabf4d; }
+.bn-terrain, .bn-map svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.bn-map svg * { vector-effect: non-scaling-stroke; }
+.bn-own { fill: none; stroke: #fff; stroke-width: 3px; }
+.bn-support { fill: none; stroke: var(--side-light); stroke-width: 3px; }
+.bn-ring-lit { fill: var(--side-light); fill-opacity: .2; stroke: var(--side-light); stroke-width: 1.5px; }
+.bn-ring-open { fill: none; stroke: #ffb347; stroke-width: 2.5px; stroke-dasharray: 6 4; }
+.bn-zoc-source { fill: none; stroke: #ffe668; stroke-width: 2.5px; stroke-dasharray: 5 3; }
+.bn-zoc, .bn-link { stroke: #ffe668; stroke-width: 3px; stroke-linecap: round; }
+.bn-map .bn-now { stroke: #ffe668; stroke-width: 4px; }
+.bn-range { stroke: #fff; stroke-width: 2.5px; stroke-dasharray: 7 5; }
+.bn-tag { position: absolute; z-index: 1; transform: translate(-50%, -70%); display: inline-flex; align-items: baseline; gap: .15em;
+  padding: 0 .25em; white-space: nowrap; font-size: .74em; color: #fff; background: #080b12; border: 2px solid var(--side-light); line-height: 1.2; }
+.bn-tag-at { transform: translate(-50%, -50%); }
+.bn-tag.bn-now { border-color: #ffe668; }
+.bn-tag.bn-now b { color: #ffe668; }
+.bn-verdict { border-color: #fff; }
+.bn-verdict b { font-size: 1.3em; line-height: 1; }
 .bn-tag b { font-weight: 800; }
-.bn-tag small { font-size: .7em; font-weight: 800; }
-.bn-range-label { position: absolute; transform: translate(-50%, -50%); font-weight: 800; white-space: nowrap; }
-.bn-chart { flex: 1 1 0; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+.bn-tag small { font-size: .75em; font-weight: 800; }
+.bn-range-label { position: absolute; transform: translate(-50%, -50%); padding: 0 .3em; font-size: .82em; font-weight: 800; white-space: nowrap;
+  color: #fff; background: #080b12; }
+.bn-chart { min-width: 0; min-height: 0; height: 100%; display: flex; flex-direction: column; }
+.bn-plot { flex: 1 1 auto; min-height: 0; display: flex; align-items: stretch; gap: .4em; }
+.bn-yaxis { flex: none; display: flex; flex-direction: column; justify-content: space-between; align-items: flex-end;
+  padding-top: 1.35em; padding-bottom: calc(1.15em + .55em); font-variant-numeric: tabular-nums; line-height: 1; }
+.bn-yaxis b { font-size: 1.15em; font-weight: 800; }
+.bn-yaxis small { font-size: .7em; font-weight: 800; }
+.bn-series { flex: none; min-height: 0; display: flex; flex-direction: column; }
 .bn-chart .cp-chart { flex: 1 1 auto; min-height: 0; height: auto; }
+.bn-chart .cp-bar { min-width: 0; }
 .bn-chart .cp-pct { font-size: .85em; height: 1.35em; line-height: 1.35; }
 .bn-chart .cp-lost { font-size: .95em; }
 .bn-chart .cp-actual .cp-col i { background: #ffe668; box-shadow: 0 0 0 2px #fff; }
 .bn-chart .cp-actual .cp-lost { color: #000; background: #ffe668; }
 .bn-chart .cp-actual .cp-pct { color: #ffe668; }
-.bn-mean-strip { position: relative; flex: none; height: .6em; }
+.bn-mean-strip { position: relative; flex: none; height: .55em; }
 .bn-mean { position: absolute; top: 0; margin-left: -.4em; border-bottom: .55em solid #fff; border-inline: .4em solid transparent; }
-.bn-foot { flex: none; display: flex; align-items: center; gap: 1em; height: 1.5em; margin: 0; white-space: nowrap; font-weight: 700; }
-.bn-foot b { font-size: 1.25em; font-weight: 800; }
-.bn-luck { font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: #ffe668; }
 .bn-hidden { visibility: hidden; }
 .battle-outcome { flex: 1 1 auto; min-width: 0; text-align: left; font-size: clamp(16px, 2.6vh, 22px); font-weight: 800; color: #ffe668; }
 @media (max-width: 700px) {
@@ -347,8 +363,7 @@
   .battle-field { --pad: 4px; --pad-top: 15px; --pad-bot: 10px; }
 }
 
-.battle-presentation { width: 100%; }
-.battle-presentation .battle-screen { width: 100%; box-sizing: border-box; }
+.battle-presentation .battle-screen { box-sizing: border-box; }
 /* Status on the left; Stop at result, Skip and Pause / Resume at the lower
    right, Pause last (user, 2026-09-29). */
 .battle-controls { flex: none; display: flex; align-items: center; justify-content: flex-end; flex-wrap: wrap; gap: 6px 12px;
@@ -405,8 +420,8 @@
 #replay-battle-stage[data-paused="true"] .battle-bullet,
 #battle-stage[data-paused="true"] :is(.battle-shell, .battle-rocket, .battle-splash, .battle-barrel, .battle-barrel::after),
 #replay-battle-stage[data-paused="true"] :is(.battle-shell, .battle-rocket, .battle-splash, .battle-barrel, .battle-barrel::after),
-#battle-stage[data-paused="true"] :is(.battle-casualty-new, .bn-arrow-ltr, .bn-arrow-rtl, .unit-strength),
-#replay-battle-stage[data-paused="true"] :is(.battle-casualty-new, .bn-arrow-ltr, .bn-arrow-rtl, .unit-strength) { animation-play-state: paused; }
+#battle-stage[data-paused="true"] :is(.battle-casualty-new, .unit-strength),
+#replay-battle-stage[data-paused="true"] :is(.battle-casualty-new, .unit-strength) { animation-play-state: paused; }
 @keyframes unit-star-glow {
   0% { opacity: 0; transform: scale(2.4); filter: brightness(1.8) drop-shadow(0 0 6px #ffe98a); }
   17%, 67% { opacity: 1; transform: scale(1.3); filter: brightness(1.5) drop-shadow(0 0 6px #ffe98a); }

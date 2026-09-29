@@ -1616,9 +1616,10 @@ pass)"; the Where, When, Left panel, Hover and Replay points still hold.
   "Union · attacking · 8 machines" title row above each card. Each card's table
   header names its team ("Union", "Xenon") in the faction colour, over the
   faction-coloured top edge; role and machine count stay in the combatant
-  heading. The one-line status ("Union preparing to attack", "Union attacking",
-  "Union attack · 5 destroyed · 1 lost") shares the control bar under the screen
-  with Pause and the "Space: pause · click: skip" hint; the same bar is used on
+  heading. The one-line status ("Union preparing to attack", "Union attacking")
+  shares the control bar under the screen with Pause and the "Space: pause ·
+  click: skip" hint. The result used to add "Union attack · 5 destroyed · 1 lost";
+  that line was removed the same day (fourth pass, below). The same bar is used on
   the tournament replay page. The hover board keeps its facts line.
 - **Where.** The numbers panel is inside the battle popup, under the two
   formations and above the outcome line. Each side's card sits under its own
@@ -1797,6 +1798,103 @@ that multiplier, floored at each step; the target keeps one machine per whole
 100 of its hit points left, where it has 100 per machine plus 50 when it has
 more than one. Attack, defense, experience and both machine counts shape the
 result; the roll only scales it.
+
+## Battle screen redesign (2026-09-29, fourth pass)
+
+The user reviewed the third pass the same day. This replaces, in the records
+above: the crossed face-off rows and their arrows (third pass item 6), the
+per-side minimaps (item 7), the luck wording on the charts (item 9), the
+result status line "Xenon attack · 2 destroyed · 0 lost", and the rule that
+machine sprites grow to fill the field (second pass, `--cell` up to 112 px).
+
+1. **Same two rows on both sides.** Attack is the first row and defense the
+   second, for Union on the left and Xenon on the right. Nothing is drawn from
+   one side's attack to the other's defense. Once rolled, the shooter's own
+   attack carries its roll ("roll ×1.3"). A side that cannot fire shows ATK "—".
+2. **Loss charts are a fixed scale.** Each chart always has nine columns, how
+   many machines die: 0, then 1 through 8. The columns are a fixed narrow
+   width (the wider gap before column 4 was removed in the fifth pass). Bar
+   height is the chance on a 0%–100% axis (100, 50 and 0 marked), not
+   stretched so the tallest bar fills the chart. The words "lucky",
+   "unlucky" and "as expected" are not shown. A side nothing shoots at is a
+   chart with 100% at 0.
+3. **One hex map, in the center,** between the two charts (painted from the
+   real board since the fifth pass).
+4. **Formation sprites stay at 64 px,** twice the 32 px frame: the native
+   icon, scaled by the stylesheet without smoothing. (This pass first drew
+   them into bitmaps of their shown size; that was undone in the fifth pass,
+   below.)
+5. **No result tally under the screen.** "Preparing to attack" and "attacking"
+   stay in the control bar. The finished battle does not add a destroyed/lost
+   line there.
+
+## Battle screen redesign (2026-09-29, fifth pass)
+
+The user reviewed the fourth pass the same day. This replaces, in the records
+above: the popup filling the board ("Where" in Battle screen numbers, "Three
+fixed regions" in the second pass); defense shown per machine (third pass item
+5, and the hover board's Defense column); the fourth pass's gap before column 4,
+its "avg" line and its flat-colour hex map. Implemented in `js/combat-panel.js`,
+`js/battle-report.js`, `js/render.js` (`paintScene`), `js/unit-view.js` and
+`css/battle-dock.css`, for play, watched AI and the tournament replay.
+
+1. **The popup is sized to its contents** ("screen is too stretched, no need to
+   fully expand this much! shrink while retaining properly laid out"). It is as
+   wide as its numbers need, at least 58 × the panel's type size and never
+   wider than the board, and as tall as the heading, a field 4.7 machine
+   sprites tall and the numbers panel (22 × its type size). It is centred over
+   the board, which shows through a dimmed margin. Machine sprites stay 64 px
+   and shrink only on a board too short for the popup. When the board is
+   narrower than the finished equations need, the panel's type shrinks until
+   they fit whole (`--need`, the panel's width in em, estimated in
+   `combat-panel.js` from the equations): a clipped digit would state a wrong
+   number, so an equation is never cut.
+2. **Each total before its label, in one column per side** ("the ordering of
+   the labels e.g. 'DEF' vs '85' for the defenders seems wrong. I think the
+   numbers should be vertically laid up"). Both sides read "equation = total
+   LABEL roll": "6×50 +162 support ×1.20 exp = 552 ATK roll ×2" over
+   "6×40 +30 Plains = 270 DEF", Xenon the same. Each side's block is centred
+   in its half, with a rule between the halves. The finished equation is laid
+   out invisibly from the first frame, so nothing moves as terms arrive.
+3. **Every value is a unit total** ("we should still show the TOTAL points of
+   support and for everything in general ... never except at the very
+   beginning show the 'per unit' costs"). Only the first term shows the
+   per-machine value ("6×40"); every later term and every total is times the
+   machines: "6×40 +30 Plains = 270 DEF", a defense supporter's share
+   "+120 DEF", terrain "+30 DEF". The engine still works per machine, with
+   defense as the share of each hit it stops (0–100); a defense total is
+   machines × that value. The user asked whether a neighbour with 3 machines
+   supports less: yes. A supporter adds its attack (or defense) × its machines
+   ÷ (2 × the attacking unit's machines) to each machine, so 3 machines give
+   3/8 of what 8 do; its share on the map and in the equation is that amount
+   for the whole unit it helps. The hover board and the map badges use the
+   same totals.
+4. **Loss charts.** Nine evenly spaced columns ("there is a weird hgap within
+   this otherwise well-done straightforward list of amounts") and no "avg"
+   line ("we can remove the entire line saying avg"). The triangle under the
+   axis still marks the average.
+5. **The hex map is the board itself** ("should use the actual terrain and
+   units, and use highlighting of the hexes and things to show which effect
+   each one is causing and from where, as it calculates"). A crop of the board
+   as the map draws it, in the current style and art set, in the board's own
+   orientation (never turned), with every unit on it, painted from a record of
+   the board kept with the battle (`BATTLE_REPORT.battleArea`: terrain,
+   building owners, units, the combatants at pre-battle strength), so a replay
+   shows the board as it was. It frames both units, every hex touching either
+   and every unit whose zone of control covers the ring. As the count runs:
+   each supporter's hex lights with its share, yellow and joined by a line to
+   the unit it helps while it is being added; each combatant's hex (outlined
+   white) gets its terrain bonus; the six hexes around the target are checked
+   clockwise, lit in the attacker's colour or dashed orange when open, and the
+   hex being checked is joined to the units whose zone covers it. The verdict
+   ("½", or "5/6 ZOC") sits on the target's edge square to the attacker. Fire
+   from range shows both units, the hexes between, a dashed line and the
+   distance.
+
+The fourth pass's "black borders around the units" point concerned the hex
+map's unit tokens, which the painted board replaces. Its change to draw
+formation icons into bitmaps of their shown size was undone: it broke the rule
+that interface icons keep their native 32 px frame (`test/unit-art-tests.js`).
 
 ## Grok 4.7 15 tactical gap-filling units study (2026-09-23)
 

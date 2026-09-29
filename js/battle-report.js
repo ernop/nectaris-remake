@@ -6,7 +6,6 @@ var BATTLE_REPORT = (function () {
   var combat = typeof module !== "undefined" ? require("./combat.js") : COMBAT;
   var unitView = typeof module !== "undefined" ? require("./unit-view.js") : UNIT_VIEW;
   var combatPanel = typeof module !== "undefined" ? require("./combat-panel.js") : COMBAT_PANEL;
-  var hex = typeof module !== "undefined" ? require("./hex.js") : HEX;
 
   function esc(value) {
     return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -54,24 +53,34 @@ var BATTLE_REPORT = (function () {
     return {attack: attack, counter: counter, preview: pv};
   }
 
-  // The hexes the battle screen's minimaps draw: both units and, for an
-  // adjacent exchange, every hex touching either one, each with its terrain
-  // (null off the map). Terrain never changes in a battle, so a destroyed
-  // unit's hex is still read correctly afterwards.
+  // The board around a battle, which the battle screen's hex map paints:
+  // terrain as one map character per hex, row by row, building owners, and
+  // every unit on the map within AREA_MARGIN hexes of either combatant. The
+  // combatants are recorded as passed, so callers pass them at their
+  // pre-battle strength; a replayed battle then shows the board as it was.
+  // The margin covers the hexes the map shows plus the neighbours the
+  // renderer reads to join terrain across them.
+  var AREA_MARGIN = 8;
   function battleArea(game, attacker, defender) {
-    var hexes = [], seen = {};
-    function add(col, row) {
-      var key = col + "," + row;
-      if (seen[key]) return;
-      seen[key] = true;
-      hexes.push({col: col, row: row, terrain: game.inBounds(col, row) ? game.terrainAt(col, row).id : null});
+    var c0 = Math.max(0, Math.min(attacker.col, defender.col) - AREA_MARGIN);
+    var c1 = Math.min(game.width - 1, Math.max(attacker.col, defender.col) + AREA_MARGIN);
+    var r0 = Math.max(0, Math.min(attacker.row, defender.row) - AREA_MARGIN);
+    var r1 = Math.min(game.height - 1, Math.max(attacker.row, defender.row) + AREA_MARGIN);
+    var rows = [], owners = {};
+    for (var row = r0; row <= r1; row++) {
+      var line = "";
+      for (var col = c0; col <= c1; col++) {
+        line += game.terrainAt(col, row).ch;
+        var building = game.buildingAt(col, row);
+        if (building) owners[col + "," + row] = building.owner;
+      }
+      rows.push(line);
     }
-    var adjacent = hex.distance(attacker.col, attacker.row, defender.col, defender.row) === 1;
-    [attacker, defender].forEach(function (unit) {
-      add(unit.col, unit.row);
-      if (adjacent) hex.neighbors(unit.col, unit.row).forEach(function (n) { add(n.col, n.row); });
-    });
-    return hexes;
+    var units = game.units.filter(function (u) {
+      return !u.carriedBy && !u.inFactory && u.id !== attacker.id && u.id !== defender.id &&
+        u.col >= c0 && u.col <= c1 && u.row >= r0 && u.row <= r1;
+    }).concat([attacker, defender]).map(function (u) { return [u.typeId, u.player, u.strength, u.col, u.row]; });
+    return {width: game.width, height: game.height, c0: c0, r0: r0, rows: rows, owners: owners, units: units};
   }
 
   // The rank a unit is shown ending the battle on. The engine still awards a
@@ -95,7 +104,8 @@ var BATTLE_REPORT = (function () {
       aAfter: aAfter, dAfter: dAfter,
       aCol: attacker.col, aRow: attacker.row, dCol: defender.col, dRow: defender.row,
       apA: pv.attacker.ap, daA: pv.attacker.da, apD: pv.defender.ap, daD: pv.defender.da,
-      hasCounter: !!pv.counter, ranged: !!pv.ranged, area: battleArea(game, attacker, defender),
+      hasCounter: !!pv.counter, ranged: !!pv.ranged,
+      area: battleArea(game, Object.assign({}, attacker, {strength: attackerBefore}), Object.assign({}, defender, {strength: defenderBefore})),
     };
   }
 
@@ -306,7 +316,7 @@ var BATTLE_REPORT = (function () {
   // `numbers` = {count, report, area}: `count` is how many ms into the
   // calculation the numbers panel is (default: finished); `report` is
   // assess()'s rolled shots, given once the battle has rolled; `area` is
-  // battleArea()'s hexes, which the minimaps draw.
+  // battleArea()'s record of the board, which the hex map paints.
   function screenHtml(attacker, defender, preview, aBefore, dBefore, aNow, dNow, aExp, dExp, aExpAfter, dExpAfter, phase, numbers) {
     phase = phase || "result";
     numbers = numbers || {};
@@ -349,10 +359,12 @@ var BATTLE_REPORT = (function () {
 
   // The battle's one-line status. It sits in the control bar under the screen
   // rather than in the screen, to leave the screen's height to the numbers.
+  // The finished battle used to add "N destroyed · N lost" here. Callers still
+  // pass the before and after strengths; the result line no longer uses them.
   function outcomeText(attacker, aBefore, dBefore, aNow, dNow, phase) {
     if (phase === "ready") return faction(attacker.player) + " preparing to attack";
     if (phase === "fighting" || phase === "impact") return faction(attacker.player) + " attacking";
-    return faction(attacker.player) + " attack · " + (dBefore - dNow) + " destroyed · " + (aBefore - aNow) + " lost";
+    return "";
   }
 
   function earnedExperience(before, after, elapsed) {

@@ -2,19 +2,21 @@
  *   Hover (over the map): every step at once (base, support, terrain, surround,
  *          final, experience) and each side's projected losses, in the colour
  *          of its faction.
- *   Battle screen (inside the popup): two face-off rows, Union's attack
- *          against Xenon's defense and Xenon's attack against Union's, each
- *          total counted up in the true order of the calculation from a short
- *          equation of its parts. Under each side, a minimap of the hexes
- *          that fed its numbers and the chart of its own possible losses. The
- *          popup's pause and skip controls therefore work on the count.
+ *   Battle screen (inside the popup): each side's attack on the first row and
+ *          its defense on the second, laid out the same for both sides. Each
+ *          total is counted up in the true order of the calculation from a
+ *          short equation of its parts. Under them, a painted crop of the
+ *          board that lights where each part comes from as it is counted, and
+ *          each side's chart of its own possible losses. The popup's pause
+ *          and skip controls therefore work on the count.
  *
- * Attack is shown as a unit total: machines x per-machine attack, the sum the
- * original displays. Defense stays per machine, because the engine caps it at
- * 100 and uses it as the share of each hit it stops, and the number of machines
- * never multiplies it (combat.js). Every total is the engine's own per-machine
- * number times a machine count, and the final row equals the values the battle
- * uses.
+ * Every number is a unit total (user, 2026-09-29: never show per-unit values
+ * "except at the very beginning"). The per-machine value appears once, in the
+ * first term ("6×60"); every later term and every total is times the
+ * machines. The engine itself works per machine: attack, and defense as the
+ * share of each hit it stops, capped at 100 (combat.js). A defense total is
+ * therefore machines × that share, and the final rows are the battle's
+ * per-machine values times the machines.
  *
  * Experience is the last row, after the 100 cap, because the engine applies it
  * to the damage a machine deals, after defense: it shows that multiplier and
@@ -23,15 +25,15 @@
  * so this attack figure can differ from the battle's by rounding.
  *
  * Support adds floor(sum of supporter value x strength / (2 x attacker
- * strength)) per machine, for attack and defense alike. Each supporter's own
- * share is the change in that floor, so the shares always add up to the
- * engine's support number. */
+ * strength)) to each machine, for attack and defense alike. Each supporter's
+ * share is the change in that floor times the machines of the unit it
+ * supports, so the shares add up to the support in the totals. */
 "use strict";
 var COMBAT_PANEL = (function () {
   var unitView = typeof module !== "undefined" ? require("./unit-view.js") : UNIT_VIEW;
   var combat = typeof module !== "undefined" ? require("./combat.js") : COMBAT;
   var hex = typeof module !== "undefined" ? require("./hex.js") : HEX;
-  var terrains = typeof module !== "undefined" ? require("./data-terrain.js").TERRAIN : TERRAIN;
+  var render = typeof module !== "undefined" ? require("./render.js") : RENDER;
 
   var TICK_MS = 30, SUPPORT_MS = 170, TERRAIN_MS = 260, RING_MS = 90, FINAL_MS = 150, EXPERIENCE_MS = 220, HOLD_MS = 500;
   var ROW_LABEL = {base: "Base", support: "+ Support", terrain: "+ Terrain", surround: "Surrounded ½", final: "Final", experience: "Experience"};
@@ -55,6 +57,7 @@ var COMBAT_PANEL = (function () {
     var attackerStrength = attacker.strength;
     var supporters = [], cumulative = {attack: 0, defense: 0}, applied = {attack: 0, defense: 0};
     function add(list, side) {
+      var machines = side === "attack" ? attacker.strength : defender.strength;
       list.filter(function (u) { return u.value > 0; }).forEach(function (u) {
         cumulative[side] += u.value * u.strength;
         var perMachine = Math.floor(cumulative[side] / (2 * attackerStrength));
@@ -62,7 +65,7 @@ var COMBAT_PANEL = (function () {
         applied[side] = perMachine;
         supporters.push({col: u.col, row: u.row, side: side, player: u.player, gain: gain,
           typeId: u.typeId, name: u.name, strength: u.strength,
-          label: "+" + (side === "attack" ? gain * attackerStrength + " ATK" : gain + " DEF")});
+          label: "+" + gain * machines + (side === "attack" ? " ATK" : " DEF")});
       });
     }
     add(pv.tactical.attackSupporters, "attack");
@@ -98,32 +101,37 @@ var COMBAT_PANEL = (function () {
 
   /* What is on screen `elapsed` ms into the count; Infinity is the finished
    * calculation. A row not reached yet is absent, and the row being counted
-   * carries live: true. Attack values are squad totals, defense per machine. */
+   * carries live: true. Every value is a unit total, and the base counts the
+   * machines in one at a time (`lit`). supportLive, terrainLive and ringLive
+   * name the step being counted, for the hex map's highlights. */
   function state(m, elapsed) {
     var t = m.time, gains = {attack: 0, defense: 0};
-    var out = {sides: [], supportersShown: 0, ringShown: 0, surroundShown: elapsed >= t.ringEnd, done: elapsed >= t.finalAt};
+    var out = {sides: [], supportersShown: 0, ringShown: 0, surroundShown: elapsed >= t.ringEnd, done: elapsed >= t.finalAt,
+      supportLive: elapsed >= t.baseEnd && elapsed < t.supportEnd,
+      terrainLive: elapsed >= t.supportEnd && elapsed < t.terrainEnd,
+      ringLive: elapsed >= t.terrainEnd && elapsed < t.ringEnd};
     m.supporters.forEach(function (sup, i) {
       if (elapsed >= t.baseEnd + i * SUPPORT_MS) { out.supportersShown = i + 1; gains[sup.side] += sup.gain; }
     });
     if (elapsed >= t.terrainEnd) out.ringShown = Math.min(m.ringCount, Math.floor((elapsed - t.terrainEnd) / RING_MS) + 1);
     var reachedAt = {base: 0, support: t.baseEnd, terrain: t.supportEnd, surround: t.ringEnd, final: t.finalAt, experience: t.finalAt};
     m.sides.forEach(function (side, index) {
-      var attacking = index === 0, rows = {}, lit = side.machines;
+      var attacking = index === 0, rows = {}, n = side.machines, lit = n;
       side.keys.forEach(function (key) {
         if (elapsed < reachedAt[key]) return;
-        var s = side[key], row = {atk: side.canFire ? s.ap * side.machines : null, def: s.da, live: false};
+        var s = side[key], row = {atk: side.canFire ? s.ap * n : null, def: s.da * n, live: false};
         if (key === "base" && elapsed < t.baseEnd) {
-          lit = Math.min(side.machines, Math.floor(elapsed / TICK_MS) + 1);
+          lit = Math.min(n, Math.floor(elapsed / TICK_MS) + 1);
           row.atk = side.canFire ? side.base.ap * lit : null;
-          row.def = Math.round(s.da * elapsed / t.baseEnd);
+          row.def = side.base.da * lit;
           row.live = true;
         } else if (key === "support" && elapsed < t.supportEnd) {
-          if (side.canFire) row.atk = (side.base.ap + (attacking ? gains.attack : 0)) * side.machines;
-          row.def = side.base.da + (attacking ? 0 : gains.defense);
+          if (side.canFire) row.atk = (side.base.ap + (attacking ? gains.attack : 0)) * n;
+          row.def = (side.base.da + (attacking ? 0 : gains.defense)) * n;
           row.live = true;
         } else if (key === "terrain" && elapsed < t.terrainEnd) {
           var from = side.support.da;
-          row.def = from + Math.floor((s.da - from) * (elapsed - t.supportEnd) / TERRAIN_MS);
+          row.def = (from + Math.floor((s.da - from) * (elapsed - t.supportEnd) / TERRAIN_MS)) * n;
           row.live = true;
         } else if (key === "experience" && elapsed < t.experienceEnd) {
           var fin = side.final, progress = (elapsed - t.finalAt) / EXPERIENCE_MS;
@@ -164,8 +172,10 @@ var COMBAT_PANEL = (function () {
         return;
       }
       var atkNote = "", defNote = "";
-      if (key === "base") atkNote = side.canFire ? side.machines + "×" + side.base.ap : "";
-      else if (key === "surround") { atkNote = "½"; defNote = "½"; }
+      if (key === "base") {
+        atkNote = side.canFire ? side.machines + "×" + side.base.ap : "";
+        defNote = side.machines + "×" + side.base.da;
+      } else if (key === "surround") { atkNote = "½"; defNote = "½"; }
       else if (previous) {
         atkNote = row.atk === null ? "" : delta(row.atk, previous.atk);
         defNote = delta(row.def, previous.def);
@@ -249,12 +259,12 @@ var COMBAT_PANEL = (function () {
   /* ---- The battle screen's numbers ----------------------------------------
    * `elapsed` ms into the count (Infinity is the finished calculation);
    * `report` is BATTLE_REPORT.assess's {attack, counter}, given once the match
-   * has rolled; `area` is BATTLE_REPORT.battleArea's hexes for the minimaps. */
+   * has rolled; `scene` is BATTLE_REPORT.battleArea's record of the board. */
 
-  // One total and the terms that build it, as far as the count has got. Attack
-  // is the unit total, defense per machine; a side that cannot fire has no
-  // attack. The term being counted is live. A lone term equal to its total is
-  // dropped, so an unmodified defense reads "20", not "20 = 20".
+  // One total and the terms that build it, as far as the count has got. Both
+  // are unit totals, and only the first term shows the per-machine value
+  // ("6×60"). A side that cannot fire has no attack. The term being counted
+  // is live.
   function statParts(m, st, index, stat) {
     var side = m.sides[index], rows = st.sides[index].rows, attacking = index === 0, terms = [], total;
     function term(key, value, label, live) {
@@ -276,15 +286,16 @@ var COMBAT_PANEL = (function () {
       }
       if (rows.experience) { term("experience", "×" + (side.multiplier / 100).toFixed(2), "exp"); total = rows.experience.atk; }
     } else {
-      term("base", String(side.base.da), "", false);
-      total = side.base.da;
+      var n = side.machines;
+      term("base", st.sides[index].lit + "×" + side.base.da);
+      total = rows.base.def;
       if (rows.support) {
-        var guard = rows.support.def - side.base.da;
+        var guard = rows.support.def - side.base.da * n;
         if (guard > 0) term("support", "+" + guard, "support");
         total = rows.support.def;
       }
       if (rows.terrain) {
-        var ground = side.terrain.da - side.support.da;
+        var ground = (side.terrain.da - side.support.da) * n;
         if (ground > 0) term("terrain", "+" + ground, attacking ? m.pv.attackerTerrain : m.pv.defenderTerrain);
         total = rows.terrain.def;
       }
@@ -294,147 +305,165 @@ var COMBAT_PANEL = (function () {
         total = rows.final.def;
       }
     }
-    var live = terms.some(function (t) { return t.live; });
-    if (terms.length === 1 && terms[0].value === String(total)) terms = [];
-    return {terms: terms, total: total, live: live};
+    return {terms: terms, total: total, live: terms.some(function (t) { return t.live; })};
   }
 
-  function termHtml(t) {
-    return "<span class='bn-term bn-term-" + t.key + (t.live ? " bn-live" : "") + "'><b>" + t.value + "</b>" +
+  // `ghost` is the finished equation laid invisibly under the one being
+  // counted: it sets the width, so nothing moves as terms arrive.
+  function termHtml(t, ghost) {
+    return "<span class='bn-term" + (ghost ? "" : " bn-term-" + t.key + (t.live ? " bn-live" : "")) + "'><b>" + t.value + "</b>" +
       (t.label ? "<small>" + esc(t.label) + "</small>" : "") + "</span>";
   }
-  // Left of the arrows the equation ends in "=" beside its total; right of
-  // them it starts with "=", so both read left to right.
-  function eqHtml(parts, pos, player) {
-    var terms = parts.terms.map(termHtml).join(""), equals = parts.terms.length ? "<span class='bn-equals'>=</span>" : "";
-    return "<span class='bn-eq bn-eq-" + pos + "' data-player='" + player + "'>" + (pos === "left" ? terms + equals : equals + terms) + "</span>";
+  function eqHtml(parts, finished) {
+    function line(p, ghost) {
+      return p.terms.map(function (t) { return termHtml(t, ghost); }).join("") + (p.terms.length ? "<span class='bn-equals'>=</span>" : "");
+    }
+    return "<span class='bn-eq'><span class='bn-eq-size' aria-hidden='true'>" + line(finished, true) + "</span>" +
+      "<span class='bn-eq-now'>" + line(parts, false) + "</span></span>";
   }
-  function totalHtml(parts, stat, pos, player) {
-    var number = "<b>" + (parts.total === null ? "—" : parts.total) + "</b>", label = "<i>" + stat.toUpperCase() + "</i>";
-    return "<span class='bn-total bn-total-" + pos + (parts.live ? " bn-live" : "") + "' data-player='" + player +
-      "' data-stat='" + stat + "'>" + (pos === "left" ? number + label : label + number) + "</span>";
+  // A roll is a table percentage; 130 reads "×1.3". It belongs to the shooter's
+  // own attack.
+  function rollOf(m, report, index) {
+    if (!report || !m.sides[index].canFire) return null;
+    var shot = report[index === 0 ? "attack" : "counter"];
+    return shot && shot.coefficientPercent != null ? shot.coefficientPercent / 100 : null;
   }
-  // A roll is a table percentage; 130 reads "×1.3".
-  function arrowHtml(shooter, dir, shot) {
-    if (!shooter.canFire) return "<span class='bn-arrow bn-arrow-none'></span>";
-    return "<span class='bn-arrow bn-arrow-" + dir + "' data-player='" + shooter.unit.player + "'>" +
-      (shot ? "<em class='bn-roll'>roll ×" + shot.coefficientPercent / 100 + "</em>" : "") + "</span>";
-  }
-  // Row one is Union's shot, row two Xenon's, whoever attacked: Union's attack
-  // and defense stay on the left, each facing the Xenon number it meets.
-  function faceoffHtml(m, st, report, union, xenon, ready) {
-    var cells = "";
-    [[union, "atk", "def", "ltr"], [xenon, "def", "atk", "rtl"]].forEach(function (row) {
-      var shooter = row[0], left = statParts(m, st, union, row[1]), right = statParts(m, st, xenon, row[2]);
-      var shot = report ? report[shooter === 0 ? "attack" : "counter"] : null;
-      cells += eqHtml(left, "left", 0) + totalHtml(left, row[1], "left", 0) +
-        arrowHtml(m.sides[shooter], row[3], shot) +
-        totalHtml(right, row[2], "right", 1) + eqHtml(right, "right", 1);
-    });
-    return "<div class='bn-faceoff" + (ready ? " bn-ready" : "") + "'>" + cells + "</div>";
+  // Both sides read the same way (user, 2026-09-29): attack on the first row,
+  // defense on the second, each total before its label, so a side's two
+  // totals stand in one column. Union stays on the left.
+  function faceoffHtml(m, st, finished, report, ready, union, xenon) {
+    return "<div class='bn-faceoff" + (ready ? " bn-ready" : "") + "'>" + [union, xenon].map(function (index) {
+      return "<div class='bn-stats' data-player='" + m.sides[index].unit.player + "'>" + ["atk", "def"].map(function (stat) {
+        var parts = statParts(m, st, index, stat), roll = stat === "atk" ? rollOf(m, report, index) : null;
+        return eqHtml(parts, statParts(m, finished, index, stat)) +
+          "<b class='bn-num" + (parts.live ? " bn-live" : "") + "' data-stat='" + stat + "'>" + (parts.total === null ? "—" : parts.total) + "</b>" +
+          "<i class='bn-unit'>" + stat.toUpperCase() + "</i><em class='bn-roll'>" + (roll === null ? "" : "roll ×" + roll) + "</em>";
+      }).join("") + "</div>";
+    }).join("") + "</div>";
   }
 
-  // The minimap, in hex radii. An adjacent pair is drawn points up and turned
-  // (never mirrored) so the Union unit sits left of the Xenon unit on one row,
-  // as on the battle screen, with the eight hexes touching either one around
-  // them. Indirect fire shows only the two units' hexes.
-  var SQ3 = Math.sqrt(3);
-  var MAP = {x: -1.5 * SQ3 - 0.1, y: -2.6, w: 4 * SQ3 + 0.2, h: 5.2};
+  // The hex map: a crop of the board as the map paints it (RENDER.paintScene,
+  // from the scene record), in the board's own orientation, with the count's
+  // highlights laid over it in zoom-1 board coordinates. It frames both units
+  // and the hexes touching either (the supporters and the ring around the
+  // target), plus, in an adjacent fight, every unit whose zone of control
+  // covers a ring hex. The box keeps the crop's proportions, widened or
+  // heightened to stay within MAP_ASPECT, at MAP_EM tall.
+  var MAP_EM = 13.4, MAP_ASPECT = [1, 1.35];
   function hexKey(place) { return place.col + "," + place.row; }
-  function cubeFrom(origin, col, row) {
-    var c = hex.toCube(col, row);
-    return {x: c.x - origin.x, y: c.y - origin.y, z: c.z - origin.z};
-  }
-  function turnClockwise(c) { return {x: -c.z, y: -c.x, z: -c.y}; }
-  function mapLayout(m, area) {
-    var union = m.attacker.player === 0 ? m.attacker : m.defender, xenon = union === m.attacker ? m.defender : m.attacker;
-    var at = {};
-    if (m.pv.ranged) {
-      at[hexKey(union)] = {x: -SQ3, y: 0};
-      at[hexKey(xenon)] = {x: 2 * SQ3, y: 0};
-      return at;
-    }
-    var origin = hex.toCube(union.col, union.row), toward = cubeFrom(origin, xenon.col, xenon.row), turns = 0;
-    while (toward.x !== 1 || toward.z !== 0) {
-      if (turns === 5) throw new Error("The battle minimap needs two adjacent units");
-      toward = turnClockwise(toward);
-      turns++;
-    }
-    area.forEach(function (h) {
-      var c = cubeFrom(origin, h.col, h.row);
-      for (var i = 0; i < turns; i++) c = turnClockwise(c);
-      at[hexKey(h)] = {x: SQ3 * (c.x + c.z / 2), y: 1.5 * c.z};
-    });
-    return at;
-  }
-  function placeAt(p) {
-    return "left:" + ((p.x - MAP.x) / MAP.w * 100).toFixed(2) + "%;top:" + ((p.y - MAP.y) / MAP.h * 100).toFixed(2) + "%";
-  }
-  function hexPoints(p, radius) {
-    var points = [];
-    for (var i = 0; i < 6; i++) {
-      var a = Math.PI / 3 * i - Math.PI / 2;
-      points.push((p.x + radius * Math.cos(a)).toFixed(3) + "," + (p.y + radius * Math.sin(a)).toFixed(3));
-    }
-    return points.join(" ");
-  }
   // Clockwise from straight up, around `center`.
   function bearing(p, center) {
     return (Math.atan2(p.x - center.x, center.y - p.y) + 2 * Math.PI) % (2 * Math.PI);
   }
-
-  // One side's minimap: both units, the side's supporters with their shares,
-  // its terrain bonus, and for the attacker the ring of hexes around the
-  // target, lit in the count's clockwise sweep. Everything counted appears
-  // with its step, as in the numbers above.
-  function minimapHtml(m, st, index, layout, area) {
-    var side = m.sides[index], rows = st.sides[index].rows, attacking = index === 0, kind = attacking ? "attack" : "defense";
-    var own = layout[hexKey(side.unit)], target = layout[hexKey(m.defender)];
-    var ground = "", marks = "", units = "", tags = "";
-    function place(where, what) {
-      if (!where) throw new Error("A hex in the battle minimap has no place in its layout");
-      return " style='" + placeAt(where) + "'>" + what;
-    }
-    function tag(where, value, unit, high) {
-      tags += "<span class='bn-tag" + (high ? " bn-tag-high" : "") + "'" + place(where, "<b>" + value + "</b>" +
-        (unit ? "<small>" + unit + "</small>" : "")) + "</span>";
-    }
-    function unitAt(where, unit) {
-      units += "<span class='bn-map-unit'" + place(where, unitView.iconHtml({typeId: unit.typeId, player: unit.player, strength: unit.strength})) + "</span>";
-    }
-    area.forEach(function (h) {
-      if (h.terrain) ground += "<polygon points='" + hexPoints(layout[hexKey(h)], 0.95) + "' fill='" + terrains[h.terrain].color + "'/>";
+  function attr(value) {
+    return String(value).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+  }
+  // Each controlled ring hex and the units that control it: any unit not on
+  // the target's side standing on it or next to it (Game.surroundRing).
+  function ringControllers(m, units) {
+    var byHex = {};
+    m.pv.tactical.ring.forEach(function (h) {
+      if (!h.controlled) return;
+      byHex[hexKey(h)] = units.filter(function (u) {
+        return u.player !== m.defender.player && hex.distance(u.col, u.row, h.col, h.row) <= 1;
+      });
     });
+    return byHex;
+  }
+  function cropFor(m, scene, controllers) {
+    var focus = [m.attacker, m.defender];
+    [m.attacker, m.defender].forEach(function (u) { focus = focus.concat(hex.neighbors(u.col, u.row)); });
+    Object.keys(controllers).forEach(function (key) { focus = focus.concat(controllers[key]); });
+    var x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity;
+    focus.filter(function (h) { return h.col >= 0 && h.col < scene.width && h.row >= 0 && h.row < scene.height; })
+      .forEach(function (h) {
+        render.boardCorners(h.col, h.row, 1).forEach(function (p) {
+          x0 = Math.min(x0, p.x); y0 = Math.min(y0, p.y); x1 = Math.max(x1, p.x); y1 = Math.max(y1, p.y);
+        });
+      });
+    var w = x1 - x0 + 8, h = y1 - y0 + 8;
+    if (w / h > MAP_ASPECT[1]) h = w / MAP_ASPECT[1];
+    if (w / h < MAP_ASPECT[0]) w = h * MAP_ASPECT[0];
+    return [(x0 + x1 - w) / 2, (y0 + y1 - h) / 2, w, h].map(function (v) { return Math.round(v * 100) / 100; });
+  }
+
+  // Everything the count has reached, where it comes from, as it is counted:
+  // each supporter's hex and its share (a line to the unit it helps while it
+  // is being added), each unit's terrain on its own hex, and the ring around
+  // the target checked clockwise, the hex being checked joined to the units
+  // whose zone of control covers it. The step being counted is yellow;
+  // afterwards each mark keeps its side's colour. Shares and bonuses are unit
+  // totals, as in the equations.
+  function minimapHtml(m, st, scene) {
+    var units = scene.units.map(function (u) { return {typeId: u[0], player: u[1], strength: u[2], col: u[3], row: u[4]}; });
+    var controllers = m.pv.ranged ? {} : ringControllers(m, units), crop = cropFor(m, scene, controllers);
+    var half = Math.max.apply(null, render.boardCorners(0, 0, 1).map(function (p) { return Math.abs(p.y); }));
+    var rings = "", marks = "", lines = "", tags = "";
+    function shape(cls, place, scale) {
+      return "<polygon class='" + cls + "' points='" + render.boardCorners(place.col, place.row, scale).map(function (p) {
+        return p.x.toFixed(2) + "," + p.y.toFixed(2);
+      }).join(" ") + "'/>";
+    }
+    function link(cls, a, b) {
+      var p = render.boardCenter(a.col, a.row), q = render.boardCenter(b.col, b.row);
+      lines += "<line class='" + cls + "' x1='" + p.x.toFixed(2) + "' y1='" + p.y.toFixed(2) + "' x2='" + q.x.toFixed(2) + "' y2='" + q.y.toFixed(2) + "'/>";
+    }
+    function at(point) {
+      return "left:" + ((point.x - crop[0]) / crop[2] * 100).toFixed(2) + "%;top:" + ((point.y - crop[1]) / crop[3] * 100).toFixed(2) + "%";
+    }
+    // A tag sits on the lower edge of its hex, under the sprite, or at `point`.
+    function tag(place, value, unit, tone, now, point) {
+      var c = render.boardCenter(place.col, place.row);
+      tags += "<span class='bn-tag " + tone + (now ? " bn-now" : "") + (point ? " bn-tag-at" : "") + "' style='" +
+        at(point || {x: c.x, y: c.y + half}) + "'><b>" + value + "</b>" + (unit ? "<small>" + unit + "</small>" : "") + "</span>";
+    }
     if (m.pv.ranged) {
-      marks += "<line class='bn-range' x1='" + (-SQ3 / 2 + 0.2).toFixed(3) + "' y1='0' x2='" + (1.5 * SQ3 - 0.2).toFixed(3) + "' y2='0'/>";
-      tags += "<span class='bn-range-label'" + place({x: SQ3 / 2, y: -0.45}, m.pv.dist + " hexes") + "</span>";
-    } else if (attacking) {
+      link("bn-range", m.attacker, m.defender);
+      var a = render.boardCenter(m.attacker.col, m.attacker.row), d = render.boardCenter(m.defender.col, m.defender.row);
+      tags += "<span class='bn-range-label' style='" + at({x: (a.x + d.x) / 2, y: (a.y + d.y) / 2 - half}) + "'>" + m.pv.dist + " hexes</span>";
+    } else {
+      var center = render.boardCenter(m.defender.col, m.defender.row), zone = "bn-p" + m.attacker.player;
       m.pv.tactical.ring.filter(function (h) { return h.onMap; })
-        .map(function (h) { return {controlled: h.controlled, at: layout[hexKey(h)]}; })
-        .sort(function (a, b) { return bearing(a.at, target) - bearing(b.at, target); })
-        .forEach(function (h, i) {
-          if (h.controlled && i < st.ringShown) marks += "<polygon class='bn-ring-lit' points='" + hexPoints(h.at, 0.86) + "'/>";
-          else if (!h.controlled && st.surroundShown) marks += "<polygon class='bn-ring-open' points='" + hexPoints(h.at, 0.86) + "'/>";
+        .map(function (h) { return {hex: h, at: render.boardCenter(h.col, h.row)}; })
+        .sort(function (p, q) { return bearing(p.at, center) - bearing(q.at, center); })
+        .forEach(function (r, i) {
+          if (i >= st.ringShown) return;
+          var now = st.ringLive && i === st.ringShown - 1;
+          rings += shape(r.hex.controlled ? "bn-ring-lit " + zone + (now ? " bn-now" : "") : "bn-ring-open" + (now ? " bn-now" : ""), r.hex, 0.96);
+          if (now && r.hex.controlled) controllers[hexKey(r.hex)].forEach(function (u) {
+            marks += shape("bn-zoc-source", u, 0.8);
+            link("bn-zoc", u, r.hex);
+          });
         });
     }
-    if (!m.pv.ranged && m.pv.surrounded && st.surroundShown) tag(target, "½", "", true);
     m.supporters.forEach(function (sup, i) {
-      if (sup.side !== kind) return;
-      var at = layout[hexKey(sup)];
-      unitAt(at, sup);
       if (i >= st.supportersShown) return;
-      marks += "<polygon class='bn-support' points='" + hexPoints(at, 0.86) + "'/>";
-      var share = sup.label.split(" ");
-      tag(at, share[0], share[1]);
+      var now = st.supportLive && i === st.supportersShown - 1, share = sup.label.split(" ");
+      marks += shape("bn-support bn-p" + sup.player + (now ? " bn-now" : ""), sup, 0.84);
+      if (now) link("bn-link", sup, sup.side === "attack" ? m.attacker : m.defender);
+      tag(sup, share[0], share[1], "bn-p" + sup.player, now, false);
     });
-    marks += "<polygon class='bn-own' points='" + hexPoints(own, 0.9) + "'/>";
-    unitAt(layout[hexKey(m.attacker)], m.attacker);
-    unitAt(target, m.defender);
-    var bonus = side.terrain.da - side.support.da;
-    if (rows.terrain && bonus > 0) tag(own, "+" + bonus, "DEF");
-    return "<div class='bn-map' role='img' aria-label='" + faction(side.unit.player) + ": where support and terrain come from'>" +
-      "<svg viewBox='" + [MAP.x, MAP.y, MAP.w, MAP.h].map(function (v) { return v.toFixed(3); }).join(" ") +
-      "' aria-hidden='true'>" + ground + marks + "</svg>" + units + tags + "</div>";
+    m.sides.forEach(function (side, index) {
+      marks += shape("bn-own", side.unit, 0.92);
+      var bonus = (side.terrain.da - side.support.da) * side.machines;
+      if (st.sides[index].rows.terrain && bonus > 0) tag(side.unit, "+" + bonus, "DEF", "bn-p" + side.unit.player, st.terrainLive, false);
+    });
+    // The verdict sits on the target's edge square to the line from the
+    // attacker, clear of both units' lower-edge tags.
+    if (!m.pv.ranged && st.surroundShown) {
+      var covered = m.pv.tactical.ring.filter(function (h) { return h.controlled; }).length;
+      var from = render.boardCenter(m.attacker.col, m.attacker.row), dx = center.x - from.x, dy = center.y - from.y;
+      var length = Math.sqrt(dx * dx + dy * dy), reach = Math.max.apply(null, render.boardCorners(0, 0, 1).map(function (p) { return Math.abs(p.x); }));
+      var side = {x: center.x - dy / length * reach, y: center.y + dx / length * reach};
+      if (m.pv.surrounded) tag(m.defender, "½", "", "bn-verdict", false, side);
+      else tag(m.defender, covered + "/6", "ZOC", "bn-p" + m.attacker.player, false, side);
+    }
+    var width = Math.round(MAP_EM * crop[2] / crop[3] * 100) / 100;
+    return {em: width, html: "<div class='bn-map' style='width:" + width + "em;height:" + MAP_EM + "em' role='img' " +
+      "aria-label='The board around the battle, lighting where support, terrain and surround come from'>" +
+      "<canvas class='bn-terrain' data-scene='" + attr(JSON.stringify(scene)) + "' data-crop='" + crop.join(" ") + "' aria-hidden='true'></canvas>" +
+      "<svg viewBox='" + crop.join(" ") + "' preserveAspectRatio='none' aria-hidden='true'>" + rings + marks + lines + "</svg>" + tags + "</div>"};
   }
 
   // One unit's chance of losing 0..N machines to one shot, exactly, from the
@@ -447,45 +476,83 @@ var COMBAT_PANEL = (function () {
     return chances;
   }
 
-  // A side's own losses: every possible count with its chance, the average
-  // marked under the axis, and once rolled the actual count in yellow with
-  // whether this side was lucky. Nothing is drawn when nothing shoots at it.
-  // Every state keeps the same boxes, so the panel never changes size.
+  // Nine evenly spaced columns, 0 through 8, whatever the unit's strength. A
+  // side nothing shoots at is certain to lose 0. The bar height is the chance
+  // itself, so the axis is always 0% to 100%.
+  var CHART_SLOTS = 9, CHART_BAR = 1.35, CHART_GAP = 0.32;
+  function lossChances(shooter, target) {
+    var chances = new Array(CHART_SLOTS).fill(0);
+    if (!shooter.canFire) { chances[0] = 1; return chances; }
+    lossDistribution(shooter, target).forEach(function (p, lost) {
+      if (lost >= CHART_SLOTS) throw new Error("A unit cannot lose more than 8 machines");
+      chances[lost] += p;
+    });
+    return chances;
+  }
+  function barCenter(i) {
+    return i * (CHART_BAR + CHART_GAP) + CHART_BAR / 2;
+  }
+  // A side's own losses. The average is marked under the axis. Once rolled,
+  // the actual count is yellow. Every state keeps the same nine columns.
   function lossChartHtml(side, shooter, actual, shown) {
-    if (!shooter.canFire) return "<div class='bn-chart bn-chart-none'></div>";
-    var chances = lossDistribution(shooter, side), max = Math.max.apply(null, chances), likely = chances.indexOf(max), mean = 0;
+    var chances = lossChances(shooter, side), likely = chances.indexOf(Math.max.apply(null, chances)), mean = 0;
     chances.forEach(function (p, lost) { mean += p * lost; });
-    // Bars share the width with 2% gaps; the marker sits where `mean` falls between them.
-    var width = (100 - 2 * (chances.length - 1)) / chances.length;
+    var width = barCenter(CHART_SLOTS - 1) + CHART_BAR / 2;
     var bars = chances.map(function (p, lost) {
+      var style = "width:" + CHART_BAR + "em;flex:0 0 " + CHART_BAR + "em";
       return "<div class='cp-bar" + (lost === likely ? " cp-likely" : "") + (lost === actual ? " cp-actual" : "") +
-        "' role='img' aria-label='" + lost + " lost: " + percent(p) + " percent" + (lost === actual ? ", the result" : "") + "'>" +
+        "' style='" + style + "' role='img' aria-label='" + lost + " lost: " + percent(p) + " percent" +
+        (lost === actual ? ", the result" : "") + "'>" +
         "<span class='cp-pct'>" + (p >= 0.005 ? percent(p) : "") + "</span>" +
-        "<span class='cp-col'><i style='height:" + (p > 0 ? Math.max(3, p / max * 100) : 0).toFixed(1) + "%'></i></span>" +
+        "<span class='cp-col'><i style='height:" + (p * 100).toFixed(1) + "%'></i></span>" +
         "<span class='cp-lost'>" + lost + "</span></div>";
     }).join("");
-    var foot = "<span>avg <b>" + mean.toFixed(1) + "</b></span>";
-    if (actual !== undefined) {
-      var gap = actual - mean;
-      foot += "<span class='bn-luck'>" + (Math.abs(gap) < 0.5 ? "as expected" : gap < 0 ? "lucky" : "unlucky") + "</span>";
-    }
-    return "<div class='bn-chart" + (shown ? "" : " bn-hidden") + "' aria-label='" + faction(side.unit.player) +
-      ": chance of losing 0 to " + side.machines + " machines'><div class='cp-chart'>" + bars + "</div>" +
-      "<div class='bn-mean-strip'><i class='bn-mean' style='left:" + (mean * (width + 2) + width / 2).toFixed(1) + "%'></i></div>" +
-      "<p class='bn-foot'>" + foot + "</p></div>";
+    var at = mean <= 0 ? barCenter(0) : mean >= CHART_SLOTS - 1 ? barCenter(CHART_SLOTS - 1) : (function () {
+      var i = Math.floor(mean);
+      return barCenter(i) + (barCenter(i + 1) - barCenter(i)) * (mean - i);
+    })();
+    var axis = "<div class='bn-yaxis' aria-hidden='true'><span><b>100</b><small>%</small></span><span><b>50</b><small>%</small></span><span><b>0</b><small>%</small></span></div>";
+    return "<div class='bn-chart" + (shown ? "" : " bn-hidden") + "' aria-label='Chance of losing 0 to 8 machines, average " + mean.toFixed(1) + "'>" +
+      "<div class='bn-plot'>" + axis +
+      "<div class='bn-series'><div class='cp-chart' style='gap:" + CHART_GAP + "em;width:" + width.toFixed(2) + "em'>" + bars + "</div>" +
+      "<div class='bn-mean-strip' style='width:" + width.toFixed(2) + "em'><i class='bn-mean' style='left:" + at.toFixed(2) + "em'></i></div></div></div></div>";
   }
 
-  function numbersHtml(m, elapsed, report, area) {
-    if (!Array.isArray(area)) throw new Error("The battle screen's numbers need the battle's hexes (BATTLE_REPORT.battleArea)");
-    var st = state(m, elapsed), ready = elapsed >= m.time.experienceEnd, layout = mapLayout(m, area);
-    var union = m.sides[0].unit.player === 0 ? 0 : 1, xenon = 1 - union;
-    return "<div class='battle-numbers'>" + faceoffHtml(m, st, report, union, xenon, ready) +
-      "<div class='bn-detail'>" + [union, xenon].map(function (index) {
-        // The attacker's losses come from the counter, the defender's from the attack.
-        var actual = report ? report[index === 0 ? "counter" : "attack"].losses : undefined;
-        return "<section class='bn-half' data-player='" + m.sides[index].unit.player + "'>" + minimapHtml(m, st, index, layout, area) +
-          lossChartHtml(m.sides[index], m.sides[1 - index], actual, ready) + "</section>";
-      }).join("") + "</div></div>";
+  // The panel's width in em of its own type, mirroring css/battle-dock.css,
+  // so the stylesheet can shrink the type for a board narrower than this
+  // before anything is laid out: each side's longest finished equation and
+  // its "=" (terms 1.1em, labels .75em, gaps .45em), the total (4 digits at
+  // 2.7em), its label, the roll column, the gaps and paddings, and below
+  // them the two charts and the hex map. A monospace character is taken as
+  // 0.62em, a little over the fonts in use, so an estimate never falls short.
+  var CHAR = 0.62;
+  function eqEm(parts) {
+    if (!parts.terms.length) return 0;
+    return parts.terms.reduce(function (sum, t) {
+      return sum + String(t.value).length * 1.1 * CHAR + (t.label ? 0.2 + t.label.length * 0.75 * CHAR : 0) + 0.45;
+    }, 1.1 * CHAR);
+  }
+  function panelEm(m, finished, mapEm) {
+    var block = Math.max.apply(null, [0, 1].map(function (index) {
+      return Math.max(eqEm(statParts(m, finished, index, "atk")), eqEm(statParts(m, finished, index, "def")));
+    })) + 4 * 2.7 * CHAR + 3 * 1.1 * (CHAR + 0.05) + 5.4 + 3 * 0.5 + 2 * 0.5;
+    var chart = (3 * 1.15 + 0.7) * CHAR + 0.4 + CHART_SLOTS * CHART_BAR + (CHART_SLOTS - 1) * CHART_GAP;
+    return Math.ceil(Math.max(2 * block + 0.2, 2 * chart + mapEm + 2 * 1.2) + 1.2);
+  }
+
+  function numbersHtml(m, elapsed, report, scene) {
+    if (!scene || !Array.isArray(scene.units)) throw new Error("The battle screen's numbers need the board around the battle (BATTLE_REPORT.battleArea)");
+    var st = state(m, elapsed), finished = state(m, Infinity), ready = elapsed >= m.time.experienceEnd;
+    var union = m.sides[0].unit.player === 0 ? 0 : 1, xenon = 1 - union, map = minimapHtml(m, st, scene);
+    function chart(index) {
+      // The attacker's losses come from the counter, the defender's from the attack.
+      var actual = report ? report[index === 0 ? "counter" : "attack"].losses : undefined;
+      return "<div class='bn-side' data-player='" + m.sides[index].unit.player + "'>" +
+        lossChartHtml(m.sides[index], m.sides[1 - index], actual, ready) + "</div>";
+    }
+    return "<div class='battle-numbers' style='--need:" + panelEm(m, finished, map.em) + "'>" +
+      faceoffHtml(m, st, finished, report, ready, union, xenon) +
+      "<div class='bn-detail'>" + chart(union) + map.html + chart(xenon) + "</div></div>";
   }
 
   return {build: build, state: state, effects: effects, previewHtml: previewHtml, numbersHtml: numbersHtml,

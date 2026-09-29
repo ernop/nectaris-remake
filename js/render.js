@@ -299,6 +299,17 @@ var RENDER = (function () {
     return legacyMap() ? [[24,0],[8,16],[-8,16],[-24,0],[-8,-16],[8,-16]].map(function(p) { return {x:cx+p[0]*size/34,y:cy+p[1]*size/34}; }) : HEX.corners(cx, cy, size);
   }
 
+  // Zoom-1 board coordinates in the current art style, never turned: where the
+  // map puts a hex's center and its corners (`scale` 1 is the full hex). The
+  // battle screen's hex map lays its highlights over paintScene's crop with them.
+  function boardCenter(col, row) {
+    return legacyMap() ? {x: col * 32, y: row * 32 + (col & 1) * 16} : HEX.toPixel(col, row, 34);
+  }
+  function boardCorners(col, row, scale) {
+    var at = boardCenter(col, row);
+    return hexCorners(at.x, at.y, 34 * scale);
+  }
+
   function pathHex(ctx, cx, cy, size) {
     var pts = hexCorners(cx, cy, size);
     ctx.beginPath();
@@ -1276,6 +1287,68 @@ var RENDER = (function () {
     ctx.restore();
   }
 
+  /* A read-only board made from BATTLE_REPORT.battleArea's record: terrain,
+   * building owners and units around one battle, with the Game methods the
+   * renderer reads. Asking for a hex outside the record is an error. */
+  function SceneBoard(scene) {
+    var types = typeof UNIT_TYPES !== "undefined" ? UNIT_TYPES : require("./data-units.js").UNIT_TYPES;
+    this.chars = typeof TERRAIN_BY_CHAR !== "undefined" ? TERRAIN_BY_CHAR : require("./data-terrain.js").TERRAIN_BY_CHAR;
+    this.width = scene.width; this.height = scene.height;
+    this.c0 = scene.c0; this.r0 = scene.r0; this.rows = scene.rows; this.owners = scene.owners;
+    this.currentPlayer = -1; this.buildings = {};
+    this.units = scene.units.map(function (u, i) {
+      var type = types[u[0]];
+      if (!type) throw new Error("The battle map has no unit type " + u[0]);
+      return {id: "scene-" + i, typeId: u[0], type: type, player: u[1], strength: u[2], col: u[3], row: u[4], cargo: [], moved: false};
+    });
+  }
+  SceneBoard.prototype.inBounds = function (col, row) {
+    return col >= 0 && col < this.width && row >= 0 && row < this.height;
+  };
+  SceneBoard.prototype.terrainAt = function (col, row) {
+    if (!this.inBounds(col, row)) return null;
+    var line = this.rows[row - this.r0], terrain = line && col >= this.c0 ? this.chars[line.charAt(col - this.c0)] : null;
+    if (!terrain) throw new Error("The battle map has no terrain recorded at " + col + "," + row);
+    return terrain;
+  };
+  SceneBoard.prototype.buildingAt = function (col, row) {
+    var owner = this.owners[col + "," + row];
+    return owner === undefined ? null : {owner: owner, stored: []};
+  };
+
+  /* The battle screen's hex map: `crop` [x, y, width, height] of the board in
+   * zoom-1 board coordinates, painted as the map draws it (terrain, buildings,
+   * units, the strength on a damaged unit) into `canvas`. The bitmap is the
+   * size of the canvas's box, read from the box's own em size so a battle
+   * screen painted while hidden is still sharp, times the screen pixel ratio.
+   * The screen repaints on every step of its count, so paintings are kept by
+   * scene, crop and size. */
+  var scenePaintings = new Map();
+  function paintScene(canvas, scene, crop) {
+    var doc = canvas.ownerDocument, view = doc.defaultView, box = view.getComputedStyle(canvas.parentNode);
+    var ratio = view.devicePixelRatio, width = Math.round(parseFloat(box.width) * ratio), height = Math.round(parseFloat(box.height) * ratio);
+    if (!(width > 0 && height > 0)) throw new Error("The battle map's box has no size to paint at");
+    var key = [theme.id, ICON_SETS.current().id, width, height, crop.join(","), JSON.stringify(scene)].join("|");
+    var painting = scenePaintings.get(key);
+    if (!painting) {
+      painting = doc.createElement("canvas");
+      painting.width = width; painting.height = height;
+      var board = new Renderer(painting, new SceneBoard(scene));
+      board.zoom = width / crop[2];
+      board.originX = -crop[0] * board.zoom; board.originY = -crop[1] * board.zoom;
+      board.drawTerrainLayer(board.visibleTileBounds());
+      board.game.units.slice().sort(function (a, b) {
+        return (a.type.moveType === "air" ? 1 : 0) - (b.type.moveType === "air" ? 1 : 0);
+      }).forEach(function (unit) { board.drawUnit(unit); });
+      if (scenePaintings.size >= 12) scenePaintings.delete(scenePaintings.keys().next().value);
+      scenePaintings.set(key, painting);
+    }
+    if (canvas.width !== width || canvas.height !== height) { canvas.width = width; canvas.height = height; }
+    var ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, width, height);
+    ctx.drawImage(painting, 0, 0);
+  }
+
   Renderer.prototype.drawExplosion = function (effect) {
     var ctx = this.ctx;
     var ctr = this.hexCenter(effect.col, effect.row);
@@ -1689,6 +1762,9 @@ var RENDER = (function () {
     Renderer: Renderer,
     PLAYER_COLORS: PLAYER_COLORS,
     drawUnitIcon: drawUnitIcon,
+    boardCenter: boardCenter,
+    boardCorners: boardCorners,
+    paintScene: paintScene,
     rankRuns: rankRuns,
     RANK_COLORS: RANK_COLORS,
     RANK_STAR: RANK_STAR,

@@ -289,10 +289,11 @@ the page or list scrolls or resizes.
   dedicated battle view, used for your own attacks too, shows opposing
   formations with Union on the left and Xenon on the right, each on its own
   terrain (one continuous ground when adjacent). Under them, each side's attack
-  and defense totals count up from their parts and face the other side's, with
-  an arrow for each side that fires; a minimap per side shows which neighbours
-  and terrain helped, and a chart shows each side's possible losses, the actual
-  result and whether it was lucky. Ready, Fighting and
+  and defense unit totals count up from their parts, laid out the same for both
+  sides; a crop of the real board between the two loss charts lights where
+  support, terrain and the surround ring come from as they are counted, and
+  each chart shows that side's possible losses (0 to 8) and the actual result.
+  The popup is sized to its contents over the dimmed board. Ready, Fighting and
   Result mark the approach, combat and summary. Each side's unit icon in
   the battle header is enlarged, with its stars beside it at the same scale; newly
   earned stars fade in, glow brightly, then
