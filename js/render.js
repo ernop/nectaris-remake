@@ -146,6 +146,7 @@ var RENDER = (function () {
     this.attackingUnitId = null; // drawn in theme.attackColors (deep red) while its attack resolves
     this.strengthOverrides = {};
     this.battleGhosts = [];
+    this.presentedUnits = null; // watched-action picture; null draws the live army
     this.motion = null;
     this.explosions = [];
     this.aftermath = [];       // explosions replayed where a squad was destroyed
@@ -1145,12 +1146,20 @@ var RENDER = (function () {
   }
 
   Renderer.prototype.unitCenter = function (unit) {
-    var motion = this.motion;
-    if (!motion || motion.unit.id !== unit.id) return this.hexCenter(unit.col, unit.row);
-    var from = this.hexCenter(motion.from.col, motion.from.row);
-    var to = this.hexCenter(motion.to.col, motion.to.row);
-    return {x: from.x + (to.x - from.x) * motion.fraction,
-      y: from.y + (to.y - from.y) * motion.fraction};
+    var motion = this.motion, i, shown;
+    if (motion && motion.unit.id === unit.id) {
+      var from = this.hexCenter(motion.from.col, motion.from.row);
+      var to = this.hexCenter(motion.to.col, motion.to.row);
+      return {x: from.x + (to.x - from.x) * motion.fraction,
+        y: from.y + (to.y - from.y) * motion.fraction};
+    }
+    shown = this.presentedUnits;
+    if (shown) {
+      for (i = 0; i < shown.length; i++) {
+        if (shown[i].id === unit.id) return this.hexCenter(shown[i].col, shown[i].row);
+      }
+    }
+    return this.hexCenter(unit.col, unit.row);
   };
 
   Renderer.prototype.drawUnit = function (unit) {
@@ -1635,10 +1644,12 @@ var RENDER = (function () {
 
     // units (ground first, then air on top)
     var i, u;
-    var list = [];
-    for (i = 0; i < g.units.length; i++) {
-      u = g.units[i];
-      if (!u.carriedBy && !u.inFactory && (!this.motion || u.id !== this.motion.unit.id)) list.push(u);
+    var list = [], source = this.presentedUnits || g.units, presenting = !!this.presentedUnits;
+    for (i = 0; i < source.length; i++) {
+      u = source[i];
+      if (!presenting && (u.carriedBy || u.inFactory)) continue;
+      if (this.motion && u.id === this.motion.unit.id) continue;
+      list.push(u);
     }
     list.sort(function (a, b) { return (a.type.moveType === "air" ? 1 : 0) - (b.type.moveType === "air" ? 1 : 0); });
     for (i = 0; i < list.length; i++) this.drawUnit(list[i]);

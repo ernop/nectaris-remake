@@ -106,7 +106,7 @@
   border-top: 1px solid #686045; color: #fff; font-size: 13px; }
 #match-settings button { padding: 2px 8px; font-size: 13px; font-weight: 700; color: #fff; border-color: #857044; }
 /* Toggles state their value in words, so no state relies on color alone. */
-#match-settings .toggle { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+#match-settings .toggle { display: inline-flex; align-self: flex-start; align-items: center; gap: 8px; width: auto; }
 #match-settings .toggle::after { content: "Off"; font-weight: 800; }
 #match-settings .toggle[aria-pressed="true"]::after { content: "On"; color: #bfe95c; }
 #match-settings .toggle:disabled::after { content: ""; }

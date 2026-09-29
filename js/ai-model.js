@@ -585,8 +585,18 @@ var AI_MODEL = (function () {
   }
 
   /* The generator applies one visible mutation per next(). Simulations consume
-   * exactly this same generator; no second implementation of the rules. */
+   * exactly this same generator; no second implementation of the rules.
+   * Each event carries `view`, the visible units as of that yield, so a caller
+   * that applies the rest of the action immediately can still draw this step. */
   function* execute(game,action,ctx) {
+    function expose(){
+      return {counts:[game.playerUnits(0).length,game.playerUnits(1).length],
+        units:game.units.filter(function(unit){return !unit.carriedBy && !unit.inFactory;}).map(function(unit){
+          return {id:unit.id,col:unit.col,row:unit.row,strength:unit.strength,exp:unit.exp,moved:!!unit.moved,
+            player:unit.player,type:unit.type,typeId:unit.typeId,cargo:unit.cargo.map(function(){return {};})};
+        })};
+    }
+    function stamp(event){event.view=expose();return event;}
     if(action.kind==="end"){game.endTurn();return;}
     var u=find(game,action.unit);
     if(!u)throw new Error("AI action references a missing unit");
@@ -594,10 +604,10 @@ var AI_MODEL = (function () {
       var b=game.buildingAt(action.building[0],action.building[1]);
       if(action.into){
         var into=find(game,action.into);game.loadFromFactory(b,u,into);
-        yield {t:"move",unit:u,from:{col:b.col,row:b.row},to:{col:into.col,row:into.row},reason:"load",effects:[]};
+        yield stamp({t:"move",unit:u,from:{col:b.col,row:b.row},to:{col:into.col,row:into.row},reason:"load",effects:[]});
       }else{
         game.deployFromFactory(b,u,action.to[0],action.to[1]);
-        yield {t:"deploy",unit:u,building:b,to:{col:u.col,row:u.row}};
+        yield stamp({t:"deploy",unit:u,building:b,to:{col:u.col,row:u.row}});
       }
       return;
     }
@@ -606,32 +616,32 @@ var AI_MODEL = (function () {
       game.unload(u,cargo,action.drop[0],action.drop[1]);
       return {t:"move",unit:cargo,from:from,to:{col:cargo.col,row:cargo.row},reason:"unload",effects:[]};
     }
-    if(action.cargo&&action.before)yield unload();
+    if(action.cargo&&action.before)yield stamp(unload());
     if(action.to){
       var from={col:u.col,row:u.row}, moved=game.moveUnit(u,action.to[0],action.to[1]);
       // Commit capture/storage immediately, just as the human movement flow.
       var effects=!moved.loaded&&game.entersBuilding(u,u.col,u.row)?game.finishUnit(u):[];
-      yield {t:"move",unit:u,from:from,to:{col:u.col,row:u.row},reason:moved.loaded?"load":action.target?"attack":"advance",effects:effects,path:moved.path};
+      yield stamp({t:"move",unit:u,from:from,to:{col:u.col,row:u.row},reason:moved.loaded?"load":action.target?"attack":"advance",effects:effects,path:moved.path});
       if(moved.loaded||u.inFactory||game.winner!==null)return;
     }
-    if(action.cargo&&!action.before)yield unload();
+    if(action.cargo&&!action.before)yield stamp(unload());
     if(action.target && game.winner===null){
       var enemy=find(game,action.target),a=u.strength,d=enemy.strength;
-      yield {t:"battle-preview",attacker:u,defender:enemy,attackerBefore:a,defenderBefore:d,preview:combat.preview(game,u,enemy)};
+      yield stamp({t:"battle-preview",attacker:u,defender:enemy,attackerBefore:a,defenderBefore:d,preview:combat.preview(game,u,enemy)});
       var result=game.attack(u,enemy);
-      yield {t:"battle",attacker:u,defender:enemy,attackerBefore:a,defenderBefore:d,result:result};
+      yield stamp({t:"battle",attacker:u,defender:enemy,attackerBefore:a,defenderBefore:d,result:result});
       if(game.winner!==null||game.units.indexOf(u)<0)return;
       // Chance changed the board; rebuild tactical analysis for the retreat.
       ctx.analysis.delete(game);
       var step=retreat(game,u,ctx);
       if(step){
         var before={col:u.col,row:u.row},retreated=game.moveUnit(u,step.col,step.row);
-        yield {t:"move",unit:u,from:before,to:{col:u.col,row:u.row},reason:"post-attack",effects:game.finishUnit(u),path:retreated.path};
+        yield stamp({t:"move",unit:u,from:before,to:{col:u.col,row:u.row},reason:"post-attack",effects:game.finishUnit(u),path:retreated.path});
       }
     }
     if(!u.moved && !u.carriedBy && !u.inFactory){
       var finished=game.finishUnit(u);
-      yield finished.length?{t:"finish",unit:u,effects:finished}:{t:"wait",unit:u};
+      yield stamp(finished.length?{t:"finish",unit:u,effects:finished}:{t:"wait",unit:u});
     }
   }
   function apply(game,action,ctx) {

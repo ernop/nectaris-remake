@@ -102,6 +102,36 @@ module.exports = function (ok) {
     Object.keys(UNIT_TYPES).forEach(function(k){delete UNIT_TYPES[k];});Object.assign(UNIT_TYPES,roster);
   }
 
+  // A watched turn commits the whole action and starts the next search before
+  // the UI has been handed the later pictures of that same action.
+  var overlap=new ENGINE.Game({name:"Overlap",grid:[".....",".....","....."],
+    units:[{t:"BISON",o:0,x:1,y:1},{t:"BISON",o:1,x:2,y:1}]},{seed:1});
+  var savedWorker=global.Worker,posts=[],workers=[];
+  try{
+    global.Worker=function(){this.postMessage=function(m){posts.push(m);};this.terminate=function(){this.terminated=true;};workers.push(this);};
+    var runner=S.createTurn(overlap,0,{id:"tactical",async:true});
+    var bison=overlap.units[0],enemy=overlap.units[1];
+    ok(runner.next().t==="thinking"&&posts.length===1&&posts[0].state.dice===null,"watched search starts from public state");
+    workers[0].onmessage({data:{sequence:1,action:{kind:"act",unit:bison.id,target:enemy.id}}});
+    var preview=runner.next();
+    var face=preview.view.units.filter(function(u){return u.id===enemy.id;})[0];
+    ok(preview.t==="battle-preview"&&posts.length===2&&posts[1].sequence===2&&posts[1].state.dice===null,
+      "the next search starts when the action commits, before its pictures are shown");
+    var battle=runner.next();
+    ok(battle.t==="battle"&&posts.length===2,"replaying the rest of the action does not start another search");
+    ok(face&&face.strength===battle.defenderBefore&&enemy.strength===battle.defenderBefore-battle.result.dmgToDefender,
+      "the preview picture keeps the pre-roll defender while the search sees the resolved fight");
+    runner.destroy();
+  }finally{if(savedWorker===undefined)delete global.Worker;else global.Worker=savedWorker;}
+  var syncGame=new ENGINE.Game({name:"Sync overlap",grid:[".....",".....","....."],
+    units:[{t:"BISON",o:0,x:1,y:1},{t:"BISON",o:1,x:2,y:1}]},{seed:1});
+  var sync=S.createTurn(syncGame,0,{id:"tactical"}), mover=syncGame.units[0];
+  var first=sync.next();
+  ok(first&&first.t==="move"&&mover.moved===false,"synchronous playback leaves the rest of the activation until the next picture");
+  var second=sync.next();
+  ok(second&&(second.t==="wait"||second.t==="finish")&&mover.moved===true,"the following picture is what finishes the activation");
+  if(sync.destroy)sync.destroy();
+
   // Search reuses enemy stopping cells across states; a stale entry would
   // silently change moves, so every reused entry is recomputed here.
   var mid=new ENGINE.Game(require("../js/data-basenectaris-maps.js").BASE_NECTARIS_LEVELS[0],{seed:3}), stopsError=null;

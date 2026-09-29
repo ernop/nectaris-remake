@@ -85,8 +85,14 @@ names it ("Opponent: …", or "Two players (hotseat)"). This supersedes the
 map-view dropdown that changed the opponent from the next enemy turn. Records of
 older matches that did change it keep their "(changed during match)" note.
 Search runs in a cancellable background worker;
-Watch AI controls animation without changing decisions. Failures preserve the
-turn-start checkpoint and show an actionable error.
+Watch AI controls animation without changing decisions. While a watched action
+is on screen, the worker is already searching the position after that action
+has been fully committed, so thinking overlaps the move and the battle instead
+of starting when the picture finishes. The picture stays the board as of the
+step being shown (the approach and the calculation still show pre-battle
+strength and position). Synchronous tournament and opening search is unchanged:
+one step per advance, so a cutoff cannot score a roll that was not shown.
+Failures preserve the turn-start checkpoint and show an actionable error.
 
 **Tournaments** opens a separate lab with opponent and board selection, paired
 cycles, round limits, seed, worker count and Elo K. A blank seed draws a fresh
@@ -337,7 +343,8 @@ number, and his side, large, plus unit counts. Behavior:
   the side to move, then the two unit counts (30 px numbers) and the opponent.
   In a hotseat match the banner reads "Hotseat" and names the side to move.
 - **Settings**, each a single line: Sound, Music, Watch AI and Move animation as
-  full-width toggles that say **On** or **Off** in words (green On), then Style
+  toggles sized to their label (user, 2026-09-29: they do not stretch the panel
+  width) that say **On** or **Off** in words (green On), then Style
   (Pixel / Neon / Classic), Art (the icon sets) and Board (Auto / Normal /
   Sideways) as segmented choosers whose chosen segment is filled yellow with
   black text, then a small **Fit board (F)**. The F key is unchanged. Style,

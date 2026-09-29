@@ -435,10 +435,12 @@ var UI = (function () {
     this.refreshUndoButton();
     $("status-turn").textContent = "Turn " + g.turn + " / " + g.turnLimit;
     var el = $("status-player");
-    el.textContent = RENDER.PLAYER_COLORS[g.currentPlayer].name + " to move";
+    var searching = this.mode === "aiTurn" && this._aiTurn && this._aiTurn.searching && this._aiTurn.searching();
+    el.textContent = RENDER.PLAYER_COLORS[g.currentPlayer].name + (searching ? " (thinking…)" : " to move");
     el.setAttribute("data-player", String(g.currentPlayer));
-    $("units-union").textContent = String(g.playerUnits(0).length);
-    $("units-xenon").textContent = String(g.playerUnits(1).length);
+    var counts = this._presented && this._presented.counts;
+    $("units-union").textContent = String(counts ? counts[0] : g.playerUnits(0).length);
+    $("units-xenon").textContent = String(counts ? counts[1] : g.playerUnits(1).length);
     $("units-union-name").textContent = RENDER.PLAYER_COLORS[0].name;
     $("units-xenon-name").textContent = RENDER.PLAYER_COLORS[1].name;
     var hovered = this.renderer.hoverHex;
@@ -572,10 +574,11 @@ var UI = (function () {
       var effect = event.effects[0];
       action += effect.t === "capture" ? " and captured " + effect.kind : " and repaired to full strength";
     }
-    var side = battleReport.faction(event.unit.player);
+    var unit = this.presentedFace(event.unit);
+    var side = battleReport.faction(unit.player);
     this.showWatchPanel(
       event.t === "deploy" ? side + " deployment" : side + " selected",
-      "<div class='war-verb'>" + unitView.html(event.unit) + " " + esc(action) + "</div>"
+      "<div class='war-verb'>" + unitView.html(unit) + " " + esc(action) + "</div>"
     );
     this.renderer.highlights = null;
     if (event.to) {
@@ -589,18 +592,20 @@ var UI = (function () {
     // the defender gets a white ring so the pair reads as one matchup.
     this.renderer.flashUnits = {};
     this.renderer.highlights = null;
-    this.renderer.attackingUnitId = event.attacker.id;
-    this.renderer.flashUnits[event.defender.id] = "#ffffff";
-    var parts = battleReport.previewHtml(event.attacker, event.defender, event.preview, this.game);
+    var attacker = this.presentedFace(event.attacker), defender = this.presentedFace(event.defender);
+    this.renderer.attackingUnitId = attacker.id;
+    this.renderer.flashUnits[defender.id] = "#ffffff";
+    var parts = battleReport.previewHtml(attacker, defender, event.preview, this.game);
     this.showBattleScreen(parts.screen, parts.outcome);
   };
 
   GameUI.prototype.showWatchResult = function (event, done) {
     this.renderer.flashUnits = {};
     this.renderer.highlights = null;
-    this.renderer.attackingUnitId = event.attacker.id;
-    this.renderer.flashUnits[event.defender.id] = "#ffffff";
-    var parts = battleReport.resultParts(event.attacker, event.defender, event.result, event.attackerBefore, event.defenderBefore, this.game);
+    var attacker = this.presentedFace(event.attacker), defender = this.presentedFace(event.defender);
+    this.renderer.attackingUnitId = attacker.id;
+    this.renderer.flashUnits[defender.id] = "#ffffff";
+    var parts = battleReport.resultParts(attacker, defender, event.result, event.attackerBefore, event.defenderBefore, this.game);
     this.showBattleScreen(parts.screen, parts.outcome);
     return this.animateBattleResult(event, done, 1400, 0);
   };
@@ -621,7 +626,9 @@ var UI = (function () {
     var duration = battleReport.fightingDuration(timing), volley = battleReport.volleyMs(timing);
     var lastCounts = "", held = false;
     var assessed = battleReport.assess(event.attacker, event.defender, result, event.attackerBefore, event.defenderBefore);
-    var area = battleReport.battleArea(this.game, event.attacker, event.defender);
+    var attackerAt = this.presentedFace(event.attacker), defenderAt = this.presentedFace(event.defender);
+    var area = battleReport.battleArea(this.game, Object.assign({}, attackerAt, {strength: event.attackerBefore}),
+      Object.assign({}, defenderAt, {strength: event.defenderBefore}));
     if (holdMs === undefined) holdMs = 500;
     if (approachMs === undefined) approachMs = 800;
     var aRank = battleReport.shownRank(result.attackerExpBefore, event.attacker.exp, event.attackerBefore - attackerLosses);
@@ -642,8 +649,8 @@ var UI = (function () {
       self.renderer.explosions = [];
       if (hit && fight < duration) {
         var burst = (fight - volley) / (duration - volley);
-        if (attackerLosses) self.renderer.explosions.push({col: event.attacker.col, row: event.attacker.row, phase: burst, seed: 11});
-        if (defenderLosses) self.renderer.explosions.push({col: event.defender.col, row: event.defender.row, phase: burst, seed: 29});
+        if (attackerLosses) self.renderer.explosions.push({col: attackerAt.col, row: attackerAt.row, phase: burst, seed: 11});
+        if (defenderLosses) self.renderer.explosions.push({col: defenderAt.col, row: defenderAt.row, phase: burst, seed: 29});
       }
       self.renderer.strengthOverrides = {};
       self.renderer.strengthOverrides[event.attacker.id] = attackerCurrent;
@@ -845,7 +852,7 @@ var UI = (function () {
 
   GameUI.prototype.updateHoverInfo = function () {
     var card = $("unit-hover"), r = this.renderer, hex = r.hoverHex;
-    var unit = hex && this.game.unitAt(hex.col, hex.row);
+    var unit = hex && this.unitShownAt(hex.col, hex.row);
     var building = hex && this.game.buildingAt(hex.col, hex.row);
     if ((!unit && !building) || this.busy || this.destroyed || (this.dragging && this.dragging.pan) ||
         ["aiTurn", "battle", "factory", "unload", "over"].indexOf(this.mode) >= 0) {
@@ -1754,7 +1761,43 @@ var UI = (function () {
 
   /* --- turns ---------------------------------------------------------------- */
 
+  GameUI.prototype.present = function (event) {
+    var view = event && event.view;
+    this._presented = view || null;
+    if (this.renderer) this.renderer.presentedUnits = view ? view.units : null;
+  };
+
+  GameUI.prototype.clearPresented = function () {
+    this._presented = null;
+    if (this.renderer) this.renderer.presentedUnits = null;
+  };
+
+  // The picture of the action on screen. Later steps of the same action may
+  // already be committed so the next search can run; this keeps the shown step.
+  GameUI.prototype.presentedFace = function (unit) {
+    var units = this._presented && this._presented.units, i;
+    if (!unit || !units) return unit;
+    for (i = 0; i < units.length; i++) {
+      if (units[i].id === unit.id) return Object.assign({}, unit, units[i]);
+    }
+    return unit;
+  };
+
+  GameUI.prototype.unitShownAt = function (col, row) {
+    var units = this._presented && this._presented.units, i, u;
+    if (!units) return this.game.unitAt(col, row);
+    for (i = 0; i < units.length; i++) {
+      if (units[i].col !== col || units[i].row !== row) continue;
+      for (u = 0; u < this.game.units.length; u++) {
+        if (this.game.units[u].id === units[i].id) return Object.assign({}, this.game.units[u], units[i]);
+      }
+      return units[i];
+    }
+    return null;
+  };
+
   GameUI.prototype.finishAITurn = function () {
+    this.clearPresented();
     if (this._aiTurn && this._aiTurn.destroy) this._aiTurn.destroy();
     this._aiTurn = null;
     this.selected = null;
@@ -1792,6 +1835,7 @@ var UI = (function () {
     var event = this.nextAIEvent();
     if (event && event.t === "error") return;
     if (event && event.t === "thinking") {
+      this.clearPresented();
       $("status-player").textContent = RENDER.PLAYER_COLORS[this.game.currentPlayer].name + " (thinking…)";
       var waiting = this;
       this._aiTimer = setTimeout(function () { waiting.runNextAIEvent(); }, 25);
@@ -1803,6 +1847,7 @@ var UI = (function () {
     }
 
     var delay = 40;
+    this.present(event);
     if (event.t === "deploy" || event.t === "move") {
       this.selected = event.unit;
       this.renderer.flashUnits = {};
@@ -1812,7 +1857,7 @@ var UI = (function () {
       var path = event.path || [event.from || {col: event.building.col, row: event.building.row}, event.to];
       var moving = this;
       if (event.t === "deploy") this.soundAt("deploy", path[0].col, path[0].row);
-      this.animateMovement(event.unit, path, function () {
+      this.animateMovement(this.presentedFace(event.unit), path, function () {
         moving.soundMoveEffects(event.effects || []);
         moving._aiTimer = setTimeout(function () { moving.runNextAIEvent(); }, 250);
       });
@@ -1823,7 +1868,8 @@ var UI = (function () {
       // The line for the opponent's previous action would sit beside the battle.
       this.closeWarDock();
       var previewing = this;
-      this.playCombatEffects(event.attacker, event.defender, event.preview, function () {
+      var attacker = this.presentedFace(event.attacker), defender = this.presentedFace(event.defender);
+      this.playCombatEffects(attacker, defender, event.preview, function () {
         previewing.showWatchPreview(event);
         $("battle-stage").style.setProperty("--battle-approach", 1);
         previewing.playBattleTimeline(1600, function (elapsed) {
@@ -1847,8 +1893,9 @@ var UI = (function () {
       this.selected = event.unit;
       var effect = event.effects[0];
       var text = effect.t === "capture" ? "captured " + effect.kind : "repaired to full strength";
-      this.showWatchPanel(battleReport.faction(event.unit.player) + " selected", "<div class='war-verb'>" +
-        unitView.html(event.unit) + " " + esc(text) + "</div>");
+      var unit = this.presentedFace(event.unit);
+      this.showWatchPanel(battleReport.faction(unit.player) + " selected", "<div class='war-verb'>" +
+        unitView.html(unit) + " " + esc(text) + "</div>");
       this.soundMoveEffects(event.effects);
       delay = 900;
     }

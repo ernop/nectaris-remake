@@ -286,18 +286,37 @@ var AI_SEARCH = (function () {
       }catch(e){worker=null;}
     }
     function destroy(){ended=true;if(worker)worker.terminate();worker=null;if(timer!==null)clearTimeout(timer);}
+    // Watched turns apply a whole action, then search the resulting position
+    // while the UI is still showing that action. Synchronous callers still
+    // receive one mutation per next(), so a cutoff cannot score an unshown roll.
+    var queued=[];
+    function startSearch(){
+      if(ended||!async||pending||answer||game.winner!==null||game.currentPlayer!==player)return;
+      pending=true;sequence++;
+      if(worker)worker.postMessage({sequence:sequence,state:publicSnapshot(game),id:id,options:options.search});
+      else fallback();
+    }
     return {
-      stats: function(){return ctx.stats;}, destroy:destroy,
+      stats: function(){return ctx.stats;}, searching:function(){return pending&&!ended;}, destroy:destroy,
       next:function(){
         if(error){var err=error;destroy();throw err;}
-        while(!ended && game.winner===null && game.currentPlayer===player){
-          if(active){var event=active.next();if(!event.done)return event.value;active=null;ctx.analysis.delete(game);}
-          if(answer){var action=answer;answer=null;if(action.kind==="end"){destroy();return null;}active=model.execute(game,action,ctx);continue;}
+        while(!ended){
+          if(queued.length)return queued.shift();
+          if(game.winner!==null||game.currentPlayer!==player)break;
+          if(active){var event=active.next();if(!event.done)return event.value;active=null;ctx.analysis.delete(game);continue;}
+          if(answer){
+            var action=answer;answer=null;
+            if(action.kind==="end"){destroy();return null;}
+            if(!async){active=model.execute(game,action,ctx);continue;}
+            var produced=model.execute(game,action,ctx),step;
+            while(!(step=produced.next()).done)queued.push(step.value);
+            ctx.analysis.delete(game);
+            startSearch();
+            continue;
+          }
           if(pending)return {t:"thinking"};
           if(!async){answer=choose(game,id,options.search,ctx);continue;}
-          pending=true;sequence++;
-          if(worker)worker.postMessage({sequence:sequence,state:publicSnapshot(game),id:id,options:options.search});
-          else fallback();
+          startSearch();
           return {t:"thinking"};
         }
         destroy();return null;
