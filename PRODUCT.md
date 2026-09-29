@@ -385,10 +385,18 @@ The user asked for sound effects "in a really great way", music excluded, with a
 - **Claude Fable 5.1 — Helmet radio (user request, 2026-09-29).**
   `js/sfx-bank-fable.js`. The war is heard from inside a sealed lunar vehicle,
   because vacuum carries nothing: the low end comes through the ground on a
-  seismic bus (low-passed near 220 Hz, a 0.4 s hull resonance instead of a
-  hall), and everything else over the squad radio on a voice-band bus (320 to
-  3000 Hz, tanh soft clipping, a compressor acting as automatic gain control
-  so a loud shot pumps the channel). Transmissions open with a keying click
+  hull bus (low-passed near 520 Hz with a resonant bump at 95 Hz, tanh
+  saturation so the drops grow harmonics small speakers can carry, a 0.45 s
+  hull ring instead of a hall), and everything else over the squad radio on a
+  voice-band bus (250 to 3400 Hz, soft clipping, a compressor acting as
+  automatic gain control so a loud shot pumps the channel). Every impact
+  stacks a pitched sub drop, a saturated pulse-wave mid punch and a knock of
+  band-passed noise. Voices are 32-step 5-bit wavetables, the PC Engine's
+  instrument format, turned into their 16 harmonics through `PeriodicWave`
+  (reed, quarter pulse, bell, bass); chimes are two reeds detuned 14 cents
+  apart over a wavetable bass on the hull bus. The user's 2026-09-29 revision
+  request: keep the "beeps & boops" but make them meatier, since the TG-16's
+  hardware was capable. Transmissions open with a keying click
   and close with a squelch tail. Turn start is a 250 ms 2525 Hz key-down tone
   and End Turn a 250 ms 2475 Hz release tone, the Quindar tone frequencies
   documented for the Apollo ground network; the combat board's machine ticks
@@ -396,7 +404,7 @@ The user asked for sound effects "in a really great way", music excluded, with a
   climbing with each machine) and supporters are three-bit data bursts; deny
   is the 480 + 620 Hz busy signal. An explosion's ground shock arrives before
   its radio blast, and a destroyed squad's carrier drops out with a squelch.
-  Air units make no ground sound. Chimes use E natural minor, the
+  Air units reach the hull only as a faint exhaust rumble. Chimes use E natural minor, the
   soundtrack's key. The bank needs `d.audio()` from `SFX`'s bank dependencies
   (context, master, room), read at cue time because a bank is built before the
   context exists; it throws if that is missing. Not yet listened to.
