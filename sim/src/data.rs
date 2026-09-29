@@ -179,6 +179,11 @@ pub struct Tables {
     pub building_cells: Vec<usize>,
     /// Per unit type: the cost to enter each cell, -1 where it cannot.
     pub step: Vec<Vec<i32>>,
+    /// Per unit type: the smallest cost to enter any cell, at most 1
+    /// (`reachOf`'s divisor).
+    pub min_step: Vec<i32>,
+    /// Per unit type: the largest cost to enter any cell, 0 if none can be entered.
+    pub max_step: Vec<i32>,
     /// Cells whose terrain takes all remaining movement (valleys).
     pub drains: Vec<bool>,
 }
@@ -219,9 +224,11 @@ impl Tables {
                 building_cells.push(at);
             }
         }
-        let step = types.iter().map(|t| cells.iter().map(|&c| terrain_cost_of(terrain, c, t).unwrap_or(-1)).collect()).collect();
+        let step: Vec<Vec<i32>> = types.iter().map(|t| cells.iter().map(|&c| terrain_cost_of(terrain, c, t).unwrap_or(-1)).collect()).collect();
+        let min_step = step.iter().map(|s| s.iter().copied().filter(|&c| c >= 0).fold(1, i32::min)).collect();
+        let max_step = step.iter().map(|s| s.iter().copied().fold(0, i32::max)).collect();
         let drains = cells.iter().map(|&c| terrain[c].costs_all_movement).collect();
-        Tables { w, h, cells, neighbors, building_at, building_cells, step, drains }
+        Tables { w, h, cells, neighbors, building_at, building_cells, step, min_step, max_step, drains }
     }
 }
 

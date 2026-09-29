@@ -244,48 +244,71 @@ fn full_value(g: &Game, u: usize) -> f64 {
     value_at(g, g.typ(u), g.d.combat.max_strength, g.units[u].exp)
 }
 
-fn step_costs(g: &Game, t: &UnitType) -> Vec<i32> {
-    g.cells.iter().map(|&terrain| g.d.terrain_cost(terrain, t).unwrap_or(-1)).collect()
-}
 fn neighbor_cells<'a>(g: &'a Game<'_>, cell: usize) -> impl Iterator<Item = usize> + 'a {
     let (col, row) = (cell as i32 % g.w, cell as i32 / g.w);
     hex::neighbors(col, row).into_iter().filter(|&(c, r)| g.in_bounds(c, r)).map(|(c, r)| g.cell(c, r))
 }
 
+thread_local! {
+    /// `distances`' working distances and bucket queue, reused between calls.
+    static ROUTE_SCRATCH: std::cell::RefCell<(Vec<u32>, Vec<Vec<u32>>)> = const { std::cell::RefCell::new((Vec::new(), Vec::new())) };
+}
+
 /// Reverse multi-source walking distances to the goals over chassis terrain.
+/// JavaScript runs a float cost queue; every step costs a whole number, so the
+/// distances are whole numbers, and shortest distances do not depend on the
+/// order equal costs leave the queue. A bucket queue on integers gives the
+/// same values.
 fn distances(g: &Game, t_index: usize, goals: &[(i32, i32)], ctx: &mut Ctx) -> Rc<Vec<f64>> {
     if let Some(f) = ctx.routes.get(&t_index).and_then(|m| m.get(goals)) {
         return f.clone();
     }
     let t = &g.d.types[t_index];
-    let costs = step_costs(g, t);
+    let costs = &g.tables.step[t_index];
     let air = is_air_type(t);
-    let mut result = vec![f64::INFINITY; g.cells.len()];
-    let mut open = CostQueue::default();
-    for &(c, r) in goals {
-        if !g.in_bounds(c, r) || costs[g.cell(c, r)] < 0 {
-            continue;
+    let drain = t.mv.max(1) as u32;
+    let result = ROUTE_SCRATCH.with(|scratch| {
+        let (dist, buckets) = &mut *scratch.borrow_mut();
+        dist.clear();
+        dist.resize(costs.len(), u32::MAX);
+        let widest = (g.tables.max_step[t_index] as u32).max(if air { 0 } else { drain });
+        let span = widest as usize + 1;
+        if buckets.len() < span {
+            buckets.resize_with(span, Vec::new);
         }
-        let at = g.cell(c, r);
-        result[at] = 0.0;
-        open.push(0.0, at);
-    }
-    while let Some((cost, c)) = open.pop() {
-        if cost != result[c] {
-            continue;
-        }
-        let step = if g.d.terrain[g.cells[c]].costs_all_movement && !air { f64::from(t.mv.max(1)) } else { f64::from(costs[c]) };
-        for n in neighbor_cells(g, c) {
-            if costs[n] < 0 {
+        let mut pending = 0usize;
+        for &(c, r) in goals {
+            if !g.in_bounds(c, r) || costs[g.cell(c, r)] < 0 {
                 continue;
             }
-            let next = cost + step;
-            if next < result[n] {
-                result[n] = next;
-                open.push(next, n);
-            }
+            let at = g.cell(c, r);
+            dist[at] = 0;
+            buckets[0].push(at as u32);
+            pending += 1;
         }
-    }
+        let mut cost = 0u32;
+        while pending > 0 {
+            let bucket = cost as usize % span;
+            while let Some(c) = buckets[bucket].pop() {
+                pending -= 1;
+                let c = c as usize;
+                if dist[c] != cost {
+                    continue;
+                }
+                let next = cost + if !air && g.tables.drains[c] { drain } else { costs[c] as u32 };
+                for &n in &g.tables.neighbors[6 * c..6 * c + 6] {
+                    if n < 0 || costs[n as usize] < 0 || next >= dist[n as usize] {
+                        continue;
+                    }
+                    dist[n as usize] = next;
+                    buckets[next as usize % span].push(n as u32);
+                    pending += 1;
+                }
+            }
+            cost += 1;
+        }
+        dist.iter().map(|&d| if d == u32::MAX { f64::INFINITY } else { f64::from(d) }).collect::<Vec<f64>>()
+    });
     if ctx.route_count > 4096 {
         ctx.routes.clear();
         ctx.route_count = 0;
@@ -480,7 +503,7 @@ fn offsets(ctx: &mut Ctx, min: i32, max: i32, parity: i32) -> Rc<Vec<(i32, i32)>
 
 /// Most hexes the chassis crosses on a full budget (`reachOf`).
 fn reach_of(g: &Game, t_index: usize) -> i32 {
-    let min = g.tables.step[t_index].iter().copied().filter(|&c| c >= 0).fold(1, i32::min);
+    let min = g.tables.min_step[t_index];
     if min > 0 {
         g.d.types[t_index].mv / min
     } else {
@@ -503,7 +526,7 @@ fn stop_key(g: &Game, e: usize, sig: &mut Vec<i32>) {
 /// budget.
 fn search_key(g: &Game, u: usize, mp: i32, sig: &mut Vec<i32>) {
     let x = &g.units[u];
-    let min = g.tables.step[x.t].iter().copied().filter(|&c| c >= 0).fold(1, i32::min);
+    let min = g.tables.min_step[x.t];
     let reach = if min > 0 { mp / min } else { i32::MAX / 4 };
     sig.clear();
     sig.extend([g.cell(x.col, x.row) as i32, x.t as i32, x.player, x.cargo.len() as i32, mp, -3]);
