@@ -358,6 +358,33 @@ command against today's engine"):**
   5. Bots read the engine's kept searches in place of their own search
      caches where the keys agree.
 
+**Match verdicts (user, 2026-09-29: "Match verdicts: seat-paired scoring plus
+stop-when-decided tests, for every bot change"):**
+- **Question answered:** is A at least `elo1` stronger than B (H1), or at
+  most `elo0` stronger (H0)? The error rates are `alpha` (calling A stronger
+  when it is not) and `beta` (missing a real gain), 5% each by default.
+- **Pairs:** each pair plays one board twice with the same dice, A as Union
+  and then A as Xenon (the lab's pairing, `tournament::seed_for`). A's
+  average score over the two games, 0, 1/4, 1/2, 3/4 or 1, is one
+  observation.
+  - Scoring pairs cancels the seat advantage. In Tactical against Classic,
+    38 of 64 pairs split 1–1: the seat decided those boards, and they count
+    as no evidence.
+- **Test:** the pentanomial sequential probability ratio test that chess
+  engine testing uses, in its normal approximation.
+  - It runs on batches of 32 pairs, so a seed always stops at the same pair,
+    and gives no verdict before 64 pairs.
+  - It reports the Elo difference with a 95% range, each seat's
+    wins-draws-losses, and how the games ended.
+- **Use:** `cd sim && cargo run --release --bin verdict -- --a=SPEC --b=SPEC
+  [--elo0=0] [--elo1=20] [--boards=…] [--seed=…] [--threads=N]`. A spec is
+  anything `lab::make_player` accepts.
+- **Checks:**
+  - Tactical against Classic: "stronger than +50" after 64 pairs, +112 Elo
+    [+62, +168].
+  - Tactical against itself: "not stronger" after 64 pairs. Every pair is
+    1–1, because the two games are the same game with the seats mirrored.
+
 **Phase 5, the self-play runner (done 2026-09-27):**
 - `nectaris-sim tournament` plays `run.cjs` tournaments on every thread. The
   same settings give the same fixtures, seeds and seats.

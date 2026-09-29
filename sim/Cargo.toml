@@ -3,6 +3,7 @@ name = "nectaris-sim"
 version = "0.1.0"
 edition = "2021"
 publish = false
+default-run = "nectaris-sim"
 description = "Fast Nectaris rules and bots, locked to the JavaScript game by test/fixtures/sim-corpus.json.gz"
 
 [dependencies]

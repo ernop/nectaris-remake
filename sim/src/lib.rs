@@ -17,3 +17,4 @@ pub mod play;
 pub mod rng;
 pub mod search;
 pub mod tournament;
+pub mod verdict;

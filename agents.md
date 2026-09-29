@@ -91,6 +91,12 @@ Facts we need across sessions:
   - A deliberate rule or AI change runs `node tools/sim/regenerate-lock.cjs`
     and updates the Rust simulator to match in the same change.
   - `tools/sim/state-hash.cjs` defines the state fingerprint both sides compute.
+  - **Judging a bot change (user, 2026-09-29: "match verdicts ... for every
+    bot change"):** `cd sim && cargo run --release --bin verdict --
+    --a=NEW --b=OLD --boards=…` plays seat-swapped pairs on boards not used
+    to tune the change and stops when its sequential test decides. A change
+    counts as stronger only on a "IS at least … stronger" verdict; state the
+    Elo range with it. Details: AI_TRAINING_PLAN.md, "Match verdicts".
   - **Fair dice (user, 2026-09-28):** a match rolls ChaCha20 dice keyed by a
     256-bit seed. The seed is fresh from the operating system when none is
     given, and a given seed is stretched with SHA-256. Only the engine's

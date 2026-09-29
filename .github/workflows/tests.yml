@@ -17,7 +17,7 @@ jobs:
         run: node test/tournament-runner-tests.cjs
       - name: Rust simulator replays the behaviour lock and its bots decide alike
         working-directory: sim
-        run: cargo run --release --locked -- replay && cargo run --release --locked -- decide --verify-caches
+        run: cargo test --release --locked && cargo run --release --locked -- replay && cargo run --release --locked -- decide --verify-caches
       - name: A Rust-played tournament passes the JavaScript import check
         working-directory: sim
         run: >-
