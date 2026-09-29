@@ -181,8 +181,11 @@ games:
 for evaluating, developing and training many kinds of AI players, not only
 today's five bots. "As long as they are done in a principled and maintainable
 way, we should make the best and fastest game player system we have." Speed
-work therefore uses only caches keyed on what JavaScript already defines (its
-`signature` and `stopSignature`), never hand-kept dependency lists.
+work therefore keys caches on what JavaScript already defines (its
+`signature` and `stopSignature`), never on hand-kept dependency lists. Since
+2026-09-29 a Rust-only exact speedup is also allowed when CI's
+`--verify-caches` recomputes every answer it reuses and it measures faster
+(fourth step, below).
 - **Engine:** rules, state, commands and fingerprints (`sim/src/game.rs`).
   - `Game::legal_commands` lists every legal command for the side to move in
     a fixed order, identical to JavaScript's `Game.legalCommands()`:
@@ -300,10 +303,22 @@ re-recorded on the new dice, with every cache verified.
     35.1 s → 32.8–33.4 s. Every command identical, and both whole
     tournaments still equal the JavaScript archives.
   - CI keeps checking the plain release build.
-- **Larger step left:** keys on what a movement search actually read,
-  instead of the whole neighbourhood `stopSignature` lists. Many enemy-stop
-  misses change only units the search never reached. This is not a key
-  JavaScript defines, so it needs the user's decision (agents.md rule).
+- **Rust-only speedups (user, 2026-09-29):** allowed when exact, when CI's
+  `--verify-caches` recomputes every reused answer, and when they measure
+  faster.
+- **Enemy stopping cells kept by what their search read, measured and
+  removed (2026-09-29):**
+  - Behind the `stopSignature` cache, each search recorded the cells it
+    examined and what it saw on each (occupant, enemy zone, building owner).
+    A later miss reused an earlier search from the same origin whose
+    observations all still held.
+  - It was exact on every gate. 37% of the stop-key misses (109,000 of
+    292,794 on the sample) found such a search.
+  - It was 5% slower (9.09 s against 8.64 s). A search reads about 178
+    cells, and a lookup checked about six remembered searches, so checking
+    cost more than the searches it saved.
+  - Keeping occupancy and zones as engine bitsets might make the checks cheap
+    enough for 1–2%, not enough for the added engine state.
 
 **Phase 5, the self-play runner (done 2026-09-27):**
 - `nectaris-sim tournament` plays `run.cjs` tournaments on every thread. The

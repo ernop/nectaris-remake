@@ -75,7 +75,8 @@
     <li>skipping distant enemies in the threat map, and reusing the previous threat map;</li>
     <li>smaller caches, and keeping the caches for a whole game instead of a turn (4% slower);</li>
     <li>looking up position values by distance instead of dividing;</li>
-    <li>compiling for this CPU's full instruction set, and keys that carry their own hash (under 1% each).</li>
+    <li>compiling for this CPU's full instruction set, and keys that carry their own hash (under 1% each);</li>
+    <li>reusing an enemy's movement search while the hexes it read are unchanged (5% slower).</li>
   </ul>
 </section>
 
@@ -95,7 +96,7 @@
       <tr><td>Hashing cache keys</td><td class="num">7% of all time</td></tr>
     </tbody>
   </table></div>
-  <p class="note">The largest cost left is movement searches, half of them for enemies' stopping cells. 61% of those lookups miss the cache, because the key lists every unit near the enemy, including units the search never reaches. A key made of what each search read would avoid many of those misses. The JavaScript does not define such a key, so it waits for a decision: the simulator caches only on keys the JavaScript already defines, so that a future AI change stays simple to mirror in both versions.</p>
+  <p class="note">The largest cost left is movement searches, half of them for enemies' stopping cells. 61% of those lookups miss the cache, because the key lists every unit near the enemy, including units the search never reaches. A version that remembered what each search had read was tried on 29 September. It turned 37% of those misses into reuse, but checking the roughly 178 hexes a search reads cost more than the searches it saved, and it was 5% slower.</p>
 </section>
 
 <section aria-labelledby="turn-title">

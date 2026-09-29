@@ -71,10 +71,12 @@ Facts we need across sessions:
     terms of perf/levels/etc."): every bot, level and budget in both, playing
     identically. Rust speed target: about 1000× one JavaScript thread, using
     every thread here.
-  - Speed work must keep the corpus passing unchanged, and may cache only on
-    keys JavaScript already defines (`signature`, `stopSignature`), never
+  - Speed work must keep the corpus passing unchanged, and caches key on
+    what JavaScript already defines (`signature`, `stopSignature`), never on
     hand-kept dependency lists (user, 2026-09-28: "principled and
-    maintainable"). Profile with `tools/sim/gdb-profile.py` and
+    maintainable"). A Rust-only exact speedup that JavaScript lacks is
+    allowed when every answer it reuses is recomputed by `--verify-caches` in
+    CI and it measures faster (user, 2026-09-29). Profile with `tools/sim/gdb-profile.py` and
     `tools/sim/profile-report.py`: `perf` is not allowed on this machine.
     Time a change against the build before it, alternating runs, and keep
     only what measures faster. Long runs on this machine use the
