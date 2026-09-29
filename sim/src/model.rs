@@ -143,7 +143,7 @@ pub struct Ctx {
     searches: FastMap<Vec<i32>, Rc<Vec<Rec>>>,
     /// Reused buffers for `unit_actions`.
     foes: Vec<usize>,
-    fire_from: Vec<u8>,
+    fire_from: Vec<u64>,
     /// Each unit's last threatened-hex key and result, by unit index and
     /// domain, checked before the map.
     last_covered: Vec<[Option<(Vec<i32>, Rc<Vec<u64>>)>; 2]>,
@@ -1045,21 +1045,48 @@ struct Origin {
     support: f64,
     def: i32,
 }
-fn origin_terms(g: &Game, u: usize, targets: &[Target], info: &Info) -> Origin {
+/// One unit's `potential` and `danger` over the many cells it scores, with
+/// the unit's full value computed once.
+struct Scorer<'t> {
+    targets: &'t [Target],
+    mv: i32,
+    full: f64,
+}
+impl<'t> Scorer<'t> {
+    fn new(g: &Game, u: usize, targets: &'t [Target]) -> Scorer<'t> {
+        Scorer { targets, mv: g.typ(u).mv, full: full_value(g, u) }
+    }
+    fn potential(&self, g: &Game, col: i32, row: i32) -> f64 {
+        potential(g, self.mv, self.targets, col, row)
+    }
+    /// `danger(g, u, col, row, info)`.
+    fn danger(&self, g: &Game, u: usize, col: i32, row: i32, info: &Info) -> f64 {
+        let unit = &g.units[u];
+        assert_eq!(1 - unit.player, info.threat_player, "danger is only known for the side to move");
+        let t = g.typ(u);
+        let air = is_air_type(t);
+        let defense = (t.def + if air { 0 } else { g.terrain_at(col, row).def }).min(100);
+        let power = info.threat[usize::from(air)][g.cell(col, row)];
+        let losses = f64::from(unit.strength).min(power * f64::from(100 - defense) / 100.0 * 0.085);
+        self.full * losses / 8.0
+    }
+}
+
+fn origin_terms(g: &Game, u: usize, scorer: &Scorer, info: &Info) -> Origin {
     let x = &g.units[u];
     Origin {
-        potential: potential(g, g.typ(u).mv, targets, x.col, x.row),
-        danger: danger(g, u, x.col, x.row, info),
+        potential: scorer.potential(g, x.col, x.row),
+        danger: scorer.danger(g, u, x.col, x.row, info),
         support: support_score(g, u, x.col, x.row, info),
         def: g.terrain_at(x.col, x.row).def,
     }
 }
 
-fn score_position(g: &Game, u: usize, rec: &Rec, targets: &[Target], info: &Info, o: &Origin) -> f64 {
+fn score_position(g: &Game, u: usize, rec: &Rec, scorer: &Scorer, info: &Info, o: &Origin) -> f64 {
     let x = &g.units[u];
     let t = g.typ(u);
-    let mut score = potential(g, t.mv, targets, rec.col, rec.row) - o.potential;
-    score += (o.danger - danger(g, u, rec.col, rec.row, info)) * 0.6;
+    let mut score = scorer.potential(g, rec.col, rec.row) - o.potential;
+    score += (o.danger - scorer.danger(g, u, rec.col, rec.row, info)) * 0.6;
     if !is_air_type(t) {
         score += f64::from(g.terrain_at(rec.col, rec.row).def - o.def) * 0.1;
     }
@@ -1175,11 +1202,24 @@ pub fn unit_actions(g: &mut Game, u: usize, ctx: &mut Ctx, info: &Info, limit: u
         let o = &g.units[e];
         o.player != player && o.carried_by == 0 && !o.in_factory
     }));
+    // `attackCells`: the hexes within the unit's band around any foe.
+    let words = g.cells.len().div_ceil(64);
     let mut fire_from = std::mem::take(&mut ctx.fire_from);
-    g.attack_cells_into(u, &foes, &mut fire_from);
+    fire_from.clear();
+    fire_from.resize(words, 0);
+    let bands = [false, true].map(|air| range_band(g.typ(u), air).map(|band| band_masks(g, band)));
+    for &e in &foes {
+        if let Some(masks) = &bands[usize::from(g.is_air(e))] {
+            let at = g.cell(g.units[e].col, g.units[e].row);
+            for (f, m) in fire_from.iter_mut().zip(&masks[at * words..(at + 1) * words]) {
+                *f |= m;
+            }
+        }
+    }
     ctx.foes = foes;
     let (mv, move_or_fire) = (g.typ(u).mv, g.typ(u).move_or_fire);
-    let here = origin_terms(g, u, &targets, info);
+    let scorer = Scorer::new(g, u, &targets);
+    let here = origin_terms(g, u, &scorer, info);
     let carried_here: Vec<f64> = cargo_plans.iter().map(|(_, plans)| delivery_value(g, plans, origin.0, origin.1, None)).collect();
     for rec in recs.iter().filter(|r| r.can_stop()) {
         let moved = (rec.col, rec.row) != origin;
@@ -1190,11 +1230,12 @@ pub fn unit_actions(g: &mut Game, u: usize, ctx: &mut Ctx, info: &Info, limit: u
             add(&mut actions, base, f64::from(speed.max(0)) * 1.2 + if here.potential < 1.0 { 12.0 } else { 0.0 } - 5.0);
             continue;
         }
-        let mut score = score_position(g, u, rec, &targets, info, &here);
+        let mut score = score_position(g, u, rec, &scorer, info, &here);
         for (i, (_, plans)) in cargo_plans.iter().enumerate() {
             score += (delivery_value(g, plans, rec.col, rec.row, None) - carried_here[i]) * 1.4;
         }
-        let can_fire = !rec.enter() && fire_from[g.cell(rec.col, rec.row)] == 1;
+        let cell = g.cell(rec.col, rec.row);
+        let can_fire = !rec.enter() && fire_from[cell / 64] >> (cell % 64) & 1 == 1;
         if rec.enter() || (!can_fire && cargo_plans.is_empty()) {
             add(&mut actions, base, score);
             continue;
@@ -1389,13 +1430,14 @@ fn retreat(g: &Game, u: usize, ctx: &mut Ctx) -> Option<(i32, i32)> {
     }
     let info = analysis(g, ctx);
     let goals = objectives(g, u, ctx);
-    let here = origin_terms(g, u, &goals, &info);
+    let scorer = Scorer::new(g, u, &goals);
+    let here = origin_terms(g, u, &scorer, &info);
     let (mut best, mut score) = (None, 0.0);
     for rec in records(g, &g.search_moves(u, None)) {
         if !rec.can_stop() || rec.load() || rec.cost == 0 {
             continue;
         }
-        let s = score_position(g, u, &rec, &goals, &info, &here);
+        let s = score_position(g, u, &rec, &scorer, &info, &here);
         if s > score {
             score = s;
             best = Some((rec.col, rec.row));

@@ -598,15 +598,8 @@ impl<'d> Game<'d> {
 
     /// `attackCells`: cells from which the unit could fire on one of `among`.
     pub fn attack_cells(&self, u: usize, among: &[usize]) -> Vec<u8> {
-        let mut cells = Vec::new();
-        self.attack_cells_into(u, among, &mut cells);
-        cells
-    }
-    /// `attackCells` into a reused buffer.
-    pub fn attack_cells_into(&self, u: usize, among: &[usize], cells: &mut Vec<u8>) {
         let (w, h) = (self.w, self.h);
-        cells.clear();
-        cells.resize((w * h) as usize, 0);
+        let mut cells = vec![0; (w * h) as usize];
         let t = self.typ(u);
         for &e in among {
             let o = &self.units[e];
@@ -623,6 +616,7 @@ impl<'d> Game<'d> {
                 }
             }
         }
+        cells
     }
 
     pub fn attack_targets(&self, u: usize) -> Vec<usize> {
