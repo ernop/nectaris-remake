@@ -78,7 +78,7 @@ impl Player for Search {
 pub fn bot(id: &str, work: &str) -> Box<dyn Player> {
     match id {
         "classic" => Box::new(Classic),
-        "tactical" | "beam" | "monte-carlo" | "apex" => Box::new(Search { id: id.into(), work: work.into() }),
+        "tactical" | "beam" | "monte-carlo" | "apex" | "marshal" => Box::new(Search { id: id.into(), work: work.into() }),
         other => panic!("Unknown AI opponent: {other}"),
     }
 }

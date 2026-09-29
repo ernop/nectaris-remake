@@ -74,6 +74,6 @@ module.exports = function (ok) {
       }
     }
   });
-  ok(decided.length === 3 && !changed, "the recorded bots choose every recorded command again (" +
+  ok(decided.length === 4 && !changed, "the recorded bots choose every recorded command again (" +
     decided.map(function (g) { return g.players.join(" v "); }).join(", ") + ")" + (changed ? ": " + changed : ""));
 };

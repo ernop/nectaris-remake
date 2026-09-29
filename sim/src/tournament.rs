@@ -11,7 +11,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::sync::Mutex;
 use std::time::Instant;
 
-pub const OPPONENTS: [&str; 5] = ["classic", "tactical", "beam", "monte-carlo", "apex"];
+pub const OPPONENTS: [&str; 6] = ["classic", "tactical", "beam", "monte-carlo", "apex", "marshal"];
 
 pub struct Config {
     pub opponents: Vec<String>,

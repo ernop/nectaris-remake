@@ -7,7 +7,7 @@ that document remains the historical analysis and research bibliography.
 
 ## Playing
 
-The menu's **AI** setting offers five policies. A new match defaults to
+The menu's **AI** setting offers six policies (Marshal added 2026-09-29; see [BOTS.md](BOTS.md)). A new match defaults to
 **Classic** unless another choice was saved (2026-09-27; previously Apex). A saved match without this field is
 refused as an older format (2026-09-26). The opponent is fixed for the whole match (user
 instruction, 2026-09-26); the match panel names it. The choice is recorded with
@@ -20,6 +20,7 @@ the match history.
 | Sequence | Beam search over activation sequences, transposition deduplication and short enemy continuations | Medium |
 | Simulation | Chance-sampled Monte Carlo tree search, UCB selection, progressive widening and adversarial continuations | Higher |
 | Apex | Wider beam search guides MCTS; a portfolio of resulting actions receives common-seed, full-turn rollout verification | Highest |
+| Marshal | Apex search with evaluation weights tuned by self-play, separately for Union and Xenon ([BOTS.md](BOTS.md)) | Same as Apex |
 
 These are increasing algorithmic sophistication, not a mathematical guarantee
 that each beats its predecessor on every board. Classic remains a useful

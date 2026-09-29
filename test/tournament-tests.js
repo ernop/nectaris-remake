@@ -3,7 +3,8 @@ module.exports=function(ok){
   var T=require("../js/ai-tournament.js"),S=require("../js/ai-search.js"),M=require("../js/ai-model.js"),E=require("../js/engine.js");
   var maps=require("../js/data-maps.js"),tiny={name:"Immediate capture",grid:["B....B","......","......"],buildings:[{col:0,row:0,owner:0},{col:5,row:0,owner:1}],units:[{t:"CHARLIE",o:0,x:4,y:0},{t:"BISON",o:1,x:0,y:2}]};
   var config=T.normalize({opponents:S.modes.map(function(m){return m.id;}),maps:[tiny,maps[0]],cycles:3,workers:2});
-  ok(config.total===120,"round robin schedules all pairs, boards, cycles and both factions");
+  ok(config.total===180,"round robin schedules all pairs, boards, cycles and both factions");
+  ok(S.modes.map(function(m){return m.id;}).join()==="classic,tactical,beam,monte-carlo,apex,marshal","the AI menu offers Classic, Tactical, Sequence, Simulation, Apex and Marshal");
   for(var i=0;i<config.total;i+=2){var a=T.fixture(config,i),b=T.fixture(config,i+1);
     ok(a.seed===b.seed&&a.map===b.map&&a.players[0]===b.players[1]&&a.players[1]===b.players[0],"paired fixtures swap factions and preserve board/seed "+i);
   }

@@ -163,7 +163,7 @@
     recovered.forEach(function(g){pending.set(g.index,g);});run.status="running";sessionBase=run.wallMs||0;sessionStart=Date.now();await store.save(run);
     await flushFinished();if(run.status!=="running")return;
     for(var i=0;i<run.config.workers;i++){
-      var worker=new Worker("js/tournament-worker.js?v=20260928-fair-dice"),slot={worker:worker,job:null,progress:null};pool.push(slot);
+      var worker=new Worker("js/tournament-worker.js?v=20260929-marshal"),slot={worker:worker,job:null,progress:null};pool.push(slot);
       (function(s){worker.onmessage=function(event){var data=event.data;
         if(data.type==="progress"){if(data.index!==s.job)return;s.progress=data.progress;render();return;}
         if(data.type!=="result"||data.result.index!==s.job)return;

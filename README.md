@@ -32,7 +32,8 @@ editor with URL sharing.
 | `js/combat.js` | Recovered per-machine damage and squad-casualty calculation |
 | `js/engine.js` | Game state, movement/ZOC, actions, victory |
 | `js/ai.js` | Computer opponent |
-| [AI_OPPONENTS.md](AI_OPPONENTS.md) | Five opponent algorithms, custom capability support, tournament instructions and strength limits |
+| [AI_OPPONENTS.md](AI_OPPONENTS.md) | Six opponent algorithms, custom capability support, tournament instructions and strength limits |
+| [BOTS.md](BOTS.md) | Bot identity (Classic vs the original CPU, other versions), the Marshal bot and its measurements, and the design-only AlphaGo-style plan |
 | `tournaments.html` | Parallel self-play, per-run Elo, saved games and replay viewer |
 | `thanks.html` | Thanks, in English and Japanese, to everyone who made Nectaris and the fans who documented it |
 | [NECTARIS_CREDITS.md](NECTARIS_CREDITS.md) | Research behind the thanks page: every documented person per version, public channels, letter drafts |

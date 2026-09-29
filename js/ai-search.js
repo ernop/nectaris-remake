@@ -11,7 +11,14 @@ var AI_SEARCH = (function () {
     {id:"tactical",label:"Tactical · greedy",description:"Exact combat odds, objectives and threat-aware moves",algorithm:"greedy"},
     {id:"beam",label:"Sequence · beam search",description:"Coordinated activation sequences with enemy replies",algorithm:"beam",width:4,depth:3,branches:5},
     {id:"monte-carlo",label:"Simulation · Monte Carlo",description:"Chance-sampled tree search and adversarial continuations",algorithm:"mcts",iterations:36,horizon:8,branches:10},
-    {id:"apex",label:"Apex · hybrid search",description:"Beam-guided Monte Carlo search with paired full-turn verification",algorithm:"hybrid",width:5,depth:3,branches:12,iterations:64,horizon:12,verification:4}
+    {id:"apex",label:"Apex · hybrid search",description:"Beam-guided Monte Carlo search with paired full-turn verification",algorithm:"hybrid",width:5,depth:3,branches:12,iterations:64,horizon:12,verification:4},
+    // Apex under evaluation weights tuned by self-play, one set per seat (BOTS.md);
+    // sim/src/marshal.rs holds the same numbers.
+    {id:"marshal",label:"Marshal · tuned hybrid",description:"Apex search with self-play-tuned evaluation weights for each side",algorithm:"hybrid",width:5,depth:3,branches:12,iterations:64,horizon:12,verification:4,
+      weights:[{early:Object.assign({},model.SHIPPED_WEIGHTS,{danger:0.54,dangerScale:0.051,advance:1.5,terrain:0.06,baseWorth:240}),
+          late:Object.assign({},model.SHIPPED_WEIGHTS,{danger:0.54,dangerScale:0.051,advance:1.5,terrain:0.06,baseWorth:240})},
+        {early:Object.assign({},model.SHIPPED_WEIGHTS,{dangerScale:0.051,advance:0.6,moveCost:0.21,huntWorth:39,support:1.5}),
+          late:Object.assign({},model.SHIPPED_WEIGHTS,{dangerScale:0.051,advance:0.6,moveCost:0.21,huntWorth:39,support:1.5})}]}
   ];
   function get(id) {
     var mode = modes.find(function (m) { return m.id===id; });
@@ -206,6 +213,8 @@ var AI_SEARCH = (function () {
 
   function* decide(game,id,options,shared) {
     var config=Object.assign({},get(id),options||{}), ctx=shared||model.context(game);
+    // Every decision names its weights, so an abandoned search cannot leak its set into the next.
+    model.setWeights(config.weights?model.weightsAt(config.weights[game.currentPlayer],model.clock(game.turn,game.turnLimit)):model.SHIPPED_WEIGHTS);
     var rootGame=model.clone(game,0), rng=combat.makeRng(model.seedFor(game));
     model.prepareEvaluation(rootGame,ctx);
     var actions=shortlist(rootGame,ctx,config.algorithm==="greedy"?24:32,0);
@@ -276,7 +285,7 @@ var AI_SEARCH = (function () {
     }
     if(async&&typeof Worker!=="undefined"){
       try{
-        worker=new Worker("js/ai-worker.js?v=20260928-fair-dice");
+        worker=new Worker("js/ai-worker.js?v=20260929-marshal");
         worker.onmessage=function(e){
           if(ended||e.data.sequence!==sequence)return;
           if(e.data.error){error=new Error(e.data.error);pending=false;return;}

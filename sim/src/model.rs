@@ -59,6 +59,46 @@ impl Weights {
         hunt_worth: 65.0,
     };
 }
+/// A seat's weights at the start of the game and at the turn limit.
+#[derive(Clone, Copy, Debug)]
+pub struct Profile {
+    pub early: Weights,
+    pub late: Weights,
+}
+impl Profile {
+    pub const SHIPPED: Profile = Profile { early: Weights::SHIPPED, late: Weights::SHIPPED };
+    /// Same weights all game.
+    pub const fn fixed(w: Weights) -> Profile {
+        Profile { early: w, late: w }
+    }
+    /// The weights `t` of the way from early to late (`t` in 0..=1).
+    pub fn at(&self, t: f64) -> Weights {
+        let (a, b) = (&self.early, &self.late);
+        let mix = |x: f64, y: f64| x + (y - x) * t;
+        Weights {
+            danger: mix(a.danger, b.danger),
+            danger_scale: mix(a.danger_scale, b.danger_scale),
+            advance: mix(a.advance, b.advance),
+            terrain: mix(a.terrain, b.terrain),
+            support: mix(a.support, b.support),
+            move_cost: mix(a.move_cost, b.move_cost),
+            trade_out: mix(a.trade_out, b.trade_out),
+            trade_in: mix(a.trade_in, b.trade_in),
+            kill: mix(a.kill, b.kill),
+            death: mix(a.death, b.death),
+            base_worth: mix(a.base_worth, b.base_worth),
+            hunt_worth: mix(a.hunt_worth, b.hunt_worth),
+        }
+    }
+}
+/// How far the game has run toward its turn limit, 0 at turn 1 and 1 at the
+/// limit (js/ai-search.js `clock`).
+pub fn clock(turn: i32, limit: i32) -> f64 {
+    if limit <= 1 {
+        return 1.0;
+    }
+    (f64::from(turn - 1) / f64::from(limit - 1)).clamp(0.0, 1.0)
+}
 thread_local! {
     static WEIGHTS: std::cell::Cell<Weights> = const { std::cell::Cell::new(Weights::SHIPPED) };
 }

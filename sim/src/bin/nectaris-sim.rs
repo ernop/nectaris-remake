@@ -91,6 +91,13 @@ fn turn_time(flags: &HashMap<String, String>) -> Result<(), String> {
 fn board_list(data: &Data, spec: &str) -> Result<Vec<usize>, String> {
     match spec {
         "all" => Ok((0..data.boards.len()).collect()),
+        set if set.starts_with("set:") => {
+            let name = &set[4..];
+            let text = std::fs::read_to_string(repo().join("sim/data/board-sets.json")).map_err(|e| format!("sim/data/board-sets.json: {e}; run tools/sim/board-survey.py"))?;
+            let json: serde_json::Value = serde_json::from_str(&text).map_err(|e| format!("sim/data/board-sets.json: {e}"))?;
+            let list = json["sets"][name].as_array().ok_or(format!("--boards=set:{name}: no such set (train, validation, test)"))?;
+            Ok(list.iter().map(|v| v.as_u64().unwrap() as usize).collect())
+        }
         list => list
             .split(',')
             .map(|b| b.parse::<usize>().ok().filter(|&i| i < data.boards.len()).ok_or(format!("--boards: {b} is not a board index from 0 to {}", data.boards.len() - 1)))
@@ -182,7 +189,7 @@ fn tournament_command(flags: &HashMap<String, String>) -> Result<(), String> {
 
 
 fn match_command(flags: &HashMap<String, String>) -> Result<(), String> {
-    let known = ["a", "b", "boards", "cycles", "rounds", "work", "seed", "threads"];
+    let known = ["a", "b", "boards", "cycles", "rounds", "work", "seed", "threads", "per-board"];
     if let Some(k) = flags.keys().find(|k| !known.contains(&k.as_str())) {
         return Err(format!("Unknown option --{k}"));
     }
@@ -218,6 +225,24 @@ fn match_command(flags: &HashMap<String, String>) -> Result<(), String> {
         s.turnlimit,
         s.rounds as f64 / f64::from(s.games)
     );
+    if flags.contains_key("per-board") {
+        println!("board name pairs a_sweeps b_sweeps union_both xenon_both other mean_rounds turnlimit_games");
+        for (i, t) in s.by_board.iter().enumerate() {
+            println!(
+                "{} {} {} {} {} {} {} {} {:.1} {}",
+                boards[i],
+                data.boards[boards[i]].name.replace(' ', "_"),
+                t.pairs,
+                t.a_sweeps,
+                t.b_sweeps,
+                t.union_both,
+                t.xenon_both,
+                t.other,
+                t.rounds as f64 / f64::from(t.pairs.max(1) * 2),
+                t.turnlimit
+            );
+        }
+    }
     Ok(())
 }
 

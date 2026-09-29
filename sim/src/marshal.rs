@@ -1,23 +1,11 @@
-//! Marshal: the laboratory's strongest classical planner (design notes in
-//! BOTS.md). This first version is the greedy planner under its own weights;
-//! later layers are added and measured one at a time.
+//! Marshal: Apex search under evaluation weights tuned by self-play, one set
+//! per seat (js/ai-search.js `marshal` mode holds the same numbers). The
+//! procedure and measurements are in BOTS.md.
 
-use crate::game::Game;
-use crate::model::{self, Weights};
-use crate::play::Player;
+use crate::model::{Profile, Weights};
 
-pub struct Marshal {
-    pub w: [Weights; 2],
-}
-
-impl Player for Marshal {
-    fn play_turn(&mut self, game: &mut Game, side: i32) {
-        let before = model::set_weights(self.w[side as usize]);
-        crate::search::play_turn(game, side, "tactical", "standard");
-        model::set_weights(before);
-    }
-}
-
-pub fn player(spec: &str) -> Result<Box<dyn Player>, String> {
-    Ok(Box::new(Marshal { w: crate::lab::parse_seat_weights(spec)? }))
-}
+/// Union (side 0) and Xenon (side 1).
+pub const SEAT_PROFILES: [Profile; 2] = [
+    Profile::fixed(Weights { danger: 0.54, danger_scale: 0.051, advance: 1.5, terrain: 0.06, base_worth: 240.0, ..Weights::SHIPPED }),
+    Profile::fixed(Weights { danger_scale: 0.051, advance: 0.6, move_cost: 0.21, hunt_worth: 39.0, support: 1.5, ..Weights::SHIPPED }),
+];

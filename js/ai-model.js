@@ -83,6 +83,23 @@ var AI_MODEL = (function () {
     }
     return base;
   }
+  // Numbers the candidate scoring reads. The shipped bots use these defaults;
+  // a mode with its own weights sets them for one decision (sim/src/model.rs
+  // `Weights` holds the same fields and defaults).
+  var SHIPPED_WEIGHTS = {danger:0.6, dangerScale:0.085, advance:1, terrain:0.1, support:1, moveCost:0.35,
+    tradeOut:1, tradeIn:1, kill:1, death:1, baseWorth:160, huntWorth:65};
+  var weights = SHIPPED_WEIGHTS;
+  // Returns the previous weights so the caller can restore them.
+  function setWeights(next) { var previous = weights; weights = next; return previous; }
+  // How far the game has run toward its turn limit: 0 at turn 1, 1 at the limit
+  // (sim/src/model.rs `clock`).
+  function clock(turn, limit) { return limit <= 1 ? 1 : Math.min(1, Math.max(0, (turn - 1) / (limit - 1))); }
+  // A seat's weights `t` of the way from `profile.early` to `profile.late`.
+  function weightsAt(profile, t) {
+    var out = {};
+    Object.keys(SHIPPED_WEIGHTS).forEach(function (k) { out[k] = profile.early[k] + (profile.late[k] - profile.early[k]) * t; });
+    return out;
+  }
   function valueAt(type, strength, exp) {
     return strength <= 0 ? 0 : baseValue(type) * (0.2 + 0.8 * strength / combat.MAX_STRENGTH) *
       (0.75 + 0.25 * combat.EXP_DAMAGE[exp] / 100);
@@ -134,7 +151,7 @@ var AI_MODEL = (function () {
     if (unit.type.capture) {
       Object.values(game.buildings).forEach(function (b) {
         if (b.owner === player) return;
-        var worth = b.kind === "base" ? 160 : 65 + b.stored.reduce(function (s, u) { return s + value(u) * 0.4; }, 0);
+        var worth = b.kind === "base" ? weights.baseWorth : 65 + b.stored.reduce(function (s, u) { return s + value(u) * 0.4; }, 0);
         targets.push({goals: [b], worth: worth});
       });
     }
@@ -149,7 +166,7 @@ var AI_MODEL = (function () {
             if (d >= band.min && d <= band.max && game.canStopAtBuilding(unit, c, r)) goals.push({col:c,row:r});
           }
         }
-        targets.push({goals: goals, worth: (unit.type.capture ? 15 : 65) + value(enemy) * 0.08});
+        targets.push({goals: goals, worth: (unit.type.capture ? 15 : weights.huntWorth) + value(enemy) * 0.08});
       });
     }
     // Defend objectives against any capturing capability, including custom
@@ -341,7 +358,7 @@ var AI_MODEL = (function () {
   function danger(game, unit, col, row, info) {
     var defense = Math.min(100, (unit.type.def || 0) + (combat.isAir(unit) ? 0 : game.terrainAt(col,row).def));
     var power = info.threat[1-unit.player][combat.isAir(unit)?1:0][row*game.width+col];
-    var losses = Math.min(unit.strength, power * (100-defense) / 100 * 0.085);
+    var losses = Math.min(unit.strength, power * (100-defense) / 100 * weights.dangerScale);
     return fullValue(unit) * losses / 8;
   }
   function baseDanger(game, player) {
@@ -414,11 +431,11 @@ var AI_MODEL = (function () {
     return result;
   }
   function scorePosition(game,u,rec,targets,info) {
-    var score = potential(game,u,targets,rec.col,rec.row)-potential(game,u,targets,u.col,u.row);
-    score += (danger(game,u,u.col,u.row,info)-danger(game,u,rec.col,rec.row,info))*0.6;
-    if (!combat.isAir(u)) score += (game.terrainAt(rec.col,rec.row).def-game.terrainAt(u.col,u.row).def)*0.1;
-    score += supportScore(game,u,rec.col,rec.row,info)-supportScore(game,u,u.col,u.row,info);
-    if (rec.cost>0) score-=0.35;
+    var score = (potential(game,u,targets,rec.col,rec.row)-potential(game,u,targets,u.col,u.row))*weights.advance;
+    score += (danger(game,u,u.col,u.row,info)-danger(game,u,rec.col,rec.row,info))*weights.danger;
+    if (!combat.isAir(u)) score += (game.terrainAt(rec.col,rec.row).def-game.terrainAt(u.col,u.row).def)*weights.terrain;
+    score += (supportScore(game,u,rec.col,rec.row,info)-supportScore(game,u,u.col,u.row,info))*weights.support;
+    if (rec.cost>0) score-=weights.moveCost;
     var b=game.buildingAt(rec.col,rec.row);
     if (b && u.type.capture && b.owner!==u.player) {
       if (b.kind==="base" && game.enemyBaseCaptured(u.player,b)) return 1000000;
@@ -434,13 +451,13 @@ var AI_MODEL = (function () {
     return score;
   }
   function tradeScore(game,u,target) {
-    var trade=combat.distribution(game,u,target), out=fullValue(target)*trade.out/8, incoming=fullValue(u)*trade.in_/8;
+    var trade=combat.distribution(game,u,target), out=fullValue(target)*trade.out/8*weights.tradeOut, incoming=fullValue(u)*trade.in_/8*weights.tradeIn;
     // Destroyed squads lose their future repair, cargo and ZOC as well as HP.
     var killValue=25+value(target)*0.2+target.cargo.reduce(function (v,c) {return v+value(c);},0);
     var deathValue=20+value(u)*0.2+u.cargo.reduce(function (v,c) {return v+value(c);},0);
     var emergency=target.type.capture&&Object.values(game.buildings).some(function(b){return b.kind==="base"&&b.owner===u.player&&
       HEX.distance(target.col,target.row,b.col,b.row)<=Math.max(1,target.type.move);});
-    return out-incoming+trade.kill*(killValue+(emergency?500:0))-trade.death*deathValue;
+    return out-incoming+trade.kill*(killValue+(emergency?500:0))*weights.kill-trade.death*deathValue*weights.death;
   }
 
   function unitActions(game,u,ctx,info,limit) {
@@ -658,7 +675,7 @@ var AI_MODEL = (function () {
   // Tests recompute every cached stopping-cell list and throw on any difference.
   function verifyCachedStops(on) { verifyStops = !!on; }
   return {clone:clone,find:find,context:context,prepareEvaluation:prepareEvaluation,value:value,key:key,seedFor:seedFor,signature:signature,
-    verifyCachedStops:verifyCachedStops,
+    verifyCachedStops:verifyCachedStops,setWeights:setWeights,clock:clock,weightsAt:weightsAt,SHIPPED_WEIGHTS:SHIPPED_WEIGHTS,
     candidates:candidates,evaluate:evaluate,simulate:simulate,apply:apply,execute:execute,baseDanger:baseDanger};
 })();
 if(typeof module!=="undefined")module.exports=AI_MODEL;

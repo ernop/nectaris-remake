@@ -26,15 +26,18 @@ pub struct Config {
     pub iterations: usize,
     pub horizon: usize,
     pub verification: usize,
+    /// Scoring weights per seat; `None` is the shipped set.
+    pub weights: Option<[model::Profile; 2]>,
 }
 
 /// `AI_SEARCH.modes` with the tournament's `searchOptions` for the work level.
 pub fn config(id: &str, work: &str) -> Config {
     let base = match id {
-        "tactical" => Config { algorithm: Algorithm::Greedy, width: 0, depth: 0, branches: 0, iterations: 0, horizon: 0, verification: 0 },
-        "beam" => Config { algorithm: Algorithm::Beam, width: 4, depth: 3, branches: 5, iterations: 0, horizon: 0, verification: 0 },
-        "monte-carlo" => Config { algorithm: Algorithm::Mcts, width: 0, depth: 0, branches: 10, iterations: 36, horizon: 8, verification: 0 },
-        "apex" => Config { algorithm: Algorithm::Hybrid, width: 5, depth: 3, branches: 12, iterations: 64, horizon: 12, verification: 4 },
+        "tactical" => Config { algorithm: Algorithm::Greedy, width: 0, depth: 0, branches: 0, iterations: 0, horizon: 0, verification: 0, weights: None },
+        "beam" => Config { algorithm: Algorithm::Beam, width: 4, depth: 3, branches: 5, iterations: 0, horizon: 0, verification: 0, weights: None },
+        "monte-carlo" => Config { algorithm: Algorithm::Mcts, width: 0, depth: 0, branches: 10, iterations: 36, horizon: 8, verification: 0, weights: None },
+        "apex" => Config { algorithm: Algorithm::Hybrid, width: 5, depth: 3, branches: 12, iterations: 64, horizon: 12, verification: 4, weights: None },
+        "marshal" => Config { algorithm: Algorithm::Hybrid, width: 5, depth: 3, branches: 12, iterations: 64, horizon: 12, verification: 4, weights: Some(crate::marshal::SEAT_PROFILES) },
         other => panic!("Unknown AI opponent: {other}"),
     };
     if work == "standard" || id == "tactical" {
@@ -408,7 +411,13 @@ fn verify(g: &Game, actions: [Action; 4], ctx: &mut Ctx, c: &Config, rng: &mut R
 
 /// `AI_SEARCH.decide`: the next action for the side to move.
 pub fn decide(game: &Game, id: &str, work: &str, ctx: &mut Ctx) -> Action {
-    let mut c = config(id, work);
+    decide_with(game, config(id, work), ctx)
+}
+
+/// `decide` under an explicit configuration; sets this thread's scoring
+/// weights for the side to move, as `AI_SEARCH.decide` does.
+pub fn decide_with(game: &Game, mut c: Config, ctx: &mut Ctx) -> Action {
+    model::set_weights(c.weights.map_or(model::Weights::SHIPPED, |p| p[game.current as usize].at(model::clock(game.turn, game.turn_limit))));
     let mut root = game.sim_clone(Dice::look_ahead(0));
     let mut rng = Rng::new(model::seed_for(game));
     model::prepare_evaluation(&root, ctx);
@@ -447,9 +456,13 @@ pub fn decide(game: &Game, id: &str, work: &str, ctx: &mut Ctx) -> Action {
 /// `AI_SEARCH.createTurn` without a worker: decide and execute until the
 /// side has nothing left to do.
 pub fn play_turn(g: &mut Game, player: i32, id: &str, work: &str) {
+    play_turn_with(g, player, &config(id, work));
+}
+
+pub fn play_turn_with(g: &mut Game, player: i32, c: &Config) {
     let mut ctx = Ctx::default();
     while g.winner < 0 && g.current == player {
-        let action = decide(g, id, work, &mut ctx);
+        let action = decide_with(g, c.clone(), &mut ctx);
         if action.kind == Kind::End {
             return;
         }
