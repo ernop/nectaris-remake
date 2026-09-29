@@ -904,7 +904,7 @@ pub fn base_danger(g: &Game, player: i32) -> f64 {
             if !t.capture || hex::distance(g.units[u].col, g.units[u].row, b.col, b.row) > t.mv {
                 continue;
             }
-            let s = g.search_moves_as(u, t.mv, false, Some(at));
+            let s = g.fresh_search(u, Some(at));
             if s.find(at).is_some_and(|(_, f)| f & CAN_STOP != 0) {
                 result = 1800.0;
             }

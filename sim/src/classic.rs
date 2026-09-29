@@ -175,7 +175,7 @@ fn wants_transport(g: &Game, passenger: usize, carrier: usize, from_factory: boo
             Some(r) => r,
             None => {
                 own = g.search_moves(passenger, None);
-                &own
+                &*own
             }
         };
         let at = g.cell(goal.0, goal.1);
@@ -197,7 +197,7 @@ fn board_one_passenger(g: &mut Game, player: i32) -> bool {
         if g.units[passenger].moved || t.mv == 0 || t.cargo > 0 || t.move_type == MoveType::Air {
             continue;
         }
-        let mut range: Option<MoveSearch> = None;
+        let mut range: Option<std::rc::Rc<MoveSearch>> = None;
         for &carrier in &carriers {
             if !g.can_load(carrier, passenger, false) {
                 continue;
@@ -210,7 +210,7 @@ fn board_one_passenger(g: &mut Game, player: i32) -> bool {
             if !r.find(at).is_some_and(|(_, f)| f & LOAD != 0) {
                 continue;
             }
-            if !wants_transport(g, passenger, carrier, false, Some(r)) {
+            if !wants_transport(g, passenger, carrier, false, Some(&**r)) {
                 continue;
             }
             let (c, row) = pos(g, carrier);
@@ -280,7 +280,7 @@ fn plan_transport(g: &mut Game, carrier: usize, recs: &[Rec]) -> Option<Plan> {
         let (was_moved, transfer_used) = (g.units[cargo].moved, g.units[carrier].transfer_used);
         g.relocate(carrier, rec.col, rec.row);
         g.units[cargo].moved = false;
-        g.units[carrier].transfer_used = false;
+        g.set_transfer_used(carrier, false);
         for drop in g.unload_targets(carrier, cargo) {
             if g.building(drop.0, drop.1).is_some() {
                 continue;
@@ -307,7 +307,7 @@ fn plan_transport(g: &mut Game, carrier: usize, recs: &[Rec]) -> Option<Plan> {
         }
         g.relocate(carrier, origin.0, origin.1);
         g.units[cargo].moved = was_moved;
-        g.units[carrier].transfer_used = transfer_used;
+        g.set_transfer_used(carrier, transfer_used);
     }
     let Some((dest, drop, remaining)) = chosen else { return Some(Plan::Finish) };
     let deliver = !g.units[carrier].transfer_used && !g.units[cargo].moved && remaining <= ct.mv.max(1);

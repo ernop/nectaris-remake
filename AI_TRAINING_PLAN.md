@@ -320,6 +320,36 @@ re-recorded on the new dice, with every cache verified.
   - Keeping occupancy and zones as engine bitsets might make the checks cheap
     enough for 1–2%, not enough for the added engine state.
 
+**The speed-first core (user, 2026-09-29: "Build a speed-first core (compact
+state, undo instead of copy, incremental move lists), checked command for
+command against today's engine"):**
+- **Why:** a search AI that simulates many games spends its time in the
+  rules. Listing a Nectaris position's legal commands took 5.6 µs (197
+  commands on average, up to 2,670), roughly 50–100× a chess move generator
+  per decision. Random playouts, which list and apply a command at every
+  step, are the benchmark: `nectaris-sim playout`, one thread.
+- **Checks for every step:**
+  - The corpus replays to the same state and legal list after every
+    command. The random playouts end with JavaScript's fingerprints.
+  - The bots still choose every recorded command on the lock corpus and on
+    all 620 wide games.
+  - `--verify-caches` recomputes every kept result, and CI runs it.
+- **Steps:**
+  1. **Kept movement searches** (done 2026-09-29): every unit's search is
+     kept with the cells it read. The engine marks, per side, each cell
+     whose occupant, zone, building owner or transport load changes. A
+     lookup drops only the searches that read a marked cell, and move
+     validation uses the kept search. Over 200 random games the searches
+     computed fell from about 6.4 million to 1.0 million (83% of lookups
+     answered). Random playouts: 176,000 → 263,000 commands/s.
+  2. The legal-command list kept per unit the same way, instead of rebuilt
+     at every position (listing took 19% and attack targets 11% after step 1).
+  3. Compact state: small integer fields, cells instead of columns and rows,
+     no per-unit heap lists, so copying a position is a short copy.
+  4. Undo instead of copy, for AI players that explore lines of play.
+  5. Bots read the engine's kept searches in place of their own search
+     caches where the keys agree.
+
 **Phase 5, the self-play runner (done 2026-09-27):**
 - `nectaris-sim tournament` plays `run.cjs` tournaments on every thread. The
   same settings give the same fixtures, seeds and seats.

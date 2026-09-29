@@ -7,6 +7,7 @@
 use crate::data::{Board, Data, MoveType, StoredDef, Tables, UnitType, DRAIN};
 use crate::dice::{ChaCha, Dice, Seed};
 use crate::hex;
+use std::rc::Rc;
 
 #[derive(Clone, Debug)]
 pub struct Unit {
@@ -58,6 +59,8 @@ pub struct Game<'d> {
     /// Per side, how many of its `occ` units stand next to each cell: zones
     /// of control without scanning neighbours. Kept wherever `occ` changes.
     zoc: [Vec<u8>; 2],
+    /// Kept movement searches (`Ranges`), read through `&self` lookups.
+    ranges: std::cell::RefCell<Ranges>,
     pub turn: i32,
     pub turn_limit: i32,
     pub current: i32,
@@ -115,6 +118,71 @@ struct Scratch {
 }
 thread_local! {
     static SCRATCH: std::cell::RefCell<Scratch> = std::cell::RefCell::new(Scratch::default());
+}
+
+/// A unit's movement search kept with the cells whose state it read and the
+/// unit state it started from (cell, movement, shifted, cargo count).
+struct Kept {
+    search: Rc<MoveSearch>,
+    read: Vec<u64>,
+    from: (usize, i32, bool, usize),
+    /// The unit's move commands from this search, built on first use.
+    moves: std::cell::OnceCell<Vec<Command>>,
+}
+
+/// Each unit's kept searches: with its current movement, and fresh (full
+/// movement, not shifted). A search stays valid while its unit's own state
+/// is unchanged and no cell it read has changed as its side sees it. The
+/// engine marks, per side, every cell whose state that side's searches read
+/// changed: occupants and building owners for both sides, a side's zone for
+/// the other side, a transport's load for its own side. A lookup first drops
+/// the searches that read a cell marked for their side.
+#[derive(Clone, Default)]
+struct Ranges {
+    current: Vec<Option<Rc<Kept>>>,
+    fresh: Vec<Option<Rc<Kept>>>,
+    /// The side of each unit, by index.
+    side: Vec<u8>,
+    changed: [Vec<u64>; 2],
+    pending: bool,
+}
+impl Ranges {
+    fn new(sides: Vec<u8>, cells: usize) -> Ranges {
+        let words = cells.div_ceil(64);
+        Ranges { current: vec![None; sides.len()], fresh: vec![None; sides.len()], side: sides, changed: [vec![0; words], vec![0; words]], pending: false }
+    }
+    fn mark(&mut self, cell: usize, side: usize) {
+        self.changed[side][cell / 64] |= 1 << (cell % 64);
+        self.pending = true;
+    }
+    fn mark_both(&mut self, cell: usize) {
+        self.mark(cell, 0);
+        self.mark(cell, 1);
+    }
+    fn settle(&mut self) {
+        if !self.pending {
+            return;
+        }
+        let (changed, side) = (&self.changed, &self.side);
+        for slots in [&mut self.current, &mut self.fresh] {
+            for (u, slot) in slots.iter_mut().enumerate() {
+                // Only a unit on a side (never a neutral reserve) has a search.
+                if slot.as_ref().is_some_and(|k| k.read.iter().zip(&changed[side[u] as usize]).any(|(r, c)| r & c != 0)) {
+                    *slot = None;
+                }
+            }
+        }
+        self.changed[0].fill(0);
+        self.changed[1].fill(0);
+        self.pending = false;
+    }
+    fn clear(&mut self) {
+        self.current.fill(None);
+        self.fresh.fill(None);
+        self.changed[0].fill(0);
+        self.changed[1].fill(0);
+        self.pending = false;
+    }
 }
 
 pub struct Battle {
@@ -175,6 +243,7 @@ impl<'d> Game<'d> {
             building_at: &tables.building_at,
             occ: vec![-1; tables.cells.len()],
             zoc: [vec![0; tables.cells.len()], vec![0; tables.cells.len()]],
+            ranges: std::cell::RefCell::new(Ranges::new(Vec::new(), tables.cells.len())),
             turn: 1,
             turn_limit: b.turn_limit.filter(|&n| n != 0).unwrap_or(50),
             current: if first_player == 1 { 1 } else { 0 },
@@ -213,6 +282,7 @@ impl<'d> Game<'d> {
             g.mark_zone(at, g.units[u].player, true);
             g.field.push(u);
         }
+        g.ranges = std::cell::RefCell::new(Ranges::new(g.units.iter().map(|u| u.player as u8).collect(), g.cells.len()));
         g
     }
 
@@ -223,26 +293,46 @@ impl<'d> Game<'d> {
         let old = self.cell(oc, or);
         assert_eq!(self.occ[old], u as i32, "unit {} is not on the board at {oc},{or}", self.units[u].id);
         self.occ[old] = -1;
+        self.ranges.get_mut().mark_both(old);
         self.mark_zone(old, self.units[u].player, false);
         let new = self.cell(col, row);
         assert!(self.occ[new] < 0, "{col},{row} is occupied");
         self.occ[new] = u as i32;
+        self.ranges.get_mut().mark_both(new);
         self.mark_zone(new, self.units[u].player, true);
         self.units[u].col = col;
         self.units[u].row = row;
     }
     /// Counts a board unit of `player` at `cell` into its neighbours' zones,
-    /// or takes it out.
+    /// or takes it out. A cell whose zone turns on or off is marked changed.
     fn mark_zone(&mut self, cell: usize, player: i32, add: bool) {
         let side = &mut self.zoc[player as usize];
+        let ranges = self.ranges.get_mut();
         for &m in &self.tables.neighbors[6 * cell..6 * cell + 6] {
             if m >= 0 {
+                let z = &mut side[m as usize];
                 if add {
-                    side[m as usize] += 1;
+                    *z += 1;
                 } else {
-                    side[m as usize] -= 1;
+                    *z -= 1;
+                }
+                if *z == u8::from(add) {
+                    ranges.mark(m as usize, 1 - player as usize);
                 }
             }
+        }
+    }
+    /// Sets a transport's transfer flag, which other units' boarding reads.
+    pub fn set_transfer_used(&mut self, u: usize, used: bool) {
+        self.units[u].transfer_used = used;
+        self.mark_unit(u);
+    }
+    /// Marks the cell of a board unit whose boarding state changed.
+    fn mark_unit(&mut self, u: usize) {
+        let x = &self.units[u];
+        if x.carried_by == 0 && !x.in_factory {
+            let (at, side) = (self.cell(x.col, x.row), x.player as usize);
+            self.ranges.get_mut().mark(at, side);
         }
     }
     /// Panics unless the grid holds exactly the field units that are neither
@@ -270,12 +360,14 @@ impl<'d> Game<'d> {
         let at = self.cell(self.units[u].col, self.units[u].row);
         assert_eq!(self.occ[at], u as i32, "unit {} is not on the board", self.units[u].id);
         self.occ[at] = -1;
+        self.ranges.get_mut().mark_both(at);
         self.mark_zone(at, self.units[u].player, false);
     }
     fn enter_board(&mut self, u: usize) {
         let at = self.cell(self.units[u].col, self.units[u].row);
         assert!(self.occ[at] < 0, "a unit already stands at {},{}", self.units[u].col, self.units[u].row);
         self.occ[at] = u as i32;
+        self.ranges.get_mut().mark_both(at);
         self.mark_zone(at, self.units[u].player, true);
     }
 
@@ -299,6 +391,7 @@ impl<'d> Game<'d> {
             building_at: self.building_at,
             occ: self.occ.clone(),
             zoc: self.zoc.clone(),
+            ranges: std::cell::RefCell::new(self.ranges.borrow().clone()),
             turn: self.turn,
             turn_limit: self.turn_limit,
             current: self.current,
@@ -461,13 +554,82 @@ impl<'d> Game<'d> {
     }
 
     /// The Dijkstra search behind `movementRange`, with the verified ZOC exit
-    /// rule and FIFO ties, stopping once `dest` is settled.
-    pub fn search_moves(&self, u: usize, dest: Option<usize>) -> MoveSearch {
-        self.search_moves_as(u, self.units[u].mp, self.units[u].shifted, dest)
+    /// rule and FIFO ties, stopping once `dest` is settled. A search without a
+    /// destination is kept (`Ranges`). A kept one also answers a destination:
+    /// the full search reaches it at the same cost with the same flags.
+    pub fn search_moves(&self, u: usize, dest: Option<usize>) -> Rc<MoveSearch> {
+        self.kept_search(u, false, dest)
+    }
+    /// AI_MODEL's `fresh(unit)` search: full movement, not shifted; kept the
+    /// same way.
+    pub fn fresh_search(&self, u: usize, dest: Option<usize>) -> Rc<MoveSearch> {
+        self.kept_search(u, true, dest)
+    }
+    fn kept_search(&self, u: usize, fresh: bool, dest: Option<usize>) -> Rc<MoveSearch> {
+        if let Some(k) = self.kept_lookup(u, fresh) {
+            return k.search.clone();
+        }
+        if let Some(d) = dest {
+            let x = &self.units[u];
+            let (mp, shifted) = if fresh { (self.typ(u).mv, false) } else { (x.mp, x.shifted) };
+            return Rc::new(self.search::<false>(u, mp, shifted, Some(d), &mut []));
+        }
+        self.kept_store(u, fresh).search.clone()
+    }
+    /// The unit's kept search, computed and kept if it had none.
+    fn kept(&self, u: usize, fresh: bool) -> Rc<Kept> {
+        self.kept_lookup(u, fresh).unwrap_or_else(|| self.kept_store(u, fresh))
+    }
+    fn search_start(&self, u: usize, fresh: bool) -> (i32, bool, (usize, i32, bool, usize)) {
+        let x = &self.units[u];
+        let (mp, shifted) = if fresh { (self.typ(u).mv, false) } else { (x.mp, x.shifted) };
+        (mp, shifted, (self.cell(x.col, x.row), mp, shifted, x.cargo.len()))
+    }
+    fn kept_lookup(&self, u: usize, fresh: bool) -> Option<Rc<Kept>> {
+        let (mp, shifted, from) = self.search_start(u, fresh);
+        let hit = {
+            let mut ranges = self.ranges.borrow_mut();
+            ranges.settle();
+            let slot = if fresh { &ranges.fresh[u] } else { &ranges.current[u] };
+            slot.as_ref().filter(|k| k.from == from).cloned()
+        };
+        if let Some(k) = &hit {
+            if crate::model::VERIFY_CACHES.load(std::sync::atomic::Ordering::Relaxed) {
+                let again = self.search::<false>(u, mp, shifted, None, &mut []);
+                let s = &k.search;
+                assert!(
+                    again.order == s.order && again.cost == s.cost && again.flags == s.flags,
+                    "a kept movement search differs for unit {} ({})",
+                    self.units[u].id,
+                    self.typ(u).id
+                );
+            }
+        }
+        hit
+    }
+    fn kept_store(&self, u: usize, fresh: bool) -> Rc<Kept> {
+        let (mp, shifted, from) = self.search_start(u, fresh);
+        let mut read = vec![0u64; self.cells.len().div_ceil(64)];
+        let search = Rc::new(self.search::<true>(u, mp, shifted, None, &mut read));
+        let kept = Rc::new(Kept { search, read, from, moves: std::cell::OnceCell::new() });
+        let mut ranges = self.ranges.borrow_mut();
+        if fresh {
+            ranges.fresh[u] = Some(kept.clone());
+        } else {
+            ranges.current[u] = Some(kept.clone());
+        }
+        kept
     }
     /// The search for the unit with the given movement allowance and shift
-    /// flag; AI_MODEL's `fresh(unit)` searches with a full, unspent budget.
+    /// flag, not kept.
     pub fn search_moves_as(&self, u: usize, mp: i32, shifted: bool, dest: Option<usize>) -> MoveSearch {
+        self.search::<false>(u, mp, shifted, dest, &mut [])
+    }
+    /// The search itself. With `READ`, it sets in `reads` (a bitset over the
+    /// cells) every cell whose state it read: occupant, enemy zone and
+    /// building owner, each read only once a step into the cell is cheap
+    /// enough to matter.
+    fn search<const READ: bool>(&self, u: usize, mp: i32, shifted: bool, dest: Option<usize>, reads: &mut [u64]) -> MoveSearch {
         let unit = &self.units[u];
         assert!(self.in_bounds(unit.col, unit.row), "Unit at {},{} is outside the map", unit.col, unit.row);
         let start = self.cell(unit.col, unit.row);
@@ -542,6 +704,9 @@ impl<'d> Game<'d> {
                     if new_cost > budget || new_cost >= sc.best[n] {
                         continue;
                     }
+                    if READ {
+                        reads[n / 64] |= 1 << (n % 64);
+                    }
                     let occ = self.occ[n];
                     let mut load = false;
                     if occ >= 0 {
@@ -592,7 +757,7 @@ impl<'d> Game<'d> {
     /// or entering a building, in search order; `fresh` searches as
     /// AI_MODEL's `fresh(unit)`.
     pub fn stopping_cells(&self, u: usize, fresh: bool) -> Vec<usize> {
-        let s = if fresh { self.search_moves_as(u, self.typ(u).mv, false, None) } else { self.search_moves(u, None) };
+        let s = if fresh { self.fresh_search(u, None) } else { self.search_moves(u, None) };
         let mut cells = Vec::with_capacity(s.order.len());
         cells.extend((0..s.order.len()).filter(|&i| s.flags[i] & CAN_STOP != 0 && s.flags[i] & (LOAD | ENTER) == 0).map(|i| s.order[i]));
         cells
@@ -699,6 +864,7 @@ impl<'d> Game<'d> {
             let tid = self.units[tr].id;
             self.units[tr].cargo.push(u);
             self.units[tr].transfer_used = true;
+            self.mark_unit(tr);
             self.leave_board(u);
             let unit = &mut self.units[u];
             unit.carried_by = tid;
@@ -734,8 +900,14 @@ impl<'d> Game<'d> {
         if let Some(b) = self.building(col, row) {
             if self.typ(u).capture && self.buildings[b].owner != player {
                 self.buildings[b].owner = player;
+                let at = self.cell(col, row);
+                self.ranges.get_mut().mark_both(at);
                 for s in self.buildings[b].stored.clone() {
                     self.units[s].player = player;
+                    let ranges = self.ranges.get_mut();
+                    ranges.side[s] = player as u8;
+                    ranges.current[s] = None;
+                    ranges.fresh[s] = None;
                 }
                 if !self.buildings[b].base {
                     self.units[u].exp = (self.units[u].exp + 4).min(self.d.combat.max_exp);
@@ -959,6 +1131,7 @@ impl<'d> Game<'d> {
         let i = self.units[transport].cargo.iter().position(|&x| x == cargo).expect("cargo aboard");
         self.units[transport].cargo.remove(i);
         self.units[transport].transfer_used = true;
+        self.mark_unit(transport);
         self.finish_unit(cargo);
         Ok(())
     }
@@ -1051,6 +1224,7 @@ impl<'d> Game<'d> {
         unit.mp = 0;
         self.units[transport].cargo.push(u);
         self.units[transport].transfer_used = true;
+        self.mark_unit(transport);
         self.field.push(u);
         Ok(())
     }
@@ -1067,6 +1241,8 @@ impl<'d> Game<'d> {
     }
 
     pub fn end_turn(&mut self) {
+        // Every unit's movement and transfer flags reset.
+        self.ranges.get_mut().clear();
         for i in 0..self.field.len() {
             self.refresh(self.field[i]);
         }
@@ -1088,22 +1264,32 @@ impl<'d> Game<'d> {
     /// `Game.legalCommands()`: every command the side to move may issue now,
     /// in the same order as JavaScript lists them.
     pub fn legal_commands(&self) -> Vec<Command> {
-        let mut out = Vec::new();
         if self.winner >= 0 {
-            return out;
+            return Vec::new();
         }
-        for u in self.player_units(self.current) {
+        let mut out = Vec::with_capacity(256);
+        for u in self.units_of(self.current) {
             let id = self.units[u].id;
             if self.can_move_now(u) {
-                let s = self.search_moves(u, None);
-                for i in 0..s.order.len() {
-                    if s.cost[i] > 0 && s.flags[i] & CAN_STOP != 0 {
-                        out.push(Command::Move(id, self.tables.coords[s.order[i]].0, self.tables.coords[s.order[i]].1));
+                let k = self.kept(u, false);
+                let s = &k.search;
+                out.extend_from_slice(k.moves.get_or_init(|| {
+                    (0..s.order.len())
+                        .filter(|&i| s.cost[i] > 0 && s.flags[i] & CAN_STOP != 0)
+                        .map(|i| Command::Move(id, self.tables.coords[s.order[i]].0, self.tables.coords[s.order[i]].1))
+                        .collect()
+                }));
+            }
+            if self.can_attack_now(u) {
+                let (t, unit) = (self.typ(u), &self.units[u]);
+                if t.rng_g != 0 || t.rng_a != 0 {
+                    for &e in &self.field {
+                        let o = &self.units[e];
+                        if o.player != unit.player && o.carried_by == 0 && !o.in_factory && can_attack_at(t, self.is_air(e), hex::distance(unit.col, unit.row, o.col, o.row)) {
+                            out.push(Command::Attack(id, o.id));
+                        }
                     }
                 }
-            }
-            for t in self.legal_attack_targets(u) {
-                out.push(Command::Attack(id, self.units[t].id));
             }
             for &c in &self.units[u].cargo {
                 for (col, row) in self.unload_targets(u, c) {
