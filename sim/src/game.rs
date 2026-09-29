@@ -137,21 +137,56 @@ struct Kept {
 /// changed: occupants and building owners for both sides, a side's zone for
 /// the other side, a transport's load for its own side. A lookup first drops
 /// the searches that read a cell marked for their side.
-#[derive(Clone, Default)]
+/// Only the game being played keeps searches: the bots' copies for imagined
+/// lines search as before, since their own caches answer first. The tables are
+/// allocated on the first kept search.
+#[derive(Default)]
 struct Ranges {
+    keeps: bool,
     current: Vec<Option<Rc<Kept>>>,
     fresh: Vec<Option<Rc<Kept>>>,
-    /// The side of each unit, by index.
-    side: Vec<u8>,
+    /// The side of each unit, by index; shared with copies.
+    side: Rc<Vec<u8>>,
     changed: [Vec<u64>; 2],
     pending: bool,
+    cells: usize,
 }
 impl Ranges {
     fn new(sides: Vec<u8>, cells: usize) -> Ranges {
-        let words = cells.div_ceil(64);
-        Ranges { current: vec![None; sides.len()], fresh: vec![None; sides.len()], side: sides, changed: [vec![0; words], vec![0; words]], pending: false }
+        Ranges { keeps: true, side: Rc::new(sides), cells, ..Ranges::default() }
+    }
+    /// A copied position's: the same sides, keeping nothing.
+    fn for_copy(&self) -> Ranges {
+        Ranges { side: self.side.clone(), cells: self.cells, ..Ranges::default() }
+    }
+    fn keep(&mut self, u: usize, fresh: bool, kept: Rc<Kept>) {
+        if self.current.is_empty() {
+            let (units, words) = (self.side.len(), self.cells.div_ceil(64));
+            self.current = vec![None; units];
+            self.fresh = vec![None; units];
+            self.changed = [vec![0; words], vec![0; words]];
+        }
+        if fresh {
+            self.fresh[u] = Some(kept);
+        } else {
+            self.current[u] = Some(kept);
+        }
+    }
+    fn slot(&self, u: usize, fresh: bool) -> Option<&Rc<Kept>> {
+        if fresh { self.fresh.get(u) } else { self.current.get(u) }.and_then(|s| s.as_ref())
+    }
+    fn drop_unit(&mut self, u: usize) {
+        if let Some(s) = self.current.get_mut(u) {
+            *s = None;
+        }
+        if let Some(s) = self.fresh.get_mut(u) {
+            *s = None;
+        }
     }
     fn mark(&mut self, cell: usize, side: usize) {
+        if self.current.is_empty() {
+            return;
+        }
         self.changed[side][cell / 64] |= 1 << (cell % 64);
         self.pending = true;
     }
@@ -391,7 +426,7 @@ impl<'d> Game<'d> {
             building_at: self.building_at,
             occ: self.occ.clone(),
             zoc: self.zoc.clone(),
-            ranges: std::cell::RefCell::new(self.ranges.borrow().clone()),
+            ranges: std::cell::RefCell::new(self.ranges.borrow().for_copy()),
             turn: self.turn,
             turn_limit: self.turn_limit,
             current: self.current,
@@ -569,10 +604,10 @@ impl<'d> Game<'d> {
         if let Some(k) = self.kept_lookup(u, fresh) {
             return k.search.clone();
         }
-        if let Some(d) = dest {
+        if dest.is_some() || !self.ranges.borrow().keeps {
             let x = &self.units[u];
             let (mp, shifted) = if fresh { (self.typ(u).mv, false) } else { (x.mp, x.shifted) };
-            return Rc::new(self.search::<false>(u, mp, shifted, Some(d), &mut []));
+            return Rc::new(self.search::<false>(u, mp, shifted, dest, &mut []));
         }
         self.kept_store(u, fresh).search.clone()
     }
@@ -586,12 +621,14 @@ impl<'d> Game<'d> {
         (mp, shifted, (self.cell(x.col, x.row), mp, shifted, x.cargo.len()))
     }
     fn kept_lookup(&self, u: usize, fresh: bool) -> Option<Rc<Kept>> {
+        if !self.ranges.borrow().keeps {
+            return None;
+        }
         let (mp, shifted, from) = self.search_start(u, fresh);
         let hit = {
             let mut ranges = self.ranges.borrow_mut();
             ranges.settle();
-            let slot = if fresh { &ranges.fresh[u] } else { &ranges.current[u] };
-            slot.as_ref().filter(|k| k.from == from).cloned()
+            ranges.slot(u, fresh).filter(|k| k.from == from).cloned()
         };
         if let Some(k) = &hit {
             if crate::model::VERIFY_CACHES.load(std::sync::atomic::Ordering::Relaxed) {
@@ -613,10 +650,8 @@ impl<'d> Game<'d> {
         let search = Rc::new(self.search::<true>(u, mp, shifted, None, &mut read));
         let kept = Rc::new(Kept { search, read, from, moves: std::cell::OnceCell::new() });
         let mut ranges = self.ranges.borrow_mut();
-        if fresh {
-            ranges.fresh[u] = Some(kept.clone());
-        } else {
-            ranges.current[u] = Some(kept.clone());
+        if ranges.keeps {
+            ranges.keep(u, fresh, kept.clone());
         }
         kept
     }
@@ -905,9 +940,8 @@ impl<'d> Game<'d> {
                 for s in self.buildings[b].stored.clone() {
                     self.units[s].player = player;
                     let ranges = self.ranges.get_mut();
-                    ranges.side[s] = player as u8;
-                    ranges.current[s] = None;
-                    ranges.fresh[s] = None;
+                    Rc::make_mut(&mut ranges.side)[s] = player as u8;
+                    ranges.drop_unit(s);
                 }
                 if !self.buildings[b].base {
                     self.units[u].exp = (self.units[u].exp + 4).min(self.d.combat.max_exp);

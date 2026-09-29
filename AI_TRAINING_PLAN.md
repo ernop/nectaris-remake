@@ -339,9 +339,17 @@ command against today's engine"):**
      kept with the cells it read. The engine marks, per side, each cell
      whose occupant, zone, building owner or transport load changes. A
      lookup drops only the searches that read a marked cell, and move
-     validation uses the kept search. Over 200 random games the searches
-     computed fell from about 6.4 million to 1.0 million (83% of lookups
-     answered). Random playouts: 176,000 → 263,000 commands/s.
+     validation uses the kept search. Each unit's move commands are kept
+     with its search.
+     - Over 200 random games the searches computed fell from about 6.4
+       million to 1.0 million (83% of lookups answered). Random playouts,
+       one thread: about 176,000 → 250,000 commands/s.
+     - Only the game being played keeps searches. The bots' copies for
+       imagined lines search as before: their own caches answer first, and
+       keeping searches in every short-lived copy measured slower. The bots
+       measured within noise of the previous build (another session's
+       matches loaded the machine; `perf` instruction counts would settle a
+       few percent either way).
   2. The legal-command list kept per unit the same way, instead of rebuilt
      at every position (listing took 19% and attack targets 11% after step 1).
   3. Compact state: small integer fields, cells instead of columns and rows,
