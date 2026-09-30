@@ -9,7 +9,7 @@
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/bridgeheads/01-rima-bode.json",
       "description": "A single bridge spans the rille. Your vanguard waits a few hexes short of its near end; the Xenon garrison beyond is under strength. Infantry can climb down anywhere, but a squad in the valley floor ends its move there with no cover.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 20 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "valleys and bridges",
         "half-turn symmetry"
@@ -18,7 +18,6 @@
         "theme": "bridgeheads",
         "symmetry": "half"
       },
-      "turnLimit": 20,
       "grid": [
         ".........vv.........",
         ".........vv.........",
@@ -123,7 +122,7 @@
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/bridgeheads/02-rima-hyginus.json",
       "description": "A crater sits in the middle of the rille, and the only bridges are at its two ends. An army that crosses at one end leaves the other bridge to the enemy. The Xenon camp stands nearer the rille than yours, and you bring one more Bison.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 48 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "valleys and bridges",
         "half-turn symmetry"
@@ -132,7 +131,6 @@
         "theme": "bridgeheads",
         "symmetry": "half"
       },
-      "turnLimit": 48,
       "grid": [
         "...........vv...........",
         "...........vv...........",
@@ -262,7 +260,7 @@
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/bridgeheads/03-rima-hesiodus.json",
       "description": "The camps face each other across the north end of the rille, where a footpath lets infantry cross in two moves. Tanks must go the long way, over the southern bridge. Every Xenon unit is under strength, most of them badly.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 30 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "valleys and bridges",
         "mirror symmetry"
@@ -271,7 +269,6 @@
         "theme": "bridgeheads",
         "symmetry": "mirror"
       },
-      "turnLimit": 30,
       "grid": [
         "...........vvv...........",
         "...........vvv...........",
@@ -391,7 +388,7 @@
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/bridgeheads/04-vallis-snellius.json",
       "description": "No bridge crosses this valley. Tanks can only hold their own bank; any attack must walk through the valley floor or fly. You have three Pelicans to Xenon's two, a Hawkeye guards each camp, and the Xenon ground forces are under strength.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 24 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "valleys and bridges",
         "half-turn symmetry"
@@ -400,7 +397,6 @@
         "theme": "bridgeheads",
         "symmetry": "half"
       },
-      "turnLimit": 24,
       "grid": [
         "..........vvvv..........",
         "..........vvvv..........",
@@ -562,7 +558,7 @@
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/bridgeheads/05-rimae-triesnecker.json",
       "description": "Two rilles cross at right angles and divide the ground into four fields. Each camp's field has two bridges to the neutral fields, where small factories hold a Charlie each.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 28 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "valleys and bridges",
         "half-turn symmetry"
@@ -571,7 +567,6 @@
         "theme": "bridgeheads",
         "symmetry": "half"
       },
-      "turnLimit": 28,
       "grid": [
         ".............vv.............",
         ".............vv.............",
@@ -691,7 +686,7 @@
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/bridgeheads/06-rima-hadley.json",
       "description": "Each camp sits behind its own winding rille with a bridge at each end. The open plain between the rilles belongs to whoever crosses first. You bring one extra Kilroy, and the Xenon Lenet starts damaged.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 40 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "valleys and bridges",
         "mirror symmetry"
@@ -700,7 +695,6 @@
         "theme": "bridgeheads",
         "symmetry": "mirror"
       },
-      "turnLimit": 40,
       "grid": [
         "MMMMMM.v...........v.MMMMMM",
         "MMMMMM.v.MMM...MMM.v.MMMMMM",
@@ -822,7 +816,7 @@
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/bridgeheads/07-vallis-alpes.json",
       "description": "A deep valley cuts through the mountain wall, and one long bridge carries the road across. Pelicans can lift a tank over the wall anywhere. The Xenon tanks and infantry are under strength.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 28 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "valleys and bridges",
         "half-turn symmetry"
@@ -831,7 +825,6 @@
         "theme": "bridgeheads",
         "symmetry": "half"
       },
-      "turnLimit": 28,
       "grid": [
         "...........MMMMMM...........",
         "...........MMMMMM...........",
@@ -962,7 +955,7 @@
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/bridgeheads/08-rima-sirsalis.json",
       "description": "Guns on either rim can reach across the rille. Your guns start in firing position; Xenon's are damaged and farther back, and its Bison is damaged too. Two bridges carry the tanks, and the artillery decides which of them is usable.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 28 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "valleys and bridges",
         "half-turn symmetry"
@@ -971,7 +964,6 @@
         "theme": "bridgeheads",
         "symmetry": "half"
       },
-      "turnLimit": 28,
       "grid": [
         "............vvvv............",
         "............vvvv............",
@@ -1090,7 +1082,7 @@
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/bridgeheads/09-rima-marius.json",
       "description": "The rille runs close to your camp. You defend a narrow bank and Xenon has room to form up, but its camp stands nearer the centre than yours and its army is slightly under strength.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 28 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "valleys and bridges",
         "unequal sides"
@@ -1099,7 +1091,6 @@
         "theme": "bridgeheads",
         "symmetry": "none"
       },
-      "turnLimit": 28,
       "grid": [
         "..........v................",
         "..........v................",
@@ -1220,7 +1211,7 @@
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/bridgeheads/10-rima-prinz.json",
       "description": "Eagles fly over the rille as if it were not there. Each side has one Hawkeye to keep the sky over its bridge, and a small factory waits on each far bank.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 26 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "valleys and bridges",
         "half-turn symmetry"
@@ -1229,7 +1220,6 @@
         "theme": "bridgeheads",
         "symmetry": "half"
       },
-      "turnLimit": 26,
       "grid": [
         "..............vv..............",
         "..............vv..............",
@@ -1374,8 +1364,8 @@
       "mission": 11,
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/bridgeheads/11-rima-birt.json",
-      "description": "Two parallel rilles enclose a strip of plain with two factories. Each camp is one bridge from the strip and two from the enemy, and there are only nine rounds.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 9 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "description": "Two parallel rilles enclose a strip of plain with two factories. Each camp is one bridge from the strip and two from the enemy.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "valleys and bridges",
         "half-turn symmetry"
@@ -1384,7 +1374,6 @@
         "theme": "bridgeheads",
         "symmetry": "half"
       },
-      "turnLimit": 9,
       "grid": [
         "..........v........v..........",
         "..........v........v..........",
@@ -1510,7 +1499,7 @@
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/bridgeheads/12-vallis-schroteri.json",
       "description": "The Xenon camp stands inside a loop of the valley, reachable by tanks over one bridge. The armies are equal: the loop is Xenon's advantage, the first move is yours.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 24 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "valleys and bridges",
         "unequal sides"
@@ -1519,7 +1508,6 @@
         "theme": "bridgeheads",
         "symmetry": "none"
       },
-      "turnLimit": 24,
       "grid": [
         "................................",
         "................................",
@@ -1625,7 +1613,7 @@
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/bridgeheads/13-rima-mairan.json",
       "description": "Each side's Mules start at its bridgeheads, carrying mines. A mine on a bridge closes it to tanks, but a closed bridge also stops your own attack. You bring one more Charlie.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 30 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "valleys and bridges",
         "half-turn symmetry"
@@ -1634,7 +1622,6 @@
         "theme": "bridgeheads",
         "symmetry": "half"
       },
-      "turnLimit": 30,
       "grid": [
         "..............vv..............",
         "..............vv..............",
@@ -1794,7 +1781,7 @@
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/bridgeheads/14-rimae-littrow.json",
       "description": "Three rilles run between the camps with their bridges staggered, so every crossing turns the advance sideways. Both armies start between the rilles beside factories; your force is under strength.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 34 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "valleys and bridges",
         "half-turn symmetry"
@@ -1803,7 +1790,6 @@
         "theme": "bridgeheads",
         "symmetry": "half"
       },
-      "turnLimit": 34,
       "grid": [
         "..........v.....vv.....v..........",
         "..........v.....vv.....v..........",
@@ -1980,7 +1966,7 @@
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/bridgeheads/15-rima-cauchy.json",
       "description": "A long diagonal rille separates distant camps. Mules carry infantry along the roads; the bridges are far apart and far from home. The Xenon camp stands nearer the rille than yours, and you bring one more Bison, badly damaged.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 48 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "valleys and bridges",
         "half-turn symmetry"
@@ -1989,7 +1975,6 @@
         "theme": "bridgeheads",
         "symmetry": "half"
       },
-      "turnLimit": 48,
       "grid": [
         "..........vv........................",
         "..........vvv.......................",
@@ -2176,7 +2161,7 @@
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/bridgeheads/16-rima-ariadaeus.json",
       "description": "The great straight rille cuts the whole board, with branches, footpaths and bridges along its length. Eagles, Pelicans and factories on both banks.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 30 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "valleys and bridges",
         "half-turn symmetry"
@@ -2185,7 +2170,6 @@
         "theme": "bridgeheads",
         "symmetry": "half"
       },
-      "turnLimit": 30,
       "grid": [
         "...........vvv..........................",
         "...........vvvv.........................",

@@ -162,7 +162,6 @@ function convert(buf) {
 
   return {
     name: map.name || "IMPORTED",
-    turnLimit: 50,
     grid: rows,
     buildings: buildings,
     units: [],

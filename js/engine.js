@@ -19,8 +19,9 @@
  * Factories: hold stored units (the original's "hidden reinforcements").
  * Infantry capture factories/bases by moving onto them. Capturing the enemy
  * base wins the map instantly; so does eliminating every enemy unit,
- * including reserves, except mines and stored Atlas guns (PCE). Turn limit default
- * 50; if it expires, player 0 (the attacker/Union side) loses.
+ * including reserves, except mines and stored Atlas guns (PCE). A match is
+ * drawn when turn TURN_LIMIT ends, or after QUIET_TURNS whole turns in which
+ * no unit lost a machine and no factory was captured.
  */
 "use strict";
 
@@ -35,6 +36,8 @@ if (typeof module !== "undefined") {
 
 var ENGINE = (function () {
   var nextUnitId = 1;
+  var TURN_LIMIT = 5000, QUIET_TURNS = 100;
+  var WIN_REASONS = ["base", "elimination"], DRAW_REASONS = ["no-progress", "turnlimit"];
 
   /* Stable minimum-cost heap for both movement and AI walking distances.
    * FIFO ties retain the old searches' path and AI tie-breaking order. */
@@ -182,9 +185,12 @@ var ENGINE = (function () {
         checkUnitNumbers(entry, stored);
       });
     });
-    if (mapDef.turnLimit !== undefined && !wholeNumber(mapDef.turnLimit, 1, Number.MAX_SAFE_INTEGER)) {
-      throw new Error("The level's turn limit must be a whole number of 1 or more.");
-    }
+  }
+  // winner null with no reason: still playing; a draw has a reason and no winner.
+  function validEnding(winner, reason) {
+    if (reason === null) return winner === null;
+    if (winner === null) return DRAW_REASONS.indexOf(reason) >= 0;
+    return (winner === 0 || winner === 1) && WIN_REASONS.indexOf(reason) >= 0;
   }
 
   function makeUnit(typeId, player, col, row, strength, exp) {
@@ -263,7 +269,8 @@ var ENGINE = (function () {
     this.firstPlayer = options.firstPlayer === 1 ? 1 : 0;
     this.currentPlayer = this.firstPlayer;
     this.turn = 1;
-    this.turnLimit = mapDef.turnLimit || 50;
+    // The last turn in which a unit lost a machine or a factory was captured; 0 before any.
+    this.progressTurn = 0;
     this.winner = null;
     this.winReason = null;
     this.rng = options.dice === null ? noDice :
@@ -300,7 +307,7 @@ var ENGINE = (function () {
       units: Object.values(all), field: this.units.map(function (u) { return u.id; }),
       buildings: buildings, turn: this.turn, currentPlayer: this.currentPlayer, firstPlayer: this.firstPlayer,
       balance: this.balance || null,
-      turnLimit: this.turnLimit, winner: this.winner, winReason: this.winReason,
+      progressTurn: this.progressTurn, winner: this.winner, winReason: this.winReason,
       dice: this.rng.state(), log: this.log}));
   };
 
@@ -308,9 +315,8 @@ var ENGINE = (function () {
     var data = JSON.parse(JSON.stringify(snapshot));
     if (!data || data.version !== 1 || !Array.isArray(data.units) ||
         !Array.isArray(data.field) || !data.types || !data.buildings ||
-        (data.dice !== null && typeof data.dice !== "string") || !Number.isInteger(data.turn) || data.turn < 1 ||
-        !wholeNumber(data.turnLimit, 1, Number.MAX_SAFE_INTEGER) ||
-        (data.winner !== null && data.winner !== 0 && data.winner !== 1) ||
+        (data.dice !== null && typeof data.dice !== "string") || !wholeNumber(data.turn, 1, TURN_LIMIT) ||
+        !wholeNumber(data.progressTurn, 0, data.turn) || !validEnding(data.winner, data.winReason) ||
         (data.currentPlayer !== 0 && data.currentPlayer !== 1) ||
         (data.firstPlayer !== 0 && data.firstPlayer !== 1) ||
         (data.types.MULE && !Array.isArray(data.types.MULE.cargoTypes))) {
@@ -346,11 +352,14 @@ var ENGINE = (function () {
     });
     game.units = data.field.map(resolve);
     game.buildings = data.buildings;
-    ["turn", "currentPlayer", "turnLimit", "winner", "winReason", "log"].forEach(function (key) {
+    ["turn", "currentPlayer", "progressTurn", "winner", "winReason", "log"].forEach(function (key) {
       game[key] = data[key];
     });
     return game;
   };
+
+  // Won or drawn. A draw leaves winner null, so winner alone cannot tell.
+  Game.prototype.over = function () { return this.winReason !== null; };
 
   Game.prototype.terrainAt = function (col, row) {
     if (row < 0 || row >= this.height || col < 0 || col >= this.width) return null;
@@ -600,7 +609,7 @@ var ENGINE = (function () {
   // previews alone are not permission to act: spent/stored units can still
   // have movement budgets or enemies within their weapon range.
   Game.prototype.canMoveNow = function (unit) {
-    return this.winner === null && unit.player === this.currentPlayer &&
+    return !this.over() && unit.player === this.currentPlayer &&
       !unit.moved && !unit.shifted && !unit.carriedBy && !unit.inFactory &&
       this.unitAt(unit.col, unit.row) === unit;
   };
@@ -608,7 +617,7 @@ var ENGINE = (function () {
   // A loaded transport cannot start a battle ("搭載中は攻撃できません" in the
   // original); it still counterattacks when attacked.
   Game.prototype.canAttackNow = function (unit) {
-    return this.winner === null && unit.player === this.currentPlayer &&
+    return !this.over() && unit.player === this.currentPlayer &&
       !unit.moved && !unit.attacked && !unit.carriedBy && !unit.inFactory && !unit.cargo.length &&
       !(unit.type.moveOrFire && unit.attackSpent) && this.unitAt(unit.col, unit.row) === unit;
   };
@@ -638,7 +647,7 @@ var ENGINE = (function () {
 
   Game.prototype.availableActions = function (unit) {
     var actions = { moves: [], attacks: [], unloads: [], store: false };
-    if (this.winner !== null || unit.player !== this.currentPlayer ||
+    if (this.over() || unit.player !== this.currentPlayer ||
         this.unitAt(unit.col, unit.row) !== unit) return actions;
     if (this.canMoveNow(unit)) actions.moves = Object.values(this.movementRange(unit)).filter(function (rec) {
       return rec.cost > 0 && rec.canStop;
@@ -676,7 +685,7 @@ var ENGINE = (function () {
    * the turn. The Rust simulator lists the same commands in the same order. */
   Game.prototype.legalCommands = function () {
     var out = [];
-    if (this.winner !== null) return out;
+    if (this.over()) return out;
     this.playerUnits(this.currentPlayer).forEach(function (unit) {
       if (this.canMoveNow(unit)) {
         var range = this.movementRange(unit);
@@ -771,13 +780,14 @@ var ENGINE = (function () {
         // (Base capture wins the map outright, so no award matters there.)
         if (b.kind !== "base") {
           unit.exp = Math.min(COMBAT.MAX_EXP, unit.exp + 4);
+          this.progressTurn = this.turn;
         }
         if (b.kind === "base" && this.enemyBaseCaptured(unit.player, b)) {
           this.winner = unit.player;
           this.winReason = "base";
         }
       }
-      if (b.kind === "factory" && b.owner === unit.player && this.winner === null) {
+      if (b.kind === "factory" && b.owner === unit.player && !this.over()) {
         var storing = [unit].concat(unit.cargo);
         unit.cargo = [];
         for (var si = 0; si < storing.length; si++) {
@@ -815,6 +825,7 @@ var ENGINE = (function () {
     if (this.legalAttackTargets(attacker).indexOf(defender) < 0)
       throw new Error(attacker.attacked ? "Unit already attacked this turn" : "Illegal attack target or unit cannot attack now");
     var result = COMBAT.resolve(this, attacker, defender, this.rng);
+    if (result.dmgToDefender > 0 || result.dmgToAttacker > 0) this.progressTurn = this.turn;
     this.log.push({
       t: "battle", a: attacker.id, d: defender.id,
       dmgD: result.dmgToDefender, dmgA: result.dmgToAttacker,
@@ -855,7 +866,7 @@ var ENGINE = (function () {
   };
 
   Game.prototype.checkElimination = function () {
-    if (this.winner !== null) return;
+    if (this.over()) return;
     var alive = [0, 0];
     for (var i = 0; i < this.units.length; i++) {
       if (this.units[i].typeId !== "TRIGGER") alive[this.units[i].player]++;
@@ -877,7 +888,7 @@ var ENGINE = (function () {
   /* Unload one cargo unit from a transport to an adjacent hex. */
   Game.prototype.unloadTargets = function (transport, cargoUnit) {
     var self = this;
-    if (this.winner !== null || transport.player !== this.currentPlayer ||
+    if (this.over() || transport.player !== this.currentPlayer ||
         transport.transferUsed || cargoUnit.moved || cargoUnit.carriedBy !== transport.id ||
         transport.cargo.indexOf(cargoUnit) < 0 ||
         this.unitAt(transport.col, transport.row) !== transport) return [];
@@ -904,7 +915,7 @@ var ENGINE = (function () {
   };
 
   Game.prototype.canDeployNow = function (building, unit) {
-    return this.winner === null && building && this.buildingAt(building.col, building.row) === building &&
+    return !this.over() && building && this.buildingAt(building.col, building.row) === building &&
       building.owner === this.currentPlayer && unit.player === building.owner &&
       unit.inFactory && !unit.carriedBy && !unit.moved && building.stored.indexOf(unit) >= 0;
   };
@@ -990,6 +1001,7 @@ var ENGINE = (function () {
   };
 
   Game.prototype.endTurn = function () {
+    if (this.over()) throw new Error("The match is over; no side has a turn to end.");
     for (var i = 0; i < this.units.length; i++) {
       var u = this.units[i];
       u.moved = false;
@@ -1011,12 +1023,11 @@ var ENGINE = (function () {
         stored[j].movePointsLeft = stored[j].type.move;
       }
     }
+    // A drawn match keeps the number of its last turn.
     if (this.currentPlayer !== (this.firstPlayer || 0)) {
-      this.turn++;
-      if (this.winner === null && this.turn > this.turnLimit) {
-        this.winner = 1;
-        this.winReason = "turnlimit";
-      }
+      if (this.turn >= TURN_LIMIT) this.winReason = "turnlimit";
+      else if (this.turn - this.progressTurn >= QUIET_TURNS) this.winReason = "no-progress";
+      else this.turn++;
     }
     this.currentPlayer = 1 - this.currentPlayer;
     this.log.push({ t: "endturn", player: this.currentPlayer, turn: this.turn });
@@ -1042,7 +1053,7 @@ var ENGINE = (function () {
   };
 
   return { Game: Game, makeUnit: makeUnit, CostQueue: CostQueue, gridTables: tablesFor, terrainTables: terrainTables,
-    stepCosts: stepCosts };
+    stepCosts: stepCosts, TURN_LIMIT: TURN_LIMIT, QUIET_TURNS: QUIET_TURNS };
 })();
 
 if (typeof module !== "undefined") module.exports = ENGINE;

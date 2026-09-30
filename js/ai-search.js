@@ -6,6 +6,7 @@
 var AI_SEARCH = (function () {
   var model = typeof module !== "undefined" ? require("./ai-model.js") : AI_MODEL;
   var combat = typeof module !== "undefined" ? require("./combat.js") : COMBAT;
+  var engine = typeof module !== "undefined" ? require("./engine.js") : ENGINE;
   var modes = [
     {id:"classic",label:"Classic",description:"Original-inspired heuristic CPU",algorithm:"classic"},
     {id:"tactical",label:"Tactical · greedy",description:"Exact combat odds, objectives and threat-aware moves",algorithm:"greedy"},
@@ -66,7 +67,7 @@ var AI_SEARCH = (function () {
   }
   function rollout(game,player,ctx,rng,horizon) {
     var g=game, seen=new Set(), startTurn=g.turn, switches=0, previous=g.currentPlayer;
-    for(var i=0;i<horizon && g.winner===null;i++){
+    for(var i=0;i<horizon && !g.over();i++){
       var sig=model.signature(g);
       if(seen.has(sig))break;
       seen.add(sig);
@@ -80,7 +81,7 @@ var AI_SEARCH = (function () {
       if(switches>=2 || g.turn>startTurn+1)break;
       // Do not spend the entire evaluation on a large friendly army. Unplayed
       // actions remain a horizon approximation, shared across candidates.
-      if(i===Math.floor(horizon/2)-1 && g.currentPlayer===player){g.endTurn();ctx.analysis.delete(g);previous=g.currentPlayer;switches++;}
+      if(i===Math.floor(horizon/2)-1 && g.currentPlayer===player && !g.over()){g.endTurn();ctx.analysis.delete(g);previous=g.currentPlayer;switches++;}
     }
     return model.evaluate(g,player,ctx);
   }
@@ -97,7 +98,7 @@ var AI_SEARCH = (function () {
       var next=[], transpositions=new Map();
       for(var n=0;n<nodes.length;n++){
         var node=nodes[n];
-        if(node.game.winner!==null||node.game.currentPlayer!==player){next.push(node);continue;}
+        if(node.game.over()||node.game.currentPlayer!==player){next.push(node);continue;}
         var actions=shortlist(node.game,ctx,config.branches,0).slice(0,config.branches);
         for(var a=0;a<actions.length;a++){
           var action=actions[a], child=model.simulate(node.game,action,ctx,randomSeed(rng),true);
@@ -119,7 +120,7 @@ var AI_SEARCH = (function () {
       for(var sample=0;sample<2;sample++){
         var response=model.clone(node.game,randomSeed(rng));
         response.rng=function(){return 0.5;};
-        if(response.winner===null && response.currentPlayer===player)response.endTurn();
+        if(!response.over() && response.currentPlayer===player)response.endTurn();
         sum+=rollout(response,player,ctx,rng,3);
       }
       var score=sum/2+node.progress*0.12, k=model.key(node.root);
@@ -139,7 +140,7 @@ var AI_SEARCH = (function () {
     for(var iteration=0;iteration<config.iterations;iteration++){
       var g=model.clone(game,randomSeed(rng)), path=[], depth=0;
       var budget=config.horizon, treeDepth=config.algorithm==="hybrid"?6:4;
-      while(g.winner===null && depth<treeDepth){
+      while(!g.over() && depth<treeDepth){
         var sig=model.signature(g), node=table.get(sig), newlyExpanded=false;
         if(!node){
           var acts=shortlist(g,ctx,config.branches,depth>1?4:0);
@@ -195,7 +196,7 @@ var AI_SEARCH = (function () {
         // Allow enough activations for reserves, unloads and both complete
         // armies. The hard bound remains independent of processor speed.
         var cap=Math.max(24,game.units.length*3+Object.values(game.buildings).reduce(function(n,b){return n+b.stored.length*3;},0));
-        for(var step=0;step<cap&&g.winner===null&&switches<2;step++){
+        for(var step=0;step<cap&&!g.over()&&switches<2;step++){
           var action=shortlist(g,ctx,6,0)[0];model.apply(g,action,ctx);
           if(g.currentPlayer!==start){switches++;start=g.currentPlayer;}
           if(step%4===3)yield;
@@ -214,7 +215,7 @@ var AI_SEARCH = (function () {
   function* decide(game,id,options,shared) {
     var config=Object.assign({},get(id),options||{}), ctx=shared||model.context(game);
     // Every decision names its weights, so an abandoned search cannot leak its set into the next.
-    model.setWeights(config.weights?model.weightsAt(config.weights[game.currentPlayer],model.clock(game.turn,game.turnLimit)):model.SHIPPED_WEIGHTS);
+    model.setWeights(config.weights?model.weightsAt(config.weights[game.currentPlayer],model.clock(game.turn,engine.TURN_LIMIT)):model.SHIPPED_WEIGHTS);
     var rootGame=model.clone(game,0), rng=combat.makeRng(model.seedFor(game));
     model.prepareEvaluation(rootGame,ctx);
     var actions=shortlist(rootGame,ctx,config.algorithm==="greedy"?24:32,0);
@@ -265,7 +266,7 @@ var AI_SEARCH = (function () {
     Object.keys(game.buildings).forEach(function(k){var b=game.buildings[k];b.stored.forEach(add);
       buildings[k]=Object.assign({},b,{stored:b.stored.map(function(u){return u.id;})});});
     return {version:1,map:game.map,types:types,units:Object.values(units),field:game.units.map(function(u){return u.id;}),
-      buildings:buildings,turn:game.turn,currentPlayer:game.currentPlayer,firstPlayer:game.firstPlayer,balance:game.balance||null,turnLimit:game.turnLimit,
+      buildings:buildings,turn:game.turn,currentPlayer:game.currentPlayer,firstPlayer:game.firstPlayer,balance:game.balance||null,progressTurn:game.progressTurn,
       winner:game.winner,winReason:game.winReason,dice:null,log:[]};
   }
 
@@ -285,7 +286,7 @@ var AI_SEARCH = (function () {
     }
     if(async&&typeof Worker!=="undefined"){
       try{
-        worker=new Worker("js/ai-worker.js?v=20260929-marshal");
+        worker=new Worker("js/ai-worker.js?v=20260930-draw-rule");
         worker.onmessage=function(e){
           if(ended||e.data.sequence!==sequence)return;
           if(e.data.error){error=new Error(e.data.error);pending=false;return;}
@@ -300,7 +301,7 @@ var AI_SEARCH = (function () {
     // receive one mutation per next(), so a cutoff cannot score an unshown roll.
     var queued=[];
     function startSearch(){
-      if(ended||!async||pending||answer||game.winner!==null||game.currentPlayer!==player)return;
+      if(ended||!async||pending||answer||game.over()||game.currentPlayer!==player)return;
       pending=true;sequence++;
       if(worker)worker.postMessage({sequence:sequence,state:publicSnapshot(game),id:id,options:options.search});
       else fallback();
@@ -311,7 +312,7 @@ var AI_SEARCH = (function () {
         if(error){var err=error;destroy();throw err;}
         while(!ended){
           if(queued.length)return queued.shift();
-          if(game.winner!==null||game.currentPlayer!==player)break;
+          if(game.over()||game.currentPlayer!==player)break;
           if(active){var event=active.next();if(!event.done)return event.value;active=null;ctx.analysis.delete(game);continue;}
           if(answer){
             var action=answer;answer=null;

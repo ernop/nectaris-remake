@@ -10,7 +10,7 @@
  *
  * So the hex layout of each map is Crescent's work, converted from his
  * .nmd files by tools/nmd-to-level.js; the unit rosters, deployments,
- * camp/factory assignment, turn limits and briefings are this project's.
+ * camp/factory assignment and briefings are this project's.
  * The site's own unit-placed scenarios and its written map commentary are
  * NOT reproduced here -- they carry no redistribution permission. See
  * LEVEL_SOURCES.md.
@@ -46,7 +46,6 @@ var BASE_NECTARIS_LEVELS = (function () {
       specialJa: o.specialJa,
       tags: o.tags,
       tagsJa: o.tagsJa,
-      turnLimit: o.turnLimit,
       grid: o.grid,
       buildings: buildings,
       units: o.units,
@@ -63,7 +62,6 @@ var BASE_NECTARIS_LEVELS = (function () {
       specialJa: "工場は一つもない。開始時の戦力がそのまま最後の戦力になる。",
       tags: ["roads", "no factories", "small"],
       tagsJa: ["道路", "工場なし", "小"],
-      turnLimit: 40,
       camps: [[4, 8], [12, 2]],
       factories: [],
       grid: [
@@ -106,7 +104,6 @@ var BASE_NECTARIS_LEVELS = (function () {
       specialJa: "工場は一つだけ。先に歩兵を送り込んだ側が後半を支配する。",
       tags: ["plateau", "one factory", "small"],
       tagsJa: ["台地", "工場一つ", "小"],
-      turnLimit: 40,
       camps: [[1, 7], [12, 2]],
       factories: [[7, 3]],
       grid: [
@@ -149,7 +146,6 @@ var BASE_NECTARIS_LEVELS = (function () {
       specialJa: "車両は橋に集中せざるを得ない。歩兵は移動力を使い切れば谷を渡れる。",
       tags: ["valleys", "bridges", "chokepoints"],
       tagsJa: ["谷", "橋", "隘路"],
-      turnLimit: 45,
       camps: [[2, 8], [13, 8]],
       factories: [[12, 3], [6, 2]],
       grid: [
@@ -192,7 +188,6 @@ var BASE_NECTARIS_LEVELS = (function () {
       specialJa: "高地の射撃ユニットが道路を制圧する。山を取るには歩兵が要る。",
       tags: ["mountains", "one road", "asymmetric"],
       tagsJa: ["山脈", "一本道", "非対称"],
-      turnLimit: 40,
       camps: [[2, 3], [13, 8]],
       factories: [[12, 3]],
       grid: [
@@ -235,7 +230,6 @@ var BASE_NECTARIS_LEVELS = (function () {
       specialJa: "山道は歩兵以外の地上ユニットを通さない。航空戦力が効く。",
       tags: ["massifs", "air", "mobility"],
       tagsJa: ["山塊", "航空", "機動"],
-      turnLimit: 45,
       camps: [[2, 4], [12, 7]],
       factories: [],
       grid: [
@@ -278,7 +272,6 @@ var BASE_NECTARIS_LEVELS = (function () {
       specialJa: "進路上に中立工場が三つ。どちらの側面よりも中央の価値が高い。",
       tags: ["tall map", "three factories", "long march"],
       tagsJa: ["縦長", "工場三つ", "長行軍"],
-      turnLimit: 55,
       camps: [[10, 4], [3, 18]],
       factories: [[2, 4], [12, 16], [10, 11]],
       grid: [
@@ -338,7 +331,6 @@ var BASE_NECTARIS_LEVELS = (function () {
       specialJa: "中立工場は四つ。撃破数を稼ぐより生産を確保する方が得。",
       tags: ["road network", "bridge", "factories"],
       tagsJa: ["道路網", "橋", "工場"],
-      turnLimit: 55,
       camps: [[2, 4], [10, 18]],
       factories: [[11, 2], [12, 5], [7, 11], [12, 13]],
       grid: [
@@ -398,7 +390,6 @@ var BASE_NECTARIS_LEVELS = (function () {
       specialJa: "山脈を越えられるのは歩兵のみ。装甲部隊は中央の一本道に賭けるしかない。",
       tags: ["ranges", "corridor", "infantry"],
       tagsJa: ["山脈", "回廊", "歩兵"],
-      turnLimit: 55,
       camps: [[3, 2], [11, 19]],
       factories: [[10, 5], [2, 18], [2, 12], [9, 13]],
       grid: [
@@ -458,7 +449,6 @@ var BASE_NECTARIS_LEVELS = (function () {
       specialJa: "両軍に輸送車。歩兵を大回りさせる方が、正面突破より速い。",
       tags: ["transport", "road belt", "flanking"],
       tagsJa: ["輸送", "道路帯", "側面"],
-      turnLimit: 55,
       camps: [[11, 4], [4, 17]],
       factories: [[11, 18], [3, 7]],
       grid: [
@@ -518,7 +508,6 @@ var BASE_NECTARIS_LEVELS = (function () {
       specialJa: "本セットで最も横に広い。補給線が長く、損害の回復が難しい。",
       tags: ["wide", "four factories", "attrition"],
       tagsJa: ["横長", "工場四つ", "消耗戦"],
-      turnLimit: 55,
       camps: [[2, 9], [28, 6]],
       factories: [[19, 3], [21, 7], [13, 8], [5, 5]],
       grid: [
@@ -567,7 +556,6 @@ var BASE_NECTARIS_LEVELS = (function () {
       specialJa: "遮蔽が非対称。東側は持たざる地形で時間を稼ぐ必要がある。",
       tags: ["race", "asymmetric", "roads"],
       tagsJa: ["競走", "非対称", "道路"],
-      turnLimit: 55,
       camps: [[2, 3], [28, 8]],
       factories: [[25, 8], [16, 3], [13, 6], [20, 8]],
       grid: [
@@ -616,7 +604,6 @@ var BASE_NECTARIS_LEVELS = (function () {
       specialJa: "両軍に長射程砲。橋の手前だけは、その射程から逃れられない。",
       tags: ["bridge", "long range", "forks"],
       tagsJa: ["橋", "長射程", "分岐"],
-      turnLimit: 55,
       camps: [[3, 3], [27, 8]],
       factories: [[7, 2], [26, 6], [17, 2], [13, 8]],
       grid: [

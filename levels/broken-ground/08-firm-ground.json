@@ -6,7 +6,7 @@
   "author": "AI-made by Codex",
   "source": "levels/broken-ground/08-firm-ground.json",
   "description": "Mine teams compete over the few firm routes between large waste fields. Each mine has its own Mule, but transport unloading still needs plain, road, bridge or an owned factory.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 70 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "terrain-dependent routes",
     "column",
@@ -18,7 +18,6 @@
     "formation": "column",
     "road": "fork"
   },
-  "turnLimit": 70,
   "grid": [
     "..................................",
     ".....---..........................",

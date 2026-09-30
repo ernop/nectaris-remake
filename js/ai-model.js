@@ -31,7 +31,7 @@ var AI_MODEL = (function () {
   function find(game, id) { return allUnits(game).find(function (u) { return u.id === id; }); }
   function clone(game, seed) {
     var copy = Object.create(engine.Game.prototype), units = {};
-    ["map", "width", "height", "terrain", "currentPlayer", "firstPlayer", "balance", "turn", "turnLimit", "winner", "winReason"].forEach(function (k) { copy[k] = game[k]; });
+    ["map", "width", "height", "terrain", "currentPlayer", "firstPlayer", "balance", "turn", "progressTurn", "winner", "winReason"].forEach(function (k) { copy[k] = game[k]; });
     allUnits(game).forEach(function (u) { units[u.id] = Object.assign({}, u); });
     Object.values(units).forEach(function (u) { u.cargo = u.cargo.map(function (c) { return units[c.id]; }); });
     copy.units = game.units.map(function (u) { return units[u.id]; });
@@ -91,7 +91,7 @@ var AI_MODEL = (function () {
   var weights = SHIPPED_WEIGHTS;
   // Returns the previous weights so the caller can restore them.
   function setWeights(next) { var previous = weights; weights = next; return previous; }
-  // How far the game has run toward its turn limit: 0 at turn 1, 1 at the limit
+  // How far the game has run toward the turn limit: 0 at turn 1, 1 at the limit
   // (sim/src/model.rs `clock`).
   function clock(turn, limit) { return limit <= 1 ? 1 : Math.min(1, Math.max(0, (turn - 1) / (limit - 1))); }
   // A seat's weights `t` of the way from `profile.early` to `profile.late`.
@@ -374,7 +374,7 @@ var AI_MODEL = (function () {
     return danger;
   }
   function evaluate(game, player, ctx) {
-    if (game.winner !== null) return game.winner === player ? 100000 : -100000;
+    if (game.over()) return game.winner === null ? 0 : game.winner === player ? 100000 : -100000;
     var scores = [0,0], capturers = [[],[]];
     allUnits(game).forEach(function (u) {
       if (u.player < 0) return;
@@ -404,10 +404,6 @@ var AI_MODEL = (function () {
       });
     });
     scores[0] -= baseDanger(game,0); scores[1] -= baseDanger(game,1);
-    // Remaining time changes the burden of attack. Terminal expiry is still
-    // handled only by the engine, including its Xenon-specific rule.
-    var left = game.turnLimit-game.turn;
-    if (left < 8) scores[1] += (8-left)*35;
     return scores[player]-scores[1-player];
   }
   // Equal exactly when the action fields are equal; only compared and used as map keys.
@@ -543,7 +539,7 @@ var AI_MODEL = (function () {
   }
 
   function candidates(game,ctx,options) {
-    options=options||{}; if(game.winner!==null)return [];
+    options=options||{}; if(game.over())return [];
     ctx.stats.generated++;
     var actions=[], info=analysis(game,ctx), units=game.playerUnits(game.currentPlayer).filter(function(u){
       return !u.moved || u.cargo.some(function(c){return game.unloadTargets(u,c).length;});
@@ -637,15 +633,15 @@ var AI_MODEL = (function () {
     if(action.to){
       var from={col:u.col,row:u.row}, moved=game.moveUnit(u,action.to[0],action.to[1]);
       yield stamp({t:"move",unit:u,from:from,to:{col:u.col,row:u.row},reason:moved.loaded?"load":action.target?"attack":"advance",effects:moved.effects,path:moved.path});
-      if(moved.loaded||u.inFactory||game.winner!==null)return;
+      if(moved.loaded||u.inFactory||game.over())return;
     }
     if(action.cargo&&!action.before)yield stamp(unload());
-    if(action.target && game.winner===null){
+    if(action.target && !game.over()){
       var enemy=find(game,action.target),a=u.strength,d=enemy.strength;
       yield stamp({t:"battle-preview",attacker:u,defender:enemy,attackerBefore:a,defenderBefore:d,preview:combat.preview(game,u,enemy)});
       var result=game.attack(u,enemy);
       yield stamp({t:"battle",attacker:u,defender:enemy,attackerBefore:a,defenderBefore:d,result:result});
-      if(game.winner!==null||game.units.indexOf(u)<0)return;
+      if(game.over()||game.units.indexOf(u)<0)return;
       // Chance changed the board; rebuild tactical analysis for the retreat.
       ctx.analysis.delete(game);
       var step=retreat(game,u,ctx);

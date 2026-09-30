@@ -11,7 +11,6 @@
     "1 / 2 / 3 exits",
     "Pelican airlift"
   ],
-  "turnLimit": 120,
   "grid": [
     ".h.hh.h.h..h.h.....w....h.h.",
     ".B..--.h.---hhh.hM.hh..ww..w",

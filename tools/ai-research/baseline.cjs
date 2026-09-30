@@ -22,7 +22,7 @@ const packs = [
 const census = packs.flatMap(([pack,maps])=> maps.map(map=> {
  const g = new ENGINE.Game(map,{seed:42});
  const stops = g.playerUnits(0).map(u=>Object.values(g.movementRange(u)).filter(r=>r.canStop).length);
- return {pack,name:map.name,width:g.width,height:g.height,field:g.units.length,reserves:Object.values(g.buildings).reduce((a,b)=>a+b.stored.length,0),factories:Object.values(g.buildings).filter(b=>b.kind==='factory').length,turnLimit:g.turnLimit,unionUnits:stops.length,unionOpeningStops:stops.reduce((a,b)=>a+b,0),maxUnitStops:Math.max(...stops)};
+ return {pack,name:map.name,width:g.width,height:g.height,field:g.units.length,reserves:Object.values(g.buildings).reduce((a,b)=>a+b.stored.length,0),factories:Object.values(g.buildings).filter(b=>b.kind==='factory').length,unionUnits:stops.length,unionOpeningStops:stops.reduce((a,b)=>a+b,0),maxUnitStops:Math.max(...stops)};
 }));
 const fixture={name:'Research probe: immediate capture versus attack',grid:['.......','.......','B.....B','.......','.......'],buildings:[{col:0,row:2,owner:0},{col:6,row:2,owner:1}],units:[{t:'CHARLIE',o:0,x:5,y:2},{t:'CHARLIE',o:1,x:6,y:3},{t:'BISON',o:1,x:1,y:0}]};
 const captureGame=new ENGINE.Game(fixture,{seed:42});
@@ -37,7 +37,7 @@ const chosen=[packs[0][1][0],packs[0][1][15],packs[1][1][15],packs[4][1][7],pack
 const games=[];
 for(const map of chosen) for(const seed of [42,43,44]){
  const g=new ENGINE.Game(map,{seed});let halfTurns=0;const durations=[];const t=performance.now();
- while(g.winner===null && halfTurns<2*g.turnLimit+2){const start=performance.now();AI.playTurn(g,g.currentPlayer);durations.push(performance.now()-start);halfTurns++;if(g.winner===null)g.endTurn();}
+ while(!g.over()){const start=performance.now();AI.playTurn(g,g.currentPlayer);durations.push(performance.now()-start);halfTurns++;if(!g.over())g.endTurn();if(halfTurns>2*ENGINE.TURN_LIMIT+2)throw new Error(map.name+' exceeded the engine turn budget');}
  durations.sort((a,b)=>a-b);
  const out={name:map.name,seed,winner:g.winner,reason:g.winReason,round:g.turn,halfTurns,ms:Math.round(performance.now()-t),medianTurnMs:+durations[Math.floor(durations.length/2)].toFixed(2),maxTurnMs:+durations.at(-1).toFixed(2)};
  games.push(out);console.log(JSON.stringify(out));

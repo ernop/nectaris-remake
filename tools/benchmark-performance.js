@@ -42,8 +42,9 @@ results.push(benchmark("AI: four half-turns on every included map", function () 
   return digest(maps.map(function (map, index) {
     var game = new ENGINE.Game(map, { seed: 1000 + index });
     var firstId = Math.min.apply(null, game.snapshot().units.map(function (u) { return u.id; }));
-    for (var turn = 0; turn < 4 && game.winner === null; turn++) {
-      AI.playTurn(game, game.currentPlayer); game.endTurn();
+    for (var turn = 0; turn < 4 && !game.over(); turn++) {
+      AI.playTurn(game, game.currentPlayer);
+      if (!game.over()) game.endTurn();
     }
     return state(game, firstId);
   }));

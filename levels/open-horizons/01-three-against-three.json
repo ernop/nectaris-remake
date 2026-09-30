@@ -6,7 +6,7 @@
   "author": "AI-made by Codex",
   "source": "levels/open-horizons/01-three-against-three.json",
   "description": "Three squads per side and no replacements. Six small mountain islands break up a broad plain; every supporting position costs a third of your army.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 40 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "open maneuver",
     "line",
@@ -18,7 +18,6 @@
     "formation": "line",
     "road": "none"
   },
-  "turnLimit": 40,
   "grid": [
     "........................",
     "........................",

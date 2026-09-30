@@ -6,7 +6,7 @@
   "author": "AI-made by Codex",
   "source": "levels/broken-ground/05-walking-the-ridge.json",
   "description": "Infantry and Mules only. Connected hill belts are cheap for foot soldiers and costly for their carriers; the road around the edge offers a different kind of shortcut.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 60 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "terrain-dependent routes",
     "split",
@@ -18,7 +18,6 @@
     "formation": "split",
     "road": "rim"
   },
-  "turnLimit": 60,
   "grid": [
     "............................",
     "............................",

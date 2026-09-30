@@ -121,9 +121,10 @@ module.exports=function(ok){
   restored.endTurn();ok(restored.turn===2&&restored.currentPlayer===1,"a reversed opening increments the round after both armies act");
   var legacy=g.snapshot();delete legacy.firstPlayer;delete legacy.balance;
   ok(fails(function(){E.Game.restore(legacy);}),"a save without a recorded first player is refused, not assumed Union-first");
-  var short=new E.Game(maps[9],{firstPlayer:1});short.turnLimit=1;short.endTurn();
-  ok(short.winner===null,"turn limit waits until both sides receive the final round");short.endTurn();
-  ok(short.winner===1&&short.winReason==="turnlimit","original Xenon timeout rule remains explicit and unchanged");
+  var short=new E.Game(maps[9],{firstPlayer:1}).snapshot();short.turn=short.progressTurn=E.TURN_LIMIT;
+  short=E.Game.restore(short);short.endTurn();
+  ok(!short.over(),"turn limit waits until both sides receive the final round");short.endTurn();
+  ok(short.winner===null&&short.winReason==="turnlimit"&&short.turn===E.TURN_LIMIT,"a reversed opening is drawn when its last round ends");
   var model=require("../js/ai-model.js"),search=require("../js/ai-search.js");
   var simulated=model.clone(g);simulated.endTurn();
   var worker=E.Game.restore(search.publicSnapshot(g));worker.endTurn();

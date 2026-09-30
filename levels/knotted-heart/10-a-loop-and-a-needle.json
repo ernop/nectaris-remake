@@ -6,7 +6,7 @@
   "author": "AI-made by Codex",
   "source": "levels/knotted-heart/10-a-loop-and-a-needle.json",
   "description": "A roomy interior loop is cut by one narrow direct tunnel. Guns can cover nearby sectors, while moving the supporting vehicles between those sectors takes a different route.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 70 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "dense center / open flanks",
     "gunline",
@@ -18,7 +18,6 @@
     "formation": "gunline",
     "road": "rim"
   },
-  "turnLimit": 70,
   "grid": [
     "................................h...",
     "...................h.........h......",

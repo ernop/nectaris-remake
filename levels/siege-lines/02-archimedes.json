@@ -6,7 +6,7 @@
   "author": "AI-made by Claude Opus 5.5",
   "source": "levels/siege-lines/02-archimedes.json",
   "description": "A single gate breaks Archimedes' wall. Whatever holds it holds the crater; infantry can climb the wall anywhere, slowly. Your Hadrian can shell the gate from outside.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 18 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "fortified camp",
     "unequal sides"
@@ -15,7 +15,6 @@
     "theme": "siege",
     "symmetry": "none"
   },
-  "turnLimit": 18,
   "grid": [
     "........................",
     "........................",

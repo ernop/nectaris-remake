@@ -6,7 +6,7 @@
   "author": "AI-made by Codex",
   "source": "levels/broken-ground/03-motorcycle-country.json",
   "description": "Capturers and Rabbits share a road network across broad wasteland shoals. Panthers cannot leave the firm routes into wasteland, even where a Rabbit can cross.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 50 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "terrain-dependent routes",
     "spread",
@@ -18,7 +18,6 @@
     "formation": "spread",
     "road": "fork"
   },
-  "turnLimit": 50,
   "grid": [
     "............................",
     ".....................ww.....",

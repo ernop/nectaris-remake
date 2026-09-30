@@ -6,7 +6,7 @@
   "author": "AI-made by Claude Opus 5.5",
   "source": "levels/bridgeheads/03-rima-hesiodus.json",
   "description": "The camps face each other across the north end of the rille, where a footpath lets infantry cross in two moves. Tanks must go the long way, over the southern bridge. Every Xenon unit is under strength, most of them badly.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 30 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "valleys and bridges",
     "mirror symmetry"
@@ -15,7 +15,6 @@
     "theme": "bridgeheads",
     "symmetry": "mirror"
   },
-  "turnLimit": 30,
   "grid": [
     "...........vvv...........",
     "...........vvv...........",

@@ -547,7 +547,7 @@ var AI = (function () {
         var result = game.attack(unit, action.target);
         if (game.units.indexOf(unit) >= 0 && !unit.moved) {
           if (unit.type.moveAfterAttack && unit.movePointsLeft > 0 &&
-              game.winner === null) {
+              !game.over()) {
             queuePostAttackMove(unit);
           } else {
             game.finishUnit(unit);
@@ -563,7 +563,7 @@ var AI = (function () {
 
     function next() {
       while (true) {
-        if (game.winner !== null) return null;
+        if (game.over()) return null;
         if (pending.length) return pending.shift()();
 
         if (factoryIndex < factories.length) {

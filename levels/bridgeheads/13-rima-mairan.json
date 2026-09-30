@@ -6,7 +6,7 @@
   "author": "AI-made by Claude Opus 5.5",
   "source": "levels/bridgeheads/13-rima-mairan.json",
   "description": "Each side's Mules start at its bridgeheads, carrying mines. A mine on a bridge closes it to tanks, but a closed bridge also stops your own attack. You bring one more Charlie.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 30 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "valleys and bridges",
     "half-turn symmetry"
@@ -15,7 +15,6 @@
     "theme": "bridgeheads",
     "symmetry": "half"
   },
-  "turnLimit": 30,
   "grid": [
     "..............vv..............",
     "..............vv..............",

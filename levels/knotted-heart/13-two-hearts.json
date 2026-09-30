@@ -6,7 +6,7 @@
   "author": "AI-made by Codex",
   "source": "levels/knotted-heart/13-two-hearts.json",
   "description": "Two dense knots share a small central connection. Armies can contest one knot, divide between both, or use the broad outside field to bypass either concentration.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 80 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "dense center / open flanks",
     "split",
@@ -18,7 +18,6 @@
     "formation": "split",
     "road": "rim"
   },
-  "turnLimit": 80,
   "grid": [
     "h.......h...............................",
     "...h...........---.-.h............h.....",

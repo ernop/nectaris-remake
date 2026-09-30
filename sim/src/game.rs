@@ -62,11 +62,13 @@ pub struct Game<'d> {
     /// Kept movement searches (`Ranges`), read through `&self` lookups.
     ranges: std::cell::RefCell<Ranges>,
     pub turn: i32,
-    pub turn_limit: i32,
+    /// The last turn in which a unit lost a machine or a factory was captured; 0 before any.
+    pub progress_turn: i32,
     pub current: i32,
     pub first: i32,
-    /// -1 while the match is undecided.
+    /// -1 while the match is undecided and after a draw.
     pub winner: i32,
+    /// Empty while the match is being played; see `over`.
     pub reason: &'static str,
     /// Private: only the engine's attack rolls them (see dice.rs).
     dice: Dice,
@@ -280,7 +282,7 @@ impl<'d> Game<'d> {
             zoc: [vec![0; tables.cells.len()], vec![0; tables.cells.len()]],
             ranges: std::cell::RefCell::new(Ranges::new(Vec::new(), tables.cells.len())),
             turn: 1,
-            turn_limit: b.turn_limit.filter(|&n| n != 0).unwrap_or(50),
+            progress_turn: 0,
             current: if first_player == 1 { 1 } else { 0 },
             first: if first_player == 1 { 1 } else { 0 },
             winner: -1,
@@ -428,7 +430,7 @@ impl<'d> Game<'d> {
             zoc: self.zoc.clone(),
             ranges: std::cell::RefCell::new(self.ranges.borrow().for_copy()),
             turn: self.turn,
-            turn_limit: self.turn_limit,
+            progress_turn: self.progress_turn,
             current: self.current,
             first: self.first,
             winner: self.winner,
@@ -839,9 +841,13 @@ impl<'d> Game<'d> {
             })
             .collect()
     }
+    /// Won or drawn. A draw leaves `winner` at -1, so `winner` alone cannot tell.
+    pub fn over(&self) -> bool {
+        !self.reason.is_empty()
+    }
     pub fn can_move_now(&self, u: usize) -> bool {
         let unit = &self.units[u];
-        self.winner < 0
+        !self.over()
             && unit.player == self.current
             && !unit.moved
             && !unit.shifted
@@ -851,7 +857,7 @@ impl<'d> Game<'d> {
     }
     pub fn can_attack_now(&self, u: usize) -> bool {
         let unit = &self.units[u];
-        self.winner < 0
+        !self.over()
             && unit.player == self.current
             && !unit.moved
             && !unit.attacked
@@ -948,13 +954,14 @@ impl<'d> Game<'d> {
                 }
                 if !self.buildings[b].base {
                     self.units[u].exp = (self.units[u].exp + 4).min(self.d.combat.max_exp);
+                    self.progress_turn = self.turn;
                 }
                 if self.buildings[b].base && self.enemy_base_captured(player, b) {
                     self.winner = player;
                     self.reason = "base";
                 }
             }
-            if !self.buildings[b].base && self.buildings[b].owner == player && self.winner < 0 {
+            if !self.buildings[b].base && self.buildings[b].owner == player && !self.over() {
                 let mut storing = vec![u];
                 storing.extend(std::mem::take(&mut self.units[u].cargo));
                 for s in storing {
@@ -1043,6 +1050,9 @@ impl<'d> Game<'d> {
         };
         self.units[d].strength = d0 - to_defender;
         self.units[a].strength = a0 - to_attacker;
+        if to_defender > 0 || to_attacker > 0 {
+            self.progress_turn = self.turn;
+        }
         let max_exp = self.d.combat.max_exp;
         if self.units[d].strength == 0 {
             self.units[a].exp = (self.units[a].exp + 2).min(max_exp);
@@ -1099,7 +1109,7 @@ impl<'d> Game<'d> {
     }
 
     fn check_elimination(&mut self) {
-        if self.winner >= 0 {
+        if self.over() {
             return;
         }
         let mut alive = [0; 2];
@@ -1124,7 +1134,7 @@ impl<'d> Game<'d> {
 
     pub fn unload_targets(&self, transport: usize, cargo: usize) -> Vec<(i32, i32)> {
         let (tu, cu) = (&self.units[transport], &self.units[cargo]);
-        if self.winner >= 0
+        if self.over()
             || tu.player != self.current
             || tu.transfer_used
             || cu.moved
@@ -1175,7 +1185,7 @@ impl<'d> Game<'d> {
 
     pub fn can_deploy_now(&self, b: usize, u: usize) -> bool {
         let (bd, unit) = (&self.buildings[b], &self.units[u]);
-        self.winner < 0
+        !self.over()
             && self.building(bd.col, bd.row) == Some(b)
             && bd.owner == self.current
             && unit.player == bd.owner
@@ -1278,6 +1288,7 @@ impl<'d> Game<'d> {
     }
 
     pub fn end_turn(&mut self) {
+        assert!(!self.over(), "The match is over; no side has a turn to end.");
         // Every unit's movement and transfer flags reset.
         self.ranges.get_mut().clear();
         for i in 0..self.field.len() {
@@ -1288,11 +1299,14 @@ impl<'d> Game<'d> {
                 self.refresh(self.buildings[b].stored[s]);
             }
         }
+        // A drawn match keeps the number of its last turn.
         if self.current != self.first {
-            self.turn += 1;
-            if self.winner < 0 && self.turn > self.turn_limit {
-                self.winner = 1;
+            if self.turn >= self.d.rules.turn_limit {
                 self.reason = "turnlimit";
+            } else if self.turn - self.progress_turn >= self.d.rules.quiet_turns {
+                self.reason = "no-progress";
+            } else {
+                self.turn += 1;
             }
         }
         self.current = 1 - self.current;
@@ -1301,7 +1315,7 @@ impl<'d> Game<'d> {
     /// `Game.legalCommands()`: every command the side to move may issue now,
     /// in the same order as JavaScript lists them.
     pub fn legal_commands(&self) -> Vec<Command> {
-        if self.winner >= 0 {
+        if self.over() {
             return Vec::new();
         }
         let mut out = Vec::with_capacity(256);
@@ -1432,5 +1446,48 @@ impl Command {
             Command::LoadFromFactory(b, u, t) => ("loadFromFactory".into(), vec![building(b), unit(u), unit(t)]),
             Command::EndTurn => ("endTurn".into(), vec![]),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn data() -> Data {
+        Data::load(concat!(env!("CARGO_MANIFEST_DIR"), "/data/game-data.json"))
+    }
+
+    /// Ends round `turn` on board 0, progress last made in round `progress`.
+    fn end_round(d: &Data, turn: i32, progress: i32) -> Game<'_> {
+        let mut g = Game::new(d, 0, &Seed::from_text("1"), 0);
+        g.turn = turn;
+        g.progress_turn = progress;
+        g.current = 1 - g.first;
+        g.end_turn();
+        g
+    }
+
+    /// The behaviour lock holds a no-progress draw but no game long enough
+    /// for the turn limit.
+    #[test]
+    fn a_round_that_reaches_a_limit_is_a_draw() {
+        let d = data();
+        let (quiet, limit) = (d.rules.quiet_turns, d.rules.turn_limit);
+        let g = end_round(&d, 150 + quiet - 1, 150);
+        assert_eq!((g.winner, g.reason, g.turn), (-1, "", 150 + quiet));
+        let g = end_round(&d, 150 + quiet, 150);
+        assert_eq!((g.winner, g.reason, g.turn), (-1, "no-progress", 150 + quiet));
+        let g = end_round(&d, limit - 1, limit - 1);
+        assert_eq!((g.reason, g.turn), ("", limit));
+        let g = end_round(&d, limit, limit);
+        assert_eq!((g.winner, g.reason, g.turn), (-1, "turnlimit", limit));
+    }
+
+    #[test]
+    #[should_panic(expected = "The match is over")]
+    fn a_finished_match_has_no_turn_to_end() {
+        let d = data();
+        let mut g = end_round(&d, d.rules.turn_limit, d.rules.turn_limit);
+        g.end_turn();
     }
 }

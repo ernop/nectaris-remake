@@ -6,7 +6,7 @@
   "author": "AI-made by Codex",
   "source": "levels/open-horizons/15-many-small-fronts.json",
   "description": "A loose field of irregular islands creates many small fronts. Four arsenals per side of the map reward local captures, but scattering every squad leaves no reserve.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 75 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "open maneuver",
     "spread",
@@ -18,7 +18,6 @@
     "formation": "spread",
     "road": "cross"
   },
-  "turnLimit": 75,
   "grid": [
     "......................................",
     "......................................",

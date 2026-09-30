@@ -39,11 +39,14 @@ var PROFILES = (function () {
   function sessionKey(map, options) { return levelKey(map, options) + (options && options.hotseat ? ":hotseat" : ""); }
   function boardOf(key) { return key.replace(/(:offers)?(:xenon)?(:hotseat)?$/, ""); }
   function outcomeLabel(result) {
+    if (result.winner === null) return "Draw";
     if (result.hotseat) return result.winner === 0 ? "Union victory" : "Xenon victory";
     return result.outcome === "win" ? "Victory" : "Defeat";
   }
+  // "turnlimit" results recorded before 2026-09-30 are Xenon wins at a map's own limit.
   function reasonLabel(reason) {
-    return {base: "Base captured", elimination: "Army eliminated", turnlimit: "Turn limit reached"}[reason] || "Match completed";
+    return {base: "Base captured", elimination: "Army eliminated", "no-progress": "No damage or factory capture in 100 turns",
+      turnlimit: "Turn limit reached"}[reason] || "Match completed";
   }
   function levelRecord(profile, map, options) {
     var key = levelKey(map, options);
@@ -52,6 +55,7 @@ var PROFILES = (function () {
     });
     return {wins: results.filter(function (r) { return !r.hotseat && r.outcome === "win"; }).length,
       losses: results.filter(function (r) { return !r.hotseat && r.outcome === "loss"; }).length,
+      draws: results.filter(function (r) { return !r.hotseat && r.outcome === "draw"; }).length,
       hotseat: results.filter(function (r) { return r.hotseat; }).length,
       latest: results.length ? results[results.length - 1] : null};
   }
@@ -75,7 +79,7 @@ var PROFILES = (function () {
     };
   }
   // Every play event, newest first: the log's start, resume, leave and abandon
-  // entries with each finished match's result ("win", "loss" or "hotseat").
+  // entries with each finished match's result ("win", "loss", "draw" or "hotseat").
   function history(profile) {
     var entries = profile.log.map(function (entry, order) { return Object.assign({order: order}, entry); });
     profile.results.forEach(function (r, order) {
@@ -87,11 +91,14 @@ var PROFILES = (function () {
     return entries.sort(function (a, b) { return a.at < b.at ? 1 : a.at > b.at ? -1 : b.order - a.order; });
   }
   function summary(profile, sessions) {
-    var ids = new Set(), count = {attempts: 0, wins: 0, losses: 0, hotseat: 0, abandoned: 0, open: sessions.length};
+    var ids = new Set(), count = {attempts: 0, wins: 0, losses: 0, draws: 0, hotseat: 0, abandoned: 0, open: sessions.length};
     profile.log.forEach(function (entry) { ids.add(entry.match); if (entry.event === "abandon") count.abandoned++; });
     profile.results.forEach(function (r) {
       ids.add(r.id);
-      if (r.hotseat) count.hotseat++; else if (r.outcome === "win") count.wins++; else count.losses++;
+      if (r.hotseat) count.hotseat++;
+      else if (r.outcome === "win") count.wins++;
+      else if (r.outcome === "draw") count.draws++;
+      else count.losses++;
     });
     sessions.forEach(function (session) { ids.add(session.id); });
     count.attempts = ids.size;
@@ -229,13 +236,15 @@ var PROFILES = (function () {
     if (state.winner !== null && state.winner !== 0 && state.winner !== 1) {
       throw new Error("Cannot record a match with an invalid winner.");
     }
+    if (state.winner !== null && state.winReason === null) throw new Error("Cannot record a match won for no reason.");
     if (typeof match.key !== "string") throw new Error("Cannot save a match without the key of its board.");
     if (closed(p, match.id)) return;
-    if (state.winner === null) { this.writeSession(profileId, match); return; }
+    // winReason is null only while the match is being played; a draw has a reason and no winner.
+    if (state.winReason === null) { this.writeSession(profileId, match); return; }
     p.results.push({id: match.id, name: state.map.name, endedAt: new Date().toISOString(),
       winner: state.winner, humanSide: humanSide(match.options),
-      outcome: state.winner === humanSide(match.options) ? "win" : "loss",
-      hotseat: !!match.options.hotseat, turn: Math.min(state.turn, state.turnLimit || state.turn),
+      outcome: state.winner === null ? "draw" : state.winner === humanSide(match.options) ? "win" : "loss",
+      hotseat: !!match.options.hotseat, turn: state.turn,
       levelKey: levelKey(state.map, match.options), reason: state.winReason,
       balance:state.balance || null,firstPlayer:state.firstPlayer || 0,
       opponent: match.options.opponent || "classic", opponentChanges: match.options.opponentChanges || []});

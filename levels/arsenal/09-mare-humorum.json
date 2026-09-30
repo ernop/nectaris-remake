@@ -6,7 +6,7 @@
   "author": "AI-made by Claude Opus 5.5",
   "source": "levels/arsenal/09-mare-humorum.json",
   "description": "Near your camp, a factory holds one squad. Far out on the flank, another holds a tank company. Send your capturers near or far; you have one more Charlie than Xenon.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 30 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "factory reserves",
     "half-turn symmetry"
@@ -15,7 +15,6 @@
     "theme": "arsenal",
     "symmetry": "half"
   },
-  "turnLimit": 30,
   "grid": [
     "..............................",
     "..............................",

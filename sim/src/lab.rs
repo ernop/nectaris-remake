@@ -105,6 +105,8 @@ pub struct Score {
     pub games: u32,
     pub base: u32,
     pub elimination: u32,
+    /// Draws by the engine's rules; the other draws are round caps.
+    pub no_progress: u32,
     pub turnlimit: u32,
     pub rounds: u64,
     /// One entry per board, in the order given.
@@ -124,7 +126,8 @@ pub struct BoardTally {
     pub xenon_both: u32,
     pub other: u32,
     pub rounds: u64,
-    pub turnlimit: u32,
+    /// Games without a winner, whatever the reason.
+    pub draws: u32,
 }
 impl Score {
     pub fn a_total(&self) -> u32 {
@@ -151,8 +154,8 @@ pub fn run_match(d: &Data, a: &str, b: &str, boards: &[usize], cycles: u32, root
     let total = boards.len() * cycles as usize * 2;
     let next = AtomicUsize::new(0);
     let score = Mutex::new(Score::default());
-    // Winning seat (or -1), rounds and turn-limit flag of every game by index.
-    let results = Mutex::new(vec![(-1i32, 0i32, false); total]);
+    // Winning seat (or -1) and rounds of every game by index.
+    let results = Mutex::new(vec![(-1i32, 0i32); total]);
     std::thread::scope(|scope| {
         for _ in 0..threads.max(1) {
             scope.spawn(|| loop {
@@ -168,13 +171,14 @@ pub fn run_match(d: &Data, a: &str, b: &str, boards: &[usize], cycles: u32, root
                 let specs = if leg == 0 { [a, b] } else { [b, a] };
                 let mut players = [make_player(specs[0], work).unwrap(), make_player(specs[1], work).unwrap()];
                 let out = play::play_with(d, boards[map], &seed, &mut players, max_rounds);
-                results.lock().unwrap()[k] = (out.winner, out.rounds, out.reason == "turnlimit");
+                results.lock().unwrap()[k] = (out.winner, out.rounds);
                 let mut s = score.lock().unwrap();
                 s.games += 1;
                 s.rounds += out.rounds as u64;
                 match out.reason {
                     "base" => s.base += 1,
                     "elimination" => s.elimination += 1,
+                    "no-progress" => s.no_progress += 1,
                     "turnlimit" => s.turnlimit += 1,
                     _ => {}
                 }
@@ -196,12 +200,12 @@ pub fn run_match(d: &Data, a: &str, b: &str, boards: &[usize], cycles: u32, root
     let results = results.into_inner().unwrap();
     score.by_board = vec![BoardTally::default(); boards.len()];
     for n in 0..total / 2 {
-        let (w0, r0, t0) = results[2 * n];
-        let (w1, r1, t1) = results[2 * n + 1];
+        let (w0, r0) = results[2 * n];
+        let (w1, r1) = results[2 * n + 1];
         let t = &mut score.by_board[n % boards.len()];
         t.pairs += 1;
         t.rounds += (r0 + r1) as u64;
-        t.turnlimit += u32::from(t0) + u32::from(t1);
+        t.draws += u32::from(w0 < 0) + u32::from(w1 < 0);
         // Leg 0 seats a as Union, leg 1 seats a as Xenon.
         match (w0, w1) {
             (0, 1) => t.a_sweeps += 1,

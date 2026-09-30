@@ -6,7 +6,7 @@
   "author": "AI-made by Claude Opus 5.5",
   "source": "levels/siege-lines/08-clavius.json",
   "description": "Two small outpost craters guard the approaches, each with an unguarded Xenon factory. Taking an outpost gives you its reserve and a place to repair.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 26 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "fortified camp",
     "unequal sides"
@@ -15,7 +15,6 @@
     "theme": "siege",
     "symmetry": "none"
   },
-  "turnLimit": 26,
   "grid": [
     "..............................",
     "...............MMM............",

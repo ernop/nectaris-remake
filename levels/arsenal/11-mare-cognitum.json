@@ -6,7 +6,7 @@
   "author": "AI-made by Claude Opus 5.5",
   "source": "levels/arsenal/11-mare-cognitum.json",
   "description": "These factories hold only a squad each, but any damaged unit can repair in one. Holding them keeps your army whole. Your Hadrian starts damaged.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 14 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "factory reserves",
     "half-turn symmetry"
@@ -15,7 +15,6 @@
     "theme": "arsenal",
     "symmetry": "half"
   },
-  "turnLimit": 14,
   "grid": [
     "..............................",
     "..............................",

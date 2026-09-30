@@ -6,7 +6,7 @@
   "author": "AI-made by Codex",
   "source": "levels/open-horizons/09-a-narrow-advantage.json",
   "description": "Two Giants give Union impressive local strength but few bodies. The hourglass formations invite a frontal stand while lighter forces can use the wide outer lanes.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 60 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "open maneuver",
     "line",
@@ -18,7 +18,6 @@
     "formation": "line",
     "road": "direct"
   },
-  "turnLimit": 60,
   "grid": [
     "..............................",
     "..............................",

@@ -26,10 +26,19 @@ module.exports = function (ok) {
     elimination.attack(elimination.units[0], elimination.units[1]);
     cases.push({game:elimination,winner:winner,reason:"elimination"});
   });
-  var timeout = new ENGINE.Game({name:"Timeout",turnLimit:1,grid:["...."],
+  // Both sides only end their turns: nothing is damaged or captured.
+  var quiet = new ENGINE.Game({name:"Quiet",grid:["...."],
     units:[{t:"CHARLIE",o:0,x:0,y:0},{t:"CHARLIE",o:1,x:3,y:0}]},{seed:1});
-  timeout.endTurn(); timeout = ENGINE.Game.restore(timeout.snapshot()); timeout.endTurn();
-  cases.push({game:timeout,winner:1,reason:"turnlimit"});
+  for (var half = 0; half < 2 * ENGINE.QUIET_TURNS; half++) {
+    if (half === ENGINE.QUIET_TURNS) quiet = ENGINE.Game.restore(quiet.snapshot());
+    quiet.endTurn();
+  }
+  cases.push({game:quiet,winner:null,reason:"no-progress"});
+  var last = new ENGINE.Game({name:"Last turn",grid:["...."],
+    units:[{t:"CHARLIE",o:0,x:0,y:0},{t:"CHARLIE",o:1,x:3,y:0}]},{seed:1}).snapshot();
+  last.turn = last.progressTurn = ENGINE.TURN_LIMIT; last.currentPlayer = 1;
+  last = ENGINE.Game.restore(last); last.endTurn();
+  cases.push({game:last,winner:null,reason:"turnlimit"});
   cases.forEach(function (entry,index) {
     var game = entry.game;
     ok(game.winner === entry.winner && game.winReason === entry.reason, "real engine ending: " + game.map.name);
@@ -39,18 +48,22 @@ module.exports = function (ok) {
     store.checkpoint(p.id,match);
     var result = store.active().results[index];
     ok(result.winner === entry.winner && result.reason === entry.reason &&
-      result.outcome === (entry.winner === 0 ? "win" : "loss"), "ending survives reopen with correct outcome and reason");
+      result.outcome === (entry.winner === null ? "draw" : entry.winner === 0 ? "win" : "loss"), "ending survives reopen with correct outcome and reason");
     ok(store.active().results.length === index + 1 && !store.sessions(p.id).length, "repeated completion is idempotent");
   });
-  ok(store.active().results[4].turn === 1, "turn-limit result reports the last playable turn");
+  ok(store.active().results[4].turn === ENGINE.QUIET_TURNS && store.active().results[5].turn === ENGINE.TURN_LIMIT,
+    "draw results report the last turn played");
+  var drawRecord = PROFILES.levelRecord(store.active(),quiet.map,{campaignIndex:4});
+  ok(drawRecord.draws === 1 && drawRecord.wins === 0 && drawRecord.losses === 0, "per-mission record counts a draw as neither win nor loss");
+  ok(PROFILES.outcomeLabel(store.active().results[4]) === "Draw", "a drawn match is labelled a draw");
   // A newer match on the board of an already finished one.
-  var newMatch = {id:"new-match",key:"campaign:0",options:{campaignIndex:0},state:timeout.snapshot()};
+  var newMatch = {id:"new-match",key:"campaign:0",options:{campaignIndex:0},state:quiet.snapshot()};
   newMatch.state.winner = null; newMatch.state.winReason = null;
   store.checkpoint(p.id,newMatch);
   var old = {id:"ending-0",key:"campaign:0",options:{campaignIndex:0},state:cases[0].game.snapshot()};
   store.checkpoint(p.id,old);
   ok(store.session(p.id,"campaign:0").id === "new-match", "late old completion does not clear a newer save");
-  old.state.winner = null;
+  old.state.winner = null; old.state.winReason = null;
   store.checkpoint(p.id,old);
   ok(store.session(p.id,"campaign:0").id === "new-match", "old pre-victory checkpoint cannot resurrect a completed match");
   var invalid = {id:"bad",key:"campaign:0",options:{},state:Object.assign({},newMatch.state,{winner:7})};
@@ -62,7 +75,8 @@ module.exports = function (ok) {
   ok(PROFILES.levelRecord(store.active(),cases[0].game.map,{expansionIndex:0}).latest === null,
     "same-named levels in separate packs do not share outcomes");
   ok(PROFILES.outcomeLabel({hotseat:true,winner:1,outcome:"loss"}) === "Xenon victory", "hotseat does not label the shared profile a loser");
-  ok(PROFILES.reasonLabel("turnlimit") === "Turn limit reached", "turn-limit reason is readable");
+  ok(PROFILES.reasonLabel("turnlimit") === "Turn limit reached" &&
+    PROFILES.reasonLabel("no-progress") === "No damage or factory capture in 100 turns", "draw reasons are readable");
   var other = store.create("Other");
   ok(PROFILES.levelRecord(other,cases[0].game.map,{campaignIndex:0}).latest === null,
     "mission outcomes are isolated by profile");

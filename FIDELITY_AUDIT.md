@@ -100,7 +100,8 @@ PCE/Windows in-game manuals are identified in [Anka's supplement](https://anka.s
 |---|---|---|
 | Statistical combat forecasts | Shows casualty distributions and kill probabilities from 100,000 trials, beyond the original attack/defense information. | Explicit modern combat-inspector feature; changes the player's available information. |
 | All-mission access | All installed missions are available immediately from the menu, without reproducing the original password/progression interface. | Deliberate mission-browser and testing convenience. |
-| Custom unit statistics and arbitrary turn limits | Custom games can exceed the official 23-unit roster and 50-turn scenario limit. | Modding/data-driven level support. Stock original maps retain their ordinary roster and limit. |
+| Custom unit statistics | Custom games can exceed the official 23-unit roster. | Modding/data-driven level support. Stock original maps retain their ordinary roster. |
+| Draws instead of the 50-round limit | The original awarded Xenon the win when a scenario's 50 rounds ran out. Every game here is drawn after 100 rounds in which no unit lost a machine and no factory was captured, or when round 5000 ends; no scenario has its own limit. | User request of 2026-09-30: the second player defended passively to win at the limit ([decision](PRODUCT.md#fixed-turn-limit-and-draws-2026-09-30)). |
 | Additional scenario packs | Lunar Frontiers and the remake rosters on Base Nectaris terrain are not original campaign missions. | Added playable content; they do not replace the missing advanced campaign. |
 | Profiles, detailed result history and per-action browser autosaves | Our particular persistence and reporting system is new. Saving itself is not inherently unofficial across all ports. | Explicit product features for continuing browser sessions and tracking results. |
 | Modern control and display options | Mouse flow, zoom/pan, themes and AI animation controls differ from the original interface. | Browser usability and requested presentation choices. |
@@ -193,7 +194,7 @@ not that every boundary case has been observed on hardware.
 | Factory entry timing | Storage and capture waited until the unit was finished; the engine's legal commands allowed an attack from the entered factory, or the turn's end before storage or capture (the player's moves and the existing bots finished at once) | **Fixed 2026-09-30** (user request): the move onto the factory stores the unit or captures the factory, and no command for that unit follows. The Windows post-move routine does both before returning control to the map ([evidence](ORIGINAL_EXECUTABLE_NOTES.md#factory-endpoints--2026-09-29)). |
 | Bases | Custom storage/repair and ground parking prohibition | **Fixed:** prison bases permit parking and provide ground defense 35. No automatic storage/repair; enemy-base infantry capture wins. |
 | Elimination | All mines and stored Atlas counted | **Fixed for PCE:** mines excluded; Atlas in storage excluded; other owned reserves count, even with blocked exits. |
-| Turn limit | Default 50 rounds, Xenon wins timeout | Retained. Exact victory-check timing is a remaining trace item. |
+| Turn limit | Default 50 rounds, Xenon wins timeout | **Replaced 2026-09-30** (user request): draws after 100 rounds without a lost machine or factory capture, and when round 5000 ends; listed under extra capabilities above. Exact victory-check timing is a remaining trace item. |
 
 The main gameplay correction is the random distribution: its mean damage
 multiplier is **1.11**, versus the old **2.10**. This does not mean every battle
@@ -224,7 +225,7 @@ See `MECHANICS.md` for the adopted rules and source links.
 ## Remake facilities and compatibility
 
 Profiles, browser saves, hotseat play, a mission selector, editor, custom units,
-per-map turn limits, additional map packs, zoom, themes and statistical forecasts
+additional map packs, zoom, themes and statistical forecasts
 are remake facilities. Their exact implementation is ours, but editors,
 two-player modes and saves also exist in official ports; those capabilities
 alone are not violations of every release. They remain available. Original campaign data was not

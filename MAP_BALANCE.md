@@ -21,6 +21,15 @@ it pushed out of range were re-tuned: MARE INSULARUM fell from 53% to about
 20%, RIMA ARIADAEUS rose from 47-49% to about 64%. Rule and bot changes move
 these numbers, so remeasure before relying on one.
 
+**Measured under a rule since removed.** Every number and finding here dates
+from when each mission had its own turn limit and Xenon won when it ran out;
+the limits are in the level files as of commit `78f746a`. On 2026-09-30 that
+rule was replaced in every game by draws: after 100 turns in which no unit
+lost a machine and no factory was captured, and when turn 5000 ends
+([decision](PRODUCT.md#fixed-turn-limit-and-draws-2026-09-30)). The missions'
+balance under the draw rules has not been measured. The "At limit" games,
+Xenon wins then, now play on.
+
 ## How balance is measured
 
 **The standard**, settled with the user on 2026-09-29: the best bot plays
@@ -118,7 +127,8 @@ pool from both seats" on 6.
 ### What the bots do not do
 
 Neither Apex nor Marshal hurries as the turn limit nears. The evaluation's only
-turn-limit term (`sim/src/model.rs`, twinned in `js/ai-model.js`) adds a bonus
+turn-limit term (`sim/src/model.rs`, twinned in `js/ai-model.js`; removed with
+the limit on 2026-09-30) adds a bonus
 to Xenon's score in the last eight rounds, the same for every move considered,
 so it never makes an attack look better; and Marshal's weights do not change
 from the first round to the last. Marshal's Union attacks because its weights

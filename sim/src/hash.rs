@@ -51,7 +51,7 @@ fn cargo_text(g: &Game, u: usize, out: &mut String) {
 
 pub fn state_text(g: &Game) -> String {
     let mut out = String::with_capacity(4096);
-    write!(out, "T{};P{};F{};L{};W", g.turn, g.current, g.first, g.turn_limit).unwrap();
+    write!(out, "T{};P{};F{};Q{};W", g.turn, g.current, g.first, g.progress_turn).unwrap();
     if g.winner < 0 {
         out.push('-');
     } else {

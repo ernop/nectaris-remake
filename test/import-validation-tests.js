@@ -42,8 +42,9 @@ module.exports = function (ok) {
     /Building 1 stored unit 1 strength/, "a stored unit without strength");
   rejects(function () { new ENGINE.Game(level({grid: [[".", "B"], [".", "."]]})); },
     /grid must be rows of terrain letters/, "grid rows that are not text");
-  rejects(function () { new ENGINE.Game(level({turnLimit: "50"})); },
-    /turn limit/, "a turn limit given as text");
+  var older = new ENGINE.Game(level({turnLimit: "3"}), {seed: 1});
+  for (var half = 0; half < 6; half++) older.endTurn();
+  ok(!older.over() && older.turn === 4, "a turn limit in an older level file is ignored");
   rejects(function () { new ENGINE.Game(level({grid: [".B..", "...."]})); },
     /only factories can/, "units stored in a base");
 
@@ -71,7 +72,13 @@ module.exports = function (ok) {
   tampered = JSON.parse(JSON.stringify(snapshot));
   tampered.buildings[Object.keys(tampered.buildings)[0]].owner = MARKUP;
   rejects(function () { ENGINE.Game.restore(tampered); }, /Saved match contains invalid buildings/, "markup in a recorded building's owner");
-  tampered = JSON.parse(JSON.stringify(snapshot));
-  tampered.turnLimit = MARKUP;
-  rejects(function () { ENGINE.Game.restore(tampered); }, /invalid or from an older version/, "markup in a recorded turn limit");
+  [["markup in a recorded draw clock", {progressTurn: MARKUP}],
+    ["a draw clock ahead of the turn", {progressTurn: snapshot.turn + 1}],
+    ["a save from before the draw rule", {progressTurn: undefined}],
+    ["a turn past the turn limit", {turn: ENGINE.TURN_LIMIT + 1, progressTurn: 0}],
+    ["a draw with a winner", {winner: 0, winReason: "no-progress"}],
+    ["a win without a winner", {winner: null, winReason: "base"}]].forEach(function (entry) {
+    tampered = Object.assign(JSON.parse(JSON.stringify(snapshot)), entry[1]);
+    rejects(function () { ENGINE.Game.restore(tampered); }, /invalid or from an older version/, entry[0]);
+  });
 };

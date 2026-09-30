@@ -116,7 +116,7 @@ results, play history and unfinished matches.
 
 Each level is a tile: a picture of its map above one line with its number and
 name, **Resume turn N** when you have an unfinished match there, how many times
-you have started it, and your wins and losses. The small green mark on the
+you have started it, and your wins, losses and draws. The small green mark on the
 picture's corner plays the level as Xenon. Every level can have an unfinished match at the same time (separately
 as Union, as Xenon, in each Mode and in hotseat): leave one with **Save &
 Menu**, open another, and come back to either from its entry or the
@@ -125,7 +125,12 @@ history entry; your first move starts the match. **Restart** in the match panel
 begins the level again from turn 1 and records a match under way as abandoned.
 
 The **History** tab lists every match you started, resumed, left, abandoned,
-won or lost, newest first, with its level, side and turn and how it ended.
+won, lost or drew, newest first, with its level, side and turn and how it ended.
+
+A match is won by capturing the enemy base or eliminating its forces. It is
+drawn after 100 turns in which no unit loses a machine and no factory is
+captured, or when turn 5000 ends; the match panel shows **Draw in N turns**,
+counting the current turn.
 
 Progress saves automatically after actions and survives closing and reopening
 the page. An interrupted AI turn resumes from its start. Completed moves and
@@ -158,7 +163,7 @@ sets the compensation and its accepting player goes second. Matching switch
 points use a random tie-break. Review both boundaries, the first player and the
 exact bonus, then **Start match**; you can restart the questions before playing.
 Bonuses are full strength, zero experience and ready on their owner’s first turn.
-Solo keeps the side you chose; the map’s timeout victory for Xenon still applies.
+Solo keeps the side you chose; the draw rules apply as in any match.
 
 Up to 32 packages range from no bonus to four Polars plus two Charlies. Numbered
 hexes and coordinates show exactly where they arrive near each base. **Union
@@ -439,7 +444,6 @@ The editor exports self-contained JSON. Schema:
 ```json
 {
   "name": "MY LEVEL",
-  "turnLimit": 50,
   "grid": ["..hh..", "B-...F", "......"],
   "buildings": [
     { "col": 0, "row": 1, "owner": 0 },
@@ -457,6 +461,9 @@ The editor exports self-contained JSON. Schema:
 Terrain characters: `.` plains, `-` road, `w` wasteland, `h` hills,
 `M` mountains, `v` valley, `=` bridge, `F` factory, `B` base. Owners:
 `0` Union (human by default), `1` Xenon (AI), `-1` neutral.
+Levels have no turn limit of their own: every match is drawn after 100 turns
+in which no unit loses a machine and no factory is captured, or when turn 5000
+ends. A `turnLimit` field in an older level file is ignored.
 Road tiles choose their path from adjacent road/building tiles: same-row runs
 stay horizontal, while turns and junctions meet at their shared hex edges.
 

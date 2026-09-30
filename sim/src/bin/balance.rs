@@ -4,12 +4,12 @@
 //!   ranges, as in `119-134,140`.
 //!   Seat balance: with only --a (or --b equal to it), A plays itself `games`
 //!   times per board, each game with its own dice, and the report gives
-//!   Union's win rate with its 95% interval and how many of Xenon's wins came
-//!   at the turn limit. With --pool, game g on a board seats pool member
-//!   g mod n as Union and member (g / n) mod n as Xenon, so a multiple of n²
-//!   games covers every ordered pair equally. Deterministic bots repeat the
-//!   same game until dice intervene; a pool averages over several styles of
-//!   play, so one bot's habits weigh less in the result.
+//!   Union's win rate with its 95% interval, the draws, and how many of them
+//!   came from 100 turns without progress. With --pool, game g on a board
+//!   seats pool member g mod n as Union and member (g / n) mod n as Xenon, so
+//!   a multiple of n² games covers every ordered pair equally. Deterministic
+//!   bots repeat the same game until dice intervene; a pool averages over
+//!   several styles of play, so one bot's habits weigh less in the result.
 //!   Skill: with a different --b, A and B play `games` seat-swapped pairs per
 //!   board, and the report gives A's score as Union and as Xenon. A board
 //!   rewards the stronger player when that player scores above one half from
@@ -33,8 +33,8 @@ fn main() {
     }
 }
 
-/// One finished game: the winner (-1 for a round-cap draw), how it ended
-/// and its length in rounds.
+/// One finished game: the winner (-1 for a draw), how it ended and its
+/// length in rounds.
 #[derive(Clone, Copy)]
 struct Game {
     winner: i32,
@@ -152,7 +152,7 @@ fn run() -> Result<(), String> {
     if skill {
         println!("board  A as Union  A as Xenon  rounds  name");
     } else {
-        println!("board  Union  interval    by camp  by elim  Xenon  by camp  by elim  at limit  draws  rounds  name");
+        println!("board  Union  interval    by camp  by elim  Xenon  by camp  by elim  draws  no-progress  rounds  name");
     }
     let (mut inside, mut both) = (0, 0);
     for (i, &board) in boards.iter().enumerate() {
@@ -160,7 +160,7 @@ fn run() -> Result<(), String> {
         let rounds = played.iter().map(|g| f64::from(g.rounds)).sum::<f64>() / played.len() as f64;
         let name = &data.boards[board].name;
         if skill {
-            // A's score from one seat: wins count 1 and round-cap draws half.
+            // A's score from one seat: wins count 1 and draws half.
             let score = |leg: usize| {
                 let seat = leg as i32;
                 played.iter().skip(leg).step_by(2).map(|g| if g.winner < 0 { 0.5 } else if g.winner == seat { 1.0 } else { 0.0 }).sum::<f64>() / games as f64
@@ -176,6 +176,7 @@ fn run() -> Result<(), String> {
             let union = count(&|g| g.winner == 0);
             let xenon = count(&|g| g.winner == 1);
             let draws = count(&|g| g.winner < 0);
+            let stalled = count(&|g| g.reason == "no-progress");
             let share = union as f64 / games as f64;
             if (0.4..=0.6).contains(&share) {
                 inside += 1;
@@ -195,15 +196,14 @@ fn run() -> Result<(), String> {
                 println!("pairs {board} {}", rows.join(" | "));
             }
             println!(
-                "{board:5}  {:>5}  [{:>3}, {:>3}]  {:7}  {:7}  {xenon:5}  {:7}  {:7}  {:8}  {draws:5}  {rounds:6.1}  {name}",
+                "{board:5}  {:>5}  [{:>3}, {:>3}]  {:7}  {:7}  {xenon:5}  {:7}  {:7}  {draws:5}  {stalled:11}  {rounds:6.1}  {name}",
                 pct(share),
                 format!("{:.0}", 100.0 * lo),
                 format!("{:.0}", 100.0 * hi),
                 won(0, "base"),
                 won(0, "elimination"),
                 won(1, "base"),
-                won(1, "elimination"),
-                won(1, "turnlimit")
+                won(1, "elimination")
             );
         }
     }

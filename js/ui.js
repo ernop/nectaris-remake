@@ -282,7 +282,7 @@ var UI = (function () {
 
   GameUI.prototype.canRestoreHistory = function (history) {
     var entry = history && history[history.length - 1];
-    return !!entry && !this.busy && this.game.winner === null &&
+    return !!entry && !this.busy && !this.game.over() &&
       this.mode !== "aiTurn" && this.mode !== "battle" && this.mode !== "over" &&
       entry.state.turn === this.game.turn && entry.state.currentPlayer === this.game.currentPlayer;
   };
@@ -433,7 +433,12 @@ var UI = (function () {
   GameUI.prototype.refreshStatus = function () {
     var g = this.game;
     this.refreshUndoButton();
-    $("status-turn").textContent = "Turn " + g.turn + " / " + g.turnLimit;
+    $("status-turn").textContent = "Turn " + g.turn;
+    $("status-draw").classList[g.over() ? "add" : "remove"]("hidden");
+    // Turns left, this one included, before the no-progress draw or the turn limit.
+    var left = Math.min(g.progressTurn + ENGINE.QUIET_TURNS, ENGINE.TURN_LIMIT) - g.turn + 1;
+    $("status-draw-turns").textContent = String(left);
+    $("status-draw-unit").textContent = left === 1 ? "turn" : "turns";
     var el = $("status-player");
     var searching = this.mode === "aiTurn" && this._aiTurn && this._aiTurn.searching && this._aiTurn.searching();
     el.textContent = RENDER.PLAYER_COLORS[g.currentPlayer].name + (searching ? " (thinking…)" : " to move");
@@ -1375,7 +1380,7 @@ var UI = (function () {
   // or Undo has cleared UI selection. Merely inspecting a ready unit spends
   // nothing; leaving a moved unit or a buggy's post-attack retreat ends it.
   GameUI.prototype.finishPendingActivations = function (keepUnit) {
-    if (this.game.winner !== null) return;
+    if (this.game.over()) return;
     var pending = this.game.playerUnits(this.game.currentPlayer).filter(function (unit) {
       return unit !== keepUnit && !unit.moved && (unit.shifted || unit.attacked);
     });
@@ -1420,7 +1425,7 @@ var UI = (function () {
       if (unit.carriedBy) self.sound("load");
       self.showMoveEffects(events);
       self.checkGameOver();
-      if (self.game.winner === null && !unit.inFactory && !unit.carriedBy &&
+      if (!self.game.over() && !unit.inFactory && !unit.carriedBy &&
           (self.previewTargets(unit).length || unit.cargo.some(function (cargo) {
             return self.hasUnloadDestination(unit, cargo);
           }))) {
@@ -1449,7 +1454,7 @@ var UI = (function () {
     this.deselect();
     this.refreshStatus();
     this.checkGameOver();
-    if (this.game.winner === null && !unit.inFactory && unit.cargo.some(function (cargo) {
+    if (!this.game.over() && !unit.inFactory && unit.cargo.some(function (cargo) {
       return this.hasUnloadDestination(unit, cargo);
     }, this)) {
       this.selected = unit;
@@ -1805,10 +1810,10 @@ var UI = (function () {
     this.closeWarDock();
     this.hideWatchPanel();
     this.hideBattleScreen();
-    if (this.game.winner === null) this.game.endTurn();
-    if (this.game.winner === null) this.sound("turnStart");
+    if (!this.game.over()) this.game.endTurn();
+    if (!this.game.over()) this.sound("turnStart");
     this.busy = false;
-    this.mode = this.game.winner === null ? "idle" : "over";
+    this.mode = this.game.over() ? "over" : "idle";
     this.refreshStatus();
     this.draw();
     this.checkGameOver();
@@ -1959,7 +1964,7 @@ var UI = (function () {
     g.endTurn();
     this.refreshStatus();
     this.checkGameOver();
-    if (g.winner !== null) return;
+    if (g.over()) return;
     this.sound("turnEnd");
 
     if (this.options.hotseat) { this.refreshSide(); this.toast(RENDER.PLAYER_COLORS[g.currentPlayer].name + " — your turn"); this.draw(); return; }
@@ -2002,22 +2007,23 @@ var UI = (function () {
 
   GameUI.prototype.checkGameOver = function () {
     var g = this.game;
-    if (g.winner === null) return;
+    if (!g.over()) return;
     this.mode = "over";
     this.clearUndo();
     var reasons = {
       base: "base captured",
       elimination: "all enemy forces destroyed",
-      turnlimit: "turn limit reached",
+      "no-progress": "no unit lost a machine and no factory was captured in " + ENGINE.QUIET_TURNS + " turns",
+      turnlimit: "turn " + ENGINE.TURN_LIMIT + " has ended",
     };
-    var msg = RENDER.PLAYER_COLORS[g.winner].name + " wins — " + (reasons[g.winReason] || g.winReason);
+    var msg = (g.winner === null ? "Draw" : RENDER.PLAYER_COLORS[g.winner].name + " wins") + " — " + reasons[g.winReason];
     $("gameover-text").textContent = msg;
     $("gameover-panel").classList.remove("hidden");
-    // Checked again after later moves and on reload; the fanfare plays once.
-    if (sfx.isEnabled() && !this._overSounded) {
+    // Checked again after later moves and on reload; the fanfare plays once. A draw has none.
+    if (sfx.isEnabled() && !this._overSounded && g.winner !== null) {
       this._overSounded = true;
       // A base capture has just sounded its own jingle; let it finish.
-      sfx.play(this.options.hotseat || g.winner === 0 ? "victory" : "defeat", {delay: g.winReason === "base" ? 0.8 : 0});
+      sfx.play(this.options.hotseat || g.winner === this.humanSide ? "victory" : "defeat", {delay: g.winReason === "base" ? 0.8 : 0});
     }
     this.onGameOver(g.winner);
   };

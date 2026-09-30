@@ -6,7 +6,7 @@
   "author": "AI-made by Claude Opus 5.5",
   "source": "levels/siege-lines/12-posidonius.json",
   "description": "A rille runs in front of Posidonius with a single bridge. Tanks must cross it and then find a gate; infantry can climb down and up anywhere, and your Pelican can lift one unit over both.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 26 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "fortified camp",
     "unequal sides"
@@ -15,7 +15,6 @@
     "theme": "siege",
     "symmetry": "none"
   },
-  "turnLimit": 26,
   "grid": [
     ".................v............",
     ".................v............",

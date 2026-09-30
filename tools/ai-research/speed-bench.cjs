@@ -30,8 +30,8 @@ chosen.forEach(b => { if (!BOTS[b]) throw new Error("Unknown bot " + b + "; choo
 
 function start(p) {
   const g = new ENGINE.Game(maps[p.board], {seed: p.seed});
-  while (g.winner === null && g.turn < p.round) { AI.playTurn(g, g.currentPlayer); if (g.winner === null) g.endTurn(); }
-  if (g.winner !== null) throw new Error(maps[p.board].name + " ended before round " + p.round);
+  while (!g.over() && g.turn < p.round) { AI.playTurn(g, g.currentPlayer); if (!g.over()) g.endTurn(); }
+  if (g.over()) throw new Error(maps[p.board].name + " ended before round " + p.round);
   return g;
 }
 function fingerprint(g) {

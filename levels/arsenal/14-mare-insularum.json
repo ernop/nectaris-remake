@@ -6,7 +6,7 @@
   "author": "AI-made by Claude Opus 5.5",
   "source": "levels/arsenal/14-mare-insularum.json",
   "description": "Islands of firm ground stand in a sea of valleys, and the factories on them can be reached on foot, slowly, or by Pelican. Each side has one Pelican, and a Hawkeye to shoot the other's down.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 32 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "factory reserves",
     "half-turn symmetry"
@@ -15,7 +15,6 @@
     "theme": "arsenal",
     "symmetry": "half"
   },
-  "turnLimit": 32,
   "grid": [
     "..................................",
     "..................................",

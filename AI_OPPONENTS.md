@@ -115,8 +115,8 @@ Neither planning nor worker serialization reads or advances the match RNG.
 
 This is selective search with handcrafted evaluations and bounded rollouts.
 Candidate pruning can miss a sacrifice or coordinated maneuver. Transport
-scheduling, long sieges, repair cycles and the asymmetric timeout remain hard
-strategic problems. More computation alone does not prove better play; test
+scheduling, long sieges and repair cycles remain hard strategic problems (so
+was the asymmetric timeout, until the 2026-09-30 draw rule replaced it). More computation alone does not prove better play; test
 algorithm changes on held-out maps and fresh seeds as well as regression cases.
 
 ## Browser tournaments
@@ -183,9 +183,10 @@ adds same-policy pairings when several opponents are selected. The exact total
 appears before launch, up to 1,000,000 games. **Randomize** supplies a uint32 seed;
 the same settings and seed reproduce outcomes independently of worker speed.
 
-**Maximum rounds per game** gives both armies a turn per round. Zero preserves
-the map's own limit and its normal Xenon timeout win. An earlier lab cutoff is a
-draw. **Parallel workers** are simultaneous background games, not teams inside a
+**Maximum rounds per game** gives both armies a turn per round. Zero leaves only
+the engine's draws (100 turns without a lost machine or factory capture, or the
+end of turn 5000; until 2026-09-30, the map's own limit and a Xenon win at it).
+An earlier lab cutoff is a draw recorded as `round-cap`. **Parallel workers** are simultaneous background games, not teams inside a
 game. More workers use more CPU. **Search work** changes move budgets as before:
 Standard uses normal in-game budgets, Fast halves sampling/branch budgets and
 uses depth 2, Deep doubles them and uses depth 4, subject to minimums. Classic
@@ -384,7 +385,7 @@ summaries and source hashes are recorded in
 raw stress-test archives are intentionally not shipped with the game.
 
 The final 60-game round robin used REVOLT, ICARUS and CYRANO, one paired cycle,
-seed 42, original turn limits, four workers and K=24. Each policy played 24 games:
+seed 42, original turn limits (Xenon won at them until 2026-09-30), four workers and K=24. Each policy played 24 games:
 
 | Policy | Wins / losses | Final Elo within this run |
 | --- | --- | --- |

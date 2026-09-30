@@ -6,7 +6,7 @@
   "author": "AI-made by Codex",
   "source": "levels/open-horizons/12-the-crown-s-teeth.json",
   "description": "A broken crown of mountains offers several protected approaches to the center. The gaps face different directions, so one supporting group cannot cover them all.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 70 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "open maneuver",
     "forward",
@@ -18,7 +18,6 @@
     "formation": "forward",
     "road": "fork"
   },
-  "turnLimit": 70,
   "grid": [
     "..................................",
     "..................................",

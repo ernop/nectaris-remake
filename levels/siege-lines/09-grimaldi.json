@@ -6,7 +6,7 @@
   "author": "AI-made by Claude Opus 5.5",
   "source": "levels/siege-lines/09-grimaldi.json",
   "description": "The garrison is small, but a Xenon relief column is marching along the northern edge. Take the camp before it arrives, or turn to meet it.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 24 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "fortified camp",
     "unequal sides"
@@ -15,7 +15,6 @@
     "theme": "siege",
     "symmetry": "none"
   },
-  "turnLimit": 24,
   "grid": [
     "..............................",
     ".........-.-.-.-.-.-..........",

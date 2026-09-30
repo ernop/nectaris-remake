@@ -6,7 +6,7 @@
   "author": "AI-made by Codex",
   "source": "levels/knotted-heart/16-heart-of-the-matter.json",
   "description": "A large interlocking center has several rooms, loops and narrow transfers. Twelve neutral factories pull the armies in different directions while the outer field leaves room for a major turning movement.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 95 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "dense center / open flanks",
     "split",
@@ -18,7 +18,6 @@
     "formation": "split",
     "road": "fork"
   },
-  "turnLimit": 95,
   "grid": [
     "......h...................h........h......",
     ".......h.....h....................h...h.h.",

@@ -6,7 +6,7 @@
   "author": "AI-made by Claude Opus 5.5",
   "source": "levels/arsenal/12-mare-serenitatis.json",
   "description": "Xenon's factories are many but far from its army; Union's are few but close. Whichever side arms faster decides the battle.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 30 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "factory reserves",
     "unequal sides"
@@ -15,7 +15,6 @@
     "theme": "arsenal",
     "symmetry": "none"
   },
-  "turnLimit": 30,
   "grid": [
     "...............................",
     "...............................",

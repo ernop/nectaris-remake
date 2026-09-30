@@ -230,7 +230,7 @@ function build(spec,seed){
   const map={name:spec.name,pack:"AI-made",author:"Codex · original level",source:"levels/"+spec.file+".json",
     description:"Part "+spec.part+" · 42×20 · 180-degree rotational symmetry. "+spec.description,
     special:spec.factories+" neutral factories hold 4–8 units each, with equal numbers of one-, two- and three-exit alcoves. Half include a Charlie or Kilroy. Focused teams collectively cover every tank, gun, missile vehicle and anti-air type. Each Atlas or mine follows its own carrier; Pelicans are the only aircraft. Both sides start with Charlie, Panther and Rabbit plus "+spec.extras.map(id=>id[0]+id.slice(1).toLowerCase()).join(", ")+" in identical rotated formations.",
-    tags:["part "+spec.part,...spec.tags],turnLimit:180,grid:grid.map(r=>r.join("")),buildings,units};
+    tags:["part "+spec.part,...spec.tags],grid:grid.map(r=>r.join("")),buildings,units};
   return {map,seed,clearings:cells.filter(p=>pockets.has(key(p)))};
 }
 module.exports=function(){

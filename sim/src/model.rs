@@ -91,8 +91,8 @@ impl Profile {
         }
     }
 }
-/// How far the game has run toward its turn limit, 0 at turn 1 and 1 at the
-/// limit (js/ai-search.js `clock`).
+/// How far the game has run toward the turn limit, 0 at turn 1 and 1 at the
+/// limit (js/ai-model.js `clock`).
 pub fn clock(turn: i32, limit: i32) -> f64 {
     if limit <= 1 {
         return 1.0;
@@ -1074,8 +1074,14 @@ pub fn prepare_evaluation(g: &Game, ctx: &mut Ctx) {
 }
 
 pub fn evaluate(g: &Game, player: i32, ctx: &mut Ctx) -> f64 {
-    if g.winner >= 0 {
-        return if g.winner == player { 100000.0 } else { -100000.0 };
+    if g.over() {
+        return if g.winner < 0 {
+            0.0
+        } else if g.winner == player {
+            100000.0
+        } else {
+            -100000.0
+        };
     }
     let mut scores = [0.0f64; 2];
     let mut capturers: [Vec<usize>; 2] = [Vec::new(), Vec::new()];
@@ -1128,10 +1134,6 @@ pub fn evaluate(g: &Game, player: i32, ctx: &mut Ctx) -> f64 {
     }
     scores[0] -= base_danger(g, 0);
     scores[1] -= base_danger(g, 1);
-    let left = g.turn_limit - g.turn;
-    if left < 8 {
-        scores[1] += f64::from((8 - left) * 35);
-    }
     scores[player as usize] - scores[1 - player as usize]
 }
 
@@ -1482,7 +1484,7 @@ pub fn unit_actions(g: &mut Game, u: usize, ctx: &mut Ctx, info: &Info, limit: u
 }
 
 pub fn candidates(g: &mut Game, ctx: &mut Ctx, limit: usize, per_unit: usize, unit_limit: usize) -> Vec<Action> {
-    if g.winner >= 0 {
+    if g.over() {
         return Vec::new();
     }
     candidates_keyed(g, ctx, signature(g), limit, per_unit, unit_limit)
@@ -1490,7 +1492,7 @@ pub fn candidates(g: &mut Game, ctx: &mut Ctx, limit: usize, per_unit: usize, un
 
 /// `candidates` for a position whose `signature` the caller already built.
 pub fn candidates_keyed(g: &mut Game, ctx: &mut Ctx, mut key: Vec<i32>, limit: usize, per_unit: usize, unit_limit: usize) -> Vec<Action> {
-    if g.winner >= 0 {
+    if g.over() {
         return Vec::new();
     }
     key.extend([limit as i32, per_unit as i32, unit_limit as i32]);
@@ -1620,7 +1622,7 @@ pub fn execute(g: &mut Game, action: &Action, ctx: &mut Ctx) {
     }
     if let Some((c, r)) = action.to {
         let loaded = g.do_move(u, c, r);
-        if loaded || g.units[u].in_factory || g.winner >= 0 {
+        if loaded || g.units[u].in_factory || g.over() {
             return;
         }
     }
@@ -1628,9 +1630,9 @@ pub fn execute(g: &mut Game, action: &Action, ctx: &mut Ctx) {
         unload(g);
     }
     if let Some(enemy) = action.target {
-        if g.winner < 0 {
+        if !g.over() {
             g.do_attack(u, enemy);
-            if g.winner >= 0 || !g.field.contains(&u) {
+            if g.over() || !g.field.contains(&u) {
                 return;
             }
             if let Some((c, r)) = retreat(g, u, ctx) {

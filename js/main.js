@@ -28,7 +28,7 @@
   }
 
   function playerHasControl(state) {
-    return state.winner === null && (!!currentOptions.hotseat || state.currentPlayer === currentOptions.humanSide);
+    return state.winReason === null && (!!currentOptions.hotseat || state.currentPlayer === currentOptions.humanSide);
   }
   function playEntry(event, turn) {
     return {at: new Date().toISOString(), event: event, match: visit.id, key: visit.key, name: visit.mapDef.name,
@@ -49,7 +49,7 @@
           logEvent(visit.resumed ? "resume" : "start", state.turn);
         }
       }
-      if (visit.acted || visit.resumed || state.winner !== null) {
+      if (visit.acted || visit.resumed || state.winReason !== null) {
         profiles.checkpoint(visit.profileId, {id: visit.id, key: visit.key, options: currentOptions,
           savedAt: new Date().toISOString(), state: state});
       }
@@ -63,7 +63,7 @@
   function leaveMatch() {
     if (!visit) return true;
     if (!saveMatch(currentUI)) return false;
-    try { if (visit.acted && currentUI.game.winner === null) logEvent("leave", currentUI.game.turn); }
+    try { if (visit.acted && !currentUI.game.over()) logEvent("leave", currentUI.game.turn); }
     catch (error) { reportSaveError(error); return false; }
     visit = null;
     return true;
@@ -82,7 +82,7 @@
   // already under way asks first and stays in the history as abandoned.
   function restartMatch() {
     if (!visit || !currentUI) return;
-    var game = currentUI.game, begun = (visit.acted || visit.resumed) && game.winner === null;
+    var game = currentUI.game, begun = (visit.acted || visit.resumed) && !game.over();
     if (begun && !window.confirm("Restart " + visit.mapDef.name + " from turn 1? This match ends here and stays in your history as abandoned.")) return;
     var mapDef = visit.mapDef, fresh = freshOptions(visit.key, currentOptions);
     if (begun) {
@@ -123,9 +123,11 @@
     var results = activeProfile ? activeProfile.results : [];
     var solo = results.filter(function (r) { return !r.hotseat; });
     var wins = solo.filter(function (r) { return r.outcome === "win"; }).length;
-    var losses = solo.length - wins, hotseatCount = results.length - solo.length;
+    var draws = solo.filter(function (r) { return r.outcome === "draw"; }).length;
+    var losses = solo.length - wins - draws, hotseatCount = results.length - solo.length;
     $("profile-record").textContent = wins + (wins === 1 ? " win · " : " wins · ") +
-      losses + (losses === 1 ? " loss · " : " losses · ") + hotseatCount +
+      losses + (losses === 1 ? " loss · " : " losses · ") +
+      (draws ? draws + (draws === 1 ? " draw · " : " draws · ") : "") + hotseatCount +
       (hotseatCount === 1 ? " hotseat match" : " hotseat matches");
     if (historyProfileId !== (activeProfile && activeProfile.id)) historyLimit = HISTORY_PAGE;
     historyProfileId = activeProfile && activeProfile.id;
@@ -173,7 +175,8 @@
     });
     return index;
   }
-  var HISTORY_EVENTS = {start: "Started", resume: "Resumed", leave: "Left", abandon: "Abandoned", win: "Won", loss: "Lost"};
+  var HISTORY_EVENTS = {start: "Started", resume: "Resumed", leave: "Left", abandon: "Abandoned", win: "Won", loss: "Lost",
+    draw: "Draw"};
   function historyTime(at) {
     var date = new Date(at);
     return date.toLocaleString(undefined, {year: date.getFullYear() === new Date().getFullYear() ? undefined : "numeric",
@@ -186,7 +189,7 @@
     if (!activeProfile) return;
     var entries = PROFILES.history(activeProfile), where = levelIndex(), count = PROFILES.summary(activeProfile, open);
     addFigures(summary, [count.attempts, count.attempts === 1 ? " attempt · " : " attempts · ",
-      count.wins, " won · ", count.losses, " lost · ", count.hotseat, " hotseat · ",
+      count.wins, " won · ", count.losses, " lost · ", count.draws, " drawn · ", count.hotseat, " hotseat · ",
       count.abandoned, " abandoned · ", count.open, " in progress"]);
     entries.slice(0, historyLimit).forEach(function (entry) {
       var row = document.createElement("tr");
@@ -200,14 +203,14 @@
       level.appendChild(menuText("span", "history-name", entry.name));
       row.appendChild(menuText("td", "history-time", historyTime(entry.at)));
       row.appendChild(menuText("td", "history-event", entry.event === "hotseat" ?
-        (entry.winner === 0 ? "Union won" : "Xenon won") : HISTORY_EVENTS[entry.event]));
+        (entry.winner === null ? "Draw" : entry.winner === 0 ? "Union won" : "Xenon won") : HISTORY_EVENTS[entry.event]));
       row.appendChild(level);
       var side = sideName({hotseat: entry.hotseat, humanSide: entry.side});
       var sideCell = menuText("td", "history-side", side);
       sideCell.setAttribute("data-side", side.toLowerCase());
       row.appendChild(sideCell);
       row.appendChild(figures("td", "history-turn", ["turn ", entry.turn]));
-      var result = entry.event === "win" || entry.event === "loss" || entry.event === "hotseat";
+      var result = entry.event === "win" || entry.event === "loss" || entry.event === "draw" || entry.event === "hotseat";
       var detail = result ? PROFILES.reasonLabel(entry.reason) :
         entry.event === "start" && !entry.hotseat ? "vs " + AI_SEARCH.get(entry.opponent).label : "";
       row.appendChild(menuText("td", "history-detail", detail));
@@ -248,7 +251,10 @@
     var record = PROFILES.levelRecord(activeProfile, level, options), pieces = [];
     function add(number, label) { if (pieces.length) pieces[pieces.length - 1] += " · "; pieces.push(number, label); }
     if (attempts) add(attempts, attempts === 1 ? " attempt" : " attempts");
-    if (record.wins || record.losses) { add(record.wins, "W / "); pieces.push(record.losses, "L"); }
+    if (record.wins || record.losses || record.draws) {
+      add(record.wins, "W / "); pieces.push(record.losses, "L");
+      if (record.draws) pieces.push(" / ", record.draws, "D");
+    }
     if (record.hotseat) add(record.hotseat, " hotseat");
     if (!pieces.length && levelWasWon(level, options)) return menuText("span", "mission-record", "Cleared");
     return pieces.length ? figures("span", "mission-record", pieces) : null;
@@ -382,7 +388,7 @@
         onStateChange: saveMatch,
         onGameOver: function (winner) {
           var recorded = saveMatch(currentUI);
-          $("gameover-record").textContent = (opts.hotseat ?
+          $("gameover-record").textContent = (winner === null ? "Draw" : opts.hotseat ?
             (winner === 0 ? "Union victory" : "Xenon victory") : (winner === opts.humanSide ? "Victory" : "Defeat")) +
             (recorded ? " · Recorded for " + profile.name : " · Not saved yet — keep this page open");
           // Replay and Next mission stay in this match's side, players and Mode;
@@ -417,7 +423,7 @@
         try { logEvent("start", game.turn); } catch (error) { reportSaveError(error); }
       }
       saveMatch(currentUI);
-      if (game.winner !== null) currentUI.checkGameOver();
+      if (game.over()) currentUI.checkGameOver();
       else if (!opts.hotseat && game.currentPlayer !== opts.humanSide) currentUI.beginAITurn();
     }
     if (!saved && opts.opening==="offers") {
@@ -852,7 +858,7 @@
     // from its cache, and carrying on from there is a resume.
     window.addEventListener("pagehide", function () {
       if (!visit || !saveMatch(currentUI)) return;
-      try { if (visit.acted && currentUI.game.winner === null) logEvent("leave", currentUI.game.turn); }
+      try { if (visit.acted && !currentUI.game.over()) logEvent("leave", currentUI.game.turn); }
       catch (error) { reportSaveError(error); return; }
       if (visit.acted) visit.resumed = true;
       visit.acted = false;

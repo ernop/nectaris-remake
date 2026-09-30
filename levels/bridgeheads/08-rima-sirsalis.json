@@ -6,7 +6,7 @@
   "author": "AI-made by Claude Opus 5.5",
   "source": "levels/bridgeheads/08-rima-sirsalis.json",
   "description": "Guns on either rim can reach across the rille. Your guns start in firing position; Xenon's are damaged and farther back, and its Bison is damaged too. Two bridges carry the tanks, and the artillery decides which of them is usable.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 28 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "valleys and bridges",
     "half-turn symmetry"
@@ -15,7 +15,6 @@
     "theme": "bridgeheads",
     "symmetry": "half"
   },
-  "turnLimit": 28,
   "grid": [
     "............vvvv............",
     "............vvvv............",

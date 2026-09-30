@@ -233,7 +233,7 @@ function design(seed, linked, compact, fjord) {
     name:fjord.name,pack:"AI-made",author:"Codex · original level",source:"levels/"+fjord.file+".json",
     description:fjord.wallFactories ? "Part 7 packs 21 neutral factories into a 30×30 mountain labyrinth. Narrow, angular two- and three-hex channels interconnect around ridges, with factories tucked into terminal branches and short wall alcoves. Three small junction clearings provide room to fight. Each corner camp starts with exactly one Charlie, one Panther motorcycle infantry and one Rabbit missile buggy." : "Part "+fjord.part+" cuts narrow, angular fjords through mountain ridges. Long two- and three-hex channels branch toward "+fjord.factories+" terminal factories, with only "+fjord.clearings+" small junction clearings and a few connecting passes. Each corner camp starts with exactly one Charlie, one Panther motorcycle infantry and one Rabbit missile buggy.",
     special:"Each of the "+fjord.factories+" neutral factories holds 4–8 units in a focused or mixed team; none contains infantry. Exactly "+fjord.factories/3+" factories each have one, two or three road exits, all facing down their fjord. Atlas guns and mines follow their own Mule or Pelican. Pelicans are the only aircraft. Protect your two capturing units: there are no infantry reinforcements.",
-    tags:["part "+fjord.part,"narrow fjords",fjord.factories+" factories","3-unit start"],turnLimit:180,
+    tags:["part "+fjord.part,"narrow fjords",fjord.factories+" factories","3-unit start"],
     grid:grid.map(row=>row.join("")),buildings,units
   }};
   return {map: {
@@ -242,7 +242,7 @@ function design(seed, linked, compact, fjord) {
     description: compact ? "Part 3 compresses the fjord war into a fresh 40×40 mountain maze. Angular two- and three-hex passages reconnect around mountain islands, with five small battlefields and widening or tapering factory approaches. Each distant corner camp starts with five tanks and three infantry." : linked ? "A fresh mountain labyrinth: angular fjords pinch to two hexes, open into small battlefields and reconnect through four cross-routes. Alternating factory approaches flare into bowls or taper into narrow necks. Opposite corner camps each begin with five tanks and three infantry." : "Fifteen twisting, three-hex-wide fjords branch through a mountain massif. Five irregular clearings open into small battlefields. Union and Xenon start at opposite corner camps, each with five tanks and three infantry.",
     special: linked ? "Fifteen neutral factories hold 12 ground units apiece, each behind a single road exit and five mountain walls. Plains, roads, +20 hills and +30 wasteland vary the fighting ground. No aircraft. Vehicles can take alternate routes; infantry can cross the mountains." : "Capture the 15 neutral factories: each holds 12 ground units and has one road exit, enclosed by five mountain hexes. Plains, roads and +20 hills fill the fjords. No aircraft. Infantry can cross mountains; keep the factory mouths clear for reinforcements.",
     tags: compact ? ["part 3", "40×40", "linked branches", "ground only"] : linked ? ["15 fjords", "linked branches", "2-hex narrows", "ground only"] : ["15 fjords", "180 reserves", "ground only", "large"],
-    turnLimit: 180, grid: grid.map(row => row.join("")), buildings, units
+    grid: grid.map(row => row.join("")), buildings, units
   }, clearings, seed};
 }
 
@@ -342,14 +342,14 @@ function denseDesign(themed) {
     name:"ARSENAL FJORDS",pack:"AI-made",author:"Codex · original level",source:"levels/arsenal-fjords.json",
     description:"Part 5 rebuilds the dense 28×28 fjord network around nine deliberate supply teams: infantry caches, armor depots, patrols, escorted guns, engineers and mixed arsenals. Each corner army starts with four tanks and three infantry.",
     special:"Factory stocks range from 1 to 12 units (51 total), with three factories each offering one, two or three road exits. Every Atlas and mine follows its own Mule or Pelican in the roster. Deploy the carrier first and load the immobile unit aboard. Pelicans are the only aircraft; no battery has more than two guns.",
-    tags:["part 5","themed reserves","1 / 2 / 3 exits","Pelican airlift"],turnLimit:120,
+    tags:["part 5","themed reserves","1 / 2 / 3 exits","Pelican airlift"],
     grid:grid.map(row=>row.join("")),buildings,units
   }};
   return {seed,clearings,map:{
     name:"HONEYCOMB FJORDS",pack:"AI-made",author:"Codex · original level",source:"levels/honeycomb-fjords.json",
     description:"Part 4 is a dense 28×28 web of angled tunnels and fjords around small mountain pockets. Two-hex narrows, branching passages and three small staging spaces cover the board. Opposite corner camps each start with four tanks and three infantry.",
     special:"Eight neutral factories hold ten ground units each, with one road mouth and five mountain walls. Every mountain pocket is small; alternate routes run throughout the map. Plains, roads, +20 hills and +30 wasteland; no aircraft.",
-    tags:["part 4","28×28","8 factories","dense tunnels"],turnLimit:120,
+    tags:["part 4","28×28","8 factories","dense tunnels"],
     grid:grid.map(row=>row.join("")),buildings,units
   }};
 }
@@ -445,7 +445,7 @@ function mirrorFjords(seed) {
     name:"MIRROR FJORDS",pack:"AI-made",author:"Codex · original level",source:"levels/mirror-fjords.json",
     description:"Part 8 is a 31×30 fjord network with exact left-to-right symmetry. Mountain walls enclose narrow, angular channels and small junctions. Nine matched factory pairs surround three shared center-line factories. Every terrain hex, reserve team and starting position has an identical counterpart for the other side.",
     special:"Each side starts with one Charlie, Panther, Rabbit, Bison, Polar and Hadrian in mirrored positions. All 21 neutral factories hold 4–8 units without infantry; seven factories each have one, two or three exits. The center two-exit factory has matching north/south approaches. Every Atlas or mine follows its own Mule or Pelican. Pelicans are the only aircraft.",
-    tags:["part 8","exact symmetry","21 factories","6-unit start"],turnLimit:180,
+    tags:["part 8","exact symmetry","21 factories","6-unit start"],
     grid:grid.map(row => row.join("")),buildings,units:[]
   };
   reinforceCamps(map,mirror);

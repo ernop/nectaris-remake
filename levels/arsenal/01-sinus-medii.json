@@ -6,7 +6,7 @@
   "author": "AI-made by Claude Opus 5.5",
   "source": "levels/arsenal/01-sinus-medii.json",
   "description": "One factory stands at the exact centre, holding a Charlie, a Bison and a Kilroy. You move first, but your capturers are slow Kilroys starting farther back than Xenon's Charlies.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 14 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "factory reserves",
     "mirror symmetry"
@@ -15,7 +15,6 @@
     "theme": "arsenal",
     "symmetry": "mirror"
   },
-  "turnLimit": 14,
   "grid": [
     ".....................",
     ".....................",

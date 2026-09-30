@@ -6,7 +6,7 @@
   "author": "AI-made by Claude Opus 5.5",
   "source": "levels/siege-lines/14-maurolycus.json",
   "description": "A fast Xenon Rabbit starts outside the walls, on the road to your camp. Chase it or ignore it: every unit you leave behind to watch it is one fewer at the gate.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 30 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "fortified camp",
     "unequal sides"
@@ -15,7 +15,6 @@
     "theme": "siege",
     "symmetry": "none"
   },
-  "turnLimit": 30,
   "grid": [
     "................................",
     "................................",

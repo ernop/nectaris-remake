@@ -3,7 +3,8 @@
  *   node tools/sim/export-data.cjs [--check]
  * The JavaScript data files stay the single source: terrain by letter, unit
  * types (each also as the exact JSON.stringify text the search seed hashes),
- * the built-in boards in tools/sim/boards.cjs order, and the combat tables.
+ * the built-in boards in tools/sim/boards.cjs order, the combat tables and
+ * the match-length rules.
  * `math` fingerprints this engine's Math.log and Math.tanh, which search
  * uses, over generated inputs; sim/src/fdlibm.rs must reproduce every bit.
  * --check exits with an error when the committed export is out of date.
@@ -14,6 +15,7 @@ const root = path.resolve(__dirname, "../..");
 const TERRAIN = require(path.join(root, "js/data-terrain.js"));
 const UNITS = require(path.join(root, "js/data-units.js"));
 const COMBAT = require(path.join(root, "js/combat.js"));
+const ENGINE = require(path.join(root, "js/engine.js"));
 const boards = require("./boards.cjs");
 const out = path.join(root, "sim/data/game-data.json");
 
@@ -45,10 +47,10 @@ function mathFingerprint(samples, seed) {
 
 const data = {
   terrain, units,
-  boards: boards.map(b => ({name: b.name, grid: b.grid, buildings: b.buildings || [], units: b.units || [],
-    turnLimit: b.turnLimit || null})),
+  boards: boards.map(b => ({name: b.name, grid: b.grid, buildings: b.buildings || [], units: b.units || []})),
   combat: {expDamage: COMBAT.EXP_DAMAGE, maxExp: COMBAT.MAX_EXP, maxStrength: COMBAT.MAX_STRENGTH,
     randomWeights: COMBAT.RANDOM_WEIGHTS},
+  rules: {turnLimit: ENGINE.TURN_LIMIT, quietTurns: ENGINE.QUIET_TURNS},
   math: mathFingerprint(1000000, 20260927),
 };
 const text = JSON.stringify(data) + "\n";

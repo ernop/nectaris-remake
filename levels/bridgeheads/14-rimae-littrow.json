@@ -6,7 +6,7 @@
   "author": "AI-made by Claude Opus 5.5",
   "source": "levels/bridgeheads/14-rimae-littrow.json",
   "description": "Three rilles run between the camps with their bridges staggered, so every crossing turns the advance sideways. Both armies start between the rilles beside factories; your force is under strength.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 34 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "valleys and bridges",
     "half-turn symmetry"
@@ -15,7 +15,6 @@
     "theme": "bridgeheads",
     "symmetry": "half"
   },
-  "turnLimit": 34,
   "grid": [
     "..........v.....vv.....v..........",
     "..........v.....vv.....v..........",

@@ -83,6 +83,8 @@
 #status-turn-line { display: flex; flex-direction: column; height: 46px; justify-content: center; }
 #status-turn { color: #fff; font-size: 22px; font-weight: 800; line-height: 1.15; font-variant-numeric: tabular-nums; }
 #status-player { font-size: 15px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#status-draw { color: #fff; font-size: 15px; font-weight: 700; white-space: nowrap; }
+#status-draw strong { font-size: 22px; font-weight: 800; font-variant-numeric: tabular-nums; }
 #status-player[data-player="0"], .unit-count[data-player="0"] { color: var(--union-text); }
 #status-player[data-player="1"], .unit-count[data-player="1"] { color: var(--xenon-text); }
 #status-units { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }

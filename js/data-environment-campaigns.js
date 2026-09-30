@@ -15,7 +15,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/open-horizons/01-three-against-three.json",
         "description": "Three squads per side and no replacements. Six small mountain islands break up a broad plain; every supporting position costs a third of your army.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 40 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "open maneuver",
           "line",
@@ -27,7 +27,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "line",
           "road": "none"
         },
-        "turnLimit": 40,
         "grid": [
           "........................",
           "........................",
@@ -105,7 +104,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/open-horizons/02-the-long-hook.json",
         "description": "Crescent ridges shelter the direct approach. Fast Lenets and a Rabbit can take the long outside route, but the infantry must still reach a camp or arsenal.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 55 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "open maneuver",
           "split",
@@ -117,7 +116,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "split",
           "road": "rim"
         },
-        "turnLimit": 55,
         "grid": [
           "................................",
           "................................",
@@ -255,7 +253,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/open-horizons/03-two-colors-of-steel.json",
         "description": "Only Charlie and Bison exist here. A diagonal chain of islands makes positioning and mutual support the entire problem.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 50 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "open maneuver",
           "line",
@@ -267,7 +265,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "line",
           "road": "none"
         },
-        "turnLimit": 50,
         "grid": [
           "............................",
           "............................",
@@ -393,7 +390,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/open-horizons/04-divided-weight.json",
         "description": "Two large mountain formations divide the approach into three wide lanes. Your separated detachments can concentrate quickly only if you keep the middle passage usable.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "open maneuver",
           "split",
@@ -405,7 +402,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "split",
           "road": "fork"
         },
-        "turnLimit": 65,
         "grid": [
           "....................................",
           "....................................",
@@ -591,7 +587,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/open-horizons/05-the-inviting-bowl.json",
         "description": "A horseshoe of mountains wraps a tempting central arsenal. The straight road enters its mouth; the spacious outside flanks let the opponent approach its sides.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 55 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "open maneuver",
           "forward",
@@ -603,7 +599,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "forward",
           "road": "direct"
         },
-        "turnLimit": 55,
         "grid": [
           "..............................",
           "..............................",
@@ -777,7 +772,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/open-horizons/06-rings-without-walls.json",
         "description": "Broken mountain atolls enclose useful staging areas. Several gaps make each enclosure permeable; a force inside must watch more than the entrance it used.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "open maneuver",
           "line",
@@ -789,7 +784,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "line",
           "road": "fork"
         },
-        "turnLimit": 65,
         "grid": [
           "..................................",
           "..................................",
@@ -965,7 +959,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/open-horizons/07-no-heavy-answer.json",
         "description": "Capturers and missile buggies only. Scattered small islands provide turning points for hit-and-retreat movement, with very little armor to absorb mistakes.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 45 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "open maneuver",
           "spread",
@@ -977,7 +971,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "spread",
           "road": "none"
         },
-        "turnLimit": 45,
         "grid": [
           "............................",
           ".....M......................",
@@ -1115,7 +1108,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/open-horizons/08-finger-country.json",
         "description": "Long mountain fingers project into open ground. Their tips are turning points, while gaps between the fingers shelter artillery and isolated detachments.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 70 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "open maneuver",
           "column",
@@ -1127,7 +1120,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "column",
           "road": "rim"
         },
-        "turnLimit": 70,
         "grid": [
           "......................................",
           "......................................",
@@ -1347,7 +1339,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/open-horizons/09-a-narrow-advantage.json",
         "description": "Two Giants give Union impressive local strength but few bodies. The hourglass formations invite a frontal stand while lighter forces can use the wide outer lanes.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 60 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "open maneuver",
           "line",
@@ -1359,7 +1351,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "line",
           "road": "direct"
         },
-        "turnLimit": 60,
         "grid": [
           "..............................",
           "..............................",
@@ -1499,7 +1490,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/open-horizons/10-guns-need-company.json",
         "description": "Offset mountain ribbons put neighboring lanes within artillery reach. Your gun-heavy army still needs infantry and a small mobile screen to occupy the ground.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "open maneuver",
           "gunline",
@@ -1511,7 +1502,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "gunline",
           "road": "cross"
         },
-        "turnLimit": 65,
         "grid": [
           "................................",
           "................................",
@@ -1685,7 +1675,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/open-horizons/11-empty-miles.json",
         "description": "Four squads each on a very wide field. Elongated shoals interrupt pursuit; committing two units to one side leaves enormous areas unguarded.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "open maneuver",
           "split",
@@ -1697,7 +1687,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "split",
           "road": "none"
         },
-        "turnLimit": 65,
         "grid": [
           "..........................................",
           "..........................................",
@@ -1793,7 +1782,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/open-horizons/12-the-crown-s-teeth.json",
         "description": "A broken crown of mountains offers several protected approaches to the center. The gaps face different directions, so one supporting group cannot cover them all.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 70 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "open maneuver",
           "forward",
@@ -1805,7 +1794,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "forward",
           "road": "fork"
         },
-        "turnLimit": 70,
         "grid": [
           "..................................",
           "..................................",
@@ -2027,7 +2015,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/open-horizons/13-distant-neighbors.json",
         "description": "Two island clusters face each other across an open gulf. Pelicans can shift cargo across the gulf, while unsupported ground units spend several turns crossing it.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 80 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "open maneuver",
           "split",
@@ -2039,7 +2027,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "split",
           "road": "rim"
         },
-        "turnLimit": 80,
         "grid": [
           "........................................",
           "........................................",
@@ -2251,7 +2238,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/open-horizons/14-the-bright-road.json",
         "description": "A conspicuous straight road passes through a crooked reef. Its speed comes with no terrain defense; the surrounding plain leaves room to approach on a wider frontage.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 60 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "open maneuver",
           "column",
@@ -2263,7 +2250,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "column",
           "road": "direct"
         },
-        "turnLimit": 60,
         "grid": [
           "....................................",
           "....................................",
@@ -2449,7 +2435,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/open-horizons/15-many-small-fronts.json",
         "description": "A loose field of irregular islands creates many small fronts. Four arsenals per side of the map reward local captures, but scattering every squad leaves no reserve.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 75 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "open maneuver",
           "spread",
@@ -2461,7 +2447,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "spread",
           "road": "cross"
         },
-        "turnLimit": 75,
         "grid": [
           "......................................",
           "......................................",
@@ -2719,7 +2704,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/open-horizons/16-horizon-convergence.json",
         "description": "Several island chains converge around a wide central gulf. Large mixed armies must choose where to concentrate while keeping distant factory approaches and their own camp covered.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 90 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "open maneuver",
           "split",
@@ -2731,7 +2716,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "split",
           "road": "fork"
         },
-        "turnLimit": 90,
         "grid": [
           "..........................................",
           "..........................................",
@@ -3093,7 +3077,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/knotted-heart/01-the-cross-and-the-field.json",
         "description": "A compact mountain knot has a cross-shaped interior route. The center is short and restrictive; the open outer field lets units maneuver around its arms.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 45 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "dense center / open flanks",
           "line",
@@ -3105,7 +3089,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "line",
           "road": "direct"
         },
-        "turnLimit": 45,
         "grid": [
           ".................hh.......",
           ".......h...........h......",
@@ -3219,7 +3202,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/knotted-heart/02-spokes.json",
         "description": "Radial passages meet at a small hub. A central force can change fronts rapidly, but several entrances lead into it and the spacious rim remains available.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 55 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "dense center / open flanks",
           "spread",
@@ -3231,7 +3214,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "spread",
           "road": "fork"
         },
-        "turnLimit": 55,
         "grid": [
           ".....h........................",
           "..............................",
@@ -3393,7 +3375,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/knotted-heart/03-the-ladder.json",
         "description": "Two close interior lanes are joined by short rungs. Forces on the open flanks can enter at different heights, turning a seemingly simple corridor into several possible fights.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 55 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "dense center / open flanks",
           "split",
@@ -3405,7 +3387,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "split",
           "road": "none"
         },
-        "turnLimit": 55,
         "grid": [
           "........h...h......h........",
           "............................",
@@ -3535,7 +3516,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/knotted-heart/04-footpath-majority.json",
         "description": "Infantry and Mules only. The serpentine center is a road problem for the carriers, while Charlie and Kilroy can climb directly across the surrounding mountains.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 55 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "dense center / open flanks",
           "spread",
@@ -3547,7 +3528,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "spread",
           "road": "none"
         },
-        "turnLimit": 55,
         "grid": [
           "..h.......h.............h..h..",
           "h....h....h...hh..............",
@@ -3687,7 +3667,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/knotted-heart/05-the-short-way.json",
         "description": "Braided interior passages offer the shortest route to the enemy. The defenders bring more guns; the attacker brings speed and enough open flank to refuse the central fight.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 55 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "dense center / open flanks",
           "forward",
@@ -3699,7 +3679,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "forward",
           "road": "direct"
         },
-        "turnLimit": 55,
         "grid": [
           ".............................h....",
           "h...h..h........h................h",
@@ -3861,7 +3840,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/knotted-heart/06-inner-or-outer.json",
         "description": "Nested interior loops contrast with a broad outer circuit. Taking the inside saves distance, while the outside provides room to bring several units alongside one another.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "dense center / open flanks",
           "line",
@@ -3873,7 +3852,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "line",
           "road": "rim"
         },
-        "turnLimit": 65,
         "grid": [
           ".h.........h............h.........",
           "........h.........h...............",
@@ -4049,7 +4027,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/knotted-heart/07-three-in-the-knot.json",
         "description": "One Charlie, one Hadrian and one Rabbit per side. Diagonal interior cuts offer gun positions, but every detached unit leaves only two to defend the rest of the board.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 40 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "dense center / open flanks",
           "line",
@@ -4061,7 +4039,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "line",
           "road": "none"
         },
-        "turnLimit": 40,
         "grid": [
           "................h.h....h",
           "...........h............",
@@ -4141,7 +4118,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/knotted-heart/08-zipper.json",
         "description": "Offset openings interlock through the central ridge. A force can change lanes at some points and must backtrack at others; the open margins remain a longer escape route.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "dense center / open flanks",
           "split",
@@ -4153,7 +4130,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "split",
           "road": "fork"
         },
-        "turnLimit": 65,
         "grid": [
           "...h......................hh........",
           ".......................h........h...",
@@ -4363,7 +4339,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/knotted-heart/09-the-comfortable-court.json",
         "description": "Small protected courts look ideal for heavy tanks. Their narrow connections make it hard to bring that weight to bear against mobile units working around the outside.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "dense center / open flanks",
           "column",
@@ -4375,7 +4351,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "column",
           "road": "direct"
         },
-        "turnLimit": 65,
         "grid": [
           "..hhhh......h.....h........h....",
           "..h...h.........................",
@@ -4557,7 +4532,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/knotted-heart/10-a-loop-and-a-needle.json",
         "description": "A roomy interior loop is cut by one narrow direct tunnel. Guns can cover nearby sectors, while moving the supporting vehicles between those sectors takes a different route.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 70 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "dense center / open flanks",
           "gunline",
@@ -4569,7 +4544,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "gunline",
           "road": "rim"
         },
-        "turnLimit": 70,
         "grid": [
           "................................h...",
           "...................h.........h......",
@@ -4781,7 +4755,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/knotted-heart/11-between-the-teeth.json",
         "description": "Only capturers and missile buggies. A comb of narrow mouths opens onto two broad flanks, giving retreating buggies many positions but few places to hide a careless capturer.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 55 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "dense center / open flanks",
           "spread",
@@ -4793,7 +4767,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "spread",
           "road": "cross"
         },
-        "turnLimit": 55,
         "grid": [
           "...............h.......h..hh......",
           ".........h..h.......h.....hh......",
@@ -4933,7 +4906,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/knotted-heart/12-fan-out.json",
         "description": "Several passages fan away from an off-center meeting point. Occupying that point shortens transfers between fronts, but moving too much through it creates traffic.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 75 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "dense center / open flanks",
           "forward",
@@ -4945,7 +4918,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "forward",
           "road": "fork"
         },
-        "turnLimit": 75,
         "grid": [
           "..............h....h.........h........",
           "..................h.....h.............",
@@ -5181,7 +5153,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/knotted-heart/13-two-hearts.json",
         "description": "Two dense knots share a small central connection. Armies can contest one knot, divide between both, or use the broad outside field to bypass either concentration.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 80 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "dense center / open flanks",
           "split",
@@ -5193,7 +5165,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "split",
           "road": "rim"
         },
-        "turnLimit": 80,
         "grid": [
           "h.......h...............................",
           "...h...........---.-.h............h.....",
@@ -5439,7 +5410,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/knotted-heart/14-the-off-center-prize.json",
         "description": "Unevenly placed spokes lead toward valuable central factories. The fastest-looking entry turns your force away from the route it must take to continue toward the enemy camp.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "dense center / open flanks",
           "split",
@@ -5451,7 +5422,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "split",
           "road": "direct"
         },
-        "turnLimit": 65,
         "grid": [
           "h....................h.......h..h...",
           "...h..................h............h",
@@ -5649,7 +5619,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/knotted-heart/15-outside-the-fortress.json",
         "description": "The defender has an imposing heavy force beside a dense central fortress. The attacker has more flexible movement around its spacious outskirts; the strongest local position need not control the whole map.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 85 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "dense center / open flanks",
           "spread",
@@ -5661,7 +5631,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "spread",
           "road": "rim"
         },
-        "turnLimit": 85,
         "grid": [
           ".........h..h......h....h...............",
           "..h...........................hh........",
@@ -5915,7 +5884,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/knotted-heart/16-heart-of-the-matter.json",
         "description": "A large interlocking center has several rooms, loops and narrow transfers. Twelve neutral factories pull the armies in different directions while the outer field leaves room for a major turning movement.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 95 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "dense center / open flanks",
           "split",
@@ -5927,7 +5896,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "split",
           "road": "fork"
         },
-        "turnLimit": 95,
         "grid": [
           "......h...................h........h......",
           ".......h.....h....................h...h.h.",
@@ -6301,7 +6269,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/broken-ground/01-the-price-of-a-hill.json",
         "description": "Three squads each cross a field of hill belts. Charlie, Bison and Panther pay different movement costs for the same terrain; a short route on the map can be a slow route for the unit.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 45 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "terrain-dependent routes",
           "line",
@@ -6313,7 +6281,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "line",
           "road": "none"
         },
-        "turnLimit": 45,
         "grid": [
           "........................",
           "........................",
@@ -6393,7 +6360,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/broken-ground/02-the-gilded-cage.json",
         "description": "Giants dominate nearby ground but cannot enter wasteland. A winding road threads the waste fields; the lighter opposing army has more ways to approach the queue.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 60 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "terrain-dependent routes",
           "column",
@@ -6405,7 +6372,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "column",
           "road": "zigzag"
         },
-        "turnLimit": 60,
         "grid": [
           "..............................",
           "..............................",
@@ -6539,7 +6505,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/broken-ground/03-motorcycle-country.json",
         "description": "Capturers and Rabbits share a road network across broad wasteland shoals. Panthers cannot leave the firm routes into wasteland, even where a Rabbit can cross.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 50 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "terrain-dependent routes",
           "spread",
@@ -6551,7 +6517,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "spread",
           "road": "fork"
         },
-        "turnLimit": 50,
         "grid": [
           "............................",
           ".....................ww.....",
@@ -6679,7 +6644,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/broken-ground/04-the-long-causeway.json",
         "description": "Valley seams interrupt the difficult ground. Bridges carry the vehicle routes, while Pelicans can move cargo to legal landing hexes beyond a crowded crossing.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "terrain-dependent routes",
           "line",
@@ -6691,7 +6656,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "line",
           "road": "direct"
         },
-        "turnLimit": 65,
         "grid": [
           "...........v......vv..............",
           "...................v..............",
@@ -6865,7 +6829,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/broken-ground/05-walking-the-ridge.json",
         "description": "Infantry and Mules only. Connected hill belts are cheap for foot soldiers and costly for their carriers; the road around the edge offers a different kind of shortcut.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 60 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "terrain-dependent routes",
           "split",
@@ -6877,7 +6841,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "split",
           "road": "rim"
         },
-        "turnLimit": 60,
         "grid": [
           "............................",
           "............................",
@@ -7019,7 +6982,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/broken-ground/06-the-road-is-not-cover.json",
         "description": "A fast exposed road crosses alternating hill and waste banks. Leaving it gives better terrain defense but spends movement, and the motorcycle capturer has fewer off-road choices.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 60 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "terrain-dependent routes",
           "column",
@@ -7031,7 +6994,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "column",
           "road": "cross"
         },
-        "turnLimit": 60,
         "grid": [
           "................................",
           "................................",
@@ -7193,7 +7155,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/broken-ground/07-guns-in-the-mud.json",
         "description": "Your artillery-heavy force must relocate through broken waste and hill patches. An attractive firing position may take a full turn to leave and another to make useful again.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "terrain-dependent routes",
           "gunline",
@@ -7205,7 +7167,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "gunline",
           "road": "zigzag"
         },
-        "turnLimit": 65,
         "grid": [
           "..............................",
           "..............................",
@@ -7375,7 +7336,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/broken-ground/08-firm-ground.json",
         "description": "Mine teams compete over the few firm routes between large waste fields. Each mine has its own Mule, but transport unloading still needs plain, road, bridge or an owned factory.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 70 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "terrain-dependent routes",
           "column",
@@ -7387,7 +7348,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "column",
           "road": "fork"
         },
-        "turnLimit": 70,
         "grid": [
           "..................................",
           ".....---..........................",
@@ -7575,7 +7535,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/broken-ground/09-four-machines.json",
         "description": "Four squads each, no replacement stock. A quilt of hills and wasteland makes the Lenet's speed, Polar's weight and Hadrian's firing position matter in different ways.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 50 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "terrain-dependent routes",
           "spread",
@@ -7587,7 +7547,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "spread",
           "road": "none"
         },
-        "turnLimit": 50,
         "grid": [
           "..........................",
           "..........................",
@@ -7681,7 +7640,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/broken-ground/10-broken-ladder.json",
         "description": "Two valley cuts cross a ladder of firm routes. Some rungs are fast and exposed, others bend through hills; committing to a rung can leave the army on the wrong side of the next cut.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 75 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "terrain-dependent routes",
           "split",
@@ -7693,7 +7652,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "split",
           "road": "ladder"
         },
-        "turnLimit": 75,
         "grid": [
           "...........v............v...........",
           "...........v............v...........",
@@ -7917,7 +7875,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/broken-ground/11-the-patient-giant.json",
         "description": "A slow heavy group faces a broad diagonal waste belt. The long firm route keeps the Giant mobile, while mobile opponents can choose when to cross closer to it.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 70 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "terrain-dependent routes",
           "line",
@@ -7929,7 +7887,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "line",
           "road": "rim"
         },
-        "turnLimit": 70,
         "grid": [
           ".wwwww............................",
           ".wwwwww...........................",
@@ -8111,7 +8068,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/broken-ground/12-ridges-and-runways.json",
         "description": "Long hill ridges alternate with flat landing strips and waste depressions. Pelican cargo needs those firm strips; flying over a good defensive hill does not make it a legal unloading site.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 75 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "terrain-dependent routes",
           "forward",
@@ -8123,7 +8080,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "forward",
           "road": "fork"
         },
-        "turnLimit": 75,
         "grid": [
           "......................................",
           "......................................",
@@ -8333,7 +8289,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/broken-ground/13-the-false-shortcut.json",
         "description": "A visually short route cuts straight through deep wasteland. The road bends away from the objective but can be faster, especially for a Panther or a heavy vehicle with little movement.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 75 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "terrain-dependent routes",
           "split",
@@ -8345,7 +8301,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "split",
           "road": "zigzag"
         },
-        "turnLimit": 75,
         "grid": [
           "....................................",
           "....................................",
@@ -8557,7 +8512,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/broken-ground/14-two-speeds.json",
         "description": "Fast patrols and a slower core begin together on a patchwork of firm and difficult ground. Keeping them mutually supporting takes more care than sending every unit its maximum distance.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 80 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "terrain-dependent routes",
           "spread",
@@ -8569,7 +8524,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "spread",
           "road": "ladder"
         },
-        "turnLimit": 80,
         "grid": [
           "........................................",
           "........................................",
@@ -8827,7 +8781,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/broken-ground/15-the-island-road.json",
         "description": "Road-linked plateaus sit between valley seams and waste basins. Transports can shorten transfers, but ground escorts must choose among bridges, rough cuts and the long outer route.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 90 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "terrain-dependent routes",
           "split",
@@ -8839,7 +8793,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "split",
           "road": "rim"
         },
-        "turnLimit": 90,
         "grid": [
           "............v..............v............",
           "............v..............v............",
@@ -9099,7 +9052,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Codex",
         "source": "levels/broken-ground/16-every-yard-counts.json",
         "description": "Hill belts, wasteland basins, broken valleys and several firm routes meet on one large board. The army is broad enough to solve each terrain problem, but its different units cannot all use the same approach.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 100 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "terrain-dependent routes",
           "split",
@@ -9111,7 +9064,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "formation": "split",
           "road": "fork"
         },
-        "turnLimit": 100,
         "grid": [
           "..............vv..........................",
           "...............v..........................",
@@ -9487,7 +9439,7 @@ var ENVIRONMENT_CAMPAIGNS = [
     "id": "bridgeheads",
     "name": "AI-made: Bridgeheads",
     "description": "Rilles split every board. Bridges and a few footpaths are the only fast crossings, and holding the far end of one is the campaign's recurring problem.",
-    "notes": "Sixteen AI-made battles created by Claude Opus 5.5, each testing one idea about map balance, tuned until the strongest simulator bot playing both sides wins about as often as Union as Xenon. Normal capture/elimination rules apply. No Hunters or Falcons. Forces start fresh each mission.",
+    "notes": "Sixteen AI-made battles created by Claude Opus 5.5, each testing one idea about map balance. They were tuned so the strongest simulator bot playing both sides won about as often as Union as Xenon, under a rule since removed that gave Xenon the win at each board's own turn limit; their balance under the current draw rules has not been measured. Normal capture/elimination rules apply. No Hunters or Falcons. Forces start fresh each mission.",
     "levels": [
       {
         "name": "RIMA BODE",
@@ -9497,7 +9449,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/bridgeheads/01-rima-bode.json",
         "description": "A single bridge spans the rille. Your vanguard waits a few hexes short of its near end; the Xenon garrison beyond is under strength. Infantry can climb down anywhere, but a squad in the valley floor ends its move there with no cover.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 20 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "valleys and bridges",
           "half-turn symmetry"
@@ -9506,7 +9458,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "bridgeheads",
           "symmetry": "half"
         },
-        "turnLimit": 20,
         "grid": [
           ".........vv.........",
           ".........vv.........",
@@ -9611,7 +9562,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/bridgeheads/02-rima-hyginus.json",
         "description": "A crater sits in the middle of the rille, and the only bridges are at its two ends. An army that crosses at one end leaves the other bridge to the enemy. The Xenon camp stands nearer the rille than yours, and you bring one more Bison.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 48 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "valleys and bridges",
           "half-turn symmetry"
@@ -9620,7 +9571,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "bridgeheads",
           "symmetry": "half"
         },
-        "turnLimit": 48,
         "grid": [
           "...........vv...........",
           "...........vv...........",
@@ -9750,7 +9700,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/bridgeheads/03-rima-hesiodus.json",
         "description": "The camps face each other across the north end of the rille, where a footpath lets infantry cross in two moves. Tanks must go the long way, over the southern bridge. Every Xenon unit is under strength, most of them badly.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 30 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "valleys and bridges",
           "mirror symmetry"
@@ -9759,7 +9709,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "bridgeheads",
           "symmetry": "mirror"
         },
-        "turnLimit": 30,
         "grid": [
           "...........vvv...........",
           "...........vvv...........",
@@ -9879,7 +9828,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/bridgeheads/04-vallis-snellius.json",
         "description": "No bridge crosses this valley. Tanks can only hold their own bank; any attack must walk through the valley floor or fly. You have three Pelicans to Xenon's two, a Hawkeye guards each camp, and the Xenon ground forces are under strength.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 24 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "valleys and bridges",
           "half-turn symmetry"
@@ -9888,7 +9837,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "bridgeheads",
           "symmetry": "half"
         },
-        "turnLimit": 24,
         "grid": [
           "..........vvvv..........",
           "..........vvvv..........",
@@ -10050,7 +9998,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/bridgeheads/05-rimae-triesnecker.json",
         "description": "Two rilles cross at right angles and divide the ground into four fields. Each camp's field has two bridges to the neutral fields, where small factories hold a Charlie each.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 28 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "valleys and bridges",
           "half-turn symmetry"
@@ -10059,7 +10007,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "bridgeheads",
           "symmetry": "half"
         },
-        "turnLimit": 28,
         "grid": [
           ".............vv.............",
           ".............vv.............",
@@ -10179,7 +10126,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/bridgeheads/06-rima-hadley.json",
         "description": "Each camp sits behind its own winding rille with a bridge at each end. The open plain between the rilles belongs to whoever crosses first. You bring one extra Kilroy, and the Xenon Lenet starts damaged.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 40 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "valleys and bridges",
           "mirror symmetry"
@@ -10188,7 +10135,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "bridgeheads",
           "symmetry": "mirror"
         },
-        "turnLimit": 40,
         "grid": [
           "MMMMMM.v...........v.MMMMMM",
           "MMMMMM.v.MMM...MMM.v.MMMMMM",
@@ -10310,7 +10256,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/bridgeheads/07-vallis-alpes.json",
         "description": "A deep valley cuts through the mountain wall, and one long bridge carries the road across. Pelicans can lift a tank over the wall anywhere. The Xenon tanks and infantry are under strength.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 28 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "valleys and bridges",
           "half-turn symmetry"
@@ -10319,7 +10265,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "bridgeheads",
           "symmetry": "half"
         },
-        "turnLimit": 28,
         "grid": [
           "...........MMMMMM...........",
           "...........MMMMMM...........",
@@ -10450,7 +10395,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/bridgeheads/08-rima-sirsalis.json",
         "description": "Guns on either rim can reach across the rille. Your guns start in firing position; Xenon's are damaged and farther back, and its Bison is damaged too. Two bridges carry the tanks, and the artillery decides which of them is usable.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 28 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "valleys and bridges",
           "half-turn symmetry"
@@ -10459,7 +10404,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "bridgeheads",
           "symmetry": "half"
         },
-        "turnLimit": 28,
         "grid": [
           "............vvvv............",
           "............vvvv............",
@@ -10578,7 +10522,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/bridgeheads/09-rima-marius.json",
         "description": "The rille runs close to your camp. You defend a narrow bank and Xenon has room to form up, but its camp stands nearer the centre than yours and its army is slightly under strength.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 28 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "valleys and bridges",
           "unequal sides"
@@ -10587,7 +10531,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "bridgeheads",
           "symmetry": "none"
         },
-        "turnLimit": 28,
         "grid": [
           "..........v................",
           "..........v................",
@@ -10708,7 +10651,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/bridgeheads/10-rima-prinz.json",
         "description": "Eagles fly over the rille as if it were not there. Each side has one Hawkeye to keep the sky over its bridge, and a small factory waits on each far bank.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 26 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "valleys and bridges",
           "half-turn symmetry"
@@ -10717,7 +10660,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "bridgeheads",
           "symmetry": "half"
         },
-        "turnLimit": 26,
         "grid": [
           "..............vv..............",
           "..............vv..............",
@@ -10862,8 +10804,8 @@ var ENVIRONMENT_CAMPAIGNS = [
         "mission": 11,
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/bridgeheads/11-rima-birt.json",
-        "description": "Two parallel rilles enclose a strip of plain with two factories. Each camp is one bridge from the strip and two from the enemy, and there are only nine rounds.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 9 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+        "description": "Two parallel rilles enclose a strip of plain with two factories. Each camp is one bridge from the strip and two from the enemy.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "valleys and bridges",
           "half-turn symmetry"
@@ -10872,7 +10814,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "bridgeheads",
           "symmetry": "half"
         },
-        "turnLimit": 9,
         "grid": [
           "..........v........v..........",
           "..........v........v..........",
@@ -10998,7 +10939,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/bridgeheads/12-vallis-schroteri.json",
         "description": "The Xenon camp stands inside a loop of the valley, reachable by tanks over one bridge. The armies are equal: the loop is Xenon's advantage, the first move is yours.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 24 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "valleys and bridges",
           "unequal sides"
@@ -11007,7 +10948,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "bridgeheads",
           "symmetry": "none"
         },
-        "turnLimit": 24,
         "grid": [
           "................................",
           "................................",
@@ -11113,7 +11053,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/bridgeheads/13-rima-mairan.json",
         "description": "Each side's Mules start at its bridgeheads, carrying mines. A mine on a bridge closes it to tanks, but a closed bridge also stops your own attack. You bring one more Charlie.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 30 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "valleys and bridges",
           "half-turn symmetry"
@@ -11122,7 +11062,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "bridgeheads",
           "symmetry": "half"
         },
-        "turnLimit": 30,
         "grid": [
           "..............vv..............",
           "..............vv..............",
@@ -11282,7 +11221,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/bridgeheads/14-rimae-littrow.json",
         "description": "Three rilles run between the camps with their bridges staggered, so every crossing turns the advance sideways. Both armies start between the rilles beside factories; your force is under strength.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 34 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "valleys and bridges",
           "half-turn symmetry"
@@ -11291,7 +11230,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "bridgeheads",
           "symmetry": "half"
         },
-        "turnLimit": 34,
         "grid": [
           "..........v.....vv.....v..........",
           "..........v.....vv.....v..........",
@@ -11468,7 +11406,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/bridgeheads/15-rima-cauchy.json",
         "description": "A long diagonal rille separates distant camps. Mules carry infantry along the roads; the bridges are far apart and far from home. The Xenon camp stands nearer the rille than yours, and you bring one more Bison, badly damaged.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 48 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "valleys and bridges",
           "half-turn symmetry"
@@ -11477,7 +11415,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "bridgeheads",
           "symmetry": "half"
         },
-        "turnLimit": 48,
         "grid": [
           "..........vv........................",
           "..........vvv.......................",
@@ -11664,7 +11601,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/bridgeheads/16-rima-ariadaeus.json",
         "description": "The great straight rille cuts the whole board, with branches, footpaths and bridges along its length. Eagles, Pelicans and factories on both banks.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 30 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "valleys and bridges",
           "half-turn symmetry"
@@ -11673,7 +11610,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "bridgeheads",
           "symmetry": "half"
         },
-        "turnLimit": 30,
         "grid": [
           "...........vvv..........................",
           "...........vvvv.........................",
@@ -11888,8 +11824,8 @@ var ENVIRONMENT_CAMPAIGNS = [
   {
     "id": "siege-lines",
     "name": "AI-made: Siege Lines",
-    "description": "Xenon holds a fortified crater in every battle. Union must break in and take the camp before the turn limit; walls, gates and guns decide how long that takes.",
-    "notes": "Sixteen AI-made battles created by Claude Opus 5.5, each testing one idea about map balance, tuned until the strongest simulator bot playing both sides wins about as often as Union as Xenon. Normal capture/elimination rules apply. Forces start fresh each mission.",
+    "description": "Xenon holds a fortified crater in every battle. Union must break in and take the camp; walls, gates and guns decide how long that takes.",
+    "notes": "Sixteen AI-made battles created by Claude Opus 5.5, each testing one idea about map balance. They were tuned so the strongest simulator bot playing both sides won about as often as Union as Xenon, under a rule since removed that gave Xenon the win at each board's own turn limit; their balance under the current draw rules has not been measured. Normal capture/elimination rules apply. Forces start fresh each mission.",
     "levels": [
       {
         "name": "PLATO",
@@ -11898,8 +11834,8 @@ var ENVIRONMENT_CAMPAIGNS = [
         "mission": 1,
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/siege-lines/01-plato.json",
-        "description": "Plato's wall is unbroken except for two gates facing you. Six Xenon units hold the crater, as many as you bring; your Hadrian is the only gun on either side, and you have sixteen rounds to take the camp.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 16 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "description": "Plato's wall is unbroken except for two gates facing you. Six Xenon units hold the crater, as many as you bring; your Hadrian is the only gun on either side.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "fortified camp",
           "unequal sides"
@@ -11908,7 +11844,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "siege",
           "symmetry": "none"
         },
-        "turnLimit": 16,
         "grid": [
           "......................",
           "......................",
@@ -12020,7 +11955,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/siege-lines/02-archimedes.json",
         "description": "A single gate breaks Archimedes' wall. Whatever holds it holds the crater; infantry can climb the wall anywhere, slowly. Your Hadrian can shell the gate from outside.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 18 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "fortified camp",
           "unequal sides"
@@ -12029,7 +11964,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "siege",
           "symmetry": "none"
         },
-        "turnLimit": 18,
         "grid": [
           "........................",
           "........................",
@@ -12148,7 +12082,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/siege-lines/03-arzachel.json",
         "description": "Two guns inside the wall cover both gates. The last few hexes before a gate are under their fire and the wall shields them from direct attack; your own Hadrian can answer them.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 22 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "fortified camp",
           "unequal sides"
@@ -12157,7 +12091,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "siege",
           "symmetry": "none"
         },
-        "turnLimit": 22,
         "grid": [
           "........................",
           "........................",
@@ -12295,7 +12228,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/siege-lines/04-alphonsus.json",
         "description": "Three gates, two of them mined. A mine closes its gate to tanks until it is destroyed, and it is very hard to destroy.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 20 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "fortified camp",
           "unequal sides"
@@ -12304,7 +12237,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "siege",
           "symmetry": "none"
         },
-        "turnLimit": 20,
         "grid": [
           "..........................",
           "..........................",
@@ -12436,7 +12368,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/siege-lines/05-ptolemaeus.json",
         "description": "The great walled plain holds a Xenon factory. Damaged defenders fall back to it for repairs, and its reserves can refill a gate. You bring one Hadrian.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 36 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "fortified camp",
           "unequal sides"
@@ -12445,7 +12377,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "siege",
           "symmetry": "none"
         },
-        "turnLimit": 36,
         "grid": [
           "............................",
           "............................",
@@ -12565,7 +12496,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/siege-lines/06-copernicus.json",
         "description": "Two walls: an outer terrace of broken ground open to the north and south, and an inner rim with a single western gate. Getting in means going around.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 16 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "fortified camp",
           "unequal sides"
@@ -12574,7 +12505,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "siege",
           "symmetry": "none"
         },
-        "turnLimit": 16,
         "grid": [
           "............................",
           "............................",
@@ -12708,7 +12638,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/siege-lines/07-tycho.json",
         "description": "The camp sits on Tycho's central peak. One narrow road climbs it; infantry can scramble up the slopes, where every defender has mountain cover.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 24 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "fortified camp",
           "unequal sides"
@@ -12717,7 +12647,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "siege",
           "symmetry": "none"
         },
-        "turnLimit": 24,
         "grid": [
           "..........................",
           "..........................",
@@ -12827,7 +12756,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/siege-lines/08-clavius.json",
         "description": "Two small outpost craters guard the approaches, each with an unguarded Xenon factory. Taking an outpost gives you its reserve and a place to repair.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 26 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "fortified camp",
           "unequal sides"
@@ -12836,7 +12765,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "siege",
           "symmetry": "none"
         },
-        "turnLimit": 26,
         "grid": [
           "..............................",
           "...............MMM............",
@@ -12962,7 +12890,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/siege-lines/09-grimaldi.json",
         "description": "The garrison is small, but a Xenon relief column is marching along the northern edge. Take the camp before it arrives, or turn to meet it.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 24 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "fortified camp",
           "unequal sides"
@@ -12971,7 +12899,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "siege",
           "symmetry": "none"
         },
-        "turnLimit": 24,
         "grid": [
           "..............................",
           ".........-.-.-.-.-.-..........",
@@ -13095,7 +13022,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/siege-lines/10-wargentin.json",
         "description": "Wargentin is a crater filled to the brim: a plateau of hills with no wall at all. One Eagle supports your attack; a Hawkeye and a Seeker defend the sky.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 20 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "fortified camp",
           "unequal sides"
@@ -13104,7 +13031,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "siege",
           "symmetry": "none"
         },
-        "turnLimit": 20,
         "grid": [
           "............................",
           "............................",
@@ -13232,7 +13158,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/siege-lines/11-gassendi.json",
         "description": "Gassendi's wall has one gate, but walls do not stop Pelicans. Each can carry a squad over the rim into the crater, where a single Seeker guards the sky.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 24 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "fortified camp",
           "unequal sides"
@@ -13241,7 +13167,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "siege",
           "symmetry": "none"
         },
-        "turnLimit": 24,
         "grid": [
           "..............................",
           "..............................",
@@ -13359,7 +13284,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/siege-lines/12-posidonius.json",
         "description": "A rille runs in front of Posidonius with a single bridge. Tanks must cross it and then find a gate; infantry can climb down and up anywhere, and your Pelican can lift one unit over both.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 26 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "fortified camp",
           "unequal sides"
@@ -13368,7 +13293,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "siege",
           "symmetry": "none"
         },
-        "turnLimit": 26,
         "grid": [
           ".................v............",
           ".................v............",
@@ -13504,7 +13428,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/siege-lines/13-theophilus.json",
         "description": "Two craters: the camp in Theophilus and a Xenon factory in its neighbor. The factory's reserves can reinforce the camp unless you take it first.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 22 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "fortified camp",
           "unequal sides"
@@ -13513,7 +13437,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "siege",
           "symmetry": "none"
         },
-        "turnLimit": 22,
         "grid": [
           "................................",
           "................................",
@@ -13647,7 +13570,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/siege-lines/14-maurolycus.json",
         "description": "A fast Xenon Rabbit starts outside the walls, on the road to your camp. Chase it or ignore it: every unit you leave behind to watch it is one fewer at the gate.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 30 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "fortified camp",
           "unequal sides"
@@ -13656,7 +13579,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "siege",
           "symmetry": "none"
         },
-        "turnLimit": 30,
         "grid": [
           "................................",
           "................................",
@@ -13780,7 +13702,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/siege-lines/15-petavius.json",
         "description": "A huge crater with four gates and a rille across its floor. The camp lies beyond the rille; the gates are easy, the rille is not. Your Eagle faces two Hawkeyes and a Seeker.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 30 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "fortified camp",
           "unequal sides"
@@ -13789,7 +13711,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "siege",
           "symmetry": "none"
         },
-        "turnLimit": 30,
         "grid": [
           "..................................",
           "..................................",
@@ -13966,7 +13887,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/siege-lines/16-mare-orientale.json",
         "description": "Three concentric rings of mountains surround the Xenon camp, the innermost two hexes thick, their gates offset so each ring turns the attack sideways. Xenon has more units; it also has more wall to hold.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 36 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "fortified camp",
           "unequal sides"
@@ -13975,7 +13896,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "siege",
           "symmetry": "none"
         },
-        "turnLimit": 36,
         "grid": [
           "........................................",
           "........................................",
@@ -14160,7 +14080,7 @@ var ENVIRONMENT_CAMPAIGNS = [
     "id": "arsenal",
     "name": "AI-made: Arsenal",
     "description": "Neutral factories hold the reserves that decide these battles. Which factory to take, and when, matters more than the army you start with.",
-    "notes": "Sixteen AI-made battles created by Claude Opus 5.5, each testing one idea about map balance, tuned until the strongest simulator bot playing both sides wins about as often as Union as Xenon. Normal capture/elimination rules apply. Forces start fresh each mission.",
+    "notes": "Sixteen AI-made battles created by Claude Opus 5.5, each testing one idea about map balance. They were tuned so the strongest simulator bot playing both sides won about as often as Union as Xenon, under a rule since removed that gave Xenon the win at each board's own turn limit; their balance under the current draw rules has not been measured. Normal capture/elimination rules apply. Forces start fresh each mission.",
     "levels": [
       {
         "name": "SINUS MEDII",
@@ -14170,7 +14090,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/arsenal/01-sinus-medii.json",
         "description": "One factory stands at the exact centre, holding a Charlie, a Bison and a Kilroy. You move first, but your capturers are slow Kilroys starting farther back than Xenon's Charlies.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 14 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "factory reserves",
           "mirror symmetry"
@@ -14179,7 +14099,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "arsenal",
           "symmetry": "mirror"
         },
-        "turnLimit": 14,
         "grid": [
           ".....................",
           ".....................",
@@ -14277,7 +14196,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/arsenal/02-mare-vaporum.json",
         "description": "Two factories lie in the open middle, each a little closer to one camp. Take yours, and decide whether to reach for theirs. Your camp stands farther forward than Xenon's, but you bring one Charlie fewer, and the Xenon tanks start damaged.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 24 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "factory reserves",
           "half-turn symmetry"
@@ -14286,7 +14205,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "arsenal",
           "symmetry": "half"
         },
-        "turnLimit": 24,
         "grid": [
           "........................",
           "........................",
@@ -14405,7 +14323,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/arsenal/03-lacus-somniorum.json",
         "description": "Six small factories are scattered across the lake bed, each holding a squad or two. There are more prizes than capturers, and the Xenon camp stands nearer the middle than yours.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 26 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "factory reserves",
           "half-turn symmetry"
@@ -14414,7 +14332,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "arsenal",
           "symmetry": "half"
         },
-        "turnLimit": 26,
         "grid": [
           "..........................",
           "..........................",
@@ -14568,7 +14485,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/arsenal/04-mare-crisium.json",
         "description": "The factories on the rim of Crisium hold aircraft, a Hunter and a Falcon each. Whoever takes one owns the sky over the basin; you bring a second Hawkeye, but one of your Charlies is at half strength.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 18 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "factory reserves",
           "mirror symmetry"
@@ -14577,7 +14494,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "arsenal",
           "symmetry": "mirror"
         },
-        "turnLimit": 18,
         "grid": [
           "...........................",
           "...........................",
@@ -14705,7 +14621,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/arsenal/05-palus-putredinis.json",
         "description": "The marsh factories hold Atlas guns and the Mules to carry them. An Atlas can shell anything within six hexes, but only where a Mule puts it. You bring one more Charlie, and the Xenon force is under strength.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 28 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "factory reserves",
           "half-turn symmetry"
@@ -14714,7 +14630,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "arsenal",
           "symmetry": "half"
         },
-        "turnLimit": 28,
         "grid": [
           "............................",
           "............................",
@@ -14849,7 +14764,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/arsenal/06-mare-nubium.json",
         "description": "A rich factory stands a few hexes from each camp, closer to the enemy's army than to its owner's. A quick capturer can take it; the camp's defenders can hold it.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 28 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "factory reserves",
           "half-turn symmetry"
@@ -14858,7 +14773,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "arsenal",
           "symmetry": "half"
         },
-        "turnLimit": 28,
         "grid": [
           "............................",
           "............................",
@@ -14997,8 +14911,8 @@ var ENVIRONMENT_CAMPAIGNS = [
         "mission": 7,
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/arsenal/07-sinus-iridum.json",
-        "description": "The richest factory sits inside a horseshoe of mountains with one entrance to the south. Taking it is a race; keeping it is a siege, and you have only ten rounds.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 10 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "description": "The richest factory sits inside a horseshoe of mountains with one entrance to the south. Taking it is a race; keeping it is a siege.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "factory reserves",
           "mirror symmetry"
@@ -15007,7 +14921,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "arsenal",
           "symmetry": "mirror"
         },
-        "turnLimit": 10,
         "grid": [
           ".............................",
           ".............................",
@@ -15149,7 +15062,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/arsenal/08-mare-fecunditatis.json",
         "description": "An island factory sits inside a ring of valleys that tanks cannot cross. The Pelican in your nearer factory can fly a squad over. The Xenon Lenet starts damaged.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 28 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "factory reserves",
           "half-turn symmetry"
@@ -15158,7 +15071,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "arsenal",
           "symmetry": "half"
         },
-        "turnLimit": 28,
         "grid": [
           "..............................",
           "..............................",
@@ -15293,7 +15205,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/arsenal/09-mare-humorum.json",
         "description": "Near your camp, a factory holds one squad. Far out on the flank, another holds a tank company. Send your capturers near or far; you have one more Charlie than Xenon.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 30 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "factory reserves",
           "half-turn symmetry"
@@ -15302,7 +15214,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "arsenal",
           "symmetry": "half"
         },
-        "turnLimit": 30,
         "grid": [
           "..............................",
           "..............................",
@@ -15452,7 +15363,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/arsenal/10-oceanus-procellarum.json",
         "description": "An ocean of open ground with eight scattered factories. Every capture draws a response, and no front holds still for long. Your army arrives worn: every unit starts at strength six.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 32 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "factory reserves",
           "half-turn symmetry"
@@ -15461,7 +15372,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "arsenal",
           "symmetry": "half"
         },
-        "turnLimit": 32,
         "grid": [
           "..................................",
           "..................................",
@@ -15698,7 +15608,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/arsenal/11-mare-cognitum.json",
         "description": "These factories hold only a squad each, but any damaged unit can repair in one. Holding them keeps your army whole. Your Hadrian starts damaged.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 14 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "factory reserves",
           "half-turn symmetry"
@@ -15707,7 +15617,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "arsenal",
           "symmetry": "half"
         },
-        "turnLimit": 14,
         "grid": [
           "..............................",
           "..............................",
@@ -15882,7 +15791,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/arsenal/12-mare-serenitatis.json",
         "description": "Xenon's factories are many but far from its army; Union's are few but close. Whichever side arms faster decides the battle.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 30 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "factory reserves",
           "unequal sides"
@@ -15891,7 +15800,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "arsenal",
           "symmetry": "none"
         },
-        "turnLimit": 30,
         "grid": [
           "...............................",
           "...............................",
@@ -16031,7 +15939,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/arsenal/13-mare-tranquillitatis.json",
         "description": "Both sides land with infantry only; your landing parties are under strength, and Xenon lands nearer the middle. The factories hold the tanks, and every tank you field is one the enemy does not.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 30 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "factory reserves",
           "half-turn symmetry"
@@ -16040,7 +15948,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "arsenal",
           "symmetry": "half"
         },
-        "turnLimit": 30,
         "grid": [
           "................................",
           "................................",
@@ -16194,7 +16101,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/arsenal/14-mare-insularum.json",
         "description": "Islands of firm ground stand in a sea of valleys, and the factories on them can be reached on foot, slowly, or by Pelican. Each side has one Pelican, and a Hawkeye to shoot the other's down.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 32 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "factory reserves",
           "half-turn symmetry"
@@ -16203,7 +16110,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "arsenal",
           "symmetry": "half"
         },
-        "turnLimit": 32,
         "grid": [
           "..................................",
           "..................................",
@@ -16375,7 +16281,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/arsenal/15-lacus-mortis.json",
         "description": "Each camp owns a deep reserve of eight units, released from its factory a few at a time. The neutral factories between them decide who runs out first.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 40 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "factory reserves",
           "half-turn symmetry"
@@ -16384,7 +16290,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "arsenal",
           "symmetry": "half"
         },
-        "turnLimit": 40,
         "grid": [
           "....................................",
           "....................................",
@@ -16530,7 +16435,7 @@ var ENVIRONMENT_CAMPAIGNS = [
         "author": "AI-made by Claude Opus 5.5",
         "source": "levels/arsenal/16-mare-nectaris.json",
         "description": "The Sea of Nectar: the final battle, with factories of every kind across a wide field. Aircraft, armour and artillery are all waiting to be claimed.",
-        "special": "Capture the enemy camp or eliminate its eligible forces within 40 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
         "tags": [
           "factory reserves",
           "half-turn symmetry"
@@ -16539,7 +16444,6 @@ var ENVIRONMENT_CAMPAIGNS = [
           "theme": "arsenal",
           "symmetry": "half"
         },
-        "turnLimit": 40,
         "grid": [
           "........................v...............",
           "........................v...............",

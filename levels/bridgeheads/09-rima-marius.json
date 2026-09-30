@@ -6,7 +6,7 @@
   "author": "AI-made by Claude Opus 5.5",
   "source": "levels/bridgeheads/09-rima-marius.json",
   "description": "The rille runs close to your camp. You defend a narrow bank and Xenon has room to form up, but its camp stands nearer the centre than yours and its army is slightly under strength.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 28 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "valleys and bridges",
     "unequal sides"
@@ -15,7 +15,6 @@
     "theme": "bridgeheads",
     "symmetry": "none"
   },
-  "turnLimit": 28,
   "grid": [
     "..........v................",
     "..........v................",

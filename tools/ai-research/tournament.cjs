@@ -15,14 +15,15 @@ const ids=(args.modes||"tactical,beam,monte-carlo,apex").split(","), indices=(ar
 const opponent=args.against||"classic", results=[];
 for(const id of ids)for(const mi of indices)for(const seed of seeds)for(const side of [0,1]){
   const game=new ENGINE.Game(maps[mi],{seed}), start=performance.now(), times=[];let actions=0;
-  while(game.winner===null && actions<2*game.turnLimit+2){
+  while(!game.over()){
     const method=game.currentPlayer===side?id:opponent,t=performance.now();
     AI.playTurn(game,game.currentPlayer,{id:method});times.push({id:method,ms:performance.now()-t});
-    actions++;if(game.winner===null)game.endTurn();
+    actions++;if(!game.over())game.endTurn();
+    if(actions>2*ENGINE.TURN_LIMIT+2)throw new Error("Game exceeded the engine turn budget.");
   }
   const own=times.filter(t=>t.id===id).map(t=>t.ms).sort((a,b)=>a-b);
   const result={id,opponent,map:maps[mi].name,index:mi,seed,side,winner:game.winner,win:game.winner===side,
-    reason:game.winReason,round:Math.min(game.turn,game.turnLimit),ms:Math.round(performance.now()-start),
+    reason:game.winReason,round:game.turn,ms:Math.round(performance.now()-start),
     medianTurnMs:Math.round(own[Math.floor(own.length/2)]||0),maxTurnMs:Math.round(Math.max(0,...own))};
   results.push(result);console.log(JSON.stringify(result));
   if(args.out)fs.writeFileSync(args.out,JSON.stringify({date:new Date().toISOString(),node:process.version,args,results},null,2)+"\n");

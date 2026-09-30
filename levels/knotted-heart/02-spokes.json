@@ -6,7 +6,7 @@
   "author": "AI-made by Codex",
   "source": "levels/knotted-heart/02-spokes.json",
   "description": "Radial passages meet at a small hub. A central force can change fronts rapidly, but several entrances lead into it and the spacious rim remains available.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 55 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "dense center / open flanks",
     "spread",
@@ -18,7 +18,6 @@
     "formation": "spread",
     "road": "fork"
   },
-  "turnLimit": 55,
   "grid": [
     ".....h........................",
     "..............................",

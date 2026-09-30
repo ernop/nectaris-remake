@@ -6,7 +6,7 @@
   "author": "AI-made by Codex",
   "source": "levels/broken-ground/04-the-long-causeway.json",
   "description": "Valley seams interrupt the difficult ground. Bridges carry the vehicle routes, while Pelicans can move cargo to legal landing hexes beyond a crowded crossing.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "terrain-dependent routes",
     "line",
@@ -18,7 +18,6 @@
     "formation": "line",
     "road": "direct"
   },
-  "turnLimit": 65,
   "grid": [
     "...........v......vv..............",
     "...................v..............",

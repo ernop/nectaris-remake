@@ -34,7 +34,7 @@ function board(width, height, fill = '.') {
   return Array.from({ length: height }, () => fill.repeat(width).split(''));
 }
 function newGame(grid, units, buildings = [], seed = 7) {
-  return new ENGINE.Game({ name: 'verify', grid: grid.map(r => r.join('')), units, buildings, turnLimit: 99 }, { seed });
+  return new ENGINE.Game({ name: 'verify', grid: grid.map(r => r.join('')), units, buildings }, { seed });
 }
 function hexesAt(grid, col, row, distance) {
   const out = [];
@@ -89,7 +89,7 @@ function smokeMap(side = ALL_SIDE) {
   for (const s of sides) {
     for (const id of side) place(id, s.o, id === 'CAMEL' ? s.factory : HILL_START.has(id) ? s.hills : s.front);
   }
-  return { name: 'verify smoke', grid: grid.map(r => r.join('')), buildings, units, turnLimit: 30 };
+  return { name: 'verify smoke', grid: grid.map(r => r.join('')), buildings, units };
 }
 
 /* ---------- sections ---------- */
@@ -302,7 +302,7 @@ section('CPU games with every new unit', () => {
     for (const u of game.units) typeOf.set(u.id, u.typeId);
     for (const b of Object.values(game.buildings)) for (const u of b.stored) typeOf.set(u.id, u.typeId);
     let turns = 0, slowest = 0;
-    while (game.winner === null && turns < g.rounds * 2) {
+    while (!game.over() && turns < g.rounds * 2) {
       const id = g.ids[game.currentPlayer], from = game.log.length, started = Date.now();
       AI.playTurn(game, game.currentPlayer, { id });
       if (id === 'apex') slowest = Math.max(slowest, Date.now() - started);
@@ -313,7 +313,7 @@ section('CPU games with every new unit', () => {
         if ((e.t === 'load' || e.t === 'loadFromFactory') && NEW.includes(typeOf.get(e.into))) carried++;
       }
       turns++;
-      if (game.winner === null) game.endTurn();
+      if (!game.over()) game.endTurn();
     }
     lines.push(g.ids.join(' v ') + ' ' + turns + ' turns' + (slowest ? ' (slowest apex turn ' + (slowest / 1000).toFixed(1) + ' s)' : ''));
   }

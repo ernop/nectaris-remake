@@ -277,15 +277,25 @@ lets players negotiate bonus squads for taking the second turn, before any
 actions. Bonuses use ordinary unit/action rules once fielded. The agreed first
 player acts first in each round; the round advances only after the other side's
 turn. Saved games and AI copies retain that order; old saves default to Union
-first. This does not change campaign source data or the timeout winner below.
+first. This does not change campaign source data or the draws below.
 See [the adopted protocol](PRODUCT.md#compensation-offers-before-play-2026-09-23)
 for acceptance, fixed placement and unsupported-map handling.
 
 Enemy-base capture wins. Elimination counts owned reserves but excludes Trigger
 mines everywhere and, for PCE, Atlas still in storage. A deployed Atlas counts.
-Default turn limit is 50 rounds; expiration awards Xenon the win. Custom maps
-may override it. Exact victory-check timing in rare simultaneous/capture cases
-still needs verification.
+Exact victory-check timing in rare simultaneous/capture cases still needs
+verification.
+
+**Draws (remake rule, 2026-09-30):** the original's 50-round limit, whose
+expiry awarded Xenon the win, is replaced in every game by two draws, both
+checked when a round ends: after 100 whole rounds in which no unit lost a
+machine and no factory was captured (`ENGINE.QUIET_TURNS`), and when round
+5000 ends (`ENGINE.TURN_LIMIT`). An attack or counterattack that costs any
+unit a machine, or a unit capturing a factory, restarts the 100-round count in
+that round; an attack that costs no machines and the capture of a base whose
+capture does not win do not. A drawn match keeps the number of its last round.
+Levels have no turn limit of their own; a `turnLimit` in an older level file is
+ignored. See [the decision](PRODUCT.md#fixed-turn-limit-and-draws-2026-09-30).
 
 All 32 original normal/advanced missions are included. The CPU now performs
 documented transport, guarded-factory and base-defense tactics, including the

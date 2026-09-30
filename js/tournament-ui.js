@@ -65,7 +65,7 @@
     $("lab-pause").disabled=run.status!=="running";$("lab-stop").disabled=!active()||run.status==="starting";
     $("lab-resume").disabled=active()||count>=total||!T.canResume(run);
     $("lab-start").disabled=active()||saving;$("lab-runs").disabled=active()||saving;$("lab-delete").disabled=active()||saving;
-    $("lab-settings").textContent="v"+run.version+" · "+(run.config.opening==="offers"?"Offer for first / "+(run.config.noDeal==="original"?"normal fallback":"skip no deal"):"Normal opening")+" · seed "+run.config.seed+" · "+run.config.maps.length+" boards · "+run.config.workers+" workers · "+(run.config.work||"standard")+" search · K "+run.config.k+" · "+(run.config.maxRounds?run.config.maxRounds+"-round lab cap":"original map limits")+" · "+duration(run.elapsed||0)+" recorded compute time";
+    $("lab-settings").textContent="v"+run.version+" · "+(run.config.opening==="offers"?"Offer for first / "+(run.config.noDeal==="original"?"normal fallback":"skip no deal"):"Normal opening")+" · seed "+run.config.seed+" · "+run.config.maps.length+" boards · "+run.config.workers+" workers · "+(run.config.work||"standard")+" search · K "+run.config.k+" · "+(run.config.maxRounds?run.config.maxRounds+"-round lab cap":"no lab cap")+" · "+duration(run.elapsed||0)+" recorded compute time";
     $("lab-saved").textContent="Saved through game "+count+" of "+total+(run.savedAt?" · "+new Date(run.savedAt).toLocaleTimeString():"")+". Reloading keeps these results, replays and Elo; unfinished games restart on Resume."+
       (run.status==="interrupted"?" Recovered this run after a reload — press Resume to continue.":"");
     var finished=count+pending.size,wall=wallTime(),remaining=finished?wall/finished*(total-finished):null;
@@ -163,7 +163,7 @@
     recovered.forEach(function(g){pending.set(g.index,g);});run.status="running";sessionBase=run.wallMs||0;sessionStart=Date.now();await store.save(run);
     await flushFinished();if(run.status!=="running")return;
     for(var i=0;i<run.config.workers;i++){
-      var worker=new Worker("js/tournament-worker.js?v=20260929-marshal"),slot={worker:worker,job:null,progress:null};pool.push(slot);
+      var worker=new Worker("js/tournament-worker.js?v=20260930-draw-rule"),slot={worker:worker,job:null,progress:null};pool.push(slot);
       (function(s){worker.onmessage=function(event){var data=event.data;
         if(data.type==="progress"){if(data.index!==s.job)return;s.progress=data.progress;render();return;}
         if(data.type!=="result"||data.result.index!==s.job)return;
@@ -418,7 +418,7 @@
     var currentTurn=(replayData.turns||[]).filter(function(t){return t.at<=replayAt;}).pop();if(currentTurn)$("replay-turn").value=String(currentTurn.at);
     var phase=replayPhase==="intent"?"Selecting "+(replayAt+1):"Action "+replayAt;
     var last=replayPhase==="intent"?(replaySpec&&(replaySpec.select||replaySpec.done)||replayData.commands[replayAt][0]):replayAt?replayData.commands[replayAt-1][0]:"initial position";
-    $("replay-position").textContent=phase+" / "+replayData.commands.length+" · round "+replayGame.turn+" · "+(replayGame.currentPlayer?"Xenon":"Union")+" · "+last+(replayGame.winner!==null?" · "+replayGame.winReason:"");
+    $("replay-position").textContent=phase+" / "+replayData.commands.length+" · round "+replayGame.turn+" · "+(replayGame.currentPlayer?"Xenon":"Union")+" · "+last+(replayGame.over()?" · "+replayGame.winReason:"");
     showLedger();
   }
   function seek(at){if(!replayData)return;at=Math.max(0,Math.min(replayData.commands.length,at));clearTrails();

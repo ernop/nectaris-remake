@@ -184,7 +184,8 @@ This is narrower than it looks, so the boundary matters:
 | Windows-edition BMP sprites/tilesets | Hudson/Konami copyright | Not used; the pixel style is original art in the era's idiom |
 
 So the layouts are Crescent's; the rosters, deployments, camp/factory
-assignment, turn limits, map names and bilingual briefings are this project's.
+assignment, map names and bilingual briefings are this project's (so were the
+turn limits, until the 2026-09-30 draw rule removed per-map limits).
 `CREALF` (`bnm_d001.nmd`, 32×22) is **excluded**: one of its cells uses tile
 index `0x5b`, which appears in no published screenshot, and the converter
 raises an error rather than guessing a terrain for it.

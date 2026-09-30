@@ -6,7 +6,7 @@
   "author": "AI-made by Codex",
   "source": "levels/broken-ground/10-broken-ladder.json",
   "description": "Two valley cuts cross a ladder of firm routes. Some rungs are fast and exposed, others bend through hills; committing to a rung can leave the army on the wrong side of the next cut.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 75 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "terrain-dependent routes",
     "split",
@@ -18,7 +18,6 @@
     "formation": "split",
     "road": "ladder"
   },
-  "turnLimit": 75,
   "grid": [
     "...........v............v...........",
     "...........v............v...........",

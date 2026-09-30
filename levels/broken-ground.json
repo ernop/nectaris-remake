@@ -9,7 +9,7 @@
       "author": "AI-made by Codex",
       "source": "levels/broken-ground/01-the-price-of-a-hill.json",
       "description": "Three squads each cross a field of hill belts. Charlie, Bison and Panther pay different movement costs for the same terrain; a short route on the map can be a slow route for the unit.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 45 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "terrain-dependent routes",
         "line",
@@ -21,7 +21,6 @@
         "formation": "line",
         "road": "none"
       },
-      "turnLimit": 45,
       "grid": [
         "........................",
         "........................",
@@ -101,7 +100,7 @@
       "author": "AI-made by Codex",
       "source": "levels/broken-ground/02-the-gilded-cage.json",
       "description": "Giants dominate nearby ground but cannot enter wasteland. A winding road threads the waste fields; the lighter opposing army has more ways to approach the queue.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 60 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "terrain-dependent routes",
         "column",
@@ -113,7 +112,6 @@
         "formation": "column",
         "road": "zigzag"
       },
-      "turnLimit": 60,
       "grid": [
         "..............................",
         "..............................",
@@ -247,7 +245,7 @@
       "author": "AI-made by Codex",
       "source": "levels/broken-ground/03-motorcycle-country.json",
       "description": "Capturers and Rabbits share a road network across broad wasteland shoals. Panthers cannot leave the firm routes into wasteland, even where a Rabbit can cross.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 50 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "terrain-dependent routes",
         "spread",
@@ -259,7 +257,6 @@
         "formation": "spread",
         "road": "fork"
       },
-      "turnLimit": 50,
       "grid": [
         "............................",
         ".....................ww.....",
@@ -387,7 +384,7 @@
       "author": "AI-made by Codex",
       "source": "levels/broken-ground/04-the-long-causeway.json",
       "description": "Valley seams interrupt the difficult ground. Bridges carry the vehicle routes, while Pelicans can move cargo to legal landing hexes beyond a crowded crossing.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "terrain-dependent routes",
         "line",
@@ -399,7 +396,6 @@
         "formation": "line",
         "road": "direct"
       },
-      "turnLimit": 65,
       "grid": [
         "...........v......vv..............",
         "...................v..............",
@@ -573,7 +569,7 @@
       "author": "AI-made by Codex",
       "source": "levels/broken-ground/05-walking-the-ridge.json",
       "description": "Infantry and Mules only. Connected hill belts are cheap for foot soldiers and costly for their carriers; the road around the edge offers a different kind of shortcut.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 60 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "terrain-dependent routes",
         "split",
@@ -585,7 +581,6 @@
         "formation": "split",
         "road": "rim"
       },
-      "turnLimit": 60,
       "grid": [
         "............................",
         "............................",
@@ -727,7 +722,7 @@
       "author": "AI-made by Codex",
       "source": "levels/broken-ground/06-the-road-is-not-cover.json",
       "description": "A fast exposed road crosses alternating hill and waste banks. Leaving it gives better terrain defense but spends movement, and the motorcycle capturer has fewer off-road choices.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 60 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "terrain-dependent routes",
         "column",
@@ -739,7 +734,6 @@
         "formation": "column",
         "road": "cross"
       },
-      "turnLimit": 60,
       "grid": [
         "................................",
         "................................",
@@ -901,7 +895,7 @@
       "author": "AI-made by Codex",
       "source": "levels/broken-ground/07-guns-in-the-mud.json",
       "description": "Your artillery-heavy force must relocate through broken waste and hill patches. An attractive firing position may take a full turn to leave and another to make useful again.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "terrain-dependent routes",
         "gunline",
@@ -913,7 +907,6 @@
         "formation": "gunline",
         "road": "zigzag"
       },
-      "turnLimit": 65,
       "grid": [
         "..............................",
         "..............................",
@@ -1083,7 +1076,7 @@
       "author": "AI-made by Codex",
       "source": "levels/broken-ground/08-firm-ground.json",
       "description": "Mine teams compete over the few firm routes between large waste fields. Each mine has its own Mule, but transport unloading still needs plain, road, bridge or an owned factory.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 70 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "terrain-dependent routes",
         "column",
@@ -1095,7 +1088,6 @@
         "formation": "column",
         "road": "fork"
       },
-      "turnLimit": 70,
       "grid": [
         "..................................",
         ".....---..........................",
@@ -1283,7 +1275,7 @@
       "author": "AI-made by Codex",
       "source": "levels/broken-ground/09-four-machines.json",
       "description": "Four squads each, no replacement stock. A quilt of hills and wasteland makes the Lenet's speed, Polar's weight and Hadrian's firing position matter in different ways.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 50 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "terrain-dependent routes",
         "spread",
@@ -1295,7 +1287,6 @@
         "formation": "spread",
         "road": "none"
       },
-      "turnLimit": 50,
       "grid": [
         "..........................",
         "..........................",
@@ -1389,7 +1380,7 @@
       "author": "AI-made by Codex",
       "source": "levels/broken-ground/10-broken-ladder.json",
       "description": "Two valley cuts cross a ladder of firm routes. Some rungs are fast and exposed, others bend through hills; committing to a rung can leave the army on the wrong side of the next cut.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 75 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "terrain-dependent routes",
         "split",
@@ -1401,7 +1392,6 @@
         "formation": "split",
         "road": "ladder"
       },
-      "turnLimit": 75,
       "grid": [
         "...........v............v...........",
         "...........v............v...........",
@@ -1625,7 +1615,7 @@
       "author": "AI-made by Codex",
       "source": "levels/broken-ground/11-the-patient-giant.json",
       "description": "A slow heavy group faces a broad diagonal waste belt. The long firm route keeps the Giant mobile, while mobile opponents can choose when to cross closer to it.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 70 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "terrain-dependent routes",
         "line",
@@ -1637,7 +1627,6 @@
         "formation": "line",
         "road": "rim"
       },
-      "turnLimit": 70,
       "grid": [
         ".wwwww............................",
         ".wwwwww...........................",
@@ -1819,7 +1808,7 @@
       "author": "AI-made by Codex",
       "source": "levels/broken-ground/12-ridges-and-runways.json",
       "description": "Long hill ridges alternate with flat landing strips and waste depressions. Pelican cargo needs those firm strips; flying over a good defensive hill does not make it a legal unloading site.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 75 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "terrain-dependent routes",
         "forward",
@@ -1831,7 +1820,6 @@
         "formation": "forward",
         "road": "fork"
       },
-      "turnLimit": 75,
       "grid": [
         "......................................",
         "......................................",
@@ -2041,7 +2029,7 @@
       "author": "AI-made by Codex",
       "source": "levels/broken-ground/13-the-false-shortcut.json",
       "description": "A visually short route cuts straight through deep wasteland. The road bends away from the objective but can be faster, especially for a Panther or a heavy vehicle with little movement.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 75 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "terrain-dependent routes",
         "split",
@@ -2053,7 +2041,6 @@
         "formation": "split",
         "road": "zigzag"
       },
-      "turnLimit": 75,
       "grid": [
         "....................................",
         "....................................",
@@ -2265,7 +2252,7 @@
       "author": "AI-made by Codex",
       "source": "levels/broken-ground/14-two-speeds.json",
       "description": "Fast patrols and a slower core begin together on a patchwork of firm and difficult ground. Keeping them mutually supporting takes more care than sending every unit its maximum distance.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 80 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "terrain-dependent routes",
         "spread",
@@ -2277,7 +2264,6 @@
         "formation": "spread",
         "road": "ladder"
       },
-      "turnLimit": 80,
       "grid": [
         "........................................",
         "........................................",
@@ -2535,7 +2521,7 @@
       "author": "AI-made by Codex",
       "source": "levels/broken-ground/15-the-island-road.json",
       "description": "Road-linked plateaus sit between valley seams and waste basins. Transports can shorten transfers, but ground escorts must choose among bridges, rough cuts and the long outer route.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 90 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "terrain-dependent routes",
         "split",
@@ -2547,7 +2533,6 @@
         "formation": "split",
         "road": "rim"
       },
-      "turnLimit": 90,
       "grid": [
         "............v..............v............",
         "............v..............v............",
@@ -2807,7 +2792,7 @@
       "author": "AI-made by Codex",
       "source": "levels/broken-ground/16-every-yard-counts.json",
       "description": "Hill belts, wasteland basins, broken valleys and several firm routes meet on one large board. The army is broad enough to solve each terrain problem, but its different units cannot all use the same approach.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 100 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "terrain-dependent routes",
         "split",
@@ -2819,7 +2804,6 @@
         "formation": "split",
         "road": "fork"
       },
-      "turnLimit": 100,
       "grid": [
         "..............vv..........................",
         "...............v..........................",

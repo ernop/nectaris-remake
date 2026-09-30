@@ -144,8 +144,7 @@ ADVANCED_CAMPAIGN.forEach(function(m,i) {
   var forces = [0,0,0];
   m.units.forEach(function(u) { forces[u.o]++; });
   m.buildings.forEach(function(b) { forces[b.owner < 0 ? 2 : b.owner] += (b.stored || []).length; });
-  ok(m.name === CAMPAIGN[i].name.split("").reverse().join("") && m.turnLimit === 50,
-    m.name + ": original advanced name and turn limit");
+  ok(m.name === CAMPAIGN[i].name.split("").reverse().join(""), m.name + ": original advanced name");
   ok(JSON.stringify(m.grid) === JSON.stringify(CAMPAIGN[i].grid), m.name + ": advanced campaign reuses its original battlefield");
   ok(JSON.stringify(forces) === JSON.stringify(advancedTotals[i]), m.name + ": advanced force totals cross-checked against the PCE stage guide");
   ok(JSON.stringify(m.units) !== JSON.stringify(CAMPAIGN[i].units), m.name + ": advanced deployment is distinct from normal");
@@ -1105,16 +1104,17 @@ require("./tournament-tests.js")(ok);
 section("AI self-play (all included maps)");
 ALL_MAPS.forEach(function (m, mi) {
   var game = new ENGINE.Game(m, { seed: 1000 + mi });
-  var guard = 0;
+  var halfTurns = 0;
   try {
-    while (game.winner === null && guard < 400) {
+    while (!game.over()) {
       AI.playTurn(game, game.currentPlayer);
-      game.endTurn();
-      guard++;
+      if (!game.over()) game.endTurn();
+      if (++halfTurns > 2 * ENGINE.TURN_LIMIT + 2) throw new Error("played past the engine's turn budget");
     }
-    ok(game.winner !== null, "map " + (mi + 1) + " " + m.name + " terminated (winner " + game.winner + ", " + game.winReason + ", turn " + game.turn + ")");
+    var ending = game.winner === null ? "draw" : "winner P" + game.winner;
+    ok(game.over(), "map " + (mi + 1) + " " + m.name + " terminated (" + ending + ", " + game.winReason + ", turn " + game.turn + ")");
     console.log("  map " + String(mi + 1).padStart(2) + " " + m.name.padEnd(9) +
-      " -> winner P" + game.winner + " by " + game.winReason + " on turn " + game.turn);
+      " -> " + ending + " by " + game.winReason + " on turn " + game.turn);
   } catch (e) {
     ok(false, "map " + (mi + 1) + " " + m.name + " crashed: " + e.stack);
   }
@@ -1151,6 +1151,7 @@ section("compensation offers, placement and opening order");
 require("./balance-tests.js")(ok);
 
 section("completed match outcomes");
+require("./draw-rule-tests.js")(ok);
 require("./outcome-tests.js")(ok);
 require("./outcome-menu-tests.js")(ok);
 

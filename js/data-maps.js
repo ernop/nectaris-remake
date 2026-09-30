@@ -10,7 +10,6 @@
 
 var CAMPAIGN = [
   { name: "REVOLT", blurb: "The original opening battle: infantry and Bisons contest a bridge between two prison camps.",
-    turnLimit: 50,
     grid: [
       "MMMMMMwvMMMwwMM",
       "M..M..wwv.hhhh.",
@@ -40,7 +39,6 @@ var CAMPAIGN = [
     ] },
 
   { name: "ICARUS", blurb: "A larger infantry-and-Bison engagement across broken lunar terrain.",
-    turnLimit: 50,
     grid: [
       "MMM------------",
       "M--hhMhhhMhww..",
@@ -75,7 +73,6 @@ var CAMPAIGN = [
     ] },
 
   { name: "CYRANO", blurb: "Xenon begins with a factory containing Kilroy infantry and Hadrian artillery.",
-    turnLimit: 50,
     grid: [
       "v---whM..-..-..",
       "vv..--.----w-B.",
@@ -107,7 +104,6 @@ var CAMPAIGN = [
     ] },
 
   { name: "RAMSEY", blurb: "Aircraft, artillery and four factories widen the battle across a tall battlefield.",
-    turnLimit: 50,
     grid: [
       "MMM...M.wB..hhv",
       "MMM.wwM.......v",
@@ -156,7 +152,6 @@ var CAMPAIGN = [
     ] },
 
   { name: "NEWTON", blurb: "Four neutral factories hold the weapons that decide this mobile engagement.",
-    turnLimit: 50,
     grid: [
       "....M.M...wwwvv",
       "wMB.......vvv.M",
@@ -202,7 +197,6 @@ var CAMPAIGN = [
     ] },
 
   { name: "SENECA", blurb: "Air power and troop carriers enter a race for three neutral factories.",
-    turnLimit: 50,
     grid: [
       "wwwwwww-.-.MM.w",
       "MM.----.-.-...w",
@@ -253,7 +247,6 @@ var CAMPAIGN = [
     ] },
 
   { name: "SABINE", blurb: "Both armies begin with factory reserves while two neutral arsenals divide the front.",
-    turnLimit: 50,
     grid: [
       "wwwwwMM.wwMMMM..-..--..hhhhhhh",
       "www.....wwwwMMM.-.-..hhhh.hhh.",
@@ -290,7 +283,6 @@ var CAMPAIGN = [
     ] },
 
   { name: "ARATUS", blurb: "A broad east-west battlefield filled with aircraft, carriers and factory reserves.",
-    turnLimit: 50,
     grid: [
       "wwwwMMMMMMMMM.ww.MMMM.MMMww...",
       ".B.wMMMMMMM.F.wM.MMMMM...ww-B.",
@@ -335,7 +327,6 @@ var CAMPAIGN = [
     ] },
 
   { name: "GALOIS", blurb: "A large combined-arms battle with four neutral arsenals and extensive reserves.",
-    turnLimit: 50,
     grid: [
       "hhh...-.wwMMMMMvvwwMMMMMM.MMMM",
       "hhh----.wwMMM.vh.MMMM....wM.MM",
@@ -390,7 +381,6 @@ var CAMPAIGN = [
     ] },
 
   { name: "DARWIN", blurb: "Seven factories spread aircraft and heavy weapons across a deep battlefield.",
-    turnLimit: 50,
     grid: [
       "hhh.h..MM.M.MMwwh.hh.MMMM.MMM.",
       "h.Fw----.---M---.......---M...",
@@ -447,7 +437,6 @@ var CAMPAIGN = [
     ] },
 
   { name: "PASCAL", blurb: "Six factories and large reserves make control of deployment routes decisive.",
-    turnLimit: 50,
     grid: [
       "MMMMMMMMMMMMMMMMMMMMMM..v.vMvM",
       "MM.h.MMMM.MMMMM...MMMMM.MMv..M",
@@ -500,7 +489,6 @@ var CAMPAIGN = [
     ] },
 
   { name: "HALLEY", blurb: "Three neutral arsenals anchor a dense combined-arms confrontation.",
-    turnLimit: 50,
     grid: [
       "MMw-----vv....wwwwwwwMM.MMMMM.",
       "M.-....B.v.---.h.hw---....M..-",
@@ -557,7 +545,6 @@ var CAMPAIGN = [
     ] },
 
   { name: "BORMAN", blurb: "Both armies begin entirely inside factories and must choose their opening deployments.",
-    turnLimit: 50,
     grid: [
       "MMMMMMMMM.hMMMM.MMMMMMM.MMMMMM",
       "MMM...M.hhhhM..wM..MM....w.MMM",
@@ -593,7 +580,6 @@ var CAMPAIGN = [
     ] },
 
   { name: "APPOLO", blurb: "Artillery, aircraft and heavy armour converge around six factories.",
-    turnLimit: 50,
     grid: [
       "wwh.......w.......wwwww.hhh.hh",
       "ww.MMMMM.MMM.MF..........M..hh",
@@ -646,7 +632,6 @@ var CAMPAIGN = [
     ] },
 
   { name: "KAISER", blurb: "Five factories distribute a large late-campaign force across the lunar front.",
-    turnLimit: 50,
     grid: [
       ".MM-wvMMMM.M...-wwwww..v.MvvMM",
       "MMwFwwvMM..MM--M....w..B.MMMMM",
@@ -698,7 +683,6 @@ var CAMPAIGN = [
     ] },
 
   { name: "NECTOR", blurb: "The original normal campaign's final assault on the Xenon prison camp.",
-    turnLimit: 50,
     grid: [
       "MM.wwMMMMM..hhh.hhh...MMM...M.",
       "MMMwwMMMMMMhhh.B.hhh.MMMMMww.-",

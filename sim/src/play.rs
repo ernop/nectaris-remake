@@ -19,7 +19,7 @@ use std::time::Instant;
 
 /// `AI_TOURNAMENT.version` this port implements. A corpus recorded under
 /// another protocol is refused.
-pub const PROTOCOL: &str = "2026-09-30.1";
+pub const PROTOCOL: &str = "2026-09-30.2";
 
 /// A controller for one side: plays a whole turn through the engine's
 /// recording commands and returns without ending the turn.
@@ -37,7 +37,7 @@ pub trait StepPlayer {
 /// Runs a step player's turn: ask, apply, until it ends the turn or the game
 /// is decided.
 pub fn play_steps(player: &mut dyn StepPlayer, game: &mut Game, side: i32) {
-    while game.winner < 0 && game.current == side {
+    while !game.over() && game.current == side {
         let legal = game.legal_commands();
         let i = player.choose(game, &legal);
         assert!(i < legal.len(), "a step player chose command {i} of {}", legal.len());
@@ -100,7 +100,7 @@ pub fn random_game(d: &Data, board: usize, k: usize, seed: u32) -> (u32, usize) 
     let mut g = Game::new(d, board, &Seed::from_text(&game_seed.to_string()), 0);
     let mut player = Random(Rng::new(game_seed ^ 0x9e37_79b9));
     let mut n = 0;
-    while g.winner < 0 {
+    while !g.over() {
         let legal = g.legal_commands();
         let i = player.choose(&g, &legal);
         g.do_command(&legal[i]);
@@ -122,7 +122,7 @@ pub fn playout_fingerprint(results: &[(u32, usize)]) -> u32 {
 
 pub struct Outcome {
     pub commands: Vec<Command>,
-    /// -1 when the round cap ended the game.
+    /// -1 for a draw: the round cap, no progress or the turn limit.
     pub winner: i32,
     pub reason: &'static str,
     pub rounds: i32,
@@ -132,34 +132,34 @@ pub struct Outcome {
     pub thinking_ms: [f64; 2],
 }
 
-/// Plays a game between two players until a side wins, the board's turn
-/// limit passes or the round cap (0 for none) is reached.
+/// Plays a game between two players until a side wins, the engine declares
+/// a draw or the round cap (0 for none) is reached.
 pub fn play_with(d: &Data, board: usize, seed: &Seed, players: &mut [Box<dyn Player>; 2], max_rounds: i32) -> Outcome {
     let mut g = Game::new(d, board, seed, 0);
     g.log = Some(Vec::new());
     let mut turns = 0;
     let mut thinking = [0.0f64; 2];
-    while g.winner < 0 {
+    while !g.over() {
         let side = g.current;
         let started = Instant::now();
         players[side as usize].play_turn(&mut g, side);
         thinking[side as usize] += started.elapsed().as_secs_f64() * 1000.0;
         turns += 1;
-        if g.winner >= 0 {
+        if g.over() {
             break;
         }
-        // The laboratory round cap is a draw, not the board's timeout rule.
-        if max_rounds > 0 && g.turn >= max_rounds && side != g.first && g.turn < g.turn_limit {
+        // A laboratory round cap is a draw that comes before the engine's own limits.
+        if max_rounds > 0 && g.turn >= max_rounds && side != g.first {
             break;
         }
         g.do_end_turn();
-        assert!(turns <= 2 * g.turn_limit + 2, "Tournament game exceeded the engine turn budget.");
+        assert!(turns <= 2 * d.rules.turn_limit + 2, "Tournament game exceeded the engine turn budget.");
     }
     Outcome {
         commands: g.log.take().unwrap(),
         winner: g.winner,
-        reason: if g.winner < 0 { "round-cap" } else { g.reason },
-        rounds: g.turn.min(g.turn_limit),
+        reason: if g.over() { g.reason } else { "round-cap" },
+        rounds: g.turn,
         half_turns: turns,
         final_hash: hash::state_hash(&g),
         thinking_ms: thinking,

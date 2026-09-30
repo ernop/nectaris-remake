@@ -6,7 +6,7 @@
   "author": "AI-made by Codex",
   "source": "levels/knotted-heart/09-the-comfortable-court.json",
   "description": "Small protected courts look ideal for heavy tanks. Their narrow connections make it hard to bring that weight to bear against mobile units working around the outside.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "dense center / open flanks",
     "column",
@@ -18,7 +18,6 @@
     "formation": "column",
     "road": "direct"
   },
-  "turnLimit": 65,
   "grid": [
     "..hhhh......h.....h........h....",
     "..h...h.........................",

@@ -92,7 +92,7 @@ var BALANCE_UI = (function () {
       self.botTimer=setTimeout(pump,0);
     }
     if(typeof Worker!=="undefined")try{
-      this.botWorker=new Worker("js/opening-worker.js?v=20260929-left-panel");
+      this.botWorker=new Worker("js/opening-worker.js?v=20260930-draw-rule");
       this.botWorker.onmessage=function(e){if(e.data.error)failed(new Error(e.data.error));else complete(e.data.survey);};
       this.botWorker.onerror=function(){if(self.botWorker)self.botWorker.terminate();self.botWorker=null;fallback();};
       this.botWorker.postMessage({state:AI_SEARCH.publicSnapshot(this.game),types:UNIT_TYPES,id:this.options.opponent,player:this.bot});return;
@@ -242,8 +242,7 @@ var BALANCE_UI = (function () {
     }else{
       var survey=this.surveys[this.responder];
       $("balance-turn").textContent="Question "+(survey.answers.length+1)+" · "+faction(this.responder)+"’s switch point";
-      $("balance-message").textContent="Find the smallest menu with a package you’d take for going second. Select a package below, then answer. "+
-        "The map’s "+this.game.turnLimit+"-round limit still awards Xenon the win.";
+      $("balance-message").textContent="Find the smallest menu with a package you’d take for going second. Select a package below, then answer.";
       $("balance-progress").textContent=(survey.low<0?"No rejected menu yet":"You prefer first through menu "+survey.low)+" · "+
         (survey.high===p.offers.length?"No accepted package yet":"You accept second at package "+survey.high)+". "+
         (this.options.hotseat?"The other player’s answers stay hidden.":(this.botPending?"The bot is evaluating privately with its own playing algorithm.":"The bot has locked its answers using its own playing algorithm."));

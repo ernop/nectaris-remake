@@ -164,17 +164,17 @@ function build(campaign,spec,index){
   const tread=p=>!["M","v","F"].includes(at(p));
   if(!spec.split&&!flood(bases[0],tread).has(key(bases[1])))fail("no vehicle route joins the camps");
   if(spec.split&&flood(bases[0],tread).has(key(bases[1])))fail("marked split, but vehicles can cross");
-  const goal="Capture the enemy camp or eliminate its eligible forces within "+spec.limit+" rounds. At the turn limit, Xenon wins.";
+  const goal="Capture the enemy camp or eliminate its eligible forces.";
   const slug=spec.name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
   return {name:spec.name,pack:campaign.name,campaignId:campaign.id,mission:index+1,author:"AI-made by Claude Opus 5.5",
     source:"levels/"+campaign.id+"/"+String(index+1).padStart(2,"0")+"-"+slug+".json",
     description:spec.idea,special:[goal,campaign.roster,"Each battle starts with its own authored forces; units do not carry between missions."].filter(Boolean).join(" "),
     tags:[campaign.tag,{half:"half-turn symmetry",mirror:"mirror symmetry",none:"unequal sides"}[sym]],
     design:{theme:campaign.theme,symmetry:sym},
-    turnLimit:spec.limit,grid:grid.map(r=>r.join("")),buildings,units};
+    grid:grid.map(r=>r.join("")),buildings,units};
 }
 function generate(){return catalog.map(c=>({id:c.id,name:c.name,description:c.intro,
-  notes:["Sixteen AI-made battles created by Claude Opus 5.5, each testing one idea about map balance, tuned until the strongest simulator bot playing both sides wins about as often as Union as Xenon.",
+  notes:["Sixteen AI-made battles created by Claude Opus 5.5, each testing one idea about map balance. They were tuned so the strongest simulator bot playing both sides won about as often as Union as Xenon, under a rule since removed that gave Xenon the win at each board's own turn limit; their balance under the current draw rules has not been measured.",
     "Normal capture/elimination rules apply.",c.roster,"Forces start fresh each mission."].filter(Boolean).join(" "),
   levels:c.levels.map((s,i)=>build(c,s,i))}));}
 module.exports=generate;

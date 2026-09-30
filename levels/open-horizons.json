@@ -9,7 +9,7 @@
       "author": "AI-made by Codex",
       "source": "levels/open-horizons/01-three-against-three.json",
       "description": "Three squads per side and no replacements. Six small mountain islands break up a broad plain; every supporting position costs a third of your army.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 40 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "open maneuver",
         "line",
@@ -21,7 +21,6 @@
         "formation": "line",
         "road": "none"
       },
-      "turnLimit": 40,
       "grid": [
         "........................",
         "........................",
@@ -99,7 +98,7 @@
       "author": "AI-made by Codex",
       "source": "levels/open-horizons/02-the-long-hook.json",
       "description": "Crescent ridges shelter the direct approach. Fast Lenets and a Rabbit can take the long outside route, but the infantry must still reach a camp or arsenal.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 55 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "open maneuver",
         "split",
@@ -111,7 +110,6 @@
         "formation": "split",
         "road": "rim"
       },
-      "turnLimit": 55,
       "grid": [
         "................................",
         "................................",
@@ -249,7 +247,7 @@
       "author": "AI-made by Codex",
       "source": "levels/open-horizons/03-two-colors-of-steel.json",
       "description": "Only Charlie and Bison exist here. A diagonal chain of islands makes positioning and mutual support the entire problem.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 50 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "open maneuver",
         "line",
@@ -261,7 +259,6 @@
         "formation": "line",
         "road": "none"
       },
-      "turnLimit": 50,
       "grid": [
         "............................",
         "............................",
@@ -387,7 +384,7 @@
       "author": "AI-made by Codex",
       "source": "levels/open-horizons/04-divided-weight.json",
       "description": "Two large mountain formations divide the approach into three wide lanes. Your separated detachments can concentrate quickly only if you keep the middle passage usable.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "open maneuver",
         "split",
@@ -399,7 +396,6 @@
         "formation": "split",
         "road": "fork"
       },
-      "turnLimit": 65,
       "grid": [
         "....................................",
         "....................................",
@@ -585,7 +581,7 @@
       "author": "AI-made by Codex",
       "source": "levels/open-horizons/05-the-inviting-bowl.json",
       "description": "A horseshoe of mountains wraps a tempting central arsenal. The straight road enters its mouth; the spacious outside flanks let the opponent approach its sides.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 55 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "open maneuver",
         "forward",
@@ -597,7 +593,6 @@
         "formation": "forward",
         "road": "direct"
       },
-      "turnLimit": 55,
       "grid": [
         "..............................",
         "..............................",
@@ -771,7 +766,7 @@
       "author": "AI-made by Codex",
       "source": "levels/open-horizons/06-rings-without-walls.json",
       "description": "Broken mountain atolls enclose useful staging areas. Several gaps make each enclosure permeable; a force inside must watch more than the entrance it used.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "open maneuver",
         "line",
@@ -783,7 +778,6 @@
         "formation": "line",
         "road": "fork"
       },
-      "turnLimit": 65,
       "grid": [
         "..................................",
         "..................................",
@@ -959,7 +953,7 @@
       "author": "AI-made by Codex",
       "source": "levels/open-horizons/07-no-heavy-answer.json",
       "description": "Capturers and missile buggies only. Scattered small islands provide turning points for hit-and-retreat movement, with very little armor to absorb mistakes.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 45 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "open maneuver",
         "spread",
@@ -971,7 +965,6 @@
         "formation": "spread",
         "road": "none"
       },
-      "turnLimit": 45,
       "grid": [
         "............................",
         ".....M......................",
@@ -1109,7 +1102,7 @@
       "author": "AI-made by Codex",
       "source": "levels/open-horizons/08-finger-country.json",
       "description": "Long mountain fingers project into open ground. Their tips are turning points, while gaps between the fingers shelter artillery and isolated detachments.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 70 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "open maneuver",
         "column",
@@ -1121,7 +1114,6 @@
         "formation": "column",
         "road": "rim"
       },
-      "turnLimit": 70,
       "grid": [
         "......................................",
         "......................................",
@@ -1341,7 +1333,7 @@
       "author": "AI-made by Codex",
       "source": "levels/open-horizons/09-a-narrow-advantage.json",
       "description": "Two Giants give Union impressive local strength but few bodies. The hourglass formations invite a frontal stand while lighter forces can use the wide outer lanes.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 60 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "open maneuver",
         "line",
@@ -1353,7 +1345,6 @@
         "formation": "line",
         "road": "direct"
       },
-      "turnLimit": 60,
       "grid": [
         "..............................",
         "..............................",
@@ -1493,7 +1484,7 @@
       "author": "AI-made by Codex",
       "source": "levels/open-horizons/10-guns-need-company.json",
       "description": "Offset mountain ribbons put neighboring lanes within artillery reach. Your gun-heavy army still needs infantry and a small mobile screen to occupy the ground.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "open maneuver",
         "gunline",
@@ -1505,7 +1496,6 @@
         "formation": "gunline",
         "road": "cross"
       },
-      "turnLimit": 65,
       "grid": [
         "................................",
         "................................",
@@ -1679,7 +1669,7 @@
       "author": "AI-made by Codex",
       "source": "levels/open-horizons/11-empty-miles.json",
       "description": "Four squads each on a very wide field. Elongated shoals interrupt pursuit; committing two units to one side leaves enormous areas unguarded.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "open maneuver",
         "split",
@@ -1691,7 +1681,6 @@
         "formation": "split",
         "road": "none"
       },
-      "turnLimit": 65,
       "grid": [
         "..........................................",
         "..........................................",
@@ -1787,7 +1776,7 @@
       "author": "AI-made by Codex",
       "source": "levels/open-horizons/12-the-crown-s-teeth.json",
       "description": "A broken crown of mountains offers several protected approaches to the center. The gaps face different directions, so one supporting group cannot cover them all.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 70 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "open maneuver",
         "forward",
@@ -1799,7 +1788,6 @@
         "formation": "forward",
         "road": "fork"
       },
-      "turnLimit": 70,
       "grid": [
         "..................................",
         "..................................",
@@ -2021,7 +2009,7 @@
       "author": "AI-made by Codex",
       "source": "levels/open-horizons/13-distant-neighbors.json",
       "description": "Two island clusters face each other across an open gulf. Pelicans can shift cargo across the gulf, while unsupported ground units spend several turns crossing it.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 80 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "open maneuver",
         "split",
@@ -2033,7 +2021,6 @@
         "formation": "split",
         "road": "rim"
       },
-      "turnLimit": 80,
       "grid": [
         "........................................",
         "........................................",
@@ -2245,7 +2232,7 @@
       "author": "AI-made by Codex",
       "source": "levels/open-horizons/14-the-bright-road.json",
       "description": "A conspicuous straight road passes through a crooked reef. Its speed comes with no terrain defense; the surrounding plain leaves room to approach on a wider frontage.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 60 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "open maneuver",
         "column",
@@ -2257,7 +2244,6 @@
         "formation": "column",
         "road": "direct"
       },
-      "turnLimit": 60,
       "grid": [
         "....................................",
         "....................................",
@@ -2443,7 +2429,7 @@
       "author": "AI-made by Codex",
       "source": "levels/open-horizons/15-many-small-fronts.json",
       "description": "A loose field of irregular islands creates many small fronts. Four arsenals per side of the map reward local captures, but scattering every squad leaves no reserve.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 75 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "open maneuver",
         "spread",
@@ -2455,7 +2441,6 @@
         "formation": "spread",
         "road": "cross"
       },
-      "turnLimit": 75,
       "grid": [
         "......................................",
         "......................................",
@@ -2713,7 +2698,7 @@
       "author": "AI-made by Codex",
       "source": "levels/open-horizons/16-horizon-convergence.json",
       "description": "Several island chains converge around a wide central gulf. Large mixed armies must choose where to concentrate while keeping distant factory approaches and their own camp covered.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 90 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "open maneuver",
         "split",
@@ -2725,7 +2710,6 @@
         "formation": "split",
         "road": "fork"
       },
-      "turnLimit": 90,
       "grid": [
         "..........................................",
         "..........................................",

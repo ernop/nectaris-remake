@@ -6,7 +6,7 @@
   "author": "AI-made by Codex",
   "source": "levels/knotted-heart/15-outside-the-fortress.json",
   "description": "The defender has an imposing heavy force beside a dense central fortress. The attacker has more flexible movement around its spacious outskirts; the strongest local position need not control the whole map.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 85 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "dense center / open flanks",
     "spread",
@@ -18,7 +18,6 @@
     "formation": "spread",
     "road": "rim"
   },
-  "turnLimit": 85,
   "grid": [
     ".........h..h......h....h...............",
     "..h...........................hh........",

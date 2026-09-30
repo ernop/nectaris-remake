@@ -38,7 +38,6 @@ var EXPANSION_LEVELS = (function () {
       description: meta.description,
       special: meta.special,
       tags: meta.tags,
-      turnLimit: meta.turnLimit || 50,
       grid: grid,
       buildings: buildings,
       units: units,
@@ -91,7 +90,6 @@ var EXPANSION_LEVELS = (function () {
       description: "The enemy bases sit behind impassable valleys. Infantry must ride Pelicans while fighters contest the route.",
       special: "Capture requires air transport; Falcons and Seekers create an escort-versus-interception battle.",
       tags: ["transport", "air", "capture"],
-      turnLimit: 45,
     }, [
       "vvv........vvv",
       "vBv........vBv",
@@ -112,7 +110,6 @@ var EXPANSION_LEVELS = (function () {
       description: "Four neutral factories form a diamond. Initial forces are light; captured stock decides the battle.",
       special: "Every factory holds a different role, forcing an early route choice instead of one optimal center rush.",
       tags: ["factories", "capture", "fast"],
-      turnLimit: 40,
     }, [
       "..............",
       "...F......F...",
@@ -155,7 +152,6 @@ var EXPANSION_LEVELS = (function () {
       description: "Small forces begin close together around a defensible center, making support and surround geometry decisive.",
       special: "Compact map built to expose six-hex surround coverage and support-fire chains.",
       tags: ["surround", "support", "small"],
-      turnLimit: 30,
     }, [
       "............",
       "...hh..hh...",
@@ -214,7 +210,6 @@ var EXPANSION_LEVELS = (function () {
       description: "An infantry column and a crated Atlas must cross a long map where the enemy can attack from either flank.",
       special: "Two transport types carry different tactical burdens; losing either closes a route to victory.",
       tags: ["convoy", "transport", "large"],
-      turnLimit: 55,
     }, [
       "....vv......vv....",
       "..hhvv......vvhh..",
@@ -236,7 +231,6 @@ var EXPANSION_LEVELS = (function () {
       description: "A ring of mountains protects each base, but two gates and an air corridor keep the defense from becoming static.",
       special: "Triggers block the ground gates; ranged guns can clear them while aircraft threaten the interior.",
       tags: ["siege", "mines", "fortress"],
-      turnLimit: 55,
     }, [
       "MMM..........MMM",
       "MBM..........MBM",
@@ -257,7 +251,6 @@ var EXPANSION_LEVELS = (function () {
       description: "A broad road network gives missile buggies room to strike and keep moving before heavy armor can answer.",
       special: "Rabbit and Lynx movement-after-attack is the central mechanic; hills punish predictable escape routes.",
       tags: ["buggies", "mobility", "roads"],
-      turnLimit: 40,
     }, [
       "................",
       "..hh........hh..",
@@ -278,7 +271,6 @@ var EXPANSION_LEVELS = (function () {
       description: "A full-scale combined-arms battle across four fronts, with every major unit role represented.",
       special: "Four capturable factories, twin valleys, airspace, artillery lanes and transport objectives on one 20×12 map.",
       tags: ["combined arms", "factories", "large"],
-      turnLimit: 60,
     }, [
       "MMhh............hhMM",
       "M..................M",

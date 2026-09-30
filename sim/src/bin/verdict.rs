@@ -79,7 +79,7 @@ fn run() -> Result<(), String> {
     let games = 2 * tally.count();
     let wdl = |s: [u32; 3]| format!("{}-{}-{}", s[0], s[1], s[2]);
     println!(
-        "{}: {}; {games} games in {:.1} s. Pairs by A's score 0 to 2: {:?}. A as Union {}, as Xenon {} (wins-draws-losses). Ends: base {}, elimination {}, turn limit {}, round cap {}; mean rounds {:.1}.",
+        "{}: {}; {games} games in {:.1} s. Pairs by A's score 0 to 2: {:?}. A as Union {}, as Xenon {} (wins-draws-losses). Ends: base {}, elimination {}, no progress {}, turn limit {}, round cap {}; mean rounds {:.1}.",
         match outcome {
             Outcome::Stronger => format!("A IS at least {:+} Elo stronger", test.elo1),
             Outcome::NotStronger => format!("A is NOT {:+} Elo stronger (at most {:+})", test.elo1, test.elo0),
@@ -94,6 +94,7 @@ fn run() -> Result<(), String> {
         tally.ends[1],
         tally.ends[2],
         tally.ends[3],
+        tally.ends[4],
         tally.rounds as f64 / f64::from(games.max(1))
     );
     Ok(())

@@ -1,5 +1,5 @@
 "use strict";
-importScripts.apply(self,["hex.js","data-terrain.js","data-units.js","combat.js","engine.js","balance.js","ai.js","ai-model.js","ai-search.js","ai-opening.js"].map(function(f){return f+"?v=20260929-marshal";}));
+importScripts.apply(self,["hex.js","data-terrain.js","data-units.js","combat.js","engine.js","balance.js","ai.js","ai-model.js","ai-search.js","ai-opening.js"].map(function(f){return f+"?v=20260930-draw-rule";}));
 self.onmessage=function(event){
   try{
     var job=event.data;Object.assign(UNIT_TYPES,job.types||{});

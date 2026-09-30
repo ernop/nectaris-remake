@@ -16,7 +16,6 @@
 
   var state = {
     name: "MY LEVEL",
-    turnLimit: 50,
     width: 14,
     height: 10,
     grid: [],            // 2d array of terrain chars
@@ -54,7 +53,6 @@
   function toLevel() {
     var lv = {
       name: state.name,
-      turnLimit: state.turnLimit,
       grid: state.grid.map(function (row) { return row.join(""); }),
       buildings: [],
       units: [],
@@ -73,7 +71,6 @@
 
   function fromLevel(lv) {
     state.name = lv.name || "IMPORTED";
-    state.turnLimit = lv.turnLimit || 50;
     if (lv.customUnits) {
       state.customUnits = lv.customUnits;
       mergeUnitTypes(lv.customUnits);
@@ -96,7 +93,6 @@
     $("inp-name").value = state.name;
     $("inp-width").value = state.width;
     $("inp-height").value = state.height;
-    $("inp-turns").value = state.turnLimit;
     draw();
   }
 
@@ -323,8 +319,6 @@
 
     $("inp-name").value = state.name;
     $("inp-name").oninput = function () { state.name = this.value.toUpperCase(); };
-    $("inp-turns").value = state.turnLimit;
-    $("inp-turns").oninput = function () { state.turnLimit = +this.value || 50; };
     $("inp-width").value = state.width;
     $("inp-height").value = state.height;
     $("btn-resize").onclick = function () {

@@ -94,9 +94,10 @@ The browser game stays plain JavaScript. Rust is a development tool
   - Sequence v Simulation for 4 rounds on 3 small boards;
   - Apex v Tactical and Marshal v Apex for 3 rounds on 2 small boards.
 
-  It converts them into `test/fixtures/sim-corpus.json.gz` (16,597 commands
-  since factory entry became part of the move on 2026-09-30, a fingerprint
-  after each). Regenerating gives a byte-identical file.
+  It converts them into `test/fixtures/sim-corpus.json.gz` (20,107 commands
+  since the draw rule replaced per-map turn limits on 2026-09-30, so the full
+  games run until a win or a draw; one of them, on BORMAN, is a no-progress
+  draw; a fingerprint after each). Regenerating gives a byte-identical file.
 - `test/sim-lock-tests.js`, in the main suite, replays every command and
   re-plays one game per pairing with its bots.
 
@@ -519,7 +520,9 @@ both seats.
 
 **Stalls.** Tactical self-play on DELTA CROSSINGS (42×20) ran all 180 rounds to
 the turn limit. Simulation self-play on REVOLT ran all 50. Not making progress
-is a measured weakness.
+is a measured weakness. (Those were the maps' own limits, at which Xenon won;
+since 2026-09-30 a stall is drawn after 100 turns without a lost machine or
+factory capture.)
 
 **The position score.** `tools/ai-research/eval-probe.cjs` replays those 224
 games to the start of each half-turn (4,574 positions) and compares prediction
@@ -583,7 +586,7 @@ decides which moves search considers at all, and it plays every rollout.
   - all tactical probes pass;
   - per-turn time stays within target.
 - **Reports** give win rate with 95% intervals by side and family, end reasons,
-  stall rate (turn-limit games), and the distribution of per-turn times.
+  stall rate (drawn games), and the distribution of per-turn times.
 
 ## Phases
 

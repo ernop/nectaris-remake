@@ -8,6 +8,13 @@ existing five policies is in [AI_OPPONENTS.md](AI_OPPONENTS.md); the
 simulator, corpus lock and fair dice are in
 [AI_TRAINING_PLAN.md](AI_TRAINING_PLAN.md#rust-simulator).
 
+The measurements and Marshal's tuning below date from the rule under which each
+map had its own turn limit and Xenon won when it ran out. Since 2026-09-30
+every match is drawn instead, after 100 turns without a lost machine or factory
+capture or when turn 5000 ends
+([decision](PRODUCT.md#fixed-turn-limit-and-draws-2026-09-30)); the bots have
+not been remeasured under it.
+
 ## 1. The classic TG-16 bot
 
 - The menu's **Classic** is a reconstruction ("original-inspired role
@@ -65,7 +72,7 @@ Marshal's score is `model.rs` `Weights` (12 numbers per seat):
 The other four (trade_out, trade_in, kill, death) stayed at 1.0.
 
 **Reading the result.** Union (moving first, must win before the turn limit,
-which Xenon wins) is pushed to advance faster and fear less; Xenon is pushed to
+which Xenon then won) is pushed to advance faster and fear less; Xenon is pushed to
 hold ground and support neighbors. This matches the measured asymmetry in
 section 4.
 
@@ -172,8 +179,9 @@ this game that shows as:
 
 - Trades that lose units but open the base lane, and refusal of even trades
   when the clock favors the holder.
-- As Xenon, deliberate stalling (the turn limit is its win condition) with
-  exact accounting of which enemy capturers can reach the base next turn.
+- Deliberate stalling toward the no-progress draw by a side that cannot
+  expect better (until 2026-09-30 the turn limit was Xenon's win condition),
+  with exact accounting of which enemy capturers can reach the base next turn.
 - As Union, concentrating on one lane with a decoy elsewhere, spending the
   whole army on the 1–2 turns where the capture race is decided.
 - Quiet moves when ahead (lower variance), aggressive moves when behind.

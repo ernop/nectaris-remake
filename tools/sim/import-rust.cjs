@@ -60,7 +60,7 @@ function rebuild(spec, rec) {
     }
     if (command[0] === "endTurn") turns.push({at, turn: game.turn, side: game.currentPlayer});
   });
-  const winner = game.winner, reason = winner === null ? "round-cap" : game.winReason, rounds = Math.min(game.turn, game.turnLimit);
+  const winner = game.winner, reason = game.over() ? game.winReason : "round-cap", rounds = game.turn;
   if (H.stateHash(game, base) !== rec.hash) throw new Error("game " + spec.index + " ends in another position than Rust's");
   if (winner !== rec.winner || reason !== rec.reason || rounds !== rec.rounds) {
     throw new Error("game " + spec.index + " ends " + [winner, reason, rounds].join(" ") + "; Rust recorded " + [rec.winner, rec.reason, rec.rounds].join(" "));

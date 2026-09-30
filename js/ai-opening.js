@@ -19,7 +19,7 @@ var AI_OPENING=(function(){
     var g=engine.Game.restore(search.publicSnapshot(plan.game));g.rng=combat.makeRng(seed>>>0);
     balance.apply(g,plan,{status:"agreed",firstPlayer:1-second,secondPlayer:second,offer:offer,step:offer,tied:false});
     var ctx=model.context(g);model.prepareEvaluation(g,ctx);
-    for(var half=0;half<limits.rounds*2 && g.winner===null;half++){
+    for(var half=0;half<limits.rounds*2 && !g.over();half++){
       var runner=ai.createTurn(g,g.currentPlayer,{id:id,search:limits.search}),event,count=0;
       try{
         while((event=runner.next())!==null){
@@ -31,7 +31,7 @@ var AI_OPENING=(function(){
              (event.t==="battle" || !event.unit || event.unit.moved))break;
         }
       }finally{if(runner.destroy)runner.destroy();}
-      if(half+1<limits.rounds*2 && g.winner===null)g.endTurn();
+      if(half+1<limits.rounds*2 && !g.over())g.endTurn();
     }
     return model.evaluate(g,player,ctx);
   }

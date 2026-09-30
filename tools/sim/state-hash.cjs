@@ -2,7 +2,7 @@
  * shared by the JavaScript lock test and the Rust simulator (sim/), which
  * must build the same text byte for byte.
  *
- * Text: "T<turn>;P<currentPlayer>;F<firstPlayer>;L<turnLimit>;W<winner or ->;
+ * Text: "T<turn>;P<currentPlayer>;F<firstPlayer>;Q<progressTurn>;W<winner or ->;
  * R<winReason or ->;G<dice state>", then every field unit in board order as
  * "u<unit>" followed by its cargo, each as "c<unit>", then every building in
  * insertion order as "b<col>,<row>,<owner>,<stored ids joined by +>" followed
@@ -27,7 +27,7 @@ function stateText(game, base) {
       flag(u.attacked), flag(u.attackSpent), flag(u.transferUsed), flag(u.inFactory), id(u.carriedBy),
       u.cargo.map(function (c) { return id(c.id); }).join("+")].join(",");
   }
-  var parts = ["T" + game.turn, "P" + game.currentPlayer, "F" + game.firstPlayer, "L" + game.turnLimit,
+  var parts = ["T" + game.turn, "P" + game.currentPlayer, "F" + game.firstPlayer, "Q" + game.progressTurn,
     "W" + (game.winner === null ? "-" : game.winner), "R" + (game.winReason || "-"), "G" + game.rng.state()];
   function cargo(u) { u.cargo.forEach(function (c) { parts.push("c" + unitText(c)); cargo(c); }); }
   game.units.forEach(function (u) { parts.push("u" + unitText(u)); cargo(u); });

@@ -6,7 +6,7 @@
   "author": "AI-made by Codex",
   "source": "levels/open-horizons/07-no-heavy-answer.json",
   "description": "Capturers and missile buggies only. Scattered small islands provide turning points for hit-and-retreat movement, with very little armor to absorb mistakes.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 45 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "open maneuver",
     "spread",
@@ -18,7 +18,6 @@
     "formation": "spread",
     "road": "none"
   },
-  "turnLimit": 45,
   "grid": [
     "............................",
     ".....M......................",

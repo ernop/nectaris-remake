@@ -43,8 +43,10 @@ module.exports = function (ok) {
     ok(!targets(g), type+": another player's reserves never expose actions");
     g.currentPlayer = 0;
     ok(!g.deployTargets(b,Object.assign({},u)).length, type+": stale unit identity cannot offer deployment");
-    g.winner = 0;
-    ok(!targets(g), type+": completed games offer no deployment");
+    g.winner = 0; g.winReason = "base";
+    var won = targets(g);
+    g.winner = null; g.winReason = "no-progress";
+    ok(!won && !targets(g), type+": won and drawn games offer no deployment");
   });
 
   var g = fixture("ATLAS"), b = g.buildingAt(2,2), u = reserve(g);

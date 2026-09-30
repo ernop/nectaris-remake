@@ -10,7 +10,6 @@
 
 var ADVANCED_CAMPAIGN = [
   { name: "TLOVER", blurb: "Original advanced mission 17: REVOLT terrain with the official advanced deployments and factory reserves.",
-    turnLimit: 50,
     grid: [
       "MMMMMMwvMMMwwMM",
       "M..M..wwv.hhhh.",
@@ -48,7 +47,6 @@ var ADVANCED_CAMPAIGN = [
     ] },
 
   { name: "SURACI", blurb: "Original advanced mission 18: ICARUS terrain with the official advanced deployments and factory reserves.",
-    turnLimit: 50,
     grid: [
       "MMM------------",
       "M--hhMhhhMhww..",
@@ -89,7 +87,6 @@ var ADVANCED_CAMPAIGN = [
     ] },
 
   { name: "ONARYC", blurb: "Original advanced mission 19: CYRANO terrain with the official advanced deployments and factory reserves.",
-    turnLimit: 50,
     grid: [
       "v---whM..-..-..",
       "vv..--.----w-B.",
@@ -137,7 +134,6 @@ var ADVANCED_CAMPAIGN = [
     ] },
 
   { name: "YESMAR", blurb: "Original advanced mission 20: RAMSEY terrain with the official advanced deployments and factory reserves.",
-    turnLimit: 50,
     grid: [
       "MMM...M.wB..hhv",
       "MMM.wwM.......v",
@@ -176,7 +172,6 @@ var ADVANCED_CAMPAIGN = [
     ] },
 
   { name: "NOTWEN", blurb: "Original advanced mission 21: NEWTON terrain with the official advanced deployments and factory reserves.",
-    turnLimit: 50,
     grid: [
       "....M.M...wwwvv",
       "wMB.......vvv.M",
@@ -232,7 +227,6 @@ var ADVANCED_CAMPAIGN = [
     ] },
 
   { name: "ACENES", blurb: "Original advanced mission 22: SENECA terrain with the official advanced deployments and factory reserves.",
-    turnLimit: 50,
     grid: [
       "wwwwwww-.-.MM.w",
       "MM.----.-.-...w",
@@ -287,7 +281,6 @@ var ADVANCED_CAMPAIGN = [
     ] },
 
   { name: "ENIBAS", blurb: "Original advanced mission 23: SABINE terrain with the official advanced deployments and factory reserves.",
-    turnLimit: 50,
     grid: [
       "wwwwwMM.wwMMMM..-..--..hhhhhhh",
       "www.....wwwwMMM.-.-..hhhh.hhh.",
@@ -324,7 +317,6 @@ var ADVANCED_CAMPAIGN = [
     ] },
 
   { name: "SUTARA", blurb: "Original advanced mission 24: ARATUS terrain with the official advanced deployments and factory reserves.",
-    turnLimit: 50,
     grid: [
       "wwwwMMMMMMMMM.ww.MMMM.MMMww...",
       ".B.wMMMMMMM.F.wM.MMMMM...ww-B.",
@@ -371,7 +363,6 @@ var ADVANCED_CAMPAIGN = [
     ] },
 
   { name: "SIOLAG", blurb: "Original advanced mission 25: GALOIS terrain with the official advanced deployments and factory reserves.",
-    turnLimit: 50,
     grid: [
       "hhh...-.wwMMMMMvvwwMMMMMM.MMMM",
       "hhh----.wwMMM.vh.MMMM....wM.MM",
@@ -410,7 +401,6 @@ var ADVANCED_CAMPAIGN = [
     ] },
 
   { name: "NIWRAD", blurb: "Original advanced mission 26: DARWIN terrain with the official advanced deployments and factory reserves.",
-    turnLimit: 50,
     grid: [
       "hhh.h..MM.M.MMwwh.hh.MMMM.MMM.",
       "h.Fw----.---M---.......---M...",
@@ -467,7 +457,6 @@ var ADVANCED_CAMPAIGN = [
     ] },
 
   { name: "LACSAP", blurb: "Original advanced mission 27: PASCAL terrain with the official advanced deployments and factory reserves.",
-    turnLimit: 50,
     grid: [
       "MMMMMMMMMMMMMMMMMMMMMM..v.vMvM",
       "MM.h.MMMM.MMMMM...MMMMM.MMv..M",
@@ -529,7 +518,6 @@ var ADVANCED_CAMPAIGN = [
     ] },
 
   { name: "YELLAH", blurb: "Original advanced mission 28: HALLEY terrain with the official advanced deployments and factory reserves.",
-    turnLimit: 50,
     grid: [
       "MMw-----vv....wwwwwwwMM.MMMMM.",
       "M.-....B.v.---.h.hw---....M..-",
@@ -583,7 +571,6 @@ var ADVANCED_CAMPAIGN = [
     ] },
 
   { name: "NAMROB", blurb: "Original advanced mission 29: BORMAN terrain with the official advanced deployments and factory reserves.",
-    turnLimit: 50,
     grid: [
       "MMMMMMMMM.hMMMM.MMMMMMM.MMMMMM",
       "MMM...M.hhhhM..wM..MM....w.MMM",
@@ -629,7 +616,6 @@ var ADVANCED_CAMPAIGN = [
     ] },
 
   { name: "OLOPPA", blurb: "Original advanced mission 30: APPOLO terrain with the official advanced deployments and factory reserves.",
-    turnLimit: 50,
     grid: [
       "wwh.......w.......wwwww.hhh.hh",
       "ww.MMMMM.MMM.MF..........M..hh",
@@ -684,7 +670,6 @@ var ADVANCED_CAMPAIGN = [
     ] },
 
   { name: "RESIAK", blurb: "Original advanced mission 31: KAISER terrain with the official advanced deployments and factory reserves.",
-    turnLimit: 50,
     grid: [
       ".MM-wvMMMM.M...-wwwww..v.MvvMM",
       "MMwFwwvMM..MM--M....w..B.MMMMM",
@@ -742,7 +727,6 @@ var ADVANCED_CAMPAIGN = [
     ] },
 
   { name: "ROTCEN", blurb: "Original advanced mission 32: NECTOR terrain with the official advanced deployments and factory reserves.",
-    turnLimit: 50,
     grid: [
       "MM.wwMMMMM..hhh.hhh...MMM...M.",
       "MMMwwMMMMMMhhh.B.hhh.MMMMMww.-",

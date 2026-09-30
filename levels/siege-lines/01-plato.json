@@ -5,8 +5,8 @@
   "mission": 1,
   "author": "AI-made by Claude Opus 5.5",
   "source": "levels/siege-lines/01-plato.json",
-  "description": "Plato's wall is unbroken except for two gates facing you. Six Xenon units hold the crater, as many as you bring; your Hadrian is the only gun on either side, and you have sixteen rounds to take the camp.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 16 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "description": "Plato's wall is unbroken except for two gates facing you. Six Xenon units hold the crater, as many as you bring; your Hadrian is the only gun on either side.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "fortified camp",
     "unequal sides"
@@ -15,7 +15,6 @@
     "theme": "siege",
     "symmetry": "none"
   },
-  "turnLimit": 16,
   "grid": [
     "......................",
     "......................",

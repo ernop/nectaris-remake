@@ -121,7 +121,6 @@ pub struct Board {
     pub grid: Vec<String>,
     pub buildings: Vec<BuildingDef>,
     pub units: Vec<UnitDef>,
-    pub turn_limit: Option<i32>,
 }
 
 #[derive(Deserialize)]
@@ -131,6 +130,14 @@ pub struct CombatTables {
     pub max_exp: i32,
     pub max_strength: i32,
     pub random_weights: Vec<[i32; 2]>,
+}
+
+/// How long a match may last (`ENGINE.TURN_LIMIT`, `ENGINE.QUIET_TURNS`).
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct Rules {
+    pub turn_limit: i32,
+    pub quiet_turns: i32,
 }
 
 /// V8's `Math.log` and `Math.tanh` fingerprinted over generated inputs.
@@ -148,6 +155,7 @@ struct Raw {
     units: Vec<UnitTypeDef>,
     boards: Vec<Board>,
     combat: CombatTables,
+    rules: Rules,
     math: MathCheck,
 }
 
@@ -162,6 +170,7 @@ pub struct Data {
     pub combat: CombatTables,
     /// Damage percentages, one entry per percent of probability.
     pub buckets: Vec<i32>,
+    pub rules: Rules,
     pub math: MathCheck,
 }
 
@@ -324,7 +333,18 @@ impl Data {
             }
         }
         let tables = raw.boards.iter().map(|b| Tables::new(b, &raw.terrain, &terrain_by_char, &types)).collect();
-        Data { terrain: raw.terrain, terrain_by_char, types, type_index, boards: raw.boards, tables, combat: raw.combat, buckets, math: raw.math }
+        Data {
+            terrain: raw.terrain,
+            terrain_by_char,
+            types,
+            type_index,
+            boards: raw.boards,
+            tables,
+            combat: raw.combat,
+            buckets,
+            rules: raw.rules,
+            math: raw.math,
+        }
     }
 
     /// `terrainCost`: the cost for this chassis to enter the terrain, or None.

@@ -10,7 +10,7 @@ var AI_TOURNAMENT = (function () {
   var balance=typeof module!=="undefined"?require("./balance.js"):BALANCE;
   var openingAI=typeof module!=="undefined"?require("./ai-opening.js"):AI_OPENING;
   var combat=typeof module!=="undefined"?require("./combat.js"):COMBAT;
-  var VERSION="2026-09-30.1";
+  var VERSION="2026-09-30.2";
   function canResume(run){return run.version===VERSION;}
   function integer(v,min,max,label){if(!Number.isInteger(v)||v<min||v>max)throw new Error(label+" must be an integer from "+min+" to "+max+".");return v;}
   function normalize(input){
@@ -117,7 +117,7 @@ var AI_TOURNAMENT = (function () {
         checkpoints.push({at:at,state:state,logLength:logLength});}
       if(name==="endTurn")turnIndex.push({at:at,turn:game.turn,side:game.currentPlayer});
     });
-    while(!skipped&&game.winner===null){
+    while(!skipped&&!game.over()){
       var side=game.currentPlayer,t=Date.now();
       var runner=ai.createTurn(game,side,{id:spec.players[side],search:searchOptions(spec.players[side],spec.work)}),event;
       try{do{
@@ -125,18 +125,18 @@ var AI_TOURNAMENT = (function () {
         event=runner.next();yield;
       }while(event!==null);}finally{if(runner.destroy)runner.destroy();}
       thinking[side]+=Date.now()-t;turns++;
-      if(game.winner!==null)break;
-      // A laboratory cutoff is a draw, distinct from the actual map's Xenon
-      // timeout victory. Never silently edit the scenario's rules or budget.
-      if(spec.maxRounds&&game.turn>=spec.maxRounds&&side!==game.firstPlayer&&game.turn<game.turnLimit)break;
+      if(game.over())break;
+      // A laboratory round cap (at most 1000) is a draw that comes before the
+      // engine's own limits. Never silently edit the scenario's rules or budget.
+      if(spec.maxRounds&&game.turn>=spec.maxRounds&&side!==game.firstPlayer)break;
       game.endTurn();yield;
-      if(turns>2*game.turnLimit+2)throw new Error("Tournament game exceeded the engine turn budget.");
+      if(turns>2*engine.TURN_LIMIT+2)throw new Error("Tournament game exceeded the engine turn budget.");
     }
     return {version:VERSION,index:spec.index,players:spec.players,map:spec.map.name,mapIndex:spec.mapIndex,
       seed:spec.seed,cycle:spec.cycle,leg:spec.leg,tieSecond:spec.tieSecond,work:spec.work||"standard",opening:opening,requestedOpening:spec.opening||"original",negotiation:negotiation,
       balance:game.balance||null,firstPlayer:game.firstPlayer,skipped:skipped,
-      winner:game.winner,reason:skipped?"opening-"+negotiation.status:game.winner===null?"round-cap":game.winReason,
-      rounds:skipped?0:Math.min(game.turn,game.turnLimit),halfTurns:turns,ms:Date.now()-started,thinkingMs:thinking,
+      winner:game.winner,reason:skipped?"opening-"+negotiation.status:game.over()?game.winReason:"round-cap",
+      rounds:skipped?0:game.turn,halfTurns:turns,ms:Date.now()-started,thinkingMs:thinking,
       initial:initial,commands:commands,checkpoints:checkpoints,turns:turnIndex,final:game.snapshot()};
   }
   function playSync(spec,onProgress){var it=play(spec,onProgress),step;do{step=it.next();}while(!step.done);return step.value;}

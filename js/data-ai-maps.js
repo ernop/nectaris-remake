@@ -15,7 +15,6 @@ var AI_MADE_LEVELS = [
       "ground only",
       "large"
     ],
-    "turnLimit": 180,
     "grid": [
       "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
       "MMMhMMMMMMM.....MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM.h...M...MMMMMMM",
@@ -476,7 +475,6 @@ var AI_MADE_LEVELS = [
       "2-hex narrows",
       "ground only"
     ],
-    "turnLimit": 180,
     "grid": [
       "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
       "MMM.MMM.MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
@@ -937,7 +935,6 @@ var AI_MADE_LEVELS = [
       "linked branches",
       "ground only"
     ],
-    "turnLimit": 180,
     "grid": [
       "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
       "MMM.MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
@@ -1389,7 +1386,6 @@ var AI_MADE_LEVELS = [
       "8 factories",
       "dense tunnels"
     ],
-    "turnLimit": 120,
     "grid": [
       ".h..........h.hhh-h.h.hw..hh",
       "wBh.--.hw---h..--M--.h.hwh..",
@@ -1668,7 +1664,6 @@ var AI_MADE_LEVELS = [
       "1 / 2 / 3 exits",
       "Pelican airlift"
     ],
-    "turnLimit": 120,
     "grid": [
       ".h.hh.h.h..h.h.....w....h.h.",
       ".B..--.h.---hhh.hM.hh..ww..w",
@@ -1934,7 +1929,6 @@ var AI_MADE_LEVELS = [
       "9 factories",
       "3-unit start"
     ],
-    "turnLimit": 180,
     "grid": [
       "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
       "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
@@ -2157,7 +2151,6 @@ var AI_MADE_LEVELS = [
       "21 factories",
       "6-unit start"
     ],
-    "turnLimit": 180,
     "grid": [
       "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
       "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
@@ -2581,7 +2574,6 @@ var AI_MADE_LEVELS = [
       "21 factories",
       "6-unit start"
     ],
-    "turnLimit": 180,
     "grid": [
       "MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM",
       "MMMMMMMMMMMMM-----MMMMMMMMMMMMM",
@@ -3000,7 +2992,6 @@ var AI_MADE_LEVELS = [
       "infantry reserves",
       "sparse roads"
     ],
-    "turnLimit": 180,
     "grid": [
       "...........---------...........",
       ".h..MMM..MM-MMM.MMM-MM..MMM..h.",
@@ -3428,7 +3419,6 @@ var AI_MADE_LEVELS = [
       "24 factories",
       "sparse roads"
     ],
-    "turnLimit": 180,
     "grid": [
       "..M....MMMMMMMM..MMM.MMM..MMM......MMM..MM",
       "MMh.MMMMMMM.M..MMMMM.MMMMMhh.MMM.hM.MMh.hM",
@@ -3881,7 +3871,6 @@ var AI_MADE_LEVELS = [
       "12 factories",
       "fast armor"
     ],
-    "turnLimit": 180,
     "grid": [
       ".hMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM.MMM",
       "M..hMMM-------M-M-M-M-M-.h.---M-M-MMMMhMMM",
@@ -4164,7 +4153,6 @@ var AI_MADE_LEVELS = [
       "three crossings",
       "24 factories"
     ],
-    "turnLimit": 180,
     "grid": [
       "hwMMMMMMMMMMMMMMMMMMvvMMMMMMMMMMMMMMMM.MMM",
       "M...MMMMMMMMMMMMMMMMvvMMMMMMMMMMMMMMMM.MMM",
@@ -4607,7 +4595,6 @@ var AI_MADE_LEVELS = [
       "wasteland",
       "inner clearing"
     ],
-    "turnLimit": 180,
     "grid": [
       "w.MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMwMMM",
       "M.h.MMM-M-M-----.h.w..w.w.M-M-MMMMMMMM.MMM",
@@ -5050,7 +5037,6 @@ var AI_MADE_LEVELS = [
       "hill cover",
       "heavy armor"
     ],
-    "turnLimit": 180,
     "grid": [
       "h.MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM.MMM",
       "M.MMMMMhMhM.MhMhMMMMMMMMMMMMM-MMMMMMMM.MMM",
@@ -5333,7 +5319,6 @@ var AI_MADE_LEVELS = [
       "narrow throats",
       "airlift"
     ],
-    "turnLimit": 180,
     "grid": [
       ".hMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM.MMM",
       "M...MMMMMMM.M-M-M.M.MMMMMMMMMMMMMMMMMMhMMM",

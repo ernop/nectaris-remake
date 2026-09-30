@@ -215,13 +215,13 @@ function build(campaign,spec,index){
     });
   }
   deploy(spec.army,0);deploy(spec.enemy,1);
-  const goal="Capture the enemy camp or eliminate its eligible forces within "+spec.limit+" rounds. At the turn limit, Xenon wins.";
+  const goal="Capture the enemy camp or eliminate its eligible forces.";
   return {name:spec.name,pack:campaign.name,campaignId:campaign.id,mission:index+1,
     author:"AI-made by Codex",source:"levels/"+campaign.id+"/"+String(index+1).padStart(2,"0")+"-"+spec.name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/-$/g,"")+".json",
     description:spec.idea,special:goal+" No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
     tags:[campaign.theme==="open"?"open maneuver":campaign.theme==="center"?"dense center / open flanks":"terrain-dependent routes",spec.formation,spec.army.length<=4?"few units":new Set(spec.army+spec.enemy).size<=4?"limited roster":"mixed forces"],
     design:{theme:campaign.theme,layout:index+1,formation:spec.formation,road:spec.road},
-    turnLimit:spec.limit,grid:grid.map(r=>r.join("")),buildings,units};
+    grid:grid.map(r=>r.join("")),buildings,units};
 }
 function generate(){
   return catalog.map(c=>({id:c.id,name:c.name,description:c.intro,

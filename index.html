@@ -6,7 +6,7 @@
 <title>Nectaris — hex tactics remake</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='24,16 20,23 12,23 8,16 12,9 20,9' fill='%23ffd94a'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="css/nectaris.css?v=20260930-render-thumbs">
-<link rel="stylesheet" href="css/battle-dock.css?v=20260930-sessions">
+<link rel="stylesheet" href="css/battle-dock.css?v=20260930-draw-rule">
 <link rel="stylesheet" href="css/combat-panel.css?v=20260929-battle-faceoff">
 </head>
 <body>
@@ -167,6 +167,7 @@
       <p id="status-mission"><span id="status-mission-number"></span><span id="map-title"></span></p>
       <p id="status-side"><span id="status-side-label"></span><strong id="status-side-name"></strong></p>
       <p id="status-turn-line"><span id="status-turn"></span><span id="status-player"></span></p>
+      <p id="status-draw" title="The match is drawn after 100 turns in which no unit loses a machine and no factory is captured, and when turn 5000 ends.">Draw in <strong id="status-draw-turns"></strong> <span id="status-draw-unit"></span></p>
       <div id="status-units" role="group" aria-label="Units remaining">
         <span class="unit-count" data-player="0"><strong id="units-union"></strong><span id="units-union-name"></span></span>
         <span class="unit-count" data-player="1"><strong id="units-xenon"></strong><span id="units-xenon-name"></span></span>
@@ -262,25 +263,25 @@
 <script src="js/data-terrain.js?v=20260920-fidelity"></script>
 <script src="js/data-units.js?v=20260920-cpu-tactics"></script>
 <script src="js/combat.js?v=20260929-battle-fixed"></script>
-<script src="js/engine.js?v=20260928-fair-dice"></script>
+<script src="js/engine.js?v=20260930-draw-rule"></script>
 <script src="js/balance.js?v=20260926-no-special-rules"></script>
-<script src="js/ai.js?v=20260925-board-playback"></script>
-<script src="js/ai-model.js?v=20260929-think-overlap"></script>
-<script src="js/ai-search.js?v=20260929-think-overlap"></script>
-<script src="js/ai-opening.js?v=20260929-marshal"></script>
-<script src="js/data-maps.js?v=20260920-battle-forecast"></script>
-<script src="js/data-advanced-maps.js?v=20260920-advanced"></script>
-<script src="js/data-expansion-maps.js?v=20260920-fidelity"></script>
-<script src="js/data-basenectaris-maps.js?v=20260920-fidelity"></script>
-<script src="js/data-ai-maps.js?v=20260922-curiosity-maps"></script>
-<script src="js/data-environment-campaigns.js?v=20260929-balance-studies"></script>
+<script src="js/ai.js?v=20260930-draw-rule"></script>
+<script src="js/ai-model.js?v=20260930-draw-rule"></script>
+<script src="js/ai-search.js?v=20260930-draw-rule"></script>
+<script src="js/ai-opening.js?v=20260930-draw-rule"></script>
+<script src="js/data-maps.js?v=20260930-draw-rule"></script>
+<script src="js/data-advanced-maps.js?v=20260930-draw-rule"></script>
+<script src="js/data-expansion-maps.js?v=20260930-draw-rule"></script>
+<script src="js/data-basenectaris-maps.js?v=20260930-draw-rule"></script>
+<script src="js/data-ai-maps.js?v=20260930-draw-rule"></script>
+<script src="js/data-environment-campaigns.js?v=20260930-draw-rule"></script>
 <script src="js/data-unit-art.js?v=20260920-battle-forecast"></script>
 <script src="js/data-unit-art-legacy.js?v=20260926-legacy-2x"></script>
 <script src="js/unit-icon-sets.js?v=20260926-simple-menu"></script>
 <script src="js/legacy-terrain.js?v=20260927-original-buildings"></script>
 <script src="js/render.js?v=20260929-battle-hexmap"></script>
 <script src="js/unit-view.js?v=20260929-battle-hexmap"></script>
-<script src="js/balance-ui.js?v=20260929-left-panel"></script>
+<script src="js/balance-ui.js?v=20260930-draw-rule"></script>
 <script src="js/music.js?v=20260926-compact-toggles"></script>
 <script src="js/sfx.js?v=20260929-opus-scale"></script>
 <script src="js/sfx-bank-composer.js?v=20260929-composer-meat"></script>
@@ -291,9 +292,9 @@
 <script src="js/move-animation.js?v=20260926-air-speed"></script>
 <script src="js/combat-panel.js?v=20260929-battle-hexmap"></script>
 <script src="js/battle-report.js?v=20260929-battle-hexmap"></script>
-<script src="js/ui.js?v=20260929-think-overlap"></script>
-<script src="js/profiles.js?v=20260930-sessions"></script>
+<script src="js/ui.js?v=20260930-draw-rule"></script>
+<script src="js/profiles.js?v=20260930-draw-rule"></script>
 <script src="js/map-thumbnail.js?v=20260930-render-thumbs"></script>
-<script src="js/main.js?v=20260930-render-thumbs"></script>
+<script src="js/main.js?v=20260930-draw-rule"></script>
 </body>
 </html>

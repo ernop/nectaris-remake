@@ -16,7 +16,7 @@ module.exports = function playouts(games, seed, list) {
     const g = new ENGINE.Game(boards[list[k % list.length]], {seed: gameSeed}), base = H.firstId(g) - 1;
     const pick = COMBAT.makeRng((gameSeed ^ 0x9e3779b9) >>> 0);
     let n = 0;
-    while (g.winner === null) {
+    while (!g.over()) {
       const legal = g.legalCommands(), c = legal[Math.floor(pick() * legal.length)];
       g[c[0]].apply(g, c[1]);
       n++;

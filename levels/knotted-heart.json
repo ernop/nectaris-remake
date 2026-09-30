@@ -9,7 +9,7 @@
       "author": "AI-made by Codex",
       "source": "levels/knotted-heart/01-the-cross-and-the-field.json",
       "description": "A compact mountain knot has a cross-shaped interior route. The center is short and restrictive; the open outer field lets units maneuver around its arms.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 45 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "dense center / open flanks",
         "line",
@@ -21,7 +21,6 @@
         "formation": "line",
         "road": "direct"
       },
-      "turnLimit": 45,
       "grid": [
         ".................hh.......",
         ".......h...........h......",
@@ -135,7 +134,7 @@
       "author": "AI-made by Codex",
       "source": "levels/knotted-heart/02-spokes.json",
       "description": "Radial passages meet at a small hub. A central force can change fronts rapidly, but several entrances lead into it and the spacious rim remains available.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 55 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "dense center / open flanks",
         "spread",
@@ -147,7 +146,6 @@
         "formation": "spread",
         "road": "fork"
       },
-      "turnLimit": 55,
       "grid": [
         ".....h........................",
         "..............................",
@@ -309,7 +307,7 @@
       "author": "AI-made by Codex",
       "source": "levels/knotted-heart/03-the-ladder.json",
       "description": "Two close interior lanes are joined by short rungs. Forces on the open flanks can enter at different heights, turning a seemingly simple corridor into several possible fights.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 55 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "dense center / open flanks",
         "split",
@@ -321,7 +319,6 @@
         "formation": "split",
         "road": "none"
       },
-      "turnLimit": 55,
       "grid": [
         "........h...h......h........",
         "............................",
@@ -451,7 +448,7 @@
       "author": "AI-made by Codex",
       "source": "levels/knotted-heart/04-footpath-majority.json",
       "description": "Infantry and Mules only. The serpentine center is a road problem for the carriers, while Charlie and Kilroy can climb directly across the surrounding mountains.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 55 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "dense center / open flanks",
         "spread",
@@ -463,7 +460,6 @@
         "formation": "spread",
         "road": "none"
       },
-      "turnLimit": 55,
       "grid": [
         "..h.......h.............h..h..",
         "h....h....h...hh..............",
@@ -603,7 +599,7 @@
       "author": "AI-made by Codex",
       "source": "levels/knotted-heart/05-the-short-way.json",
       "description": "Braided interior passages offer the shortest route to the enemy. The defenders bring more guns; the attacker brings speed and enough open flank to refuse the central fight.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 55 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "dense center / open flanks",
         "forward",
@@ -615,7 +611,6 @@
         "formation": "forward",
         "road": "direct"
       },
-      "turnLimit": 55,
       "grid": [
         ".............................h....",
         "h...h..h........h................h",
@@ -777,7 +772,7 @@
       "author": "AI-made by Codex",
       "source": "levels/knotted-heart/06-inner-or-outer.json",
       "description": "Nested interior loops contrast with a broad outer circuit. Taking the inside saves distance, while the outside provides room to bring several units alongside one another.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "dense center / open flanks",
         "line",
@@ -789,7 +784,6 @@
         "formation": "line",
         "road": "rim"
       },
-      "turnLimit": 65,
       "grid": [
         ".h.........h............h.........",
         "........h.........h...............",
@@ -965,7 +959,7 @@
       "author": "AI-made by Codex",
       "source": "levels/knotted-heart/07-three-in-the-knot.json",
       "description": "One Charlie, one Hadrian and one Rabbit per side. Diagonal interior cuts offer gun positions, but every detached unit leaves only two to defend the rest of the board.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 40 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "dense center / open flanks",
         "line",
@@ -977,7 +971,6 @@
         "formation": "line",
         "road": "none"
       },
-      "turnLimit": 40,
       "grid": [
         "................h.h....h",
         "...........h............",
@@ -1057,7 +1050,7 @@
       "author": "AI-made by Codex",
       "source": "levels/knotted-heart/08-zipper.json",
       "description": "Offset openings interlock through the central ridge. A force can change lanes at some points and must backtrack at others; the open margins remain a longer escape route.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "dense center / open flanks",
         "split",
@@ -1069,7 +1062,6 @@
         "formation": "split",
         "road": "fork"
       },
-      "turnLimit": 65,
       "grid": [
         "...h......................hh........",
         ".......................h........h...",
@@ -1279,7 +1271,7 @@
       "author": "AI-made by Codex",
       "source": "levels/knotted-heart/09-the-comfortable-court.json",
       "description": "Small protected courts look ideal for heavy tanks. Their narrow connections make it hard to bring that weight to bear against mobile units working around the outside.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "dense center / open flanks",
         "column",
@@ -1291,7 +1283,6 @@
         "formation": "column",
         "road": "direct"
       },
-      "turnLimit": 65,
       "grid": [
         "..hhhh......h.....h........h....",
         "..h...h.........................",
@@ -1473,7 +1464,7 @@
       "author": "AI-made by Codex",
       "source": "levels/knotted-heart/10-a-loop-and-a-needle.json",
       "description": "A roomy interior loop is cut by one narrow direct tunnel. Guns can cover nearby sectors, while moving the supporting vehicles between those sectors takes a different route.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 70 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "dense center / open flanks",
         "gunline",
@@ -1485,7 +1476,6 @@
         "formation": "gunline",
         "road": "rim"
       },
-      "turnLimit": 70,
       "grid": [
         "................................h...",
         "...................h.........h......",
@@ -1697,7 +1687,7 @@
       "author": "AI-made by Codex",
       "source": "levels/knotted-heart/11-between-the-teeth.json",
       "description": "Only capturers and missile buggies. A comb of narrow mouths opens onto two broad flanks, giving retreating buggies many positions but few places to hide a careless capturer.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 55 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "dense center / open flanks",
         "spread",
@@ -1709,7 +1699,6 @@
         "formation": "spread",
         "road": "cross"
       },
-      "turnLimit": 55,
       "grid": [
         "...............h.......h..hh......",
         ".........h..h.......h.....hh......",
@@ -1849,7 +1838,7 @@
       "author": "AI-made by Codex",
       "source": "levels/knotted-heart/12-fan-out.json",
       "description": "Several passages fan away from an off-center meeting point. Occupying that point shortens transfers between fronts, but moving too much through it creates traffic.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 75 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "dense center / open flanks",
         "forward",
@@ -1861,7 +1850,6 @@
         "formation": "forward",
         "road": "fork"
       },
-      "turnLimit": 75,
       "grid": [
         "..............h....h.........h........",
         "..................h.....h.............",
@@ -2097,7 +2085,7 @@
       "author": "AI-made by Codex",
       "source": "levels/knotted-heart/13-two-hearts.json",
       "description": "Two dense knots share a small central connection. Armies can contest one knot, divide between both, or use the broad outside field to bypass either concentration.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 80 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "dense center / open flanks",
         "split",
@@ -2109,7 +2097,6 @@
         "formation": "split",
         "road": "rim"
       },
-      "turnLimit": 80,
       "grid": [
         "h.......h...............................",
         "...h...........---.-.h............h.....",
@@ -2355,7 +2342,7 @@
       "author": "AI-made by Codex",
       "source": "levels/knotted-heart/14-the-off-center-prize.json",
       "description": "Unevenly placed spokes lead toward valuable central factories. The fastest-looking entry turns your force away from the route it must take to continue toward the enemy camp.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 65 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "dense center / open flanks",
         "split",
@@ -2367,7 +2354,6 @@
         "formation": "split",
         "road": "direct"
       },
-      "turnLimit": 65,
       "grid": [
         "h....................h.......h..h...",
         "...h..................h............h",
@@ -2565,7 +2551,7 @@
       "author": "AI-made by Codex",
       "source": "levels/knotted-heart/15-outside-the-fortress.json",
       "description": "The defender has an imposing heavy force beside a dense central fortress. The attacker has more flexible movement around its spacious outskirts; the strongest local position need not control the whole map.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 85 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "dense center / open flanks",
         "spread",
@@ -2577,7 +2563,6 @@
         "formation": "spread",
         "road": "rim"
       },
-      "turnLimit": 85,
       "grid": [
         ".........h..h......h....h...............",
         "..h...........................hh........",
@@ -2831,7 +2816,7 @@
       "author": "AI-made by Codex",
       "source": "levels/knotted-heart/16-heart-of-the-matter.json",
       "description": "A large interlocking center has several rooms, loops and narrow transfers. Twelve neutral factories pull the armies in different directions while the outer field leaves room for a major turning movement.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 95 rounds. At the turn limit, Xenon wins. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. No Hunters, Falcons or Eagles. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "dense center / open flanks",
         "split",
@@ -2843,7 +2828,6 @@
         "formation": "split",
         "road": "fork"
       },
-      "turnLimit": 95,
       "grid": [
         "......h...................h........h......",
         ".......h.....h....................h...h.h.",

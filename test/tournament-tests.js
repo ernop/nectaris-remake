@@ -29,7 +29,7 @@ module.exports=function(ok){
     for(var j=mid;j<result.commands.length;j++)T.command(partial,result.commands[j]);
     ok(JSON.stringify(partial.snapshot())===JSON.stringify(result.final),"seeking and advancing preserves exact replay "+i);
     ok(!T.summary(result).commands&&!T.summary(result).initial,"summary omits large replay payloads");
-    if(result.winner===null)ok(result.reason==="round-cap"&&result.final.turnLimit===maps[0].turnLimit,"early lab cutoff records a draw without changing map rules");
+    if(result.winner===null)ok(result.reason==="round-cap"&&result.rounds===3&&result.final.winReason===null,"early lab cutoff records a draw the engine never declared");
   }
   var unexpected=false;try{T.command(restored,["constructor",[]]);}catch(e){unexpected=true;}
   ok(unexpected,"replay accepts only the explicit engine-command allowlist");

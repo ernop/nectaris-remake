@@ -5,8 +5,8 @@
   "mission": 7,
   "author": "AI-made by Claude Opus 5.5",
   "source": "levels/arsenal/07-sinus-iridum.json",
-  "description": "The richest factory sits inside a horseshoe of mountains with one entrance to the south. Taking it is a race; keeping it is a siege, and you have only ten rounds.",
-  "special": "Capture the enemy camp or eliminate its eligible forces within 10 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "description": "The richest factory sits inside a horseshoe of mountains with one entrance to the south. Taking it is a race; keeping it is a siege.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
   "tags": [
     "factory reserves",
     "mirror symmetry"
@@ -15,7 +15,6 @@
     "theme": "arsenal",
     "symmetry": "mirror"
   },
-  "turnLimit": 10,
   "grid": [
     ".............................",
     ".............................",

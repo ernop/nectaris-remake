@@ -34,10 +34,12 @@ Facts we need across sessions:
 - **Balance-study campaigns (2026-09-28):** Bridgeheads, Siege Lines and
   Arsenal, 16 missions each (boards 119-166), labelled AI-made and credited
   AI-made by Claude Opus 5.5. The same command rebuilds them from
-  `tools/balance-campaign-specs.js` (briefs, armies, limits) and
+  `tools/balance-campaign-specs.js` (briefs, armies) and
   `tools/build-balance-campaigns.js` (terrain and placement). Their armies,
-  strengths, stocks and limits are tuned so that Marshal playing itself gives
-  Union 40-60% (`MAP_BALANCE.md`). After changing a mission, a rule or a bot,
+  strengths, stocks and (then) turn limits were tuned so that Marshal playing
+  itself gave Union 40-60% (`MAP_BALANCE.md`), while Xenon won at each
+  mission's limit; under the 2026-09-30 draw rule their balance is
+  unmeasured. After changing a mission, a rule or a bot,
   run `node tools/sim/export-data.cjs`, then remeasure in `sim/` with
   `cargo run --release --bin balance -- --a=marshal --boards=119-166 --games=150`.
 - **Local development:** `./serve.sh` serves the repo on fixed backend port

@@ -133,7 +133,7 @@ module.exports = function (ok) {
   var newest=get("history-list").children[0];
   ok(get("history-list").children.length===15 && newest.children.slice(1).map(function(c){return c.textContent;}).join("|")===
     "Won|Normal campaign 01 REVOLT|Union|turn 3|Base captured" &&
-    get("history-summary").textContent==="15 attempts · 8 won · 7 lost · 0 hotseat · 0 abandoned · 0 in progress",
+    get("history-summary").textContent==="15 attempts · 8 won · 7 lost · 0 drawn · 0 hotseat · 0 abandoned · 0 in progress",
     "the History view lists each result with its collection, number, side, turn and ending, under the profile's totals");
   get("profile-select").value=second.id;get("profile-select").onchange();
   ok(get("history-list").children.length===0 && !get("history-empty").classList.contains("hidden") &&
@@ -325,6 +325,13 @@ module.exports = function (ok) {
     find(rows[0],"history-side").textContent==="Xenon" &&
     find(rows[3],"history-detail").textContent==="vs "+context.AI_SEARCH.get("classic").label,
     "the history lists starts, exits, returns and results in order, newest first");
+  find(cards("mission-list")[0],"level-play").onclick();act();
+  liveUI.game.winReason="no-progress";liveUI.options.onGameOver(null);
+  ok(get("gameover-record").textContent.indexOf("Draw · Recorded for ")===0 &&
+    PROFILES.levelRecord(store.active(),campaign[0],{campaignIndex:0}).draws===1,"a drawn match is reported and recorded as a draw");
+  liveUI.options.onMenu();
+  ok(/ \/ 1D$/.test(find(cards("mission-list")[0],"mission-record").textContent) &&
+    find(get("history-list").children[0],"history-event").textContent==="Draw","the level card and the history count the draw");
   storage.setItem("nectaris-custom-levels","[]");selectOpening("original");
   ok(find(get("custom-list"),"empty-levels") && get("custom-level-tools").parentNode.id==="custom-section",
     "an empty custom collection still has a useful empty state and import controls");

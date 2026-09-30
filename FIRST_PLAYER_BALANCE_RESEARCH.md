@@ -41,6 +41,8 @@ whole-army turns. The following are observations from the current
 - Player 0 starts. Expiration after player 1's turn awards player 1/Xenon the win.
   That is an existing campaign asymmetry, not evidence that a symmetric battle
   is balanced. Battlefield wins and timeout wins must be reported separately.
+  (Since 2026-09-30 expiry is a draw for both sides; see
+  [the draw rule](PRODUCT.md#fixed-turn-limit-and-draws-2026-09-30).)
 
 Recent original fjord maps have identical small starting formations and
 factories holding four to eight reserve units, sometimes including another

@@ -10,6 +10,7 @@
 "use strict";
 const fs = require("node:fs"), path = require("node:path");
 const root = path.resolve(__dirname, "../..");
+const ENGINE = require(path.join(root, "js/engine.js"));
 const T = require(path.join(root, "js/ai-tournament.js"));
 const MODEL = require(path.join(root, "js/ai-model.js"));
 const dirs = process.argv.slice(2);
@@ -41,7 +42,7 @@ function features(g) {
   const d = k => s[0][k] - s[1][k];
   return [d("field") / 100, d("reserve") / 100, d("carried") / 100, d("count") / 5, d("capturers"), d("exp") / 5,
     d("terrain") / 50, d("factories"), s[1].baseRun - s[0].baseRun, (MODEL.baseDanger(g, 1) - MODEL.baseDanger(g, 0)) / 1800,
-    g.currentPlayer === 0 ? 1 : -1, g.turn / g.turnLimit, 1];
+    g.currentPlayer === 0 ? 1 : -1, g.turn / ENGINE.TURN_LIMIT, 1];
 }
 const rows = [], reasons = {};
 for (const file of files) {
@@ -50,7 +51,7 @@ for (const file of files) {
   if (r.error || r.skipped || r.winner === null) continue;
   r.turns.forEach((t, i) => {
     const g = T.replay(r, t.at);
-    if (g.winner !== null) return;
+    if (g.over()) return;
     const ctx = MODEL.context(g); MODEL.prepareEvaluation(g, ctx);
     rows.push({map: r.map, phase: i / r.turns.length, label: r.winner === 0 ? 1 : 0, score: MODEL.evaluate(g, 0, ctx), x: features(g)});
   });

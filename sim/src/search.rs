@@ -146,7 +146,7 @@ fn rollout(g: &mut Game, player: i32, ctx: &mut Ctx, rng: &mut Rng, horizon: usi
     let mut seen: FastSet<Vec<i32>> = FastSet::default();
     let (start_turn, mut switches, mut previous) = (g.turn, 0, g.current);
     for i in 0..horizon {
-        if g.winner >= 0 {
+        if g.over() {
             break;
         }
         let signature = model::signature(g);
@@ -166,7 +166,7 @@ fn rollout(g: &mut Game, player: i32, ctx: &mut Ctx, rng: &mut Rng, horizon: usi
         if switches >= 2 || g.turn > start_turn + 1 {
             break;
         }
-        if i + 1 == horizon / 2 && g.current == player {
+        if i + 1 == horizon / 2 && g.current == player && !g.over() {
             g.end_turn();
             previous = g.current;
             switches += 1;
@@ -198,7 +198,7 @@ fn beam(g: &Game, roots: &[(Action, f64)], ctx: &mut Ctx, c: &Config, rng: &mut 
         let mut transpositions: Vec<BeamNode> = Vec::new();
         let mut at: FastMap<(Key, Vec<i32>), usize> = FastMap::default();
         for mut node in nodes {
-            if node.game.winner >= 0 || node.game.current != player {
+            if node.game.over() || node.game.current != player {
                 next.push(node);
                 continue;
             }
@@ -249,7 +249,7 @@ fn beam(g: &Game, roots: &[(Action, f64)], ctx: &mut Ctx, c: &Config, rng: &mut 
         for _ in 0..2 {
             let _seed = random_seed(rng);
             let mut response = node.game.sim_clone(Dice::Half);
-            if response.winner < 0 && response.current == player {
+            if !response.over() && response.current == player {
                 response.end_turn();
             }
             sum += rollout(&mut response, player, ctx, rng, 3);
@@ -297,7 +297,7 @@ fn tree_search(g: &Game, roots: &[(Action, f64)], ctx: &mut Ctx, c: &Config, rng
         let mut gg = g.sim_clone(Dice::look_ahead(random_seed(rng)));
         let mut path: Vec<(Vec<i32>, usize)> = Vec::new();
         let mut depth = 0;
-        while gg.winner < 0 && depth < tree_depth {
+        while !gg.over() && depth < tree_depth {
             let sig = model::signature(&gg);
             let mut newly = false;
             if !table.contains_key(&sig) {
@@ -390,7 +390,7 @@ fn verify(g: &Game, actions: [Action; 4], ctx: &mut Ctx, c: &Config, rng: &mut R
             let (mut start, mut switches) = (gg.current, 0);
             model::execute(&mut gg, &choice, ctx);
             let mut step = 0;
-            while step < cap && gg.winner < 0 && switches < 2 {
+            while step < cap && !gg.over() && switches < 2 {
                 let action = shortlist(&mut gg, ctx, 6, 0).swap_remove(0);
                 model::execute(&mut gg, &action, ctx);
                 if gg.current != start {
@@ -417,7 +417,7 @@ pub fn decide(game: &Game, id: &str, work: &str, ctx: &mut Ctx) -> Action {
 /// `decide` under an explicit configuration; sets this thread's scoring
 /// weights for the side to move, as `AI_SEARCH.decide` does.
 pub fn decide_with(game: &Game, mut c: Config, ctx: &mut Ctx) -> Action {
-    model::set_weights(c.weights.map_or(model::Weights::SHIPPED, |p| p[game.current as usize].at(model::clock(game.turn, game.turn_limit))));
+    model::set_weights(c.weights.map_or(model::Weights::SHIPPED, |p| p[game.current as usize].at(model::clock(game.turn, game.d.rules.turn_limit))));
     let mut root = game.sim_clone(Dice::look_ahead(0));
     let mut rng = Rng::new(model::seed_for(game));
     model::prepare_evaluation(&root, ctx);
@@ -461,7 +461,7 @@ pub fn play_turn(g: &mut Game, player: i32, id: &str, work: &str) {
 
 pub fn play_turn_with(g: &mut Game, player: i32, c: &Config) {
     let mut ctx = Ctx::default();
-    while g.winner < 0 && g.current == player {
+    while !g.over() && g.current == player {
         let action = decide_with(g, c.clone(), &mut ctx);
         if action.kind == Kind::End {
             return;

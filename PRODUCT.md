@@ -5,6 +5,62 @@ identified where relevant. Mechanics reconstruction (with sources) lives in
 `MECHANICS.md`. [PROJECT_GUIDE.md](PROJECT_GUIDE.md) indexes current guidance,
 pending work, experiments and historical evidence.
 
+## Fixed turn limit and draws (2026-09-30)
+
+The user asked to "reduce the effect of this turn limit, because it seems that
+the second player is just defending very passively most of the time" (Xenon won
+when a map's own turn limit ran out), and to "make it like chess, like the turn
+limit is 5,000, but if no damage is done to any unit and no factory is taken
+for 100 turns, then that shall be a draw". Offered the choices, he picked a
+fixed rule for every game and a draw at expiry, so no side can win by waiting.
+This supersedes every per-map turn limit and the Xenon timeout win in the
+records below; they point here.
+
+- **Two draws, every game.** A match is drawn after 100 whole turns
+  (`ENGINE.QUIET_TURNS`) in which no unit lost a machine and no factory was
+  captured, and when turn 5000 (`ENGINE.TURN_LIMIT`) ends. Base capture and
+  elimination still win. No side wins at a limit.
+- **What restarts the count.** An attack or counterattack that costs any unit
+  at least one machine, and a unit capturing a factory, in the turn they
+  happen (`Game.progressTurn`). An attack that costs no machines does not;
+  neither does capturing a base whose capture does not win (a neutral base).
+- **Timing.** Both draws are checked when a turn ends for both sides, so the
+  second side always plays the last turn; with a reversed opening the turn
+  ends after Union. A drawn match keeps the number of its last turn.
+- **No level has its own limit.** The `turnLimit` field is gone from every
+  bundled map, the map builders and the editor; a `turnLimit` in an older level
+  file is ignored.
+- **Engine state.** A draw leaves `winner` null with `winReason`
+  `"no-progress"` or `"turnlimit"`; `Game.over()` is true for wins and draws.
+  Ending a turn in a finished match throws.
+- **Battle dock.** Under the turn number, **Draw in N turns** counts the turns
+  left before whichever draw comes first, the current turn included; hidden
+  once the match is over. Its tooltip states the rule.
+- **Result screen and records.** "Draw — no unit lost a machine and no factory
+  was captured in 100 turns" or "Draw — turn 5000 has ended", with no fanfare.
+  Solo results record the outcome `draw`; level tiles show `W / L / D` once a
+  level has a draw, the profile line counts draws once there is one, and the
+  History tab counts and lists them. A hotseat draw reads "Draw".
+- **Saves and replays.** Snapshots store `progressTurn`. Saves made before this
+  change are refused (no backward compatibility, 2026-09-26), and tournament
+  runs and replays recorded under protocol `2026-09-30.1` or earlier cannot be
+  resumed or opened (now `2026-09-30.2`).
+- **Bots.** A drawn position scores 0 for both sides. The Xenon bonus for the
+  last eight rounds before a map's limit is removed. Beyond scoring a drawn
+  position, the bots do not account for the draw count. The evaluation clock
+  now runs toward turn 5000, which leaves shipped bots unchanged (Marshal's
+  per-seat weights are the same early and late). Marshal's weights were tuned
+  by self-play under the old rule.
+- **Balance studies.** The 48 balance-study missions were tuned and measured
+  while Xenon won at each board's own limit; their balance under these rules
+  has not been measured. Their briefings no longer promise a number of rounds.
+- **Tournament lab.** The optional round cap (at most 1000) remains a draw
+  recorded as `round-cap`; it applies before the engine's draws.
+
+Measured at the change: Classic self-play on each of the 167 bundled boards
+(the test suite's seeds) ended 153 games by a win, 13 by the no-progress draw
+and one, on LABYRINTH FJORDS, at turn 5000.
+
 ## Mission menu: map pictures, attempts, unfinished matches and play history (2026-09-30)
 
 The user found the level list overwhelming and asked: remove the size and unit
@@ -235,8 +291,8 @@ cycles, round limits, seed, worker count and Elo K. A blank seed draws a fresh
 256-bit seed, recorded with the run. A typed number or text is stretched to 256
 bits with SHA-256, and the same seed and settings reproduce the same games. Each
 matchup swaps faction assignments at a common seed. An earlier lab cutoff is a
-draw; original map
-timeouts retain their ordinary winner. The lab has pause/stop/resume, ordered
+draw, as are the engine's own draws
+([2026-09-30](#fixed-turn-limit-and-draws-2026-09-30)). The lab has pause/stop/resume, ordered
 per-run Elo, W/D/L and faction counts, head-to-head tables, saved game replays,
 CSV and archive export, and individual replay import/download. Large disk runs
 are available through the dependency-free Node worker runner. Profiles and
@@ -500,15 +556,18 @@ number, and his side, large, plus unit counts. Behavior:
   toward the menu's "N / M won", and never mark an original campaign mission
   cleared; the As Xenon check mark shows a Xenon win. The Offer for first
   questions run as the human's side against the bot's other side. Rationale: the
-  turn limit favors Xenon (the defender), and the bots already play either side.
+  turn limit then favored Xenon (the defender; a draw since
+  [2026-09-30](#fixed-turn-limit-and-draws-2026-09-30)), and the bots already
+  play either side.
 - **The player's side moves first** (user, 2026-09-30: "when i play as xenon,
   we still have union go first"): in a Normal solo match the human opens,
   so As Xenon starts on Xenon's turn and the AI's Union moves second. This
   supersedes the 2026-09-29 implementation choice that kept Union first. Hotseat
   matches begin with Union. Offer for first still gives first move by the
-  offers; offers ending without a deal use this order. The turn limit still
-  awards Xenon the win, rounds still count after both sides, and the
-  balance-study measurements (Union first) do not describe these matches.
+  offers; offers ending without a deal use this order. Rounds still count after
+  both sides, and the balance-study measurements (Union first) do not describe
+  these matches. (The turn limit then still awarded Xenon the win; see
+  [Fixed turn limit and draws](#fixed-turn-limit-and-draws-2026-09-30).)
   Matches begun earlier keep the order they were saved with.
 - The Sound toggle's behavior is in [Sound effects](#sound-effects-user-request-2026-09-29).
 
@@ -1190,8 +1249,9 @@ Tournament setup is reached from the **Bot tournament** tab. Tournament
 opening preferences are independent of human-match preferences, and each run
 freezes its own opening and no-deal policy. Imported map data stays unchanged.
 Human/CPU factions remain Union/Xenon; only initiative changes. A round ends
-after both factions act, including Xenon-first matches. Existing timeout
-victory for Xenon is stated during negotiation and remains unchanged.
+after both factions act, including Xenon-first matches. Until 2026-09-30
+negotiation also stated Xenon's timeout victory, which the
+[draw rule](#fixed-turn-limit-and-draws-2026-09-30) replaced.
 
 Cancelling setup preserves the previous saved match. Negotiation drafts are
 not persisted. Started matches save the chosen package, exact placements and
@@ -1528,8 +1588,9 @@ URLs (or local files when running the app from disk).
 Imported data is checked field by field before use (2026-09-26): levels from
 files or web addresses, their custom units, and recorded games opened in the
 tournament lab. Unit sides, positions, strength and experience, building
-positions and owners, turn limits and custom-unit statistics must be whole
-numbers in range, lists must be lists, and the grid must be equal-length rows
+positions and owners, and custom-unit statistics must be whole
+numbers in range (a level's `turnLimit` has been ignored since
+[2026-09-30](#fixed-turn-limit-and-draws-2026-09-30)), lists must be lists, and the grid must be equal-length rows
 of text. The interface writes these values into its markup, so a crafted file
 could otherwise inject page content; the hosted site's CSP blocks scripts, but
 the local copy has no CSP. A rejected file changes nothing: no level is saved
@@ -1554,7 +1615,7 @@ case). The last-used profile stays selected; the corner profile menu offers
 Rename, New profile and Switch to. Each browser-local profile has its own campaign stars, complete
 play history (the History tab) and, since 2026-09-30, one unfinished match per board, side, Mode
 and players (see Mission menu: map pictures, attempts, unfinished matches and play history). Solo results
-are wins/losses from Union's perspective; hotseat records name the winning side
+are wins, losses and (since 2026-09-30) draws for the player's side; hotseat records name the winning side
 and are counted separately. A later campaign win marks only that mission.
 No backward compatibility (user, 2026-09-26): a saved match from an older
 format is refused with an error rather than migrated. The one-time import of
@@ -1592,9 +1653,9 @@ keys remain readable and match by title.
 
 The result screen confirms which profile recorded the outcome. Completed match
 IDs are immutable: repeated callbacks cannot duplicate a result, resurrect a
-finished match, or clear a newer save. Turn-limit records show the last playable
-turn. Regression tests cover actual engine wins and losses by base capture and
-elimination, turn-limit defeat, reloads, history pagination and profile switching.
+finished match, or clear a newer save. Draw records show the last turn played.
+Regression tests cover actual engine wins and losses by base capture and
+elimination, both draws, reloads, history pagination and profile switching.
 
 ## Per-battle hover information (2026-09-20)
 
@@ -2227,7 +2288,7 @@ a compatible carrier. The old fjord-specific factory-count, mouth-count and
 mountain-thickness constraints do not apply to these newly requested physical
 families. Routes are checked for the units that actually use them, and factories
 have genuine legal deployment terrain. The normal movement, capture, elimination
-and turn-limit rules remain in force. The existing opening selector still applies;
+and game-end rules remain in force. The existing opening selector still applies;
 Original opening preserves the exact authored roster puzzles, while compensation
 offers may add units. The briefs describe tactical problems, not hidden objectives.
 
@@ -2254,8 +2315,10 @@ Balance standard (user, 2026-09-29): the best bot playing itself should give
 Union (first) and Xenon (second) about equal chances; implemented as Union
 winning 40-60% of Marshal self-play games, with Xenon's wins at the turn limit
 reported separately. Other bots and skill checks are reported, not tuned for.
-All 48 missions meet it on dice seeds the tuning did not use, none within two
-points of the range's edges. The measurements,
+All 48 missions met it on dice seeds the tuning did not use, none within two
+points of the range's edges, while Xenon won at each board's own turn limit;
+under the [draw rule](#fixed-turn-limit-and-draws-2026-09-30) their balance is
+unmeasured. The measurements,
 the tuning record and the findings about balanced maps are in
 [MAP_BALANCE.md](MAP_BALANCE.md). Human play has not been measured.
 

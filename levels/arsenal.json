@@ -9,7 +9,7 @@
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/arsenal/01-sinus-medii.json",
       "description": "One factory stands at the exact centre, holding a Charlie, a Bison and a Kilroy. You move first, but your capturers are slow Kilroys starting farther back than Xenon's Charlies.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 14 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "factory reserves",
         "mirror symmetry"
@@ -18,7 +18,6 @@
         "theme": "arsenal",
         "symmetry": "mirror"
       },
-      "turnLimit": 14,
       "grid": [
         ".....................",
         ".....................",
@@ -116,7 +115,7 @@
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/arsenal/02-mare-vaporum.json",
       "description": "Two factories lie in the open middle, each a little closer to one camp. Take yours, and decide whether to reach for theirs. Your camp stands farther forward than Xenon's, but you bring one Charlie fewer, and the Xenon tanks start damaged.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 24 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "factory reserves",
         "half-turn symmetry"
@@ -125,7 +124,6 @@
         "theme": "arsenal",
         "symmetry": "half"
       },
-      "turnLimit": 24,
       "grid": [
         "........................",
         "........................",
@@ -244,7 +242,7 @@
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/arsenal/03-lacus-somniorum.json",
       "description": "Six small factories are scattered across the lake bed, each holding a squad or two. There are more prizes than capturers, and the Xenon camp stands nearer the middle than yours.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 26 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "factory reserves",
         "half-turn symmetry"
@@ -253,7 +251,6 @@
         "theme": "arsenal",
         "symmetry": "half"
       },
-      "turnLimit": 26,
       "grid": [
         "..........................",
         "..........................",
@@ -407,7 +404,7 @@
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/arsenal/04-mare-crisium.json",
       "description": "The factories on the rim of Crisium hold aircraft, a Hunter and a Falcon each. Whoever takes one owns the sky over the basin; you bring a second Hawkeye, but one of your Charlies is at half strength.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 18 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "factory reserves",
         "mirror symmetry"
@@ -416,7 +413,6 @@
         "theme": "arsenal",
         "symmetry": "mirror"
       },
-      "turnLimit": 18,
       "grid": [
         "...........................",
         "...........................",
@@ -544,7 +540,7 @@
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/arsenal/05-palus-putredinis.json",
       "description": "The marsh factories hold Atlas guns and the Mules to carry them. An Atlas can shell anything within six hexes, but only where a Mule puts it. You bring one more Charlie, and the Xenon force is under strength.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 28 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "factory reserves",
         "half-turn symmetry"
@@ -553,7 +549,6 @@
         "theme": "arsenal",
         "symmetry": "half"
       },
-      "turnLimit": 28,
       "grid": [
         "............................",
         "............................",
@@ -688,7 +683,7 @@
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/arsenal/06-mare-nubium.json",
       "description": "A rich factory stands a few hexes from each camp, closer to the enemy's army than to its owner's. A quick capturer can take it; the camp's defenders can hold it.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 28 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "factory reserves",
         "half-turn symmetry"
@@ -697,7 +692,6 @@
         "theme": "arsenal",
         "symmetry": "half"
       },
-      "turnLimit": 28,
       "grid": [
         "............................",
         "............................",
@@ -836,8 +830,8 @@
       "mission": 7,
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/arsenal/07-sinus-iridum.json",
-      "description": "The richest factory sits inside a horseshoe of mountains with one entrance to the south. Taking it is a race; keeping it is a siege, and you have only ten rounds.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 10 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+      "description": "The richest factory sits inside a horseshoe of mountains with one entrance to the south. Taking it is a race; keeping it is a siege.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "factory reserves",
         "mirror symmetry"
@@ -846,7 +840,6 @@
         "theme": "arsenal",
         "symmetry": "mirror"
       },
-      "turnLimit": 10,
       "grid": [
         ".............................",
         ".............................",
@@ -988,7 +981,7 @@
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/arsenal/08-mare-fecunditatis.json",
       "description": "An island factory sits inside a ring of valleys that tanks cannot cross. The Pelican in your nearer factory can fly a squad over. The Xenon Lenet starts damaged.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 28 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "factory reserves",
         "half-turn symmetry"
@@ -997,7 +990,6 @@
         "theme": "arsenal",
         "symmetry": "half"
       },
-      "turnLimit": 28,
       "grid": [
         "..............................",
         "..............................",
@@ -1132,7 +1124,7 @@
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/arsenal/09-mare-humorum.json",
       "description": "Near your camp, a factory holds one squad. Far out on the flank, another holds a tank company. Send your capturers near or far; you have one more Charlie than Xenon.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 30 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "factory reserves",
         "half-turn symmetry"
@@ -1141,7 +1133,6 @@
         "theme": "arsenal",
         "symmetry": "half"
       },
-      "turnLimit": 30,
       "grid": [
         "..............................",
         "..............................",
@@ -1291,7 +1282,7 @@
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/arsenal/10-oceanus-procellarum.json",
       "description": "An ocean of open ground with eight scattered factories. Every capture draws a response, and no front holds still for long. Your army arrives worn: every unit starts at strength six.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 32 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "factory reserves",
         "half-turn symmetry"
@@ -1300,7 +1291,6 @@
         "theme": "arsenal",
         "symmetry": "half"
       },
-      "turnLimit": 32,
       "grid": [
         "..................................",
         "..................................",
@@ -1537,7 +1527,7 @@
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/arsenal/11-mare-cognitum.json",
       "description": "These factories hold only a squad each, but any damaged unit can repair in one. Holding them keeps your army whole. Your Hadrian starts damaged.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 14 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "factory reserves",
         "half-turn symmetry"
@@ -1546,7 +1536,6 @@
         "theme": "arsenal",
         "symmetry": "half"
       },
-      "turnLimit": 14,
       "grid": [
         "..............................",
         "..............................",
@@ -1721,7 +1710,7 @@
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/arsenal/12-mare-serenitatis.json",
       "description": "Xenon's factories are many but far from its army; Union's are few but close. Whichever side arms faster decides the battle.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 30 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "factory reserves",
         "unequal sides"
@@ -1730,7 +1719,6 @@
         "theme": "arsenal",
         "symmetry": "none"
       },
-      "turnLimit": 30,
       "grid": [
         "...............................",
         "...............................",
@@ -1870,7 +1858,7 @@
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/arsenal/13-mare-tranquillitatis.json",
       "description": "Both sides land with infantry only; your landing parties are under strength, and Xenon lands nearer the middle. The factories hold the tanks, and every tank you field is one the enemy does not.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 30 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "factory reserves",
         "half-turn symmetry"
@@ -1879,7 +1867,6 @@
         "theme": "arsenal",
         "symmetry": "half"
       },
-      "turnLimit": 30,
       "grid": [
         "................................",
         "................................",
@@ -2033,7 +2020,7 @@
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/arsenal/14-mare-insularum.json",
       "description": "Islands of firm ground stand in a sea of valleys, and the factories on them can be reached on foot, slowly, or by Pelican. Each side has one Pelican, and a Hawkeye to shoot the other's down.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 32 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "factory reserves",
         "half-turn symmetry"
@@ -2042,7 +2029,6 @@
         "theme": "arsenal",
         "symmetry": "half"
       },
-      "turnLimit": 32,
       "grid": [
         "..................................",
         "..................................",
@@ -2214,7 +2200,7 @@
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/arsenal/15-lacus-mortis.json",
       "description": "Each camp owns a deep reserve of eight units, released from its factory a few at a time. The neutral factories between them decide who runs out first.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 40 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "factory reserves",
         "half-turn symmetry"
@@ -2223,7 +2209,6 @@
         "theme": "arsenal",
         "symmetry": "half"
       },
-      "turnLimit": 40,
       "grid": [
         "....................................",
         "....................................",
@@ -2369,7 +2354,7 @@
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/arsenal/16-mare-nectaris.json",
       "description": "The Sea of Nectar: the final battle, with factories of every kind across a wide field. Aircraft, armour and artillery are all waiting to be claimed.",
-      "special": "Capture the enemy camp or eliminate its eligible forces within 40 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+      "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "factory reserves",
         "half-turn symmetry"
@@ -2378,7 +2363,6 @@
         "theme": "arsenal",
         "symmetry": "half"
       },
-      "turnLimit": 40,
       "grid": [
         "........................v...............",
         "........................v...............",

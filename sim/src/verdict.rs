@@ -2,8 +2,8 @@
 //! stronger than `elo0`? Games come in seat-swapped pairs on the same board
 //! with the same dice (the lab's pairing), and each pair is one observation:
 //! A's average score over its two games, 0, 1/4, 1/2, 3/4 or 1. Scoring pairs
-//! rather than games cancels the seat advantage (Xenon wins most bot games
-//! through the turn limit). A sequential probability ratio test on the pair
+//! rather than games cancels the seat advantage a board gives one side. A
+//! sequential probability ratio test on the pair
 //! scores (the pentanomial test chess-engine testing uses) stops as soon as
 //! either answer is reached at the chosen error rates, so a clear difference
 //! needs few games and a close one gets as many as it takes.
@@ -41,8 +41,9 @@ pub struct Tally {
     /// A's wins, draws and losses as Union and as Xenon.
     pub union: [u32; 3],
     pub xenon: [u32; 3],
-    /// How games ended: base capture, elimination, turn limit, round cap.
-    pub ends: [u32; 4],
+    /// How games ended: base capture, elimination, no-progress draw, turn
+    /// limit draw, round cap.
+    pub ends: [u32; 5],
     pub rounds: u64,
 }
 
@@ -181,8 +182,10 @@ pub fn run(
                 tally.ends[match reason {
                     "base" => 0,
                     "elimination" => 1,
-                    "turnlimit" => 2,
-                    _ => 3,
+                    "no-progress" => 2,
+                    "turnlimit" => 3,
+                    "round-cap" => 4,
+                    other => panic!("Unknown end of game {other}"),
                 }] += 1;
                 tally.rounds += rounds as u64;
             }

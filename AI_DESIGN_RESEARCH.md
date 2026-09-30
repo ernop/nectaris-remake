@@ -62,7 +62,8 @@ observations:
    reserves; compact campaign maps and the original large maps present quite
    different workloads.
 3. Eighteen self-play games on six selected maps, with seeds 42, 43 and 44,
-   completed: seven base wins, nine eliminations and two turn-limit results.
+   completed: seven base wins, nine eliminations and two turn-limit results
+   (Xenon wins at the map's limit, the rule until 2026-09-30).
    Both sides used the same existing AI. This sample cannot establish strength,
    side balance, or a general probability of stalemate.
 4. The slowest measured AI half-turn in that single local Node v22.22.1 run was
@@ -90,7 +91,7 @@ node tools/ai-research/baseline.cjs /tmp/nectaris-ai-baseline.json
 | Terrain and specialized movement | A mountain is a barrier to tanks but an infantry route; aircraft bypass it | Map topology differs by chassis. Transport landing rules and activation delays require planning beyond straight-line distance. |
 | Indirect fire and movement restrictions | Range bands, blind spots and move-or-fire commitments create timing problems | Artillery can make approach costly; a repositioning decision is an investment in a later turn. |
 | Damage randomness and experience | The same action has several outcomes; small surviving forces may still matter | Good decisions can lose, and bad ones can win. Evaluate chances of kills and objective survival, not just mean casualties. |
-| Xenon wins on the turn limit | The two factions have different burdens even with matched armies | Strong Xenon may rationally defend and delay. Geometric symmetry alone does not establish fair competitive conditions. |
+| Xenon wins on the turn limit (until 2026-09-30; now a draw after 100 turns without a lost machine or factory capture, or at the end of turn 5000) | The two factions had different burdens even with matched armies | Strong Xenon could rationally defend and delay. Geometric symmetry alone does not establish fair competitive conditions. Under the draw rule, delay earns a draw, not a win. |
 | Noncombat undo, forecasts and saved play | Humans can inspect and reconsider without changing combat outcomes | Already useful supports for deliberation. Long-term threats remain harder to see than an individual battle's odds. |
 
 Several features could amplify frustration at high strength: irreversible
@@ -329,9 +330,9 @@ veteran preservation as explicit tactical probes.
 Run matches across multiple seeds and map families, exchange which bot controls
 each faction, and report results separately by side and scenario. Swapping bots
 between factions measures their performance across roles; it does not remove
-the underlying first-turn or timeout asymmetry. Use separate original test
-scenarios if experimenting with a symmetric terminal rule. Do not retune the
-imported campaign as a benchmarking shortcut.
+the underlying first-turn asymmetry (nor, until the symmetric draw rule of
+2026-09-30, the timeout asymmetry). Do not retune the imported campaign as a
+benchmarking shortcut.
 
 Hold out maps and variants from tuning and training. Advanced campaigns reuse
 normal-campaign terrain, and several original maps share generated structures;

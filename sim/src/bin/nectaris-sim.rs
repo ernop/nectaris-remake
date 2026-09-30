@@ -63,16 +63,16 @@ fn turn_time(flags: &HashMap<String, String>) -> Result<(), String> {
     // the seed, replayed for each (milliseconds).
     let position = || {
         let mut g = Game::new(&data, board, &seed, 0);
-        while g.winner < 0 && g.turn < round {
+        while !g.over() && g.turn < round {
             let side = g.current;
             nectaris_sim::classic::play_turn(&mut g, side);
-            if g.winner < 0 {
+            if !g.over() {
                 g.end_turn();
             }
         }
         g
     };
-    if position().winner >= 0 {
+    if position().over() {
         return Err(format!("{} ended before round {round}", data.boards[board].name));
     }
     for bot in flags.get("bots").map_or("tactical,beam,monte-carlo,apex", String::as_str).split(',') {
@@ -207,7 +207,7 @@ fn match_command(flags: &HashMap<String, String>) -> Result<(), String> {
     let s = nectaris_sim::lab::run_match(&data, a, b, &boards, num("cycles", 1)? as u32, &seed, threads, flags.get("work").map_or("standard", String::as_str), num("rounds", 0)? as i32)?;
     let (p, lo, hi) = s.rate();
     println!(
-        "{a} vs {b}: {} games in {:.1} s. {a} {}-{} ({} draws): score {:.1}% [{:.1}, {:.1}]; as Union {}-{}, as Xenon {}-{}; base {} elimination {} turnlimit {}; mean rounds {:.1}",
+        "{a} vs {b}: {} games in {:.1} s. {a} {}-{} ({} draws): score {:.1}% [{:.1}, {:.1}]; as Union {}-{}, as Xenon {}-{}; base {} elimination {} no-progress {} turnlimit {}; mean rounds {:.1}",
         s.games,
         started.elapsed().as_secs_f64(),
         s.a_total(),
@@ -222,11 +222,12 @@ fn match_command(flags: &HashMap<String, String>) -> Result<(), String> {
         s.b_wins[0],
         s.base,
         s.elimination,
+        s.no_progress,
         s.turnlimit,
         s.rounds as f64 / f64::from(s.games)
     );
     if flags.contains_key("per-board") {
-        println!("board name pairs a_sweeps b_sweeps union_both xenon_both other mean_rounds turnlimit_games");
+        println!("board name pairs a_sweeps b_sweeps union_both xenon_both other mean_rounds draw_games");
         for (i, t) in s.by_board.iter().enumerate() {
             println!(
                 "{} {} {} {} {} {} {} {} {:.1} {}",
@@ -239,7 +240,7 @@ fn match_command(flags: &HashMap<String, String>) -> Result<(), String> {
                 t.xenon_both,
                 t.other,
                 t.rounds as f64 / f64::from(t.pairs.max(1) * 2),
-                t.turnlimit
+                t.draws
             );
         }
     }

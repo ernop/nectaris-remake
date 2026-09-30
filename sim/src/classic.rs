@@ -568,7 +568,7 @@ fn run_step(g: &mut Game, step: Step, pending: &mut VecDeque<Step>) {
         Step::Battle(u, target) => {
             g.do_attack(u, target);
             if g.field.contains(&u) && !g.units[u].moved {
-                if g.typ(u).move_after_attack && g.units[u].mp > 0 && g.winner < 0 {
+                if g.typ(u).move_after_attack && g.units[u].mp > 0 && !g.over() {
                     pending.push_back(Step::PostAttackMove(u));
                 } else {
                     g.do_finish(u);
@@ -588,7 +588,7 @@ pub fn play_turn(g: &mut Game, player: i32) {
     let mut pending: VecDeque<Step> = VecDeque::new();
     let (mut boarding_done, mut final_scan) = (false, false);
     loop {
-        if g.winner >= 0 {
+        if g.over() {
             return;
         }
         if let Some(step) = pending.pop_front() {

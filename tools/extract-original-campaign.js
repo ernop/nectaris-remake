@@ -230,7 +230,6 @@ function decodeMap(buffer, mapIndex) {
     blurb: mapIndex < 16 ? BLURBS[mapIndex] :
       "Original advanced mission " + (mapIndex + 1) + ": " + NAMES[terrainIndex] +
       " terrain with the official advanced deployments and factory reserves.",
-    turnLimit: 50,
     grid: grid,
     buildings: buildings,
     units: units,
@@ -241,7 +240,6 @@ function mapLiteral(map) {
   var lines = [
     "  { name: " + JSON.stringify(map.name) +
       ", blurb: " + JSON.stringify(map.blurb) + ",",
-    "    turnLimit: " + map.turnLimit + ",",
     "    grid: [",
   ];
   map.grid.forEach(function (row) {
