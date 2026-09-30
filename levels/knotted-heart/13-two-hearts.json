@@ -19,10 +19,10 @@
     "road": "rim"
   },
   "grid": [
-    "h.......h...............................",
-    "...h...........---.-.h............h.....",
-    "........h------.h.-F------------........",
-    "........-MMMMMMMMMMM-MMMMMMMMMM.-.......",
+    "h.......h.......M......M................",
+    "...h............M....h.M..........h.....",
+    "........h------hM--F.--h--------........",
+    "........-MMMMMMM-MMM-MMMMMMMMMM.-.......",
     "....B-h--MMMMMMMMMMMMMMMMMMMMMMh-h......",
     "......--.MMMMMMMMMMMMMMMMMMMMMM.--......",
     "...h..-.--------.MMMMMMhh.h...h..-.....h",
@@ -30,8 +30,8 @@
     "......---MMMMMMM-MMMMMM-MMMMMMMh.-......",
     "..hh.h-.FMMMMMMM-MMMMMM-MMMMMMM..-......",
     "h...h.-..MMMMMMM-MMMMMM-MMMMMMM..-.h....",
-    "h.....-..MMMMMMM-..h...-MMMMMMM..-......",
-    "......-..MMMMMMM-...h..-MMMMMMM..-.....h",
+    "h.....-..MMMMMMM------.-MMMMMMM..-......",
+    "......-..MMMMMMM-.------MMMMMMM..-.....h",
     "....h.-..MMMMMMM-MMMMMM-MMMMMMM..-.h...h",
     "......-..MMMMMMM-MMMMMM-MMMMMMMF.-h.hh..",
     "......-.hMMMMMMM-MMMMMM-MMMMMMM---......",
@@ -39,10 +39,10 @@
     "h.....-..h...h.hhMMMMMM.--------.-..h...",
     "......--.MMMMMMMMMMMMMMMMMMMMMM.--......",
     "......h-hMMMMMMMMMMMMMMMMMMMMMM--h-B....",
-    ".......-.MMMMMMMMMM-MMMMMMMMMMM-........",
-    "........------------F-.h.------h........",
-    ".....h............h.-.---...........h...",
-    "...............................h.......h"
+    ".......-.MMMMMMMMMM-MMM-MMMMMMM-........",
+    "........--------h--.F--Mh------h........",
+    ".....h..........M.h....M............h...",
+    "................M......M.......h.......h"
   ],
   "buildings": [
     {

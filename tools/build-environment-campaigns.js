@@ -5,7 +5,7 @@
 "use strict";
 const fs=require("node:fs"),path=require("node:path"),HEX=require("../js/hex.js");
 const {UNIT_TYPES}=require("../js/data-units.js"),{TERRAIN_BY_CHAR,terrainCost}=require("../js/data-terrain.js");
-const catalog=require("./environment-campaign-specs.js");
+const catalog=require("./environment-campaign-specs.js"),{edgeRun}=require("./edge-barriers.js");
 const codes={C:"CHARLIE",K:"KILROY",P:"PANTHER",B:"BISON",L:"LENET",O:"POLAR",G:"GRIZZLY",S:"SLAGGER",T:"TITAN",J:"GIANT",H:"HADRIAN",U:"OCTOPUS",A:"ATLAS",R:"RABBIT",X:"LYNX",M:"MULE",Q:"PELICAN",E:"SEEKER",W:"HAWKEYE",Z:"TRIGGER"};
 const key=p=>HEX.key(p.col,p.row),distance=(a,b)=>HEX.distance(a.col,a.row,b.col,b.row);
 function build(campaign,spec,index){
@@ -117,23 +117,42 @@ function build(campaign,spec,index){
     if(index!==0)ellipse(.17,.77,.10,.10,h);
   }
   if(campaign.theme==="open")openTerrain();else if(campaign.theme==="center")centerTerrain();else roughTerrain();
+  // Ridges (gullies on Broken Ground) run in from the top edge, and by the
+  // half-turn from the bottom, so no army can circle the board along its rim
+  // (user, 2026-09-30). One that meets other impassable ground stops a hex
+  // short, and that hex becomes a hill pass. Roads may cross a pass but never
+  // pave it, and nothing is routed through a ridge.
+  // Broken Ground's valley missions need none: a seam and its mate already
+  // cross both edges.
+  const barrier=new Map(),wall=p=>barrier.has(key(p))&&barrier.get(key(p))!=="h";
+  const shift=[0,.02,-.02][index%3],lean=index%2?.03:-.03;
+  const ridges=campaign.theme==="rough"&&[3,9,14,15].includes(index)?[]:width>=34?[.4+shift,.6+shift]:[.44+shift];
+  ridges.forEach((x,i)=>{
+    const course=line(point([x,0]),point([x+(i?-lean:lean),.34])),painted=[];
+    for(const p of course){if(["M","v"].includes(at(p))&&!barrier.has(key(p)))break;painted.push(p);}
+    if(painted.length<3)throw new Error(spec.name+": edge ridge at x="+x.toFixed(2)+" is only "+painted.length+" hexes long");
+    const met=painted.length<course.length;
+    painted.forEach((p,j)=>{const ch=met&&j===painted.length-1?"h":campaign.theme==="rough"?"v":"M";
+      paint(p,ch);barrier.set(key(p),ch);barrier.set(key(rotate(p)),ch);});
+  });
   const base=point(index%7===3?[.32,.08]:index%5===2?[.09,.16]:[.08,.49]);
   const buildings=[{...base,owner:0},{...rotate(base),owner:1}],units=[];
   buildings.forEach(b=>disk(b,1,"."));
   function flood(start,passable){const q=[start],seen=new Set([key(start)]);for(let i=0;i<q.length;i++)ns(q[i]).forEach(p=>{if(!seen.has(key(p))&&passable(p)){seen.add(key(p));q.push(p);}});return seen;}
   function route(a,b,road){
+    if(wall(a)||wall(b))throw new Error(spec.name+": a route ends inside an edge ridge at "+key(wall(a)?a:b));
     const q=[{p:a,cost:0}],best=new Map([[key(a),0]]),prev=new Map([[key(a),null]]);let end;
     while(q.length){
       q.sort((a,b)=>a.cost-b.cost);const {p,cost}=q.shift();if(cost!==best.get(key(p)))continue;
       if(key(p)===key(b)){end=p;break;}
       ns(p).forEach(n=>{
-        if(at(n)==="F"&&key(n)!==key(b))return;
+        if(at(n)==="F"&&key(n)!==key(b)||wall(n))return;
         const next=cost+({M:22,v:8,w:2.3,h:1.5,"-":.35,"=":.35}[at(n)]||1),k=key(n);
         if(best.has(k)&&best.get(k)<=next)return;best.set(k,next);prev.set(k,p);q.push({p:n,cost:next});
       });
     }
     if(!end)throw new Error("No route in "+spec.name);
-    while(end){if(!["F","B"].includes(at(end))){if(road)paint(end,at(end)==="v"||at(end)==="="?"=":"-");else if(["M","v"].includes(at(end)))paint(end,at(end)==="v"?"=":".");}end=prev.get(key(end));}
+    while(end){if(!["F","B"].includes(at(end))&&!barrier.has(key(end))){if(road)paint(end,at(end)==="v"||at(end)==="="?"=":"-");else if(["M","v"].includes(at(end)))paint(end,at(end)==="v"?"=":".");}end=prev.get(key(end));}
   }
   // Preserve broad open ground and connect land pockets by the least
   // disruptive pass. A neutral factory is never a necessary transit tile.
@@ -151,7 +170,7 @@ function build(campaign,spec,index){
   if(campaign.theme==="rough"&&[3,9,14,15].includes(index)){
     // Give each valley seam a real vehicle crossing. Roads routed by cost
     // alone may instead run around a seam's end.
-    const target=point([.35,.5]),crossing=cells.filter(p=>at(p)==="v"&&
+    const target=point([.35,.5]),crossing=cells.filter(p=>at(p)==="v"&&!barrier.has(key(p))&&
       ns(p).filter(n=>!["v","M"].includes(at(n))).length>=2)
       .sort((a,b)=>distance(a,target)-distance(b,target))[0];
     if(crossing){paint(crossing,"=");route(base,crossing,true);route(crossing,rotate(base),true);}
@@ -161,13 +180,13 @@ function build(campaign,spec,index){
     [[.28,.26],[.4,.67],[.22,.68],[.46,.27],[.39,.47],[.18,.34]];
   spec.stocks.forEach((stock,i)=>{
     const target=point(stockTargets[i]);
-    const choices=cells.filter(p=>p.col>1&&p.col<width/2&&p.row>1&&p.row<height-2&&!["M","v","=","B","F"].includes(at(p))&&
+    const choices=cells.filter(p=>p.col>1&&p.col<width/2&&p.row>1&&p.row<height-2&&!["M","v","=","B","F"].includes(at(p))&&!barrier.has(key(p))&&
       distance(p,rotate(p))>=3&&buildings.every(b=>distance(p,b)>=3));
     choices.sort((a,b)=>distance(a,target)-distance(b,target)||a.row-b.row||a.col-b.col);
     const p=choices[0];if(!p)throw new Error("No factory site: "+spec.name);
     [p,rotate(p)].forEach(n=>buildings.push({...n,owner:-1,stored:stock.split("").map(c=>codes[c])}));paint(p,"F");
     // Every stock can leave onto a firm hex, including an Atlas or Trigger.
-    const mouth=ns(p).filter(n=>!["F","B"].includes(at(n))).sort((a,b)=>(["M","v"].includes(at(a))?10:0)-(["M","v"].includes(at(b))?10:0)||distance(a,base)-distance(b,base))[0];
+    const mouth=ns(p).filter(n=>!["F","B"].includes(at(n))&&!barrier.has(key(n))).sort((a,b)=>(["M","v"].includes(at(a))?10:0)-(["M","v"].includes(at(b))?10:0)||distance(a,base)-distance(b,base))[0];
     paint(mouth,at(mouth)==="="?"=":"-");
     if(spec.road!=="none")route(mouth,base,true);
   });
@@ -215,6 +234,8 @@ function build(campaign,spec,index){
     });
   }
   deploy(spec.army,0);deploy(spec.enemy,1);
+  barrier.forEach((ch,k)=>{const [c,r]=k.split(",").map(Number);if(grid[r][c]!==ch)throw new Error(spec.name+": edge ridge hex "+k+" was overwritten");});
+  const rim=edgeRun(grid);if(rim)throw new Error(spec.name+": vehicles can still drive along the "+rim+" edge");
   const goal="Capture the enemy camp or eliminate its eligible forces.";
   return {name:spec.name,pack:campaign.name,campaignId:campaign.id,mission:index+1,
     author:"AI-made by Codex",source:"levels/"+campaign.id+"/"+String(index+1).padStart(2,"0")+"-"+spec.name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/-$/g,"")+".json",
@@ -240,3 +261,4 @@ if(require.main===module){
   fs.writeFileSync(path.join(root,"js/data-environment-campaigns.js"),"/* AI-made terrain campaigns. Rebuild: node tools/build-environment-campaigns.js */\n\"use strict\";\nvar ENVIRONMENT_CAMPAIGNS = "+JSON.stringify(campaigns,null,2)+";\nif(typeof module!==\"undefined\")module.exports=ENVIRONMENT_CAMPAIGNS;\n");
 }
 module.exports=generate;
+module.exports.build=build;

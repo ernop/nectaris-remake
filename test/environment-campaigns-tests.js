@@ -8,6 +8,7 @@ module.exports = function (ok) {
   const HEX = require("../js/hex.js"), ENGINE = require("../js/engine.js");
   const {UNIT_TYPES: types} = require("../js/data-units.js");
   const {terrainCost, TERRAIN_BY_CHAR: terrain} = require("../js/data-terrain.js");
+  const {edgeRun} = require("../tools/edge-barriers.js");
   const allTypes = new Set(), signatures = new Set();
   ok(campaigns.length === 6 && campaigns.every(c => c.levels.length === 16), "six separate 16-mission campaigns");
   ok(JSON.stringify(require("../tools/build-environment-campaigns.js")()) === JSON.stringify(campaigns),
@@ -115,6 +116,7 @@ module.exports = function (ok) {
         ok(fraction(p => ["h","w","v"].includes(at(p))) > .25, label + "difficult terrain materially affects movement");
         if ([3,9,14,15].includes(index)) ok(map.grid.join("").includes("="), label + "valley mission includes actual bridge terrain");
       }
+      if (ci <= 3) ok(edgeRun(map.grid) === null, label + "barriers stop vehicles circling the board along its top and bottom edges");
       if (ci === 3) ok(map.grid.join("").includes("v"), label + "a rille divides the board");
       if (ci === 4) ok(rival && /[Mw]/.test(map.grid.join("")), label + "the Xenon camp has walls of mountains or broken ground");
       if (ci === 5) ok(map.buildings.some(b => b.owner === -1 && b.stored.length), label + "neutral factories hold reserves to fight for");

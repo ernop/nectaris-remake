@@ -10,7 +10,7 @@
 const HEX=require("../js/hex.js");
 const {UNIT_TYPES}=require("../js/data-units.js"),{TERRAIN_BY_CHAR,terrainCost}=require("../js/data-terrain.js");
 const COMBAT=require("../js/combat.js");
-const catalog=require("./balance-campaign-specs.js");
+const catalog=require("./balance-campaign-specs.js"),{edgeRun}=require("./edge-barriers.js");
 const codes={C:"CHARLIE",K:"KILROY",P:"PANTHER",B:"BISON",L:"LENET",O:"POLAR",G:"GRIZZLY",S:"SLAGGER",T:"TITAN",J:"GIANT",
   H:"HADRIAN",U:"OCTOPUS",A:"ATLAS",R:"RABBIT",X:"LYNX",M:"MULE",Q:"PELICAN",E:"SEEKER",W:"HAWKEYE",Z:"TRIGGER",
   D:"EAGLE",F:"FALCON",N:"HUNTER"};
@@ -164,6 +164,8 @@ function build(campaign,spec,index){
   const tread=p=>!["M","v","F"].includes(at(p));
   if(!spec.split&&!flood(bases[0],tread).has(key(bases[1])))fail("no vehicle route joins the camps");
   if(spec.split&&flood(bases[0],tread).has(key(bases[1])))fail("marked split, but vehicles can cross");
+  const rim=campaign.edgeBarriers&&edgeRun(grid);
+  if(rim)fail("vehicles can drive along the "+rim+" edge");
   const goal="Capture the enemy camp or eliminate its eligible forces.";
   const slug=spec.name.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
   return {name:spec.name,pack:campaign.name,campaignId:campaign.id,mission:index+1,author:"AI-made by Claude Opus 5.5",

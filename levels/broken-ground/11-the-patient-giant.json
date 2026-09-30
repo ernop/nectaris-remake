@@ -19,28 +19,28 @@
     "road": "rim"
   },
   "grid": [
-    ".wwwww............................",
-    ".wwwwww...........................",
-    ".wwwwwwww--B......................",
-    "..wwwww--w.---...-.......-hhhh....",
-    "..www--wwww-w.---.--...--h----h...",
-    "...--wwwwF-www......---.hhhhhh--..",
-    "...-wwwwwwwwwwww.....-.hhhhhhhh-..",
-    "...-..wwwwwwwwwww...F-.hhhhhhhh-..",
-    "...-...Mwwwwwwwwww..-..hhhhhhhh-..",
-    "...-.hMMMwwwwwhhwwww...hhhhhhhh-..",
-    "...-hhMMhhwwwwhhwwwwww.hhhhhhhh-..",
-    "..-hhhhhhhh.wwwwwwhhwwwwhhMMhh-...",
-    "..-hhhhhhhh...wwwwhhwwwwwMMMh.-...",
-    "..-hhhhhhhh..-..wwwwwwwwwwM...-...",
-    "..-hhhhhhhh.-F...wwwwwwwwwww..-...",
-    "..-hhhhhhhh.-.....wwwwwwwwwwww-...",
-    "..--hhhhhh.---......www-Fwwww--...",
-    "...h----h--...--.---.w-wwww--www..",
-    "....hhhh-.......-...---.w--wwwww..",
-    "......................B--wwwwwwww.",
-    "...........................wwwwww.",
-    "............................wwwww."
+    ".wwwww........v.....v.............",
+    ".wwwwww.......v.....v.............",
+    ".wwwwwwww--B..v.....v.............",
+    "..wwwww--w..-vv..-..vv....hhhh....",
+    "..www--wwww--v...-...v...hh--hh...",
+    "....wwwwwF-w-v...-...v..h--hhhh...",
+    "....wwwwwwww-vww.-...v.--hhhhhh...",
+    "......wwwwww-vw--.--Fv-hhhhhhhh...",
+    ".......Mwwww---www..---hhhhhhhhh..",
+    ".....hMMMwww-whhwwww.-.hhhhhhhh...",
+    "....hhMMhhww-whhwwwww-.hhhhhhhh...",
+    "...hhhhhhhh.-wwwwwhhw-wwhhMMhh....",
+    "...hhhhhhhh.-.wwwwhhw-wwwMMMh.....",
+    "..hhhhhhhhh---..www---wwwwM.......",
+    "...hhhhhhhh-vF--.--wv-wwwwww......",
+    "...hhhhhh--.v...-.wwv-wwwwwwww....",
+    "...hhhh--h..v...-...v-w-Fwwwww....",
+    "...hh--hh...v...-...v--wwww--www..",
+    "....hhhh....vv..-..vv-..w--wwwww..",
+    ".............v.....v..B--wwwwwwww.",
+    ".............v.....v.......wwwwww.",
+    ".............v.....v........wwwww."
   ],
   "buildings": [
     {
@@ -120,14 +120,14 @@
     {
       "t": "TITAN",
       "o": 0,
-      "x": 10,
-      "y": 3
+      "x": 12,
+      "y": 4
     },
     {
       "t": "HADRIAN",
       "o": 0,
       "x": 10,
-      "y": 4
+      "y": 3
     },
     {
       "t": "MULE",
@@ -138,7 +138,7 @@
     {
       "t": "RABBIT",
       "o": 0,
-      "x": 12,
+      "x": 10,
       "y": 4
     },
     {
@@ -162,19 +162,19 @@
     {
       "t": "LENET",
       "o": 1,
-      "x": 23,
-      "y": 18
+      "x": 21,
+      "y": 17
     },
     {
       "t": "LENET",
       "o": 1,
       "x": 23,
-      "y": 17
+      "y": 18
     },
     {
       "t": "RABBIT",
       "o": 1,
-      "x": 21,
+      "x": 23,
       "y": 17
     },
     {

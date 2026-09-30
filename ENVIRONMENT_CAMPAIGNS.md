@@ -25,6 +25,30 @@ mines start beside their Mule. Inventories are small, focused teams of four.
 Terrain and neutral stock pairs have half-turn symmetry. Several battles
 deliberately give the two armies different compositions or numbers.
 
+**Edge barriers (user, 2026-09-30).** The user found the open borders hurt
+play: every region could be left for one open ring around the board, and an
+army could circle the map along its edge. He asked for at least two
+symmetrical barriers on every board of Open Horizons, The Knotted Heart,
+Broken Ground and Bridgeheads, to slow or stop that. The builder now draws
+them after each board's own terrain, as half-turn pairs from the top and
+bottom edges: one pair on boards narrower than 34 hexes, two pairs on wider
+ones, near the middle columns.
+
+- **Open Horizons:** mountain headlands about a third of the board deep. One
+  that meets an island stops a hex short, and that hex becomes a hill pass.
+- **The Knotted Heart:** ridges from the edge to the knot, ending in a one-hex
+  hill pass beside it. The long way round survives, as the briefs require,
+  but only through these defended passes.
+- **Broken Ground:** valley gullies, which stop vehicles and cost infantry a
+  whole move. Missions 4, 10, 15 and 16 get none, because their valley seams
+  already cross both edges.
+
+No road or connecting route is carved through a barrier; a road may cross a
+pass but leaves it a hill. The build fails, and so does the test suite, if a
+vehicle can drive from the left edge to the right edge on open ground (plain,
+road, bridge or camp) within three hexes of the top or bottom edge
+([tools/edge-barriers.js](tools/edge-barriers.js)).
+
 Board sizes range from 24×16 to 42×28. Each campaign mixes small encounters,
 limited rosters, mobile forces, artillery positions and larger concluding battles.
 The order expands the problems rather than promising a measured difficulty curve.
@@ -36,7 +60,7 @@ at normal strength. The factory column counts neutral buildings, not stored unit
 
 ## AI-made: Open Horizons
 
-A sea of maneuvering ground around mountain islands: space, concentration and exposed flanks.
+A sea of maneuvering ground around mountain islands: space, concentration and exposed flanks. Ridges run in from the top and bottom edges, so no army can circle the rim.
 
 [Import the whole campaign](levels/open-horizons.json).
 
@@ -63,7 +87,7 @@ A sea of maneuvering ground around mountain islands: space, concentration and ex
 
 ## AI-made: The Knotted Heart
 
-Dense interior routes surrounded by spacious flanks: short paths through trouble or long paths around it.
+Dense interior routes surrounded by spacious flanks: short paths through trouble or long paths around it. The long way round climbs through hill passes where ridges from the edge meet the knot.
 
 [Import the whole campaign](levels/knotted-heart.json).
 
@@ -90,7 +114,7 @@ Dense interior routes surrounded by spacious flanks: short paths through trouble
 
 ## AI-made: Broken Ground
 
-Roads, hills, wasteland and valleys give different units different maps to fight on.
+Roads, hills, wasteland and valleys give different units different maps to fight on. Gullies or valley seams cut the top and bottom edges, so no army can circle the rim.
 
 [Import the whole campaign](levels/broken-ground.json).
 
@@ -133,7 +157,7 @@ studies below. Rebuilding leaves these 48 missions byte-identical.
 
 Checks cover reproducibility, unique layouts, source agreement, terrain legality,
 reachable starting positions, connected ground routes without factory transit,
-real factory exits, carrier compatibility, roster restrictions and the defining
+edge barriers (above), real factory exits, carrier compatibility, roster restrictions and the defining
 terrain proportions of each campaign. The menu fixture exercises starting, saving,
 continuing, next-mission boundaries and independent progress. The full suite runs
 CPU self-play to completion on all 167 included maps. This verifies execution and
@@ -201,7 +225,16 @@ buildings of either owner or neutral.
 
 ## AI-made: Bridgeheads
 
-Rilles split every board. Bridges and a few footpaths are the only fast crossings, and holding the far end of one is the campaign's recurring problem.
+Rilles split every board. Bridges and a few footpaths are the only fast crossings, and holding the far end of one is the campaign's recurring problem. Ridges on each bank stop a force that has crossed from running along the rim to the camp.
+
+Since 2026-09-30 (the edge-barrier request above) every Bridgeheads board has
+mountain ridges from the top and bottom edges on each bank, placed per mission
+by `rims()` in the specs and drawn before the rilles and roads, so a road that
+meets one fails the build. The rilles already cut the edges on most boards;
+the ridges close boards 2, 6 and 12, whose edge bridges or open ends let
+vehicles run along the rim, and keep a force that has crossed from following
+the edge to the camp. The tuning measurements in [MAP_BALANCE.md](MAP_BALANCE.md)
+predate them.
 
 [Import the whole campaign](levels/bridgeheads.json).
 

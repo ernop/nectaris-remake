@@ -30,7 +30,10 @@ Facts we need across sessions:
   permitted. Existing maps must remain intact. Menu/save keys pair campaign ID
   with mission index; Next mission stops at 16. These new physical families are
   not bound to the old fjord-specific counts. See `ENVIRONMENT_CAMPAIGNS.md` and
-  PRODUCT for the implemented scope and playtesting limits.
+  PRODUCT for the implemented scope and playtesting limits. Since 2026-09-30
+  (user) these three and Bridgeheads carry symmetric barriers from the top
+  and bottom edges so no army can circle the board along its rim;
+  `tools/edge-barriers.js` fails the build and the suite otherwise.
 - **Balance-study campaigns (2026-09-28):** Bridgeheads, Siege Lines and
   Arsenal, 16 missions each (boards 119-166), labelled AI-made and credited
   AI-made by Claude Opus 5.5. The same command rebuilds them from

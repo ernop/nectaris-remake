@@ -2323,6 +2323,33 @@ the tuning record and the findings about balanced maps are in
 [MAP_BALANCE.md](MAP_BALANCE.md). Human play has not been measured.
 
 
+## Edge barriers on four campaigns (2026-09-30)
+
+The user judged Open Horizons "incredible", but found its borders so open that
+they hurt play: "every single region can be escaped from into the outer open
+ring", and armies could go "all the way around the map by only circling along
+the edge". The Knotted Heart was similar. He asked for "at least 2 or more
+symmetrical barriers to slow down or stop" that circling on Bridgeheads,
+Broken Ground, The Knotted Heart and Open Horizons.
+
+Requirement, enforced by the builders and the test suite
+(`tools/edge-barriers.js`): on every board of these four campaigns no vehicle
+can drive from the left edge to the right edge on open ground (plain, road,
+bridge or camp) while staying within three hexes of the top or of the bottom
+edge.
+
+Implementation: barriers come in symmetric pairs from the top and bottom
+edges, at least two per board. Open Horizons has mountain headlands; The
+Knotted Heart has ridges ending in a one-hex hill pass beside the knot, because
+its briefs rely on a long way round; Broken Ground has valley gullies (its four
+valley missions already had seams crossing both edges); Bridgeheads has
+mountain ridges on each bank. Roads cross passes but never pave them, and
+nothing is carved through a barrier. Details:
+[ENVIRONMENT_CAMPAIGNS.md](ENVIRONMENT_CAMPAIGNS.md). The seven lock-corpus
+games on changed boards were re-recorded. The Bridgeheads tuning measurements
+predate the ridges.
+
+
 ## Fuseki hosting (2026-09-26)
 
 Requested for later on 2026-09-26, then launched the same day at the user's

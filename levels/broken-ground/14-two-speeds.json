@@ -19,30 +19,30 @@
     "road": "ladder"
   },
   "grid": [
-    "........................................",
-    "........................................",
-    ".......-------..........................",
-    "......-wwwwwww--.........-----..........",
-    ".....h-wwwwwwww.--.....--.wwww--hhhh....",
-    ".....w-wwwwwwwww.---.---.wwwwhhh-hhhh...",
-    ".....w--wwwFwwww.hF--..-wwwwwhhh--hhh...",
-    ".....ww-h--wwwwwhhhwwwh-wwwwwwF--h--....",
-    "......w--hwwwwwwwhwwwwwF-wwwww-wwww-....",
-    ".......-MMhwwwwwwwwwwww.-hwwwwwwww.-....",
-    ".....--MMMhh.wwwwwwwwwww.h.wwwwww..-....",
-    "...B-...MM..hwwwwwwwwwwwwwhh.......-....",
-    "....-.......hhwwwwwwwwwwwwwh..MM...-B...",
-    "....-..wwwwww.h.wwwwwwwwwww.hhMMM--.....",
-    "....-.wwwwwwwwh-.wwwwwwwwwwwwhMM-.......",
-    "....-wwww-wwwww-Fwwwwwhwwwwwwwh--w......",
-    "....--h--Fwwwwww-hwwwhhhwwwww--h-ww.....",
-    "...hhh--hhhwwwww-..--Fh.wwwwFwww--w.....",
-    "...hhhh-hhhwwww.---.---.wwwwwwwww-w.....",
-    "....hhhh--wwww.--.....--.wwwwwwww-h.....",
-    "..........-----.........--wwwwwww-......",
-    "..........................-------.......",
-    "........................................",
-    "........................................"
+    "................v.......v...............",
+    "................v.......v...............",
+    "................vv......v...............",
+    ".......wwwwwww...v......v...............",
+    ".....hwwwwwwwww..v--...vv.wwwwhhhhhh....",
+    ".....whwwwwwwwww.vF.-..v.wwwwhhhhhhhh...",
+    ".....wh-wwwFwwww.hv---.vwwwwwhh--hhhh...",
+    ".....ww-h--wwwwwhhvwww-vwwwww-Fhhhh.....",
+    "......w--hwwwwwwwhvwww-v.ww--w-wwww.....",
+    ".......-MMhwwwwwwwwwww--F--wwwwwww......",
+    ".....--MMMhh.wwwwwwww-----.wwwwww.......",
+    "...B-.--MM..hwwwwww----www------........",
+    "........------www----wwwwwwh..MM--.-B...",
+    ".......wwwwww.-----wwwwwwww.hhMMM--.....",
+    "......wwwwwww--F--wwwwwwwwwwwhMM-.......",
+    ".....wwww-w--ww.v-wwwvhwwwwwwwh--w......",
+    ".....hhhhF-wwwwwv-wwwvhhwwwww--h-ww.....",
+    "...hhhh--hhwwwwwv.---vh.wwwwFwww-hw.....",
+    "...hhhhhhhhwwww.v..-.Fv.wwwwwwwwwhw.....",
+    "....hhhhhhwwww.vv...--v..wwwwwwwwwh.....",
+    "...............v......v...wwwwwww.......",
+    "...............v......vv................",
+    "...............v.......v................",
+    "...............v.......v................"
   ],
   "buildings": [
     {
@@ -78,8 +78,8 @@
       ]
     },
     {
-      "col": 16,
-      "row": 15,
+      "col": 15,
+      "row": 14,
       "owner": -1,
       "stored": [
         "KILROY",
@@ -89,8 +89,8 @@
       ]
     },
     {
-      "col": 23,
-      "row": 8,
+      "col": 24,
+      "row": 9,
       "owner": -1,
       "stored": [
         "KILROY",
@@ -123,7 +123,7 @@
     },
     {
       "col": 18,
-      "row": 6,
+      "row": 5,
       "owner": -1,
       "stored": [
         "MULE",
@@ -134,7 +134,7 @@
     },
     {
       "col": 21,
-      "row": 17,
+      "row": 18,
       "owner": -1,
       "stored": [
         "MULE",
@@ -184,8 +184,8 @@
     {
       "t": "RABBIT",
       "o": 0,
-      "x": 6,
-      "y": 4
+      "x": 5,
+      "y": 3
     },
     {
       "t": "RABBIT",
@@ -202,8 +202,8 @@
     {
       "t": "HADRIAN",
       "o": 0,
-      "x": 4,
-      "y": 13
+      "x": 5,
+      "y": 12
     },
     {
       "t": "CHARLIE",
@@ -244,8 +244,8 @@
     {
       "t": "TITAN",
       "o": 1,
-      "x": 33,
-      "y": 19
+      "x": 34,
+      "y": 20
     },
     {
       "t": "TITAN",
@@ -262,8 +262,8 @@
     {
       "t": "HADRIAN",
       "o": 1,
-      "x": 35,
-      "y": 10
+      "x": 34,
+      "y": 11
     }
   ]
 }

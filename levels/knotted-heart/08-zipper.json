@@ -19,28 +19,28 @@
     "road": "fork"
   },
   "grid": [
-    "...h......................hh........",
-    ".......................h........h...",
-    "............h---------------........",
-    "...B.h..MMMM-MMhMMMMMMMMMMMM-..hh...",
-    "h...--..MMMM-MMhMMMMMMMMMMMM-.......",
-    "....-h-------Fh.h..hMMMMMMMM-.......",
+    "...h...........M......M...hh........",
+    "...............M......Mh........h...",
+    "............h..M......h....h........",
+    "...B.h..MMMM.MMhMMMMMMMMMMMM...hh...",
+    "h...--..MMMM.MMhMMMMMMMMMMMM........",
+    "....-h-------Fh.h..hMMMMMMMM........",
     "....-h.-MMMM-MMMMMM.MMMMMMMM--......",
-    "h...---.hh..------h.F---MMMM.-......",
+    "h...---.hh..------h-F---MMMM.-......",
     ".....-..MMMMMMMMMM-..MM-MMMM.-h.....",
     ".....-..MMMM-------.MMM-MMMM..-.....",
-    ".....-..MMMMFMMMMMMMMMM-MMMM..-.h...",
-    "...h.-..MMMM-MMMMMMMMMMFMMMM..-.....",
+    ".....-..MMMMFMMMM--MMMM-MMMM..-.h...",
+    "...h.-..MMMM-MMMM--MMMMFMMMM..-.....",
     ".....-..MMMM-MMM.-------MMMM..-.....",
     ".....h-.MMMM-MM..-MMMMMMMMMM..-.....",
-    "......-.MMMM---F.h------..hh.---...h",
+    "......-.MMMM---F-h------..hh.---...h",
     "......--MMMMMMMM.MMMMMM-MMMM-.h-....",
-    ".......-MMMMMMMMh..h.hF-------h-....",
-    ".......-MMMMMMMMMMMMhMM-MMMM..--...h",
-    "...hh..-MMMMMMMMMMMMhMM-MMMM..h.B...",
-    "........---------------h............",
-    "...h........h.......................",
-    "........hh......................h..."
+    "........MMMMMMMMh..h.hF-------h-....",
+    "........MMMMMMMMMMMMhMM.MMMM..--...h",
+    "...hh...MMMMMMMMMMMMhMM.MMMM..h.B...",
+    "........h....h......M..h............",
+    "...h........hM......M...............",
+    "........hh...M......M...........h..."
   ],
   "buildings": [
     {
@@ -155,7 +155,7 @@
       "t": "POLAR",
       "o": 0,
       "x": 7,
-      "y": 16
+      "y": 14
     },
     {
       "t": "HADRIAN",
@@ -166,8 +166,8 @@
     {
       "t": "RABBIT",
       "o": 0,
-      "x": 7,
-      "y": 14
+      "x": 6,
+      "y": 16
     },
     {
       "t": "CHARLIE",
@@ -203,7 +203,7 @@
       "t": "TITAN",
       "o": 1,
       "x": 28,
-      "y": 5
+      "y": 7
     },
     {
       "t": "HADRIAN",
@@ -214,8 +214,8 @@
     {
       "t": "OCTOPUS",
       "o": 1,
-      "x": 28,
-      "y": 7
+      "x": 29,
+      "y": 5
     }
   ]
 }

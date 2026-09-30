@@ -6,7 +6,7 @@
  * Each stock entry supplies one matched pair of neutral factories. */
 "use strict";
 module.exports=[
-  {id:"open-horizons",name:"AI-made: Open Horizons",theme:"open",intro:"A sea of maneuvering ground around mountain islands: space, concentration and exposed flanks.",
+  {id:"open-horizons",name:"AI-made: Open Horizons",theme:"open",intro:"A sea of maneuvering ground around mountain islands: space, concentration and exposed flanks. Ridges run in from the top and bottom edges, so no army can circle the rim.",
     levels:[
       {name:"THREE AGAINST THREE",size:[24,16],army:"CBL",enemy:"CBL",stocks:[],road:"none",formation:"line",
         idea:"Three squads per side and no replacements. Six small mountain islands break up a broad plain; every supporting position costs a third of your army."},
@@ -41,7 +41,7 @@ module.exports=[
       {name:"HORIZON CONVERGENCE",size:[42,26],army:"CCPKBBLOSTHHURMQ",enemy:"CCPKBLGOTTHHURMQ",stocks:["CLOT","KGGG","MAOO","QATT","MZLL"],road:"fork",formation:"split",
         idea:"Several island chains converge around a wide central gulf. Large mixed armies must choose where to concentrate while keeping distant factory approaches and their own camp covered."}
     ]},
-  {id:"knotted-heart",name:"AI-made: The Knotted Heart",theme:"center",intro:"Dense interior routes surrounded by spacious flanks: short paths through trouble or long paths around it.",
+  {id:"knotted-heart",name:"AI-made: The Knotted Heart",theme:"center",intro:"Dense interior routes surrounded by spacious flanks: short paths through trouble or long paths around it. The long way round climbs through hill passes where ridges from the edge meet the knot.",
     levels:[
       {name:"THE CROSS AND THE FIELD",size:[26,18],army:"CBLR",enemy:"CBLR",stocks:["CBLL"],road:"direct",formation:"line",
         idea:"A compact mountain knot has a cross-shaped interior route. The center is short and restrictive; the open outer field lets units maneuver around its arms."},
@@ -76,7 +76,7 @@ module.exports=[
       {name:"HEART OF THE MATTER",size:[42,28],army:"CCPKBBLOTHHURMQ",enemy:"CCPKBGOTTHHURMQ",stocks:["CLOT","MAOO","QATT","CHUO","MZLL","CRRX"],road:"fork",formation:"split",
         idea:"A large interlocking center has several rooms, loops and narrow transfers. Twelve neutral factories pull the armies in different directions while the outer field leaves room for a major turning movement."}
     ]},
-  {id:"broken-ground",name:"AI-made: Broken Ground",theme:"rough",intro:"Roads, hills, wasteland and valleys give different units different maps to fight on.",
+  {id:"broken-ground",name:"AI-made: Broken Ground",theme:"rough",intro:"Roads, hills, wasteland and valleys give different units different maps to fight on. Gullies or valley seams cut the top and bottom edges, so no army can circle the rim.",
     levels:[
       {name:"THE PRICE OF A HILL",size:[24,18],army:"CBP",enemy:"CBP",stocks:[],road:"none",formation:"line",
         idea:"Three squads each cross a field of hill belts. Charlie, Bison and Panther pay different movement costs for the same terrain; a short route on the map can be a slow route for the unit."},
