@@ -260,12 +260,20 @@ Facts we need across sessions:
   visit starts as **Wilson** (no username prompt) and Rename keeps the profile's
   records. Engine snapshots preserve cargo identity and the dice state. UI checkpoints
   committed human actions and complete AI turns; unfinished AI turns resume from
-  their start. Tests in `test/profiles-tests.js` run through the main suite. See `PRODUCT.md`.
+  their start. Since 2026-09-30 (profile data version 2): one unfinished match
+  per board, side, Mode and hotseat, each under its own `nectaris-session-v1:`
+  key (`sessionKey`); a profile's `log` holds the play events (start, resume,
+  leave, abandon) shown with its results in the History tab. `main.js` saves
+  and logs a match only after the player changes the position (`visit`), and
+  a finished or abandoned match can never be reopened by a late save. Tests in
+  `test/profiles-tests.js`, `test/outcome-tests.js` and
+  `test/outcome-menu-tests.js` run through the main suite. See `PRODUCT.md`.
 
 - **Campaign menu (2026-09-26):** the first page exists to get new players into a
   campaign; keep it short. One header row: large **NECTARIS**, **Campaigns** /
-  **Bot tournament** tabs, and "You are logged in as Wilson" in the corner (menu:
-  Rename, New profile, Switch to, record, history). One settings row: **Mode**
+  **Bot tournament** tabs (since 2026-09-30 also **History**, `index.html#history`),
+  and "You are logged in as Wilson" in the corner (menu: Rename, New profile,
+  Switch to, record). One settings row: **Mode**
   (Normal default / Offer for first), hotseat, **AI**. No language option, no
   map-default mode, no explanatory paragraphs. Order: Normal, Advanced, Base
   Nectaris, then the other packs. Match defaults: Pixel + Legacy, Watch AI on,
@@ -394,10 +402,11 @@ Facts we need across sessions:
   calculation). See `PRODUCT.md`, `test/combat-ui-tests.js`,
   `test/combat-panel-tests.js` and `test/forecast-tests.js`.
 
-- **Level menu (2026-09-23):** restore its scroll position after leaving a level.
+- **Level menu (2026-09-23, entries changed 2026-09-30):** restore its scroll position after leaving a level.
   All campaigns, packs and custom maps share dense, internally single-line entries:
-  name, number, size, normal-size Union/Xenon/Neutral totals in that order, and any
-  result. Align the numeric totals vertically in shared right-aligned columns.
+  map picture (`js/map-thumbnail.js`, at most 80 × 40), number, name, "Resume
+  turn N" for an unfinished match, "N attempts · xW / yL", then a small
+  "as Xenon". No map size, army totals or column headings (user, 2026-09-30).
   Aim for three complete entries across per row on wide screens (two or one
   on narrower screens); never stack or wrap fields
   inside one listing. Scroll horizontally when needed, without truncating text. The main

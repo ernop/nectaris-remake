@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nectaris — hex tactics remake</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='24,16 20,23 12,23 8,16 12,9 20,9' fill='%23ffd94a'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/nectaris.css?v=20260929-left-panel">
-<link rel="stylesheet" href="css/battle-dock.css?v=20260929-battle-hexmap">
+<link rel="stylesheet" href="css/nectaris.css?v=20260930-sessions">
+<link rel="stylesheet" href="css/battle-dock.css?v=20260930-sessions">
 <link rel="stylesheet" href="css/combat-panel.css?v=20260929-battle-faceoff">
 </head>
 <body>
@@ -29,7 +29,8 @@
   <header class="menu-header">
     <h1 class="menu-brand">NECTARIS</h1>
     <nav class="menu-tabs" aria-label="Sections">
-      <a href="index.html" aria-current="page">Campaigns</a>
+      <a id="tab-campaigns" href="index.html" aria-current="page">Campaigns</a>
+      <a id="tab-history" href="#history" aria-current="false">History</a>
       <a href="tournaments.html">Bot tournament</a>
       <a href="simulator.html">Rust simulator</a>
       <a href="thanks.html">Thanks to the creators</a>
@@ -43,15 +44,10 @@
           <label id="profile-switch" for="profile-select">Switch to <select id="profile-select"></select></label>
         </div>
         <p id="profile-record"></p>
-        <details id="history-section" class="hidden">
-          <summary>Match history</summary>
-          <ol id="profile-history"></ol>
-          <p id="history-count" role="status"></p>
-          <button id="history-more" class="hidden">Show older matches</button>
-        </details>
       </div>
     </details>
   </header>
+  <div id="campaigns-view">
   <div class="library-toolbar">
     <label>Mode
       <select id="opening-select">
@@ -63,8 +59,8 @@
     <label>AI <select id="menu-opponent"></select></label>
   </div>
   <div id="continue-match" class="hidden">
-    <strong>Unfinished match</strong><span id="continue-detail"></span>
-    <button id="continue-button" class="primary">Continue match</button>
+    <strong>Continue</strong>
+    <div id="continue-list" role="group" aria-label="Unfinished matches"></div>
   </div>
   <nav id="level-groups-nav" aria-label="Level collections"></nav>
   <div id="level-groups"></div>
@@ -86,6 +82,23 @@
     Controls: click a unit for blue move destinations and red attack targets · after moving, click a red target to attack; no shot ends automatically · Undo / Redo reverse noncombat actions · Details toggles the inspector · Board: Auto fits the best orientation · controls and reports stay in the left panel without resizing the board · Fit restores the whole board · right-click cancels or undoes; Esc clears selection · wheel zooms · Ctrl+left-drag pans · E ends the side's turn.
     See <a href="MECHANICS.md">MECHANICS.md</a> for the full rules reconstruction.
   </footer>
+  </div>
+
+  <section id="history-view" class="hidden" aria-labelledby="history-heading">
+    <header class="history-header">
+      <h2 id="history-heading">Play history</h2>
+      <p id="history-summary"></p>
+    </header>
+    <p id="history-empty" class="hidden">Nothing played yet. Every match you start, resume, leave, restart or finish is listed here.</p>
+    <div class="history-scroll">
+      <table id="history-table" class="hidden">
+        <thead><tr><th>When</th><th>Event</th><th>Level</th><th>Side</th><th>Turn</th><th>Detail</th></tr></thead>
+        <tbody id="history-list"></tbody>
+      </table>
+    </div>
+    <p id="history-count" role="status"></p>
+    <button id="history-more" class="hidden">Show older events</button>
+  </section>
 </div>
 
 <!-- ============ Pregame compensation ============ -->
@@ -145,7 +158,10 @@
   <!-- Left panel, top to bottom: way out, match status, changing middle
        section, settings, then Undo / Redo and End Turn at the foot. -->
   <div id="topbar">
-    <button id="btn-menu" class="panel-back">◄ Save &amp; Menu</button>
+    <div class="panel-top">
+      <button id="btn-menu" class="panel-back">◄ Save &amp; Menu</button>
+      <button id="btn-restart" title="Start this level again from turn 1">Restart</button>
+    </div>
     <section id="match-status" aria-label="Match status">
       <p id="status-campaign"></p>
       <p id="status-mission"><span id="status-mission-number"></span><span id="map-title"></span></p>
@@ -276,7 +292,8 @@
 <script src="js/combat-panel.js?v=20260929-battle-hexmap"></script>
 <script src="js/battle-report.js?v=20260929-battle-hexmap"></script>
 <script src="js/ui.js?v=20260929-think-overlap"></script>
-<script src="js/profiles.js?v=20260929-left-panel"></script>
-<script src="js/main.js?v=20260929-campaign-notes"></script>
+<script src="js/profiles.js?v=20260930-sessions"></script>
+<script src="js/map-thumbnail.js?v=20260930-sessions"></script>
+<script src="js/main.js?v=20260930-sessions"></script>
 </body>
 </html>

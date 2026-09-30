@@ -36,6 +36,7 @@
   "js/hex.js",
   "js/legacy-terrain.js",
   "js/main.js",
+  "js/map-thumbnail.js",
   "js/move-animation.js",
   "js/music.js",
   "js/sfx.js",

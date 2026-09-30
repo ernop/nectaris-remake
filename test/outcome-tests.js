@@ -6,7 +6,8 @@ module.exports = function (ok) {
   function memory() {
     var data = {};
     return {getItem: function (k) { return data[k] || null; },
-      setItem: function (k,v) { data[k] = v; }};
+      setItem: function (k,v) { data[k] = String(v); }, removeItem: function (k) { delete data[k]; },
+      key: function (i) { return Object.keys(data)[i]; }, get length() { return Object.keys(data).length; }};
   }
   var storage = memory(), store = new PROFILES.Store(storage), p = store.create("Outcomes");
   var cases = [];
@@ -32,29 +33,30 @@ module.exports = function (ok) {
   cases.forEach(function (entry,index) {
     var game = entry.game;
     ok(game.winner === entry.winner && game.winReason === entry.reason, "real engine ending: " + game.map.name);
-    var match = {id:"ending-"+index,options:{campaignIndex:index},state:game.snapshot()};
+    var match = {id:"ending-"+index,key:"campaign:"+index,options:{campaignIndex:index},state:game.snapshot()};
     store.checkpoint(p.id,match);
     store = new PROFILES.Store(storage);
     store.checkpoint(p.id,match);
     var result = store.active().results[index];
     ok(result.winner === entry.winner && result.reason === entry.reason &&
       result.outcome === (entry.winner === 0 ? "win" : "loss"), "ending survives reopen with correct outcome and reason");
-    ok(store.active().results.length === index + 1 && !store.active().savedMatch, "repeated completion is idempotent");
+    ok(store.active().results.length === index + 1 && !store.sessions(p.id).length, "repeated completion is idempotent");
   });
   ok(store.active().results[4].turn === 1, "turn-limit result reports the last playable turn");
-  var newMatch = {id:"new-match",options:{expansionIndex:0},state:timeout.snapshot()};
+  // A newer match on the board of an already finished one.
+  var newMatch = {id:"new-match",key:"campaign:0",options:{campaignIndex:0},state:timeout.snapshot()};
   newMatch.state.winner = null; newMatch.state.winReason = null;
   store.checkpoint(p.id,newMatch);
-  var old = {id:"ending-0",options:{campaignIndex:0},state:cases[0].game.snapshot()};
+  var old = {id:"ending-0",key:"campaign:0",options:{campaignIndex:0},state:cases[0].game.snapshot()};
   store.checkpoint(p.id,old);
-  ok(store.active().savedMatch.id === "new-match", "late old completion does not clear a newer save");
+  ok(store.session(p.id,"campaign:0").id === "new-match", "late old completion does not clear a newer save");
   old.state.winner = null;
   store.checkpoint(p.id,old);
-  ok(store.active().savedMatch.id === "new-match", "old pre-victory checkpoint cannot resurrect a completed match");
-  var invalid = {id:"bad",options:{},state:Object.assign({},newMatch.state,{winner:7})};
+  ok(store.session(p.id,"campaign:0").id === "new-match", "old pre-victory checkpoint cannot resurrect a completed match");
+  var invalid = {id:"bad",key:"campaign:0",options:{},state:Object.assign({},newMatch.state,{winner:7})};
   var rejected = false;
   try { store.checkpoint(p.id,invalid); } catch (e) { rejected = true; }
-  ok(rejected && store.active().savedMatch.id === "new-match", "invalid winner cannot fabricate a loss or erase a save");
+  ok(rejected && store.session(p.id,"campaign:0").id === "new-match", "invalid winner cannot fabricate a loss or erase a save");
   var rec = PROFILES.levelRecord(store.active(),cases[0].game.map,{campaignIndex:0});
   ok(rec.wins === 1 && rec.losses === 0, "per-mission record shows victories");
   ok(PROFILES.levelRecord(store.active(),cases[0].game.map,{expansionIndex:0}).latest === null,
@@ -65,6 +67,6 @@ module.exports = function (ok) {
   ok(PROFILES.levelRecord(other,cases[0].game.map,{campaignIndex:0}).latest === null,
     "mission outcomes are isolated by profile");
   // More than one page of history is retained through a storage round trip.
-  for (var i=0;i<15;i++) store.checkpoint(other.id,{id:"history-"+i,options:{},state:cases[0].game.snapshot()});
+  for (var i=0;i<15;i++) store.checkpoint(other.id,{id:"history-"+i,key:"custom:history",options:{},state:cases[0].game.snapshot()});
   ok(new PROFILES.Store(storage).active().results.length === 15, "all outcome history is retained beyond ten matches");
 };

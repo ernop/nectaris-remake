@@ -87,7 +87,9 @@ module.exports = function (ok) {
 
   function memory() {
     var data = {};
-    return {getItem: function (k) { return data[k] || null; }, setItem: function (k,v) { data[k] = v; }};
+    return {getItem: function (k) { return data[k] || null; }, setItem: function (k,v) { data[k] = String(v); },
+      removeItem: function (k) { delete data[k]; }, key: function (i) { return Object.keys(data)[i]; },
+      get length() { return Object.keys(data).length; }};
   }
   function throws(fn) { try { fn(); return false; } catch (e) { return true; } }
   var storage = memory(), store = new PROFILES.Store(storage);
@@ -97,17 +99,17 @@ module.exports = function (ok) {
   ok(alice.name === "Alice" && alice.cleared.length === 0, "the pre-profile progress record is not imported");
   ok(throws(function () { store.create("alice"); }), "duplicate usernames are rejected case-insensitively");
   ok(throws(function () { store.create("   "); }), "blank usernames are rejected");
-  var match = {id: "match-1", options: {campaignIndex: 5}, state: saved};
+  var match = {id: "match-1", key: "campaign:5", options: {campaignIndex: 5}, state: saved};
   store.checkpoint(alice.id, match);
   var bob = store.create("Bob");
-  ok(!bob.savedMatch && !bob.results.length && !bob.cleared.length, "new profile has independent progress");
+  ok(!store.sessions(bob.id).length && !bob.results.length && !bob.cleared.length, "new profile has independent progress");
   ok(throws(function () { store.checkpoint(alice.id, match); }), "stale tab cannot save into a switched profile");
   store.switchTo(alice.id);
   store = new PROFILES.Store(storage);
-  ok(store.active().savedMatch.id === "match-1", "profile choice and unfinished match survive reopening");
+  ok(store.sessions(alice.id)[0].id === "match-1", "profile choice and unfinished match survive reopening");
   match.state.winner = 0; match.state.winReason = "base";
   store.checkpoint(alice.id, match); store.checkpoint(alice.id, match);
-  ok(store.active().results.length === 1 && !store.active().savedMatch, "victory recorded exactly once and clears continuation");
+  ok(store.active().results.length === 1 && !store.sessions(alice.id).length, "victory recorded exactly once and clears continuation");
   ok(store.active().cleared.indexOf(5) >= 0 && store.active().cleared.indexOf(4) < 0, "winning a later mission only marks that mission cleared");
   match.id = "match-2"; match.state.winner = 1; match.state.winReason = "elimination";
   store.checkpoint(alice.id, match);
@@ -133,9 +135,10 @@ module.exports = function (ok) {
   ok(wilson.name === "Wilson" && fresh.active().id === wilson.id, "a first visit starts as the default profile Wilson");
   ok(fresh.ensureDefault().id === wilson.id && fresh.read().profiles.length === 1,
     "later visits keep the existing profile instead of adding another Wilson");
-  fresh.checkpoint(wilson.id, {id: "wilson-match", options: {}, state: new ENGINE.Game(map, {seed: 1}).snapshot()});
+  fresh.checkpoint(wilson.id, {id: "wilson-match", key: PROFILES.sessionKey(map, {}), options: {},
+    state: new ENGINE.Game(map, {seed: 1}).snapshot()});
   fresh.rename(wilson.id, "  Ada ");
-  ok(fresh.active().id === wilson.id && fresh.active().name === "Ada" && fresh.active().savedMatch.id === "wilson-match",
+  ok(fresh.active().id === wilson.id && fresh.active().name === "Ada" && fresh.sessions(wilson.id)[0].id === "wilson-match",
     "renaming keeps the same profile and its unfinished match");
   fresh.rename(wilson.id, "ADA");
   ok(fresh.active().name === "ADA", "a profile may change the case of its own name");
@@ -147,4 +150,52 @@ module.exports = function (ok) {
   var corrupt = memory(); corrupt.setItem(PROFILES.KEY, "{broken");
   ok(throws(function () { new PROFILES.Store(corrupt).create("Fresh"); }) && corrupt.getItem(PROFILES.KEY) === "{broken", "corrupt data is not silently overwritten");
   ok(throws(function () { ENGINE.Game.restore({version: 999}); }), "unknown save versions fail explicitly");
+
+  // Version 1 kept one unfinished match inside each profile.
+  var oldStorage = memory(), oldMatch = {id: "old-match", options: {campaignIndex: 2, opponent: "classic", opening: "original"},
+    savedAt: "2026-09-29T10:00:00.000Z", state: new ENGINE.Game(map, {seed: 2}).snapshot()};
+  oldStorage.setItem(PROFILES.KEY, JSON.stringify({version: 1, activeId: "p1",
+    profiles: [{id: "p1", name: "Old", results: [], cleared: [4], savedMatch: oldMatch}]}));
+  var upgraded = new PROFILES.Store(oldStorage), oldSessions = upgraded.sessions("p1");
+  ok(upgraded.read().version === 2 && !("savedMatch" in upgraded.active()) && upgraded.active().log.length === 0 &&
+    upgraded.active().cleared[0] === 4 && oldSessions.length === 1 && oldSessions[0].id === "old-match" &&
+    oldSessions[0].key === "campaign:2", "a version 1 profile keeps its stars and moves its unfinished match to its own save");
+
+  // Every board, side and Mode keeps its own unfinished match.
+  var multi = new PROFILES.Store(memory()), player = multi.create("Many");
+  function openMatch(id, options, savedAt) {
+    return {id: id, key: PROFILES.sessionKey(map, options), options: options, savedAt: savedAt,
+      state: new ENGINE.Game(map, {seed: 3}).snapshot()};
+  }
+  function playEvent(event, openedMatch, at) {
+    return {at: at, event: event, match: openedMatch.id, key: openedMatch.key, name: map.name,
+      side: PROFILES.humanSide(openedMatch.options), hotseat: false, opponent: "classic", turn: 1};
+  }
+  var first = openMatch("a", {campaignIndex: 0}, "2020-01-01T10:00:00.000Z");
+  var second = openMatch("b", {campaignIndex: 1}, "2020-01-01T11:00:00.000Z");
+  var xenon = openMatch("c", {campaignIndex: 0, humanSide: 1}, "2020-01-01T12:00:00.000Z");
+  multi.record(player.id, playEvent("start", first, "2020-01-01T10:00:00.000Z"));
+  [first, second, xenon].forEach(function (m) { multi.checkpoint(player.id, m); });
+  ok(multi.sessions(player.id).map(function (m) { return m.id; }).join() === "c,b,a" &&
+    multi.session(player.id, "campaign:0").id === "a" && multi.session(player.id, "campaign:0:xenon").id === "c",
+    "unfinished matches on several boards and sides are kept side by side, newest first");
+  second.state.winner = 0; second.state.winReason = "base";
+  multi.checkpoint(player.id, second);
+  ok(multi.sessions(player.id).length === 2 && multi.session(player.id, "campaign:1") === null && multi.active().results.length === 1,
+    "finishing one match records it and removes only its own save");
+  multi.abandon(player.id, first, playEvent("abandon", first, "2020-01-01T13:00:00.000Z"));
+  multi.checkpoint(player.id, first);
+  multi.record(player.id, playEvent("leave", first, "2020-01-01T14:00:00.000Z"));
+  ok(multi.session(player.id, "campaign:0") === null && multi.active().log.length === 2,
+    "an abandoned match stays in the history, and late saves or events cannot reopen it");
+  var attemptsOn = PROFILES.attemptCounts(multi.active(), multi.sessions(player.id));
+  ok(attemptsOn(map, {campaignIndex: 0}) === 2 && attemptsOn(map, {campaignIndex: 1}) === 1 && attemptsOn(map, {campaignIndex: 2}) === 0,
+    "attempts count every match begun on a board, on either side, finished or not");
+  ok(PROFILES.history(multi.active()).map(function (e) { return e.event + ":" + e.match; }).join() === "win:b,abandon:a,start:a",
+    "the history lists results and play events newest first");
+  var totals = PROFILES.summary(multi.active(), multi.sessions(player.id));
+  ok(totals.attempts === 3 && totals.wins === 1 && totals.losses === 0 && totals.abandoned === 1 && totals.open === 1,
+    "the history summary counts attempts, results, abandoned and unfinished matches");
+  ok(throws(function () { multi.checkpoint(player.id, {id: "keyless", options: {}, state: xenon.state}); }) &&
+    multi.sessions(player.id).length === 1, "a match without the key of its board cannot be saved");
 };

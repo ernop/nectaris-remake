@@ -5,6 +5,85 @@ identified where relevant. Mechanics reconstruction (with sources) lives in
 `MECHANICS.md`. [PROJECT_GUIDE.md](PROJECT_GUIDE.md) indexes current guidance,
 pending work, experiments and historical evidence.
 
+## Mission menu: map pictures, attempts, unfinished matches and play history (2026-09-30)
+
+The user found the level list overwhelming and asked: remove the size and unit
+count columns; make "as Xenon" subtler; show a small map next to each level;
+count every attempt, including interrupted ones ("if i click into one, play a
+while, then close or leave ... at least indicate we played it once"); drop
+"opening a new map will cancel your old in-progress session" so that "every
+board can be being played by me at once"; and add a top-level history of every
+play action in sequence (started, lost, won, quit), where looking at a map
+without starting it needs no entry. Implemented; this supersedes the conflicting
+parts of the records below, which point here.
+
+- **Level entry**, one line: map picture, number, name, the unfinished match
+  ("Resume turn N" in gold), the record, then **as Xenon**. No column headings,
+  map size or army totals. Clicking the picture or the name plays.
+- **Map picture** (`js/map-thumbnail.js`): the starting position drawn pixel by
+  pixel within 80 × 40 CSS pixels, at the display's pixel density. Terrain in
+  the Legacy tiles' colors; bases and factories in their owner's colors (neutral
+  bases near-white, neutral factories yellow); each starting unit a dot in its
+  army's color. Hills and mountains get relief shading and hexes get edges once
+  a hex is large enough to show them. The menu draws every picture as it opens,
+  so a terrain letter the picture has no color for stops the menu with an error;
+  the tests paint every shipped level and every terrain letter.
+- **Record:** "N attempts · xW / yL · h hotseat". Attempts count every match begun
+  on the board: either side, any Mode, solo or hotseat, finished, left, abandoned
+  or still open. The W/L and hotseat numbers are this row's results (Union side,
+  in the Mode selected in the settings row). A level won before per-level
+  results existed still reads "Cleared".
+- **as Xenon:** small white text after a small green hexagon; "as Xenon ✓" once
+  won; "· turn N" when its match is unfinished. Struck through and disabled while
+  Two players (hotseat) is ticked.
+- **Unfinished matches:** one per board, side (Union or Xenon), Mode (Normal or
+  Offer for first) and players (solo or hotseat). Opening an entry resumes its
+  unfinished match or starts a new one; opening another level never ends or asks
+  about any other match. The **Continue** line above the collections lists every
+  unfinished match, newest first, with its turn and, where they apply, Xenon,
+  Hotseat and Offers. A match whose offers ended without a deal (a Normal
+  opening) stays in the Offer for first slot it was opened from.
+- **When a match begins:** it is saved, counted and entered in the history only
+  once the player changes it (a move, attack, deployment or End Turn) or answers
+  the Offer for first questions. Opening a level to look at it and going back
+  leaves nothing. The comparison starts when the player first has control, so
+  the AI's opening turn against a Xenon player is not the player's action.
+- **Restart** (match panel, beside Save & Menu): the level again from turn 1 in
+  the same slot. A match under way asks first and is recorded as abandoned; the
+  Offer for first questions are asked again.
+- **History tab** (`index.html#history`, next to Campaigns on every page): the
+  active profile's play actions, newest first, one line each: time; event
+  (Started, Resumed, Left, Abandoned, Won, Lost, or "Union won" / "Xenon won" in
+  hotseat); collection, number and level name; side (Union, Xenon or Hotseat);
+  turn; and detail (the ending for results, "vs" and the bot for a solo start).
+  Totals above it: attempts, won, lost, hotseat, abandoned, in progress. 200
+  events at a time, then **Show older events**. **Left** is recorded when the
+  player leaves an unfinished match he changed during this visit (Save & Menu,
+  closing or reloading the page, navigating away); **Resumed** when he changes
+  a match again after coming back to it. Results recorded before this change appear as Won /
+  Lost. The collapsed match history leaves the profile menu; the win/loss line
+  stays there.
+- **Storage:** profile data version 2, still under `nectaris-profiles-v1`. Each
+  profile gains `log`, its play events. Unfinished matches move out of the
+  profile into one key each, `nectaris-session-v1:<profile id>:<slot key>` (the
+  level key, plus `:hotseat` for hotseat), so saving a move rewrites only that
+  match. A version 1 profile is upgraded on first read: stars, results and its
+  unfinished match are kept, the match moving to its slot. Implementation
+  choice: the upgrade moves the profile container only; a match snapshot is
+  still checked when it is opened (see the next item). A full browser storage
+  shows the save error; finishing or restarting matches frees space.
+- **A save this version cannot open** shows the reason and offers to give it up
+  (recorded as abandoned) and start the level again, so it never blocks its board.
+- **Other tabs:** a tab stops its match and returns to the menu only when another
+  tab writes that same match, clears the site's storage or switches profile.
+  Matches on other boards carry on. The menu redraws when another tab changes
+  saves or results.
+
+Rationale: one save per board and slot lets the player move between levels
+freely; recording actions rather than visits keeps "attempts" meaningful; one
+storage key per match keeps a save small and stops matches overwriting each
+other.
+
 ## Campaign menu for new players (2026-09-26)
 
 The user asked for a much simpler first page whose job is getting a new player
@@ -21,16 +100,18 @@ profile and opening-choice records below.
 - **Profile:** the upper-right corner reads "You are logged in as Wilson". A first
   visit creates the profile **Wilson** without asking. Clicking the corner opens
   **Rename**, **New profile** and **Switch to** (only with two or more profiles).
-  Rename keeps the profile's results, stars and unfinished match. Implementation
-  choice: the win/loss line and the collapsed match history (one line per match)
-  also live in that menu. This supersedes the first-visit username prompt and
-  the large player-profile panel.
+  Rename keeps the profile's results, stars and unfinished matches. Implementation
+  choice: the win/loss line also lives in that menu (the collapsed match history
+  that sat under it moved to the History tab on 2026-09-30). This supersedes the
+  first-visit username prompt and the large player-profile panel.
 - **Settings row** under the title: **Mode** (**Normal**, the default, or **Offer
   for first**), **Two players (hotseat)** and **AI** (the bot for moves and offers).
   The user named the second mode only approximately ("like new user offer"); it
   keeps its earlier name. The map-default mode and the explanatory paragraphs are
-  removed; a stored map-default preference opens as Normal. **Continue match** is
-  one line, shown only when a match is saved.
+  removed; a stored map-default preference opens as Normal. The **Continue** line
+  appears only while a match is unfinished; since 2026-09-30 it lists every
+  unfinished match (see Mission menu: map pictures, attempts, unfinished matches
+  and play history).
 - **Removed:** the briefing-language option, per the user's instruction not to
   keep language as a setting (English only; the Base Nectaris data keeps its
   Japanese fields), and the "Briefings & making-of notes: ?" legend.
@@ -354,9 +435,11 @@ number, and his side, large, plus unit counts. Behavior:
 - **Undo / Redo** share a row (15 px, the enabled state in gold); **End Turn** is
   a 52 px gold button (20 px, black text). The end-turn confirmation opens beside
   the panel.
+- **Top row** (2026-09-30): **Restart** sits beside Save & Menu; see Mission
+  menu: map pictures, attempts, unfinished matches and play history.
 - **Playing Union or Xenon:** every mission-menu entry keeps its whole-row Play
   (as Union, the first mover) and adds an **As Xenon** button at the end of the
-  row (light green; a check mark once won). Chosen from the menu only; disabled
+  row (a check mark once won; small white text since 2026-09-30). Chosen from the menu only; disabled
   while Two players (hotseat) is ticked. The AI takes the other side and moves
   first when it is Union. The human's side is saved with the match
   (`humanSide`; saves without it are Union matches), so Continue restores it, and
@@ -851,6 +934,9 @@ instead of rendering an empty slot.
 
 ## Mission-list force totals (updated 2026-09-23)
 
+Superseded on 2026-09-30: entries show a map picture and no army totals (see
+Mission menu: map pictures, attempts, unfinished matches and play history).
+
 Every campaign, expansion and custom-level entry lists total squads in this
 order: **Union, Xenon, Neutral**. Include fielded units and each side's stored
 reserves; unowned factory inventories count as Neutral, never as either army.
@@ -871,7 +957,8 @@ one on narrower screens. This supersedes the two-column desktop maximum; it is
 not a requirement for only one listing across the entire page.
 
 Keep corresponding fields aligned down each column. In the mission library,
-names, dimensions, faction totals and results remain on the same line. Use
+map pictures, names, unfinished-match turns and records remain on the same line
+(dimensions and faction totals were removed on 2026-09-30). Use
 horizontal scrolling when necessary, preserving full text rather than wrapping,
 fading or truncating it. The earlier two-line dense cards are superseded.
 This comparison rule does not prohibit paragraphs in deliberate detail popups.
@@ -1043,9 +1130,10 @@ victory for Xenon is stated during negotiation and remains unchanged.
 
 Cancelling setup preserves the previous saved match. Negotiation drafts are
 not persisted. Started matches save the chosen package, exact placements and
-first-player identity, both switch points and the question history; Continue
-does not renegotiate, while playing a level again does. Older saved agreements
-remain valid.
+first-player identity, both switch points and the question history. Resuming
+an unfinished match (Continue or its level entry) does not renegotiate; a new
+match on the level (after a finished one, or Restart) asks again. Older saved
+agreements remain valid.
 Compensated results use separate level keys and never award original campaign
 completion stars. Match history and the game toolbar identify the accepted
 compensation. Balance needs playtesting across maps, player skill and opening
@@ -1340,7 +1428,7 @@ The implemented content layout is:
 | Location | Visible content |
 | --- | --- |
 | Collection header | Category, title, one-line introduction, number of levels won and a small help button |
-| Every level entry | One line containing number, name, map dimensions, aligned Union/Xenon/Neutral totals and any personal result; the entry itself is the Play target |
+| Every level entry | One line containing map picture, number, name, unfinished match, attempts and personal results, then As Xenon; the entry itself is the Play target (since 2026-09-30; previously map dimensions and Union/Xenon/Neutral totals) |
 | Level help | Briefing, design/special notes, tags, author/terrain attribution, source link and last-match detail, where supplied |
 | Collection help | Making-of context, provenance and links to the detailed collection record |
 
@@ -1351,8 +1439,7 @@ button. Keep the edge `?` a separate action. This correction supersedes the
 initial card layout; retain the shared structure for normal, advanced, AI-made,
 Lunar Frontiers, Base Nectaris and custom collections. Preserve campaign numbering and saved result keys.
 Count solo victories once per level for group progress; keep legacy campaign
-clearance and separate hotseat result records. Show the three faction totals
-according to the force-count rule above. Results never add a second line.
+clearance and separate hotseat result records. Results never add a second line.
 
 Clicking anywhere in the main entry area launches its match; focusing or hovering
 that area never opens details. Hovering the small help button deliberately opens its panel after a
@@ -1400,7 +1487,8 @@ Since 2026-09-26 a first visit starts as the profile **Wilson** instead of
 asking for a username; **Rename** changes it (1–24 characters, unique ignoring
 case). The last-used profile stays selected; the corner profile menu offers
 Rename, New profile and Switch to. Each browser-local profile has its own campaign stars, complete
-match-result history (ten per page, with Show older matches), and one unfinished match. Solo results
+play history (the History tab) and, since 2026-09-30, one unfinished match per board, side, Mode
+and players (see Mission menu: map pictures, attempts, unfinished matches and play history). Solo results
 are wins/losses from Union's perspective; hotseat records name the winning side
 and are counted separately. A later campaign win marks only that mission.
 No backward compatibility (user, 2026-09-26): a saved match from an older
@@ -1412,23 +1500,28 @@ Save & Menu, page hiding, and navigation also checkpoint. Uncommitted moves are
 rolled back in the saved copy. Animated AI turns retain their start checkpoint
 until completion; resuming replays that turn deterministically. Snapshots preserve
 unit identities, cargo, factory inventory/ownership, action flags, movement
-budgets, custom types, turn/player and the random generator state. The menu's
-Continue match restores the save; starting another match asks before replacing
-it. Match IDs make recording outcomes idempotent.
+budgets, custom types, turn/player and the random generator state. The Continue
+line and each level entry resume their saves; starting another match leaves the
+others unfinished. Match IDs make recording outcomes idempotent.
 
-`js/profiles.js` owns versioned localStorage data under `nectaris-profiles-v1`.
+`js/profiles.js` owns versioned localStorage data under `nectaris-profiles-v1`,
+with each unfinished match under its own `nectaris-session-v1:` key.
 These are local profiles without accounts or cloud sync. The browser and origin
 must match; clearing site data removes profiles. Storage failures are visible;
-corrupt data is never silently overwritten. A storage change from another tab
-stops this tab's match and returns to the menu without writing stale state.
+corrupt data is never silently overwritten. Another tab writing the same match,
+clearing storage or switching profile stops this tab's match and returns to the
+menu without writing stale state.
 
 
 ## Outcome history (2026-09-20)
 
-Match history exposes all recorded results, ten at a time, newest first. Each
+Since 2026-09-30 the History tab lists every result among the play events, 200
+at a time (see Mission menu: map pictures, attempts, unfinished matches and play
+history); mission entries show attempts, solo win/loss totals and hotseat
+count, and the latest result moved to the level's help panel. Originally: match
+history exposed all recorded results, ten at a time, newest first. Each
 entry shows victory/defeat (or the hotseat winning faction), ending reason,
-turn and timestamp. Mission cards show the profile's solo win/loss totals,
-hotseat count and latest result. New entries identify their campaign/pack and
+turn and timestamp. New entries identify their campaign/pack and
 mission index; custom map keys include the title and layout. Old entries without
 keys remain readable and match by title.
 

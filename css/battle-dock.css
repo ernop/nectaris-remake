@@ -60,7 +60,9 @@
 #game-screen #topbar p { margin: 0; }
 #game-screen #topbar button:disabled { color: #fff; }
 
-#game-screen .panel-back { padding: 6px 10px; font-size: 14px; font-weight: 700; color: #fff; text-align: left; }
+#game-screen .panel-top { display: flex; gap: 6px; }
+#game-screen .panel-back { flex: 1 1 auto; min-width: 0; padding: 6px 10px; font-size: 14px; font-weight: 700; color: #fff; text-align: left; }
+#game-screen #btn-restart { flex: none; padding: 6px 10px; font-size: 14px; font-weight: 700; color: #fff; }
 
 /* Status block: campaign, mission, my side, turn, counts. */
 #match-status { display: flex; flex-direction: column; gap: 6px; padding: 8px 0 10px;

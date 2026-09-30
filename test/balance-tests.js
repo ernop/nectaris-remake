@@ -140,7 +140,7 @@ module.exports=function(ok){
   var at=ap.sites[0][5];atomic.units.push(E.makeUnit("LENET",0,at.col,at.row));var count=atomic.units.length;
   ok(fails(function(){B.apply(atomic,ap,last);})&&atomic.units.length===count&&!atomic.balance,"a blocked slot rejects the entire package without partial additions");
   var storeData={},store=new P.Store({getItem:function(k){return storeData[k]||null;},setItem:function(k,v){storeData[k]=v;}}),profile=store.create("Offers test");
-  g.winner=0;g.winReason="base";store.checkpoint(profile.id,{id:"balanced",options:{campaignIndex:0,opening:"offers",balance:g.balance},state:g.snapshot()});
+  g.winner=0;g.winReason="base";store.checkpoint(profile.id,{id:"balanced",key:"campaign:0:offers",options:{campaignIndex:0,opening:"offers",balance:g.balance},state:g.snapshot()});
   var record=store.active();
   ok(record.results[0].balance.label===g.balance.label && record.results[0].firstPlayer===1 && record.cleared.length===0,
     "balanced results record the opening without awarding an original-campaign clear");

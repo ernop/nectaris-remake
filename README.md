@@ -57,7 +57,8 @@ editor with URL sharing.
 | `js/music.js` | Original synthesized military chiptune (Web Audio; no audio files) |
 | `js/sfx.js`, `js/sfx-bank-*.js` | Selectable original synthesized soundscapes with an off-by-default toggle (Web Audio; no audio files) |
 | `js/ui.js`, `js/main.js` | Game UI and boot/menu |
-| `js/profiles.js` | Local player profiles, match saves and result history |
+| `js/profiles.js` | Local player profiles, unfinished-match saves, results and play history |
+| `js/map-thumbnail.js` | Small pictures of each level's starting position for the mission menu |
 | `js/editor.js` | Editor logic |
 | `test/run-tests.js` | Node test suite (`node test/run-tests.js`) |
 | `tools/unit-sheet.html` | Native roster review: Union, Xenon, attacking, spent, contrast and silhouette checks |
@@ -110,28 +111,36 @@ game state (campaign progress, custom levels, custom units) lives in
 
 Your first visit starts as **Wilson**; nothing asks for a name. Click **You are
 logged in as Wilson** in the upper-right corner to **Rename**, add a **New
-profile** or **Switch to** another one. Each has independent campaign stars,
-win/loss history, and one unfinished match. Mission cards show your record;
-**Match history** in the same menu includes why each match ended, when, and on which turn.
-Use **Show older matches** to browse beyond the latest ten results.
+profile** or **Switch to** another one. Each has its own campaign stars,
+results, play history and unfinished matches.
 
-Progress saves automatically after actions. **Save & Menu** leaves the match;
-**Continue match** restores it, including after closing and reopening the page.
-Starting a different match asks before replacing your current save. An interrupted
-AI turn resumes from its start. Completed moves and their undo history
-survive a save or reload.
+Each level shows a small picture of its map, **Resume turn N** when you have an
+unfinished match there, how many times you have started it, and your wins and
+losses. Every level can have an unfinished match at the same time (separately
+as Union, as Xenon, in each Mode and in hotseat): leave one with **Save &
+Menu**, open another, and come back to either from its entry or the
+**Continue** line. Opening a level only to look at it leaves no save and no
+history entry; your first move starts the match. **Restart** in the match panel
+begins the level again from turn 1 and records a match under way as abandoned.
+
+The **History** tab lists every match you started, resumed, left, abandoned,
+won or lost, newest first, with its level, side and turn and how it ended.
+
+Progress saves automatically after actions and survives closing and reopening
+the page. An interrupted AI turn resumes from its start. Completed moves and
+their undo history survive a save or reload.
 Hotseat results record the winning faction separately from solo wins/losses.
 
 Profiles stay in this browser at the same address—there is no cloud sync.
-Clearing site data removes them. Existing campaign stars migrate to your first
-profile. Storage problems display an error instead of claiming progress is saved.
+Clearing site data removes them. Storage problems display an error instead of
+claiming progress is saved.
 
 ## Choosing the opening
 
 The **Mode** dropdown under the title offers **Normal** (the default: Union
 first, original armies) and **Offer for first** (guided second-player
-compensation). Choose one, then click a level. Your choice persists; **Continue
-match** keeps the saved opening.
+compensation). Choose one, then click a level. Your choice persists; resuming
+an unfinished match keeps its saved opening.
 
 In the guided setup, inspect the battlefield and fixed numbered bonus sites,
 then answer **“Would you accept X to go second?”** You can select any earlier

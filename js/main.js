@@ -1,4 +1,4 @@
-/* Nectaris remake — boot, mission menu, custom-level loading, progress. */
+/* Nectaris remake — boot, mission menu, play history, custom-level loading, progress. */
 "use strict";
 
 (function () {
@@ -13,10 +13,13 @@
   var CUSTOM_UNITS_KEY = "nectaris-custom-units";
   var profiles;
   var activeProfile = null;
-  var currentMatchId = null;
-  var currentProfileId = null;
-  var readyToSave = false;
-  var historyLimit = 10;
+  // The match on screen: {id, profileId, key, mapDef, resumed, acted, baseline}.
+  // A match is saved and enters the history only once the player changes it;
+  // opening a level to look at it leaves no trace. `baseline` is the position
+  // when the player first had control, so any later difference is play.
+  var visit = null;
+  var HISTORY_PAGE = 200;
+  var historyLimit = HISTORY_PAGE;
   var historyProfileId = null;
 
   function reportSaveError(error) {
@@ -24,16 +27,70 @@
     $("save-error").classList.remove("hidden");
   }
 
+  function playerHasControl(state) {
+    return state.winner === null && (!!currentOptions.hotseat || state.currentPlayer === currentOptions.humanSide);
+  }
+  function playEntry(event, turn) {
+    return {at: new Date().toISOString(), event: event, match: visit.id, key: visit.key, name: visit.mapDef.name,
+      side: currentOptions.humanSide, hotseat: !!currentOptions.hotseat, opponent: currentOptions.opponent, turn: turn};
+  }
+  function logEvent(event, turn) { profiles.record(visit.profileId, playEntry(event, turn)); }
+
   function saveMatch(ui) {
-    if (!readyToSave || !ui || !currentMatchId) return true;
+    if (!visit || ui !== currentUI) return true;
     try {
       var state = ui.snapshotForSave();
       if (!state) return true;
-      profiles.checkpoint(currentProfileId, {id: currentMatchId, options: currentOptions,
-        savedAt: new Date().toISOString(), state: state});
+      if (!visit.acted) {
+        var position = JSON.stringify(state);
+        if (visit.baseline === null) { if (playerHasControl(state)) visit.baseline = position; }
+        else if (position !== visit.baseline) {
+          visit.acted = true;
+          logEvent(visit.resumed ? "resume" : "start", state.turn);
+        }
+      }
+      if (visit.acted || visit.resumed || state.winner !== null) {
+        profiles.checkpoint(visit.profileId, {id: visit.id, key: visit.key, options: currentOptions,
+          savedAt: new Date().toISOString(), state: state});
+      }
       $("save-error").classList.add("hidden");
       return true;
     } catch (error) { reportSaveError(error); return false; }
+  }
+
+  // Save the match on screen and end its visit. False when saving failed, so
+  // the player stays in the match instead of losing it.
+  function leaveMatch() {
+    if (!visit) return true;
+    if (!saveMatch(currentUI)) return false;
+    try { if (visit.acted && currentUI.game.winner === null) logEvent("leave", currentUI.game.turn); }
+    catch (error) { reportSaveError(error); return false; }
+    visit = null;
+    return true;
+  }
+
+  // The options that open a board's slot afresh: the same side, players and
+  // Mode. A match whose offers ended without a deal still belongs to the
+  // Offer for first slot it was opened from.
+  function freshOptions(key, options) {
+    var fresh = Object.assign({}, options, {opening: /:offers(:xenon)?(:hotseat)?$/.test(key) ? "offers" : "original"});
+    delete fresh.balance;
+    return fresh;
+  }
+
+  // Start the match on screen again from the level's opening position. A match
+  // already under way asks first and stays in the history as abandoned.
+  function restartMatch() {
+    if (!visit || !currentUI) return;
+    var game = currentUI.game, begun = (visit.acted || visit.resumed) && game.winner === null;
+    if (begun && !window.confirm("Restart " + visit.mapDef.name + " from turn 1? This match ends here and stays in your history as abandoned.")) return;
+    var mapDef = visit.mapDef, fresh = freshOptions(visit.key, currentOptions);
+    if (begun) {
+      try { profiles.abandon(visit.profileId, {id: visit.id, key: visit.key}, playEntry("abandon", game.turn)); }
+      catch (error) { reportSaveError(error); return; }
+    }
+    visit = null;
+    startGame(mapDef, fresh);
   }
 
   var renamingProfile = false;
@@ -70,46 +127,137 @@
     $("profile-record").textContent = wins + (wins === 1 ? " win · " : " wins · ") +
       losses + (losses === 1 ? " loss · " : " losses · ") + hotseatCount +
       (hotseatCount === 1 ? " hotseat match" : " hotseat matches");
-    var saved = activeProfile && activeProfile.savedMatch;
-    $("continue-match").classList.toggle("hidden", !saved);
-    $("continue-detail").textContent = saved ? saved.state.map.name + " · Turn " + saved.state.turn +
-      " · " + (saved.options.hotseat ? "Hotseat" : "Solo") + " · Saved " + new Date(saved.savedAt).toLocaleString() : "";
-    if (historyProfileId !== (activeProfile && activeProfile.id)) historyLimit = 10;
+    if (historyProfileId !== (activeProfile && activeProfile.id)) historyLimit = HISTORY_PAGE;
     historyProfileId = activeProfile && activeProfile.id;
-    renderHistory();
   }
 
-  function renderHistory() {
-    var results = activeProfile ? activeProfile.results : [];
-    var history = $("profile-history");
-    history.replaceChildren();
-    results.slice(-historyLimit).reverse().forEach(function (result) {
-      var row = document.createElement("li");
-      var title = document.createElement("strong");
-      title.textContent = result.name + " — " + PROFILES.outcomeLabel(result);
-      title.className = result.hotseat ? "outcome-hotseat" : "outcome-" + result.outcome;
-      var detail = document.createElement("span");
-      detail.textContent = PROFILES.reasonLabel(result.reason) + " · " +
-        (result.hotseat ? "Hotseat" : "Solo" + (result.humanSide === 1 ? " as Xenon" : "")) + " · Turn " + result.turn + " · " +
-        new Date(result.endedAt).toLocaleString() + (result.balance ? " · Offers: "+
-          (result.balance.secondPlayer===0?"Union":"Xenon")+" second · "+result.balance.label : "") + (!result.hotseat && result.opponent ?
-          " · " + AI_SEARCH.get(result.opponent).label : "");
-      row.appendChild(title); row.appendChild(detail);
-      history.appendChild(row);
+  // Text whose numbers stand out from their words: numbers become <strong>.
+  function addFigures(node, pieces) {
+    pieces.forEach(function (piece) {
+      node.appendChild(menuText(typeof piece === "number" ? "strong" : "span", "", String(piece)));
     });
-    $("history-count").textContent = "Showing " + Math.min(historyLimit, results.length) + " of " + results.length + " matches";
-    $("history-more").classList.toggle("hidden", historyLimit >= results.length);
-    $("history-section").classList.toggle("hidden", !results.length);
+    return node;
+  }
+  function figures(tag, className, pieces) { return addFigures(menuText(tag, className, ""), pieces); }
+  function sideName(options) {
+    return options.hotseat ? "Hotseat" : PROFILES.humanSide(options) === 1 ? "Xenon" : "Union";
   }
 
-  function appendLevelRecord(host, map, options) {
-    var record = PROFILES.levelRecord(activeProfile, map, options);
-    var status = document.createElement("span");
-    status.className = "mission-record";
-    status.textContent = record.latest ? PROFILES.outcomeLabel(record.latest) + " · " +
-      record.wins + "W / " + record.losses + "L" + (record.hotseat ? " · " + record.hotseat + " hotseat" : "") :
-      (levelWasWon(map, options) ? "Cleared" : "");
-    host.appendChild(status);
+  // Every unfinished match, newest first, one click from the menu.
+  function renderContinue(open) {
+    var list = $("continue-list");
+    list.replaceChildren();
+    open.forEach(function (match) {
+      var chip = menuText("button", "continue-chip", "");
+      chip.type = "button";
+      chip.appendChild(menuText("span", "continue-name", match.state.map.name));
+      chip.appendChild(figures("span", "continue-turn", ["turn ", match.state.turn]));
+      var side = sideName(match.options), offers = /:offers(:xenon)?(:hotseat)?$/.test(match.key);
+      if (side !== "Union" || offers) {
+        chip.appendChild(menuText("span", "continue-mode", [side === "Union" ? "" : side, offers ? "Offers" : ""].filter(Boolean).join(" · ")));
+      }
+      chip.setAttribute("aria-label", "Continue " + match.state.map.name + ", turn " + match.state.turn);
+      chip.onclick = function () { closeMenuHelp(); startGame(match.state.map, match.options, match); };
+      list.appendChild(chip);
+    });
+    $("continue-match").classList.toggle("hidden", !open.length);
+  }
+
+  // Where each board sits in the menu, for naming it in the history.
+  function levelIndex() {
+    var index = {};
+    levelGroups().forEach(function (group) {
+      group.levels.forEach(function (lv, i) {
+        index[PROFILES.boardKey(lv, levelOptions(group, i))] = {campaign: group.title, number: i + 1 + (group.offset || 0)};
+      });
+    });
+    return index;
+  }
+  var HISTORY_EVENTS = {start: "Started", resume: "Resumed", leave: "Left", abandon: "Abandoned", win: "Won", loss: "Lost"};
+  function historyTime(at) {
+    var date = new Date(at);
+    return date.toLocaleString(undefined, {year: date.getFullYear() === new Date().getFullYear() ? undefined : "numeric",
+      month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"});
+  }
+  // Every start, resume, exit, restart and result of the profile, newest first.
+  function renderHistory(open) {
+    var list = $("history-list"), summary = $("history-summary");
+    list.replaceChildren(); summary.replaceChildren();
+    if (!activeProfile) return;
+    var entries = PROFILES.history(activeProfile), where = levelIndex(), count = PROFILES.summary(activeProfile, open);
+    addFigures(summary, [count.attempts, count.attempts === 1 ? " attempt · " : " attempts · ",
+      count.wins, " won · ", count.losses, " lost · ", count.hotseat, " hotseat · ",
+      count.abandoned, " abandoned · ", count.open, " in progress"]);
+    entries.slice(0, historyLimit).forEach(function (entry) {
+      var row = document.createElement("tr");
+      row.className = "history-" + entry.event;
+      var place = entry.key && where[PROFILES.boardOf(entry.key)];
+      var level = menuText("td", "history-level", "");
+      if (place) {
+        level.appendChild(menuText("span", "history-campaign", place.campaign + " "));
+        level.appendChild(menuText("strong", "history-number", String(place.number).padStart(2, "0") + " "));
+      }
+      level.appendChild(menuText("span", "history-name", entry.name));
+      row.appendChild(menuText("td", "history-time", historyTime(entry.at)));
+      row.appendChild(menuText("td", "history-event", entry.event === "hotseat" ?
+        (entry.winner === 0 ? "Union won" : "Xenon won") : HISTORY_EVENTS[entry.event]));
+      row.appendChild(level);
+      var side = sideName({hotseat: entry.hotseat, humanSide: entry.side});
+      var sideCell = menuText("td", "history-side", side);
+      sideCell.setAttribute("data-side", side.toLowerCase());
+      row.appendChild(sideCell);
+      row.appendChild(figures("td", "history-turn", ["turn ", entry.turn]));
+      var result = entry.event === "win" || entry.event === "loss" || entry.event === "hotseat";
+      var detail = result ? PROFILES.reasonLabel(entry.reason) :
+        entry.event === "start" && !entry.hotseat ? "vs " + AI_SEARCH.get(entry.opponent).label : "";
+      row.appendChild(menuText("td", "history-detail", detail));
+      list.appendChild(row);
+    });
+    $("history-empty").classList.toggle("hidden", entries.length > 0);
+    $("history-table").classList.toggle("hidden", !entries.length);
+    $("history-count").textContent = entries.length > historyLimit ?
+      "Showing the latest " + historyLimit + " of " + entries.length + " events" : "";
+    $("history-more").classList.toggle("hidden", historyLimit >= entries.length);
+  }
+
+  // Campaigns and History share this page; #history in the address picks the view.
+  function showView() {
+    var history = location.hash === "#history";
+    $("campaigns-view").classList.toggle("hidden", history);
+    $("history-view").classList.toggle("hidden", !history);
+    $("tab-campaigns").setAttribute("aria-current", history ? "false" : "page");
+    $("tab-history").setAttribute("aria-current", history ? "page" : "false");
+  }
+  function switchView() {
+    var toHistory = location.hash === "#history";
+    if (toHistory === $("campaigns-view").classList.contains("hidden")) return;
+    if (toHistory) menuScrollTop = window.scrollY || 0;
+    closeMenuHelp();
+    showView();
+    window.scrollTo(0, toHistory ? 0 : menuScrollTop);
+  }
+
+  function openMatch(open, level, options) {
+    var key = PROFILES.sessionKey(level, options);
+    return open.find(function (match) { return match.key === key; }) || null;
+  }
+  function resumeCell(match) {
+    return match ? figures("span", "level-resume", ["Resume turn ", match.state.turn]) : menuText("span", "level-resume", "");
+  }
+  // Attempts on the board (either side, any Mode), then this row's own record.
+  function recordCell(level, options, attempts) {
+    var record = PROFILES.levelRecord(activeProfile, level, options), pieces = [];
+    function add(number, label) { if (pieces.length) pieces[pieces.length - 1] += " · "; pieces.push(number, label); }
+    if (attempts) add(attempts, attempts === 1 ? " attempt" : " attempts");
+    if (record.wins || record.losses) { add(record.wins, "W / "); pieces.push(record.losses, "L"); }
+    if (record.hotseat) add(record.hotseat, " hotseat");
+    if (!pieces.length && levelWasWon(level, options)) return menuText("span", "mission-record", "Cleared");
+    return figures("span", "mission-record", pieces);
+  }
+  function thumbnail(level) {
+    var cell = menuText("span", "level-thumb", "");
+    cell.appendChild(MAP_THUMBNAIL.canvas(level, 80, 40));
+    return cell;
   }
 
   function getCustomLevels() {
@@ -133,30 +281,58 @@
     return options.opening || $("opening-select").value;
   }
 
+  function preferredOpponent() {
+    var id = $("menu-opponent").value || "classic";
+    try { id = localStorage.getItem("nectaris-opponent") || id; } catch (e) { /* optional preference */ }
+    return id;
+  }
+
+  // Open a level. Each board has one unfinished match per side, Mode and
+  // number of players; opening the level again resumes it. `saved` resumes a
+  // particular match (from Continue).
   function startGame(mapDef, opts, saved) {
-    opts = Object.assign({}, opts || {});
-    if (saved && (!opts.opponent || (opts.opening !== "original" && opts.opening !== "offers"))) {
-      throw new Error("This saved match is from an older version and cannot be loaded.");
-    }
-    if (!saved) { opts.opening = openingMode(opts); delete opts.balance; }
-    // Every launch states its side; a hotseat match is Union's by convention.
-    opts.humanSide = PROFILES.humanSide(opts);
-    var preferredOpponent = $("menu-opponent").value || "classic";
-    try { preferredOpponent = localStorage.getItem("nectaris-opponent") || preferredOpponent; } catch (e) { /* optional preference */ }
-    opts.opponent = AI_SEARCH.get(saved ? opts.opponent : opts.opponent || preferredOpponent).id;
     if (!activeProfile) { openProfileForm(); return; }
-    if (!saveMatch(currentUI)) return;
-    var profile;
-    var game;
+    if (!leaveMatch()) return;
+    opts = Object.assign({}, opts || {});
+    var profile, game, key;
     try {
       profile = profiles.active();
       if (!profile || profile.id !== activeProfile.id) throw new Error("Profile changed. Return to the menu and choose your profile.");
-      if (!saved && profile.savedMatch && !window.confirm("Start a new match? This replaces " +
-          profile.savedMatch.state.map.name + " in " + profile.name + "’s saved match. Your results are kept.")) return;
+      if (!saved) {
+        opts.opening = openingMode(opts); delete opts.balance;
+        // Every launch states its side; a hotseat match is Union's by convention.
+        opts.humanSide = PROFILES.humanSide(opts);
+        key = PROFILES.sessionKey(mapDef, opts);
+        saved = profiles.session(profile.id, key);
+      }
+    } catch (error) { reportSaveError(error); return; }
+    var chosen = opts;
+    try {
+      if (saved) {
+        key = saved.key;
+        opts = Object.assign({}, saved.options);
+        if (!opts.opponent || (opts.opening !== "original" && opts.opening !== "offers")) {
+          throw new Error("This saved match is from an older version and cannot be loaded.");
+        }
+        opts.humanSide = PROFILES.humanSide(opts);
+      }
+      opts.opponent = AI_SEARCH.get(saved ? opts.opponent : opts.opponent || preferredOpponent()).id;
       if (mapDef.customUnits) mergeUnitTypes(mapDef.customUnits);
       game = saved ? ENGINE.Game.restore(saved.state) : new ENGINE.Game(mapDef, { seed: opts.seed });
-    } catch (error) { reportSaveError(error); return; }
-    readyToSave = false;
+    } catch (error) {
+      // A save this version cannot open would block its board for good; the
+      // player may give it up and start the level again.
+      if (saved && window.confirm(error.message + " Give up this saved match and start " + mapDef.name + " again?")) {
+        try {
+          profiles.abandon(profile.id, saved, {at: new Date().toISOString(), event: "abandon", match: saved.id, key: saved.key,
+            name: mapDef.name, side: PROFILES.humanSide(saved.options), hotseat: !!saved.options.hotseat,
+            opponent: saved.options.opponent, turn: saved.state.turn});
+        } catch (abandonError) { reportSaveError(abandonError); return; }
+        startGame(mapDef, freshOptions(saved.key, chosen));
+        return;
+      }
+      reportSaveError(error); return;
+    }
     if (currentSetup) currentSetup.destroy();
     currentSetup = null;
     if (currentUI) currentUI.destroy();
@@ -164,14 +340,16 @@
     if (!$("menu-screen").classList.contains("hidden")) menuScrollTop = window.scrollY || 0;
     $("menu-screen").classList.add("hidden");
     $("game-screen").classList.add("hidden");
-    function launchGame() {
+    // `negotiated`: the Offer for first questions have been answered, which
+    // already counts as starting the match.
+    function launchGame(negotiated) {
       if (currentSetup) currentSetup.destroy();
       currentSetup = null;
-      currentMatchId = saved ? saved.id : PROFILES.newId();
-      currentProfileId = profile.id;
       if (currentUI) currentUI.destroy();
       currentUI = null;
       currentOptions = opts;
+      visit = {id: saved ? saved.id : PROFILES.newId(), profileId: profile.id, key: key, mapDef: mapDef,
+        resumed: !!saved, acted: false, baseline: null};
       if (!$("menu-screen").classList.contains("hidden")) menuScrollTop = window.scrollY || 0;
       $("menu-screen").classList.add("hidden");
       $("game-screen").classList.remove("hidden");
@@ -199,7 +377,10 @@
           $("gameover-record").textContent = (opts.hotseat ?
             (winner === 0 ? "Union victory" : "Xenon victory") : (winner === opts.humanSide ? "Victory" : "Defeat")) +
             (recorded ? " · Recorded for " + profile.name : " · Not saved yet — keep this page open");
-          $("gameover-again").onclick = function () { startGame(mapDef, opts); };
+          // Replay and Next mission stay in this match's side, players and Mode;
+          // a board with an unfinished match in that slot resumes it.
+          var slot = freshOptions(key, opts);
+          $("gameover-again").onclick = function () { startGame(mapDef, slot); };
           $("gameover-menu").onclick = function () { showMenu(); };
           var next = $("gameover-next");
           var terrain = terrainCampaign(opts.environmentCampaign);
@@ -208,13 +389,13 @@
             next.onclick = function () {
               var ni = opts.environmentIndex + 1;
               startGame(terrain.levels[ni], {environmentCampaign:terrain.id, environmentIndex:ni,
-                hotseat:!!opts.hotseat, humanSide:opts.humanSide, opponent:opts.opponent, opening:opts.opening});
+                hotseat:!!opts.hotseat, humanSide:opts.humanSide, opponent:opts.opponent, opening:slot.opening});
             };
           } else if (opts.campaignIndex !== undefined && opts.campaignIndex + 1 < ORIGINAL_CAMPAIGN.length) {
             next.classList.remove("hidden");
             next.onclick = function () {
               var ni = opts.campaignIndex + 1;
-              startGame(ORIGINAL_CAMPAIGN[ni], { campaignIndex: ni, hotseat: !!opts.hotseat, humanSide: opts.humanSide, opening:opts.opening });
+              startGame(ORIGINAL_CAMPAIGN[ni], { campaignIndex: ni, hotseat: !!opts.hotseat, humanSide: opts.humanSide, opening:slot.opening });
             };
           } else {
             next.classList.add("hidden");
@@ -223,7 +404,10 @@
         },
       });
       currentUI.resize();
-      readyToSave = true;
+      if (negotiated) {
+        visit.acted = true;
+        try { logEvent("start", game.turn); } catch (error) { reportSaveError(error); }
+      }
       saveMatch(currentUI);
       if (game.winner !== null) currentUI.checkGameOver();
       else if (!opts.hotseat && game.currentPlayer !== opts.humanSide) currentUI.beginAITurn();
@@ -233,15 +417,14 @@
         try {
           if(result)opts.balance=BALANCE.apply(game,plan,result);
           else opts.opening="original";
-          launchGame();
+          launchGame(true);
         } catch(error) {reportSaveError(error);}
       }});
-    } else launchGame();
+    } else launchGame(false);
   }
 
   function showMenu() {
-    if (!saveMatch(currentUI)) return;
-    readyToSave = false;
+    if (!leaveMatch()) return;
     if (currentSetup) currentSetup.destroy();
     currentSetup = null;
     if (currentUI) currentUI.destroy();
@@ -250,37 +433,15 @@
     $("menu-screen").classList.remove("hidden");
     try {$("menu-opponent").value=AI_SEARCH.get(localStorage.getItem("nectaris-opponent")||"classic").id;}catch(e){}
     buildMenu();
-    window.scrollTo(0, menuScrollTop);
+    showView();
+    window.scrollTo(0, $("campaigns-view").classList.contains("hidden") ? 0 : menuScrollTop);
   }
 
   var LABELS = {
     source: "Level source ↗", collectionSource: "Collection notes ↗", play: "Play",
     briefing: "Briefing", design: "Design notes", author: "Made by", sourceFile: "Terrain file",
     lastMatch: "Last match", collection: "About this collection",
-    union: "Union", xenon: "Xenon", neutral: "Neutral",
-    mission: "Level", size: "Size", result: "Result",
   };
-
-  function initialForceCounts(level) {
-    var counts = [0, 0, 0];
-    (level.units || []).forEach(function (unit) {
-      if (unit.o === 0 || unit.o === 1) counts[unit.o]++;
-      else if (unit.o === -1) counts[2]++;
-    });
-    (level.buildings || []).forEach(function (building) {
-      var owner = building.owner === 0 || building.owner === 1 ? building.owner : 2;
-      counts[owner] += (building.stored || []).length;
-    });
-    return counts;
-  }
-
-  function forceCountHtml(level, labels, className) {
-    var counts = initialForceCounts(level);
-    return ["union", "xenon", "neutral"].map(function (side, index) {
-      return "<span class='" + className + " force-" + side + "' aria-label='" + labels[side] + " " + counts[index] +
-        "'><span class='force-count'>" + counts[index] + "</span></span>";
-    }).join("");
-  }
 
   var menuHelpTimer = null, activeMenuHelp = null;
   function clearMenuHelpTimer() {
@@ -433,56 +594,46 @@
       (lv.tags && lv.tags.length) || lv.author || lv.sourceFile || safeSource(lv.source));
   }
   // The same level from the other side: the player commands Xenon and the AI
-  // opens as Union. It has its own record, and hotseat has no "other side".
-  function sideButton(level, options, name) {
+  // opens as Union. It has its own record and unfinished match, and hotseat
+  // has no "other side".
+  function sideButton(level, options, name, open) {
     var xenon = Object.assign({}, options, {humanSide: 1, hotseat: false});
-    var won = PROFILES.levelRecord(activeProfile, level, xenon).wins > 0;
-    var button = menuText("button", "level-play-xenon", won ? "As Xenon ✓" : "As Xenon");
+    var won = PROFILES.levelRecord(activeProfile, level, xenon).wins > 0, match = openMatch(open, level, xenon);
+    var button = menuText("button", "level-play-xenon", "");
+    button.appendChild(menuText("span", "xenon-mark", ""));
+    button.appendChild(menuText("span", "", won ? "as Xenon ✓" : "as Xenon"));
+    if (match) button.appendChild(figures("span", "xenon-turn", [" · turn ", match.state.turn]));
     button.type = "button";
-    button.setAttribute("aria-label", LABELS.play + " " + name + " as Xenon" + (won ? ", already won" : ""));
+    button.setAttribute("aria-label", (match ? "Resume " : LABELS.play + " ") + name + " as Xenon" + (won ? ", already won" : ""));
     button.disabled = $("chk-hotseat").checked;
     button.onclick = function () { closeMenuHelp(); startGame(level, xenon); };
     return button;
   }
-  function renderLevelCards(host, group) {
+  function renderLevelCards(host, group, open, attempts) {
     var L = LABELS;
-    if (group.levels.length) {
-      [1, 2, 3].forEach(function (column) {
-        var columns = menuText("div", "level-columns", "");
-        columns.classList.add("level-columns-" + column);
-        columns.appendChild(menuText("span", "level-number", "#"));
-        columns.appendChild(menuText("span", "", L.mission));
-        columns.appendChild(menuText("span", "level-card-meta", L.size));
-        ["union", "xenon", "neutral"].forEach(function (side) {
-          columns.appendChild(menuText("span", "level-force force-" + side, L[side]));
-        });
-        columns.appendChild(menuText("span", "", L.result));
-        host.appendChild(columns);
-      });
-    }
     group.levels.forEach(function (lv, i) {
       var options = levelOptions(group, i), name = lv.name, help = levelHasHelp(group, lv);
+      var union = Object.assign({}, options, {hotseat: $("chk-hotseat").checked, humanSide: 0});
+      var match = openMatch(open, lv, union);
       var card = document.createElement("article");
-      card.className = "level-card" + (levelWasWon(lv, options) ? " cleared" : "") + (help ? "" : " no-help");
+      card.className = "level-card" + (levelWasWon(lv, options) ? " cleared" : "") + (help ? "" : " no-help") +
+        (match ? " in-progress" : "");
       var play = menuText("button", "level-play", "");
-      play.type = "button"; play.setAttribute("aria-label", L.play + " " + name);
-      play.title = "Play as Union";
+      play.type = "button"; play.setAttribute("aria-label", (match ? "Resume " : L.play + " ") + name);
+      play.title = union.hotseat ? (match ? "Resume hotseat match" : "Play hotseat") : (match ? "Resume as Union" : "Play as Union");
       play.onclick = function () {
         closeMenuHelp(); startGame(lv, Object.assign({}, options, {hotseat: $("chk-hotseat").checked, humanSide: 0}));
       };
-      var heading = document.createElement("span"); heading.className = "level-card-top";
       var title = menuText("span", "level-card-heading", name);
       title.id = group.id + "-level-" + i;
       card.setAttribute("aria-labelledby", title.id);
-      heading.appendChild(menuText("span", "level-number", String(i + 1 + (group.offset || 0)).padStart(2, "0")));
-      heading.appendChild(title);
-      heading.appendChild(menuText("span", "level-card-meta", lv.grid[0].length + " × " + lv.grid.length));
-      play.appendChild(heading);
-      var forces = document.createElement("span"); forces.className = "level-card-forces";
-      forces.innerHTML = forceCountHtml(lv, L, "level-force"); play.appendChild(forces);
-      appendLevelRecord(play, lv, options);
+      play.appendChild(thumbnail(lv));
+      play.appendChild(menuText("span", "level-number", String(i + 1 + (group.offset || 0)).padStart(2, "0")));
+      play.appendChild(title);
+      play.appendChild(resumeCell(match));
+      play.appendChild(recordCell(lv, options, attempts ? attempts(lv, options) : 0));
       card.appendChild(play);
-      card.appendChild(sideButton(lv, options, name));
+      card.appendChild(sideButton(lv, options, name, open));
       if (help) card.appendChild(createMenuHelp(title.id + "-details", name, function (panel) {
         addHelpText(panel, L.briefing, lv.description || lv.blurb);
         addHelpText(panel, L.design, lv.special);
@@ -499,7 +650,14 @@
   }
   function buildMenu() {
     closeMenuHelp();
-    try { renderProfile(); } catch (error) { reportSaveError(error); }
+    var open = [], attempts = null;
+    try {
+      renderProfile();
+      open = profiles.sessions(activeProfile.id);
+      attempts = PROFILES.attemptCounts(activeProfile, open);
+    } catch (error) { reportSaveError(error); }
+    renderContinue(open);
+    try { renderHistory(open); } catch (error) { reportSaveError(error); }
     // Detach import controls before replacing their collection, preserving events and entered URLs.
     var customTools = $("custom-level-tools");
     customTools.remove();
@@ -523,7 +681,7 @@
       var list = document.createElement("div"); list.id = group.list;
       list.className = "level-library" + (group.levels.some(function (lv) { return levelHasHelp(group, lv); }) ? "" : " no-help");
       list.addEventListener("scroll", closeMenuHelp);
-      renderLevelCards(list, group); section.appendChild(list);
+      renderLevelCards(list, group, open, attempts); section.appendChild(list);
       if (!group.levels.length) list.appendChild(menuText("p", "empty-levels", "No levels yet. Create a battlefield or import one below."));
       if (group.id === "custom") section.appendChild(customTools);
       host.appendChild(section);
@@ -606,10 +764,10 @@
     opponent.value="classic";
     try{opponent.value=AI_SEARCH.get(localStorage.getItem("nectaris-opponent")||"classic").id;}catch(e){}
     opponent.onchange=function(){try{localStorage.setItem("nectaris-opponent",opponent.value);}catch(e){}};
+    // Hotseat matches are their own slot, so the rows show that slot's records.
     $("chk-hotseat").onchange=function(){
       opponent.disabled=this.checked;
-      var sideButtons=document.getElementsByClassName("level-play-xenon");
-      for(var i=0;i<sideButtons.length;i++)sideButtons[i].disabled=this.checked;
+      buildMenu();
     };
     var openingSelect=$("opening-select"),opening=null;
     try {opening=localStorage.getItem("nectaris-opening");} catch(e) { /* optional preference */ }
@@ -653,27 +811,53 @@
     $("profile-cancel").onclick = function () { $("profile-dialog").close(); };
     $("profile-new").onclick = function () { openProfileForm(false); };
     $("profile-rename").onclick = function () { openProfileForm(true); };
-    $("history-more").onclick = function () { historyLimit += 10; renderHistory(); };
+    $("history-more").onclick = function () {
+      historyLimit += HISTORY_PAGE;
+      try { renderHistory(profiles.sessions(activeProfile.id)); } catch (error) { reportSaveError(error); }
+    };
     $("profile-select").onchange = function () {
       try { profiles.switchTo(this.value); profileMenu.open = false; buildMenu(); }
       catch (error) { reportSaveError(error); }
     };
-    $("continue-button").onclick = function () {
-      try {
-        var saved = profiles.active().savedMatch;
-        if (saved) startGame(saved.state.map, saved.options, saved);
-      } catch (error) { reportSaveError(error); }
+    $("btn-restart").onclick = restartMatch;
+    // The History tab changes only the address's #history; Campaigns clears it
+    // without reloading the page.
+    $("tab-campaigns").onclick = function (event) {
+      if (location.hash !== "#history") return;
+      event.preventDefault();
+      window.history.pushState(null, "", location.pathname + location.search);
+      switchView();
     };
-    window.addEventListener("pagehide", function () { saveMatch(currentUI); });
+    window.addEventListener("hashchange", switchView);
+    window.addEventListener("popstate", switchView);
+    // Closing the page is leaving the match. The browser may restore the page
+    // from its cache, and carrying on from there is a resume.
+    window.addEventListener("pagehide", function () {
+      if (!visit || !saveMatch(currentUI)) return;
+      try { if (visit.acted && currentUI.game.winner === null) logEvent("leave", currentUI.game.turn); }
+      catch (error) { reportSaveError(error); return; }
+      if (visit.acted) visit.resumed = true;
+      visit.acted = false;
+      var state = currentUI.snapshotForSave();
+      visit.baseline = state && playerHasControl(state) ? JSON.stringify(state) : null;
+    });
     document.addEventListener("visibilitychange", function () {
       if (document.visibilityState === "hidden") saveMatch(currentUI);
     });
     window.addEventListener("storage", function (event) {
-      if (event.key !== PROFILES.KEY && event.key !== null) return;
-      // Another tab owns the newest save: stop this view without overwriting it.
-      readyToSave = false;
-      showMenu();
-      reportSaveError(new Error("Profiles changed in another tab. Choose Continue to use the latest saved match."));
+      try {
+        var mine = !!visit && (event.key === null || event.key === PROFILES.sessionName(visit.profileId, visit.key) ||
+          (event.key === PROFILES.KEY && profiles.read().activeId !== visit.profileId));
+        if (mine) {
+          // Another tab owns the newest save of this match: stop here without overwriting it.
+          visit = null;
+          showMenu();
+          reportSaveError(new Error("This match changed in another tab. Open it again to continue from the latest save."));
+        } else if (!$("menu-screen").classList.contains("hidden") &&
+            (event.key === null || event.key === PROFILES.KEY || event.key.indexOf(PROFILES.SESSION_PREFIX) === 0)) {
+          buildMenu();
+        }
+      } catch (error) { reportSaveError(error); }
     });
     loadCustomUnits();
     MUSIC.init();
