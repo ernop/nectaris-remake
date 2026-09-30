@@ -404,8 +404,9 @@ Facts we need across sessions:
   `test/combat-panel-tests.js` and `test/forecast-tests.js`.
 
 - **Level menu (2026-09-23, entries changed 2026-09-30):** restore its scroll position after leaving a level.
-  All campaigns, packs and custom maps share tiles: the map picture (SVG,
-  `js/map-thumbnail.js`) over one caption line of number, name, "Resume turn N"
+  All campaigns, packs and custom maps share tiles: the map picture (the match
+  renderer's drawing of the starting position, shrunk and drawn as the tile
+  nears the window; `js/map-thumbnail.js`) over one caption line of number, name, "Resume turn N"
   for an unfinished match and "N attempts · xW / yL". Every tile in a collection
   is as wide as its longest caption (`fitLevelTiles`), as many across as fit, so
   no caption has empty space in its middle (user: "we definitely never want to

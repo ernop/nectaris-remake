@@ -49,7 +49,7 @@ module.exports = function (ok) {
   var context = {document:{getElementById:get,createElement:element,baseURI:"http://nectaris.localhost/",activeElement:null,
       addEventListener:function(name,fn){documentListeners[name]=fn;}},
     localStorage:storage,PROFILES:PROFILES,AI_SEARCH:require("../js/ai-search.js"),URL:URL,
-    MAP_THUMBNAIL:{picture:function(level){thumbnails.push(level);return element("svg");}},
+    MAP_THUMBNAIL:{reset:function(){},watch:function(box,level){thumbnails.push({box:box,level:level});}},
     setTimeout:function(fn){timers.set(++timerId,fn);return timerId;},clearTimeout:function(id){timers.delete(id);},
     window:{scrollY:0,innerWidth:1000,innerHeight:800,confirm:function(){return true;},
       history:{pushState:function(){context.location.hash="";}},
@@ -78,21 +78,6 @@ module.exports = function (ok) {
     g.units.find(function(u){return u.player===g.currentPlayer;}).moved=true;
     liveUI.options.onStateChange(liveUI);
   }
-  // The menu draws every level's picture as it opens, so one it cannot draw would stop the whole menu.
-  var THUMB=require("../js/map-thumbnail.js"),letters=Object.keys(require("../js/data-terrain.js").TERRAIN_BY_CHAR).join("");
-  ok(THUMB.markup({grid:[letters]}).indexOf(' viewBox="0 0 '+(8*letters.length+4)+' 12"')>0,
-    "map pictures have a color for every terrain letter and measure the board in eighths of a hex pitch");
-  var shipped=[].concat(campaign,context.ADVANCED_CAMPAIGN,context.EXPANSION_LEVELS,context.BASE_NECTARIS_LEVELS,
-    context.AI_MADE_LEVELS,[].concat.apply([],context.ENVIRONMENT_CAMPAIGNS.map(function(c){return c.levels;})));
-  ok(shipped.every(function(level){return /^<svg [^<]*><g [^<]*>(<path [^<]*\/>)+<\/g>(<path [^<]*\/>)*<\/svg>$/.test(THUMB.markup(level));}),
-    "every shipped level's picture builds");
-  var colors=THUMB.markup(custom);
-  ok(["#8088e8","#e0c020","#c8e4b4","#4a90e8","#3cb44b"].every(function(color){return colors.indexOf('fill="'+color+'"')>0;}),
-    "pictures show bases and factories in their owner's colors and each army's units in its color");
-  function throws(fn){try{fn();}catch(e){return true;}return false;}
-  ok(throws(function(){THUMB.markup({grid:["x"]});}) &&
-    throws(function(){THUMB.markup({grid:["."],units:[{t:"CHARLIE",o:0,x:'0"/><img src=x>',y:0}]});}),
-    "a picture refuses unknown terrain and unit positions that are not whole numbers");
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,"../js/main.js"),"utf8"),context);
   listeners.DOMContentLoaded();
   ok(cards("mission-list").length===16 && cards("advanced-mission-list").length===16,
@@ -143,7 +128,7 @@ module.exports = function (ok) {
   ok(find(normalCard,"mission-record").textContent==="15 attempts · 8W / 7L" &&
     find(normalCard,"mission-record").children.filter(function(c){return c.tagName==="strong";}).map(function(c){return c.textContent;}).join()==="15,8,7",
     "cards count every attempt and the result totals, with the numbers set apart from their words");
-  ok(thumbnails.indexOf(campaign[0])>=0 && find(normalCard,"level-thumb").children[0].tagName==="svg",
+  ok(thumbnails.some(function(t){return t.level===campaign[0] && t.box===find(normalCard,"level-thumb");}),
     "every tile shows its level's map picture");
   var newest=get("history-list").children[0];
   ok(get("history-list").children.length===15 && newest.children.slice(1).map(function(c){return c.textContent;}).join("|")===

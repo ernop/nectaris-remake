@@ -113,7 +113,8 @@ select, input[type="url"] {
 .level-play { display: flex; flex-direction: column; gap: 4px; width: 100%; min-width: 0; padding: 4px;
   border: 0; border-radius: 3px; text-align: left; color: var(--ui-text); background: transparent; font: inherit; }
 .level-thumb { display: block; aspect-ratio: 8 / 5; max-height: 200px; overflow: hidden; border-radius: 2px; background: #0f0c09; }
-.map-thumbnail { display: block; width: 100%; height: 100%; }
+.map-thumbnail { display: block; width: 100%; height: 100%; object-fit: contain; }
+.level-thumb.thumb-error { padding: 6px; color: #ff8f6f; font-weight: 700; white-space: normal; overflow-wrap: anywhere; }
 .level-caption { display: flex; align-items: baseline; gap: 7px; width: max-content; padding: 0 2px; white-space: nowrap; }
 .level-play-xenon { position: absolute; top: 8px; right: 8px; display: flex; align-items: center; gap: 4px;
   height: 20px; padding: 0 6px; border: 1px solid #4d4431; border-radius: 3px; background: #14110cd9;

@@ -58,7 +58,7 @@ editor with URL sharing.
 | `js/sfx.js`, `js/sfx-bank-*.js` | Selectable original synthesized soundscapes with an off-by-default toggle (Web Audio; no audio files) |
 | `js/ui.js`, `js/main.js` | Game UI and boot/menu |
 | `js/profiles.js` | Local player profiles, unfinished-match saves, results and play history |
-| `js/map-thumbnail.js` | Small pictures of each level's starting position for the mission menu |
+| `js/map-thumbnail.js` | Pictures of each level's starting position for the mission menu, drawn by the match renderer and shrunk |
 | `js/editor.js` | Editor logic |
 | `test/run-tests.js` | Node test suite (`node test/run-tests.js`) |
 | `tools/unit-sheet.html` | Native roster review: Union, Xenon, attacking, spent, contrast and silhouette checks |

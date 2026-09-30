@@ -29,6 +29,13 @@ border, header, Continue and settings items below implement that request and
 replace the first version's one-line rows (80 × 40 canvas picture, number,
 name, match and record across a stretched name column, then "as Xenon" text).
 
+The user then asked for a picture that "looks like an actual png shot of the
+initial position, but at this new larger size" to compare with the SVG
+pictures of the second version, and after seeing the two side by side said
+"let's default to this new one you made which is quite good!" The Map picture
+item below implements that; the SVG pictures it replaces are in git history
+(commit 3abb776).
+
 - **Level tile:** the map picture on top, then one caption line: number, name,
   the unfinished match ("Resume turn N" in gold) and the record. Picture and
   caption together are the Play button (as Union). No column headings, map size
@@ -41,20 +48,22 @@ name, match and record across a stretched name column, then "as Xenon" text).
   bands. Implementation: `fitLevelTiles` (`js/main.js`) measures the captions
   after every menu build and whenever the Campaigns view is shown, and sets
   `--caption-width` on the collection's list.
-- **Map picture** (`js/map-thumbnail.js`): the starting position as SVG, so it
-  fills its box sharply at any size and pixel density. Terrain in the Legacy
-  tiles' colors, in three shades per terrain varying hex by hex; bases and
-  factories in their owner's colors (neutral bases near-white, neutral
-  factories yellow); each starting unit a dot in its army's color. Hills and
-  mountains are lit from the upper left; every hex has a thin dark edge. The
-  menu builds every picture as it opens, so a terrain letter the picture has no
-  color for stops the menu with an error; the tests build every shipped level
-  and every terrain letter. Implementation choice: SVG replaced the first
-  version's canvas pixels on the same day, because canvases at the larger tile
-  sizes would keep about 30 MB of bitmaps at 1× pixel density and about 120 MB
-  at 2× for the 167 shipped levels. The SVG markup for all of them is about
-  3.7 MB, and each level's picture is built once per page and reused when the
-  menu is rebuilt.
+- **Map picture** (`js/map-thumbnail.js`): a shrunk screenshot of the starting
+  position. The match's own renderer draws the board in the player's current
+  style and art (Legacy tiles by default) at the smallest whole zoom at least
+  as large as the picture, and the drawing is reduced with high-quality
+  smoothing to fit 480 × 200 CSS px at the screen's pixel density. A picture is
+  drawn when its tile comes within 400 px of the window, one per browser task;
+  until then the box is dark. Rebuilding the menu or starting a match stops the
+  pending drawing. Pictures are kept for the visit as WebP images by level
+  content and drawn again after the style, art or pixel density changes. A
+  level the renderer cannot draw shows "Map picture failed: …" in red in its
+  box and logs the error. Implementation choices: the real board shows what
+  the match will look like (Legacy merges mountain clusters into plateaus and
+  draws hills as pyramids, which flat hex colors could not show); drawing on
+  demand keeps the menu's first open fast, where drawing all ~170 levels at
+  once would take seconds; compressed images avoid the 40-160 MB that a canvas
+  per level would hold.
 - **Record:** "N attempts · xW / yL · h hotseat". Attempts count every match begun
   on the board: either side, any Mode, solo or hotseat, finished, left, abandoned
   or still open. The W/L and hotseat numbers are this row's results (Union side,

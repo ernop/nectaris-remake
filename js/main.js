@@ -346,6 +346,7 @@
     currentUI = null;
     if (!$("menu-screen").classList.contains("hidden")) menuScrollTop = window.scrollY || 0;
     $("menu-screen").classList.add("hidden");
+    MAP_THUMBNAIL.reset();
     $("game-screen").classList.add("hidden");
     // `negotiated`: the Offer for first questions have been answered, which
     // already counts as starting the match.
@@ -633,7 +634,7 @@
         closeMenuHelp(); startGame(lv, Object.assign({}, options, {hotseat: $("chk-hotseat").checked, humanSide: 0}));
       };
       var picture = menuText("span", "level-thumb", "");
-      picture.appendChild(MAP_THUMBNAIL.picture(lv));
+      MAP_THUMBNAIL.watch(picture, lv);
       var caption = menuText("span", "level-caption", "");
       var title = menuText("span", "level-card-heading", name);
       title.id = group.id + "-level-" + i;
@@ -677,6 +678,7 @@
     var host = $("level-groups"), nav = $("level-groups-nav");
     host.replaceChildren(); nav.replaceChildren();
     menuTiles = [];
+    MAP_THUMBNAIL.reset();
     levelGroups().forEach(function (group) {
       var section = document.createElement("section");
       section.className = "level-group"; section.id = group.id + "-section";
