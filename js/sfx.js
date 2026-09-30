@@ -735,12 +735,12 @@ var SFX = (function () {
     var CUES = {
       // Interface: crystalline bell tones
       switchOn: function (t, o) {
-        [4, 6, 8].forEach(function (degree, i) {
+        [4, 6, 7].forEach(function (degree, i) {
           bell(t + i * 0.09, o, hz(SCALE[degree] + 12), 0.4, 0.08);
         });
       },
       switchOff: function (t, o) {
-        [8, 6, 4].forEach(function (degree, i) {
+        [7, 6, 4].forEach(function (degree, i) {
           tn(t + i * 0.07, o, {f: hz(SCALE[degree]), dur: 0.12, wave: "sine", vol: 0.06, wet: 0.3});
         });
       },
@@ -781,7 +781,7 @@ var SFX = (function () {
       turnStart: function (t, o) {
         voidSweep(t, o, {dur: 0.65, from: 220, to: 620, vol: 0.22});
         bell(t + 0.55, o, hz(SCALE[5] + 12), 0.5, 0.07);
-        bell(t + 0.7, o, hz(SCALE[8] + 12), 0.6, 0.07);
+        bell(t + 0.7, o, hz(SCALE[7] + 12), 0.6, 0.07);
       },
 
       // Movement
@@ -915,7 +915,7 @@ var SFX = (function () {
         [0, 2, 4, 5].forEach(function (degree, i) {
           bell(t + i * 0.14, o, hz(SCALE[degree] + 12), 0.3, 0.1);
         });
-        [5, 7, 8].forEach(function (degree) {
+        [5, 6, 7].forEach(function (degree) {
           tn(t + 0.6, o, {f: hz(SCALE[degree] + 12), dur: 1.5, wave: "sine", vol: 0.08, a: 0.015, hold: 0.55,
             wet: 0.45, vib: [4.5, 10]});
         });
