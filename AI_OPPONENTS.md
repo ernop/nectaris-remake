@@ -148,6 +148,11 @@ process never runs a whole match. Public-position simulation seeds are independe
 of the real combat RNG. Exact equal role scores accept second. Each survey records
 its policy, budgets and first/second scores; earlier packages remain available.
 
+Protocol **2026-09-29.1** follows a rule change: aircraft can no longer stop or
+deploy on neutral and enemy factories (`MECHANICS.md`). Bots read legality from
+the engine, so their code is unchanged, but games that used such stops play
+differently. Runs from earlier versions cannot resume or be watched.
+
 Protocol **2026-09-26.2** removes the factory-exit rules that 2026-09-26.1 had
 added to search move selection (above). A run recorded under another version
 cannot resume, and its games cannot be watched in this build.

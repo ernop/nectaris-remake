@@ -552,7 +552,7 @@ impl<'d> Game<'d> {
     pub fn can_stop_at_building(&self, u: usize, col: i32, row: i32) -> bool {
         let Some(b) = self.building(col, row) else { return true };
         let b = &self.buildings[b];
-        if b.base || self.typ(u).move_type == MoveType::Air {
+        if b.base {
             return true;
         }
         if b.owner != self.units[u].player {

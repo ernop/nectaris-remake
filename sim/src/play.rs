@@ -19,7 +19,7 @@ use std::time::Instant;
 
 /// `AI_TOURNAMENT.version` this port implements. A corpus recorded under
 /// another protocol is refused.
-pub const PROTOCOL: &str = "2026-09-28.1";
+pub const PROTOCOL: &str = "2026-09-29.1";
 
 /// A controller for one side: plays a whole turn through the engine's
 /// recording commands and returns without ending the turn.

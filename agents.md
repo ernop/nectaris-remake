@@ -63,7 +63,7 @@ Facts we need across sessions:
     browser look per change" rule.
 - **Behaviour lock (user instruction, 2026-09-27):** the game as the AI sees
   it (rules, randomness and every bot decision) is locked for the Rust
-  simulator in `sim/`. `test/fixtures/sim-corpus.json.gz` holds 54 recorded
+  simulator in `sim/`. `test/fixtures/sim-corpus.json.gz` holds 58 recorded
   games; `test/sim-lock-tests.js` fails if any command replays to a different
   state or a recorded bot chooses differently.
   - Players use the JavaScript game; the Rust simulator is for testing and AI
@@ -210,7 +210,8 @@ Facts we need across sessions:
   `moveOrFire`, surround (defender-only, never at the map edge), counter
   eligibility, the experience table, and the factory
   model (store-to-repair, adjacent-exit deployment, no stopping on unowned
-  factories) all follow the published documentation, each with tests. Do not
+  factories except by capturing infantry, aircraft included since 2026-09-29)
+  all follow the published documentation, each with tests. Do not
   "simplify" them back. Combat follows the community-recovered per-machine
   formula and temporary-HP casualty calculation. Damage rolls use the 14-outcome weighted table in Anka d5,
   empirically checked against PCE battles. The original PRNG/correlation and

@@ -45,14 +45,29 @@ module.exports = function (ok) {
 
       game = fixture(kind, owner, "EAGLE");
       var aircraft = game.units[0];
-      game.moveUnit(aircraft, 1, 0); game.finishUnit(aircraft);
-      ok(!!aircraft.inFactory === (owner === 0) && game.buildingAt(1, 0).owner === owner,
-        kind + ": aircraft repair in friendly factories without capturing others");
+      building = game.buildingAt(1, 0);
+      range = game.movementRange(aircraft); rec = range[HEX.key(1, 0)];
+      ok(rec && rec.canStop === (owner === 0), kind + ": aircraft endpoint requires ownership " + owner);
+      ok(range[HEX.key(2, 0)].canStop && range[HEX.key(2, 0)].prev === HEX.key(1, 0),
+        kind + ": aircraft may fly over the building " + owner);
+      if (owner === 0) {
+        game.moveUnit(aircraft, 1, 0); game.finishUnit(aircraft);
+        ok(!game.unitAt(1, 0) && building.stored[0] === aircraft && aircraft.strength === 8 && building.owner === 0,
+          kind + ": aircraft enter friendly factories for repair");
+      } else {
+        rejectsWithoutMutation(game, function () { game.moveUnit(aircraft, 1, 0); },
+          kind + ": aircraft cannot stop on an unowned building");
+      }
 
       game = fixture(kind, owner, "PELICAN");
       var transport = game.units[0], cargo = game.units[1];
       game.moveUnit(cargo, transport.col, transport.row);
-      ok(game.movementRange(transport)[HEX.key(1, 0)].canStop, kind + ": loaded aircraft may enter factories");
+      ok(game.movementRange(transport)[HEX.key(1, 0)].canStop === (owner === 0),
+        kind + ": loaded aircraft may enter only friendly factories " + owner);
+      if (owner !== 0) {
+        rejectsWithoutMutation(game, function () { game.moveUnit(transport, 1, 0); },
+          kind + ": loaded aircraft cannot stop on an unowned building");
+      }
       game.endTurn(); game.endTurn();
       ok(includesHex(game.unloadTargets(transport, cargo), 1, 0) === (owner === 0),
         kind + ": unload destinations enforce tank ownership");
@@ -83,22 +98,24 @@ module.exports = function (ok) {
       kind + ": stored tank deploys from the building on its next turn");
   });
 
-  [-1, 0, 1].forEach(function (owner) {
-    var game = new ENGINE.Game({ name: "Adjacent factories", grid: [".FF.....", "........"],
-      buildings: [{ col: 1, row: 0, owner: 0, stored: ["BISON"] }, { col: 2, row: 0, owner: owner }],
-      units: [{ t: "CHARLIE", o: 0, x: 0, y: 1 }, { t: "BISON", o: 1, x: 7, y: 1 }],
-    }, { seed: 1 });
-    var source = game.buildingAt(1, 0), target = game.buildingAt(2, 0), tank = source.stored[0];
-    ok(includesHex(game.deployTargets(source, tank), 2, 0) === (owner === 0),
-      "deployment endpoints enforce target factory ownership " + owner);
-    if (owner === 0) {
-      game.deployFromFactory(source, tank, 2, 0);
-      ok(!game.unitAt(2, 0) && !source.stored.length && target.stored[0] === tank && tank.inFactory && tank.moved,
-        "deployment into an adjacent friendly factory transfers the tank inside");
-    } else {
-      rejectsWithoutMutation(game, function () { game.deployFromFactory(source, tank, 2, 0); },
-        "deployment cannot park a tank on an unowned factory");
-    }
+  ["BISON", "EAGLE"].forEach(function (type) {
+    [-1, 0, 1].forEach(function (owner) {
+      var game = new ENGINE.Game({ name: "Adjacent factories", grid: [".FF.....", "........"],
+        buildings: [{ col: 1, row: 0, owner: 0, stored: [type] }, { col: 2, row: 0, owner: owner }],
+        units: [{ t: "CHARLIE", o: 0, x: 0, y: 1 }, { t: "BISON", o: 1, x: 7, y: 1 }],
+      }, { seed: 1 });
+      var source = game.buildingAt(1, 0), target = game.buildingAt(2, 0), unit = source.stored[0];
+      ok(includesHex(game.deployTargets(source, unit), 2, 0) === (owner === 0),
+        type + ": deployment endpoints enforce target factory ownership " + owner);
+      if (owner === 0) {
+        game.deployFromFactory(source, unit, 2, 0);
+        ok(!game.unitAt(2, 0) && !source.stored.length && target.stored[0] === unit && unit.inFactory && unit.moved,
+          type + ": deployment into an adjacent friendly factory transfers the unit inside");
+      } else {
+        rejectsWithoutMutation(game, function () { game.deployFromFactory(source, unit, 2, 0); },
+          type + ": deployment cannot park on an unowned factory");
+      }
+    });
   });
 
   ["F"].forEach(function (kind) {

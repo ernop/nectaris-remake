@@ -425,11 +425,12 @@ var ENGINE = (function () {
 
   /* --- Movement --------------------------------------------------------- */
 
-  /* Bases allow parking. Unowned factories allow aircraft or capturers;
-   * owned factories store every chassis, including loaded transports. */
+  /* Bases allow parking. Only capturers may stop on an unowned factory;
+   * every other unit, aircraft included, may only pass over it. Owned
+   * factories store every chassis, including loaded transports. */
   Game.prototype.canStopAtBuilding = function (unit, col, row) {
     var building = this.buildingAt(col, row);
-    if (!building || building.kind === "base" || unit.type.moveType === "air") return true;
+    if (!building || building.kind === "base") return true;
     if (building.owner !== unit.player) return !!unit.type.capture;
     return true;
   };

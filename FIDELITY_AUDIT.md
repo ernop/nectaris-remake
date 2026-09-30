@@ -123,7 +123,7 @@ PCE/Windows in-game manuals are identified in [Anka's supplement](https://anka.s
 
 Exact PCE intermediate arithmetic (Windows damage-floor order now checked); original opposing-roll correlation; direct PCE confirmation of ZOC
 escape/terrain charging and buggy retreat boundaries (Windows range routines now traced); adjacent-factory transfer;
-aircraft on hostile factories; carrier attack timing around unloading;
+carrier attack timing around unloading;
 factory inventory order; and victory-check timing. Our current implementation
 is concrete, but original execution traces are missing. For example, elimination
 is currently checked after combat, not after every ownership change; whether
@@ -189,6 +189,7 @@ not that every boundary case has been observed on hardware.
 | Immobile units | Atlas/Trigger could only leave in a transport | **Fixed:** direct adjacent factory deployment also allowed. Once placed they cannot move or reboard. |
 | Factory repairs | Ground only; loaded transports rejected | **Fixed:** aircraft and loaded transports enter; passenger and carrier repair into separate stored units. Experience preserved. |
 | Factory capture / deployment | Infantry capture, reserve transfer, adjacent exits, activation delay | Retained. Captured ready reserves may deploy; capturing infantry waits. No production, purchases or resource economy. |
+| Unowned factory stops | Aircraft, loaded Pelicans included, could stop or deploy on neutral and enemy factories, blocking capture and attacking from them | **Fixed 2026-09-29** (user request): only Charlie, Kilroy and Panther end a move there; every other unit only passes over. The Windows Shift command refuses the stop and its built-in manual states the rule ([evidence](ORIGINAL_EXECUTABLE_NOTES.md#factory-endpoints--2026-09-29)). |
 | Bases | Custom storage/repair and ground parking prohibition | **Fixed:** prison bases permit parking and provide ground defense 35. No automatic storage/repair; enemy-base infantry capture wins. |
 | Elimination | All mines and stored Atlas counted | **Fixed for PCE:** mines excluded; Atlas in storage excluded; other owned reserves count, even with blocked exits. |
 | Turn limit | Default 50 rounds, Xenon wins timeout | Retained. Exact victory-check timing is a remaining trace item. |
@@ -214,7 +215,7 @@ See `MECHANICS.md` for the adopted rules and source links.
    unverified; the runtime generator is unchanged. Ordinary damage flooring is
    confirmed for Windows. See `ORIGINAL_EXECUTABLE_NOTES.md`.
 3. **PCE edge cases.** Direct confirmation of ZOC escape/terrain charging and buggy retreat ranges (59 Windows fixtures now pass),
-   adjacent-factory transfers, aircraft on hostile factories, inventory ordering,
+   adjacent-factory transfers, inventory ordering,
    capture-ZOC bug lifetime and exact victory-check timing still need traces.
 4. **Excluded by request.** Battle presentation, soundtrack, Manual and Surrender
    remain outside this implementation pass. All extra features remain in place.

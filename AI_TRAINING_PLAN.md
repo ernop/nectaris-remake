@@ -89,14 +89,14 @@ The browser game stays plain JavaScript. Rust is a development tool
 - `tools/sim/state-hash.cjs` fingerprints every rule-relevant field. Unit ids
   are numbered from 1 in creation order, because JavaScript draws them from a
   process-wide counter.
-- `tools/sim/regenerate-lock.cjs` records 54 games:
+- `tools/sim/regenerate-lock.cjs` records 58 games:
   - Classic v Tactical full games on 22 boards from every family;
   - Sequence v Simulation for 4 rounds on 3 small boards;
-  - Apex v Tactical for 3 rounds on 2 small boards.
+  - Apex v Tactical and Marshal v Apex for 3 rounds on 2 small boards.
 
-  It converts them into `test/fixtures/sim-corpus.json.gz` (16,481 commands
-  since the fair dice, a fingerprint after each). Regenerating gives a
-  byte-identical file.
+  It converts them into `test/fixtures/sim-corpus.json.gz` (16,893 commands
+  since the 2026-09-29 factory rule, a fingerprint after each). Regenerating
+  gives a byte-identical file.
 - `test/sim-lock-tests.js`, in the main suite, replays every command and
   re-plays one game per pairing with its bots.
 

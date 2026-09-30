@@ -1152,7 +1152,9 @@ The latest maximum-fidelity request restores the 1989 PCE distinction:
 owned factories store and repair every chassis, including aircraft and loaded
 transports; prison bases allow parking and provide ground defense without
 repairing. This supersedes the earlier same-day base-storage extension.
-Unowned factories cannot be ground stopping points except for capturing infantry.
+Unowned factories cannot be stopping points or deployment exits except for
+capturing infantry. Since 2026-09-29 this includes aircraft, which only fly
+over them (user request to match the original; evidence in `MECHANICS.md`).
 Loaded carrier entry separates its passenger into storage; both are repaired.
 Factory entry ends the activation immediately and is not a firing position.
 

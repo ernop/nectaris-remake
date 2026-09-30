@@ -227,6 +227,15 @@ Ready reserves can deploy immediately; the capturer must wait. Deployment
 uses adjacent legal exits or compatible transports. There is no production
 or resource economy. The TG-16 FAQ independently describes loaded-carrier repair.
 
+Only Charlie, Kilroy and Panther may end a move on a neutral or enemy factory,
+which captures it. Every other unit, aircraft and loaded Pelicans included, may
+only pass over it, and no reserve deploys onto it. Hudson's Windows executable
+refuses the move for aircraft too, and its built-in manual states the rule
+([evidence](ORIGINAL_EXECUTABLE_NOTES.md#factory-endpoints--2026-09-29)).
+From 2026-09-20 the remake let aircraft stop there without capturing, where
+they blocked capture and could attack; the user had it match the original on
+2026-09-29 (tournament protocol 2026-09-29.1).
+
 Per the user's corrected original-game recollection (2026-09-20), Classic CPU factory deployment
 scans adjacent hexes clockwise from upper-left and chooses the first legal destination
 for each ready reserve. A friendly compatible transport with cargo space counts

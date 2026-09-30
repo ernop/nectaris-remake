@@ -88,6 +88,57 @@ one-hex-start assumption. It remains **Windows evidence**, not proof that every
 PCE boundary behaves identically. The factory-capture ZOC bug is still omitted;
 its precise lifetime and direct PCE behavior require separate traces.
 
+## Factory endpoints — 2026-09-29
+
+Static reading of the same executable. Terrain codes 8 and 10 are the Union and
+Xenon prison camps; 11, 12 and 13 are Union, neutral and Xenon factories
+(`tools/extract-original-campaign.js`).
+
+- The range search (`0x401680`) charges every chassis 1 for camps and factories
+  (cost table `0x42b248`) and never tests ownership, so any unit may pass
+  through any factory.
+- The Shift confirmation state `0x401f90` checks the chosen hex at
+  `0x401ff4–0x40202b`. A factory other than the mover's own is refused unless
+  the unit's ability byte (`0x42b288`) has bit `0x80` without `0x10`. Only
+  Charlie, Kilroy and Panther qualify; Falcon `0x52`, Eagle `0x51`, Hunter
+  `0x53` and Pelican `0x61` do not. The refusal is message 4, string 99
+  "味方の工場ではありません" ("not a friendly factory"; string table `0x435f28`).
+  `0x495c04`, set from the side to move at `0x405c20`, holds that side's own
+  factory code (11 or 13). Camps are not tested, so any unit may stand on one.
+- After the move (`0x402230`), infantry capture a neutral or enemy factory
+  (`0x4023df–0x402488`). Any unit ending on its own factory is stored
+  (`0x402505` → `0x4025f0`, string 235 "工場に格納しました") and control returns
+  to the map, not to the attack state.
+- The built-in manual gives the same rule with no aircraft exception:
+  "工場・・・敵、または中立の工場ヘックスで、移動を終えることはできません。"
+  (`0x4342c8`); a unit ending on its own factory is stored automatically
+  (`0x434318`).
+
+Aircraft therefore cannot park on, block or attack from a neutral or enemy
+factory in this release. [BASE NECTARIS's terrain page](http://www.max.hi-ho.ne.jp/summoner/nectaris/tactics/chikei/index.htm)
+states the same general rule for the PCE game. Anka l5's reservation diagram
+draws a Falco over neutral factory B; against this code that placement can only
+be schematic. The CPU's own destination code was not traced.
+
+The remake matches this since 2026-09-29 (user request). Until then
+`canStopAtBuilding` (`js/engine.js`) and `can_stop_at_building`
+(`sim/src/game.rs`) let aircraft stop on any building, an exemption carried
+over on 2026-09-20 ("Aircraft retain their existing movement behavior") without
+a source. Both now refuse aircraft and loaded Pelicans on neutral and enemy
+factories, as endpoints and as deployment exits; `test/building-rules-tests.js`
+covers the range, the refused move and deployment.
+
+The same handler gates field boarding (`0x402050–0x4020c9`). A Mule passenger
+needs ability bits `0x81`: Charlie and Kilroy (`0x81`) and Atlas (`0x99`)
+qualify; Panther (`0x80`) is refused with string 105 "このユニットは搭載できません".
+This conflicts with the 2026-09-26 statement in `MECHANICS.md` and
+`FIDELITY_AUDIT.md` that this executable lets a Panther board anywhere. The
+factory-deployment and CPU boarding paths were not traced.
+
+```sh
+objdump -d -Mintel --start-address=0x401f90 --stop-address=0x4025c3 Nec.exe
+```
+
 ## Damage floors — existing implementation confirmed
 
 `0x41bb32–0x41bb51` calculates attack × (100 − defense), integer-divides by

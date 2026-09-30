@@ -101,8 +101,12 @@ remain necessary. In particular:
   and the additional Atlas infantry deployment trigger are not established.
 - Windows ZOC escape/terrain charging and buggy retreat ranges now have 59
   executable fixtures; the incorrect blanket one-hex-start rule was corrected.
-  Direct PCE traces are still needed for those boundaries, adjacent-factory transfers, aircraft on hostile factories,
+  Direct PCE traces are still needed for those boundaries, adjacent-factory transfers,
   carrier attack/unload timing, and victory-check timing.
+- The Windows executable's built-in manual forbids ending a move on an enemy or
+  neutral factory, with no aircraft exception, and its Shift command enforces
+  it. The remake follows this, aircraft included, since 2026-09-29
+  (`MECHANICS.md`).
 - Anka describes factory inventory order by original unit ID. Our arrays preserve
   insertion order and imported maps do not retain those original identities.
   Exact original inventory ordering therefore cannot be claimed.

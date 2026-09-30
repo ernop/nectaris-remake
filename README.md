@@ -279,7 +279,9 @@ the page or list scrolls or resizes.
   Back to factory and Cancel stay in the left action panel. Capturing infantry goes inside the factory
   and leaves the map; it can deploy again from the next turn. Stop a damaged
   unit on your own factory to store and repair it under the same delay.
-  Factories accept aircraft and loaded transports too. Bases permit parking
+  Factories accept aircraft and loaded transports too. Only infantry may stop
+  on a neutral or enemy factory; other units, aircraft included, can only pass
+  over it. Bases permit parking
   and provide defense, without repair. Transport unloading is limited to
   plains, roads, bridges and direct storage in an owned factory. Each transport
   permits one load or unload per turn. Moving does not consume
