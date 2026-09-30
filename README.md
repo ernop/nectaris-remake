@@ -137,8 +137,9 @@ claiming progress is saved.
 
 ## Choosing the opening
 
-The **Mode** dropdown under the title offers **Normal** (the default: Union
-first, original armies) and **Offer for first** (guided second-player
+The **Mode** dropdown under the title offers **Normal** (the default: your
+side moves first, so Xenon opens when you play **as Xenon**; hotseat starts
+with Union; original armies) and **Offer for first** (guided second-player
 compensation). Choose one, then click a level. Your choice persists; resuming
 an unfinished match keeps its saved opening.
 
@@ -156,7 +157,7 @@ sets the compensation and its accepting player goes second. Matching switch
 points use a random tie-break. Review both boundaries, the first player and the
 exact bonus, then **Start match**; you can restart the questions before playing.
 Bonuses are full strength, zero experience and ready on their owner’s first turn.
-Solo keeps you as Union; the map’s timeout victory for Xenon still applies.
+Solo keeps the side you chose; the map’s timeout victory for Xenon still applies.
 
 Up to 32 packages range from no bonus to four Polars plus two Charlies. Numbered
 hexes and coordinates show exactly where they arrive near each base. **Union

@@ -318,7 +318,7 @@
       }
       opts.opponent = AI_SEARCH.get(saved ? opts.opponent : opts.opponent || preferredOpponent()).id;
       if (mapDef.customUnits) mergeUnitTypes(mapDef.customUnits);
-      game = saved ? ENGINE.Game.restore(saved.state) : new ENGINE.Game(mapDef, { seed: opts.seed });
+      game = saved ? ENGINE.Game.restore(saved.state) : new ENGINE.Game(mapDef, { seed: opts.seed, firstPlayer: opts.humanSide });
     } catch (error) {
       // A save this version cannot open would block its board for good; the
       // player may give it up and start the level again.
@@ -593,9 +593,9 @@
     return !group.originalGame && !!(lv.description || lv.blurb || lv.special ||
       (lv.tags && lv.tags.length) || lv.author || lv.sourceFile || safeSource(lv.source));
   }
-  // The same level from the other side: the player commands Xenon and the AI
-  // opens as Union. It has its own record and unfinished match, and hotseat
-  // has no "other side".
+  // The same level from the other side: the player commands Xenon and moves
+  // first; the AI plays Union. It has its own record and unfinished match, and
+  // hotseat has no "other side".
   function sideButton(level, options, name, open) {
     var xenon = Object.assign({}, options, {humanSide: 1, hotseat: false});
     var won = PROFILES.levelRecord(activeProfile, level, xenon).wins > 0, match = openMatch(open, level, xenon);

@@ -311,9 +311,9 @@ module.exports = function (ok) {
   liveUI.options.onMenu();
   var wonBefore=find(get("normal-section"),"group-progress").textContent;
   find(cards("mission-list")[0],"level-play-xenon").onclick();
-  ok(liveUI.options.humanSide===1 && liveUI.aiStarted && get("status-campaign").textContent==="Normal campaign" &&
-    get("status-mission-number").textContent==="01",
-    "As Xenon starts the solo match on Xenon's side, lets the CPU open as Union and names the mission");
+  ok(liveUI.options.humanSide===1 && !liveUI.aiStarted && liveUI.game.firstPlayer===1 && liveUI.game.currentPlayer===1 &&
+    get("status-campaign").textContent==="Normal campaign" && get("status-mission-number").textContent==="01",
+    "As Xenon starts the solo match on Xenon's side with Xenon moving first and names the mission");
   act();
   ok(store.session(first.id,"campaign:0:xenon").options.humanSide===1,"the Xenon match has its own save");
   liveUI.options.onMenu();

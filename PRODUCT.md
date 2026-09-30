@@ -47,7 +47,8 @@ parts of the records below, which point here.
   once the player changes it (a move, attack, deployment or End Turn) or answers
   the Offer for first questions. Opening a level to look at it and going back
   leaves nothing. The comparison starts when the player first has control, so
-  the AI's opening turn against a Xenon player is not the player's action.
+  an AI opening turn (when Offer for first gives the bot the first move) is not
+  the player's action.
 - **Restart** (match panel, beside Save & Menu): the level again from turn 1 in
   the same slot. A match under way asks first and is recorded as abandoned; the
   Offer for first questions are asked again.
@@ -438,10 +439,9 @@ number, and his side, large, plus unit counts. Behavior:
 - **Top row** (2026-09-30): **Restart** sits beside Save & Menu; see Mission
   menu: map pictures, attempts, unfinished matches and play history.
 - **Playing Union or Xenon:** every mission-menu entry keeps its whole-row Play
-  (as Union, the first mover) and adds an **As Xenon** button at the end of the
+  (as Union) and adds an **As Xenon** button at the end of the
   row (a check mark once won; small white text since 2026-09-30). Chosen from the menu only; disabled
-  while Two players (hotseat) is ticked. The AI takes the other side and moves
-  first when it is Union. The human's side is saved with the match
+  while Two players (hotseat) is ticked. The AI takes the other side. The human's side is saved with the match
   (`humanSide`; saves without it are Union matches), so Continue restores it, and
   **Next mission** and **Replay** keep it. Victory means the human's side won.
   Xenon results are their own record (level keys end `:xenon`), do not count
@@ -449,6 +449,15 @@ number, and his side, large, plus unit counts. Behavior:
   cleared; the As Xenon check mark shows a Xenon win. The Offer for first
   questions run as the human's side against the bot's other side. Rationale: the
   turn limit favors Xenon (the defender), and the bots already play either side.
+- **The player's side moves first** (user, 2026-09-30: "when i play as xenon,
+  we still have union go first"): in a Normal solo match the human opens,
+  so As Xenon starts on Xenon's turn and the AI's Union moves second. This
+  supersedes the 2026-09-29 implementation choice that kept Union first. Hotseat
+  matches begin with Union. Offer for first still gives first move by the
+  offers; offers ending without a deal use this order. The turn limit still
+  awards Xenon the win, rounds still count after both sides, and the
+  balance-study measurements (Union first) do not describe these matches.
+  Matches begun earlier keep the order they were saved with.
 - The Sound toggle's behavior is in [Sound effects](#sound-effects-user-request-2026-09-29).
 
 ## No battle report in the match's left panel (2026-09-29)
