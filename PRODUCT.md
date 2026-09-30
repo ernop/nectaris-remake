@@ -2394,8 +2394,10 @@ valley missions already had seams crossing both edges); Bridgeheads has
 mountain ridges on each bank. Roads cross passes but never pave them, and
 nothing is carved through a barrier. Details:
 [ENVIRONMENT_CAMPAIGNS.md](ENVIRONMENT_CAMPAIGNS.md). The seven lock-corpus
-games on changed boards were re-recorded. The Bridgeheads tuning measurements
-predate the ridges.
+games on changed boards were re-recorded. Measured under the draw rules, the
+ridges moved Bridgeheads from 14 of 16 boards passing the self-play balance
+test (Union 40-60%) to 4 of 16; the other two tests were not run ([MAP_BALANCE.md](MAP_BALANCE.md#bridgeheads)); not
+re-tuned.
 
 
 ## Fuseki hosting (2026-09-26)

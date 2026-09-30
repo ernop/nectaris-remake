@@ -355,6 +355,29 @@ Columns:
 | 15 | RIMA CAUCHY | Union +1 Bison at strength 5 | 17% | 46%* | 0% | 38% | 21% | 41% / 62% |
 | 16 | RIMA ARIADAEUS | The Pelican moved from each side's nearer factory to its middle one; limit 30 (draft: 40) | 71% | 50%* | 7% | 34% | 17% | 70% / 14% |
 
+**Edge ridges (2026-09-30).** The user asked for barriers that stop armies
+circling a board along its edge ([decision](PRODUCT.md#edge-barriers-on-four-campaigns-2026-09-30)),
+and commit `fd10835` added mountain ridges from the top and bottom edges on
+each bank of every Bridgeheads board. Marshal self-play, 150 games per board,
+dice seed `cc1542ad…1035a` for both runs, current draw rules: *Before* is the
+boards of commit `3c5e3e1` (no ridges), *After* those of `fd10835`.
+
+| # | Mission | Before | After | # | Mission | Before | After |
+| --- | --- | ---: | ---: | --- | --- | ---: | ---: |
+| 1 | RIMA BODE | 45% | 54% | 9 | RIMA MARIUS | 49% | 76% |
+| 2 | RIMA HYGINUS | 46% | 68% | 10 | RIMA PRINZ | 49% | 21% |
+| 3 | RIMA HESIODUS | 57% | 81% | 11 | RIMA BIRT | 97% | 100% |
+| 4 | VALLIS SNELLIUS | 54% | 49% | 12 | VALLIS SCHROTERI | 45% | 45% |
+| 5 | RIMAE TRIESNECKER | 54% | 57% | 13 | RIMA MAIRAN | 53% | 64% |
+| 6 | RIMA HADLEY | 49% | 79% | 14 | RIMAE LITTROW | 46% | 29% |
+| 7 | VALLIS ALPES | 82% | 37% | 15 | RIMA CAUCHY | 44% | 94% |
+| 8 | RIMA SIRSALIS | 43% | 15% | 16 | RIMA ARIADAEUS | 49% | 63% |
+
+Without ridges, 14 of 16 boards passed the self-play test (40-60%) under the draw rules
+(VALLIS ALPES and RIMA BIRT did not); with them, 4 of 16 do. Draws were rare
+in both runs except on VALLIS SNELLIUS (43 and 58 of 150) and VALLIS ALPES
+(11 and 24). The ridges, not the draw rule, moved the other boards out of range.
+
 | # | Mission | Idea | Verdict | Evidence |
 | --- | --- | --- | --- | --- |
 | 1 | RIMA BODE | One crossing: the side that reaches the bridge first holds it, and a held bridge is a stalemate the turn limit awards to Xenon. | Apex only | Apex: 53% of games ended at the limit. Marshal: none did; Union won 85% by attacking over the bridge. |

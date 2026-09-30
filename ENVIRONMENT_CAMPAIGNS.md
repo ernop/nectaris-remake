@@ -237,8 +237,11 @@ by `rims()` in the specs and drawn before the rilles and roads, so a road that
 meets one fails the build. The rilles already cut the edges on most boards;
 the ridges close boards 2, 6 and 12, whose edge bridges or open ends let
 vehicles run along the rim, and keep a force that has crossed from following
-the edge to the camp. The tuning measurements in [MAP_BALANCE.md](MAP_BALANCE.md)
-predate them.
+the edge to the camp. Under the draw rules Marshal self-play (the first of the
+three balance tests) gave Union 40-60%
+on 14 of 16 boards without the ridges and on 4 of 16 with them
+([MAP_BALANCE.md](MAP_BALANCE.md#bridgeheads)); the missions have not been
+re-tuned.
 
 [Import the whole campaign](levels/bridgeheads.json).
 
