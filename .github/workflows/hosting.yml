@@ -1,13 +1,13 @@
 name: Release to nectaris-remake.fuseki.net
 
-# Every master commit that passes the Tests workflow is released; a manual run
-# on master releases master's tip. Fuseki owns the server side:
+# Every main commit that passes the Tests workflow is released; a manual run
+# on main releases main's tip. Fuseki owns the server side:
 # https://github.com/ernop/fuseki4_ai/blob/master/docs/minesweeper-friendly-hosting-plan.md
 on:
   workflow_run:
     workflows: [Tests]
     types: [completed]
-    branches: [master]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -19,14 +19,14 @@ concurrency:
 
 jobs:
   deploy:
-    # A fork's pull request can also be named master, so the triggering run must
+    # A fork's pull request can also be named main, so the triggering run must
     # be a push to this repository.
     if: >-
-      github.ref == 'refs/heads/master' && (
+      github.ref == 'refs/heads/main' && (
         github.event_name == 'workflow_dispatch' || (
           github.event.workflow_run.conclusion == 'success' &&
           github.event.workflow_run.event == 'push' &&
-          github.event.workflow_run.head_branch == 'master' &&
+          github.event.workflow_run.head_branch == 'main' &&
           github.event.workflow_run.head_repository.full_name == github.repository))
     runs-on: ubuntu-24.04
     timeout-minutes: 5
@@ -40,7 +40,7 @@ jobs:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
       - name: Refuse an outdated revision
         run: |
-          test "$(git rev-parse HEAD)" = "$(git ls-remote origin refs/heads/master | cut -f1)"
+          test "$(git rev-parse HEAD)" = "$(git ls-remote origin refs/heads/main | cut -f1)"
       - name: Verify HTTPS before changing the release
         run: curl --fail --silent --show-error --max-time 30 https://nectaris-remake.fuseki.net/VERSION
       - name: Build committed runtime

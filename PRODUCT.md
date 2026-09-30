@@ -2413,8 +2413,13 @@ site), and validated atomic releases of the explicit runtime list in
 opening and tournament workers), `levels/`, and the linked `MECHANICS.md` and
 `LEVEL_SOURCES.md`. Excluded: `art/` sources (the runtime draws units from the
 JavaScript art tables), `inspiration/`, the model-named proposal packs,
-`tools/`, `test/`, and research documents. Every master commit that passes
-Tests is released by `.github/workflows/hosting.yml`.
+`tools/`, `test/`, and research documents. Every `main` commit that passes
+Tests is released by `.github/workflows/hosting.yml`. The branch was named
+`master` until 2026-09-30, when the user asked for a single branch name "so
+that nobody's confused over it": it was renamed to `main` on GitHub (the
+default branch) and locally, the `production-fuseki` environment's deployment
+branch changed with it, and a GitHub ruleset rejects any push that would
+create `master` again.
 
 The page's Content-Security-Policy allows connections only to its own origin,
 `raw.githubusercontent.com` and `gist.githubusercontent.com`, matching the

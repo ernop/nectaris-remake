@@ -141,9 +141,12 @@ Facts we need across sessions:
   Replay Follow action starts off and requires explicit opt-in. Fit resets the
   camera. See PRODUCT.
 - **Deploy target (live 2026-09-26):** https://nectaris-remake.fuseki.net/
-  (entry link `https://fuseki.net/nectaris-remake/`). Every master commit that
+  (entry link `https://fuseki.net/nectaris-remake/`). Every `main` commit that
   passes the Tests workflow is released by `.github/workflows/hosting.yml`;
-  a manual run of that workflow releases master's tip. Only the files in
+  a manual run of that workflow releases main's tip. The only branch is `main`:
+  it was `master` until 2026-09-30, when the user asked for one name so nobody
+  is confused; a GitHub ruleset rejects any push that would create `master`,
+  and the `production-fuseki` environment deploys only from `main`. Only the files in
   `deploy/runtime-files.json` are published: add every new runtime file there
   (a page, script, worker, stylesheet, level, or linked document), or the
   release build fails. Server allows only `css/`, `js/`, `levels/` and

@@ -8,7 +8,7 @@ The tables at the end record whether its measurements confirmed the idea and
 how the mission was tuned; the findings collect what the 48 missions showed
 together. Every claim names the board and the numbers behind it.
 
-The numbers describe the rules and simulator bots of master `2730eac`
+The numbers describe the rules and simulator bots of commit `2730eac`
 (2026-09-29), under which aircraft can no longer stop on neutral or enemy
 factories. Most tuning ran on the commit before it, `479292c`, where they
 could; the last five rounds ran under `2730eac`. That rule can only matter on
