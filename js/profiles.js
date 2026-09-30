@@ -110,7 +110,8 @@ var PROFILES = (function () {
   function checked(data, version) {
     if (!data || data.version !== version || !Array.isArray(data.profiles) || data.profiles.some(function (p) {
       return !p || typeof p.id !== "string" || typeof p.name !== "string" ||
-        !Array.isArray(p.results) || !Array.isArray(p.cleared) || (version === VERSION && !Array.isArray(p.log));
+        !Array.isArray(p.results) || !Array.isArray(p.cleared) || (version === VERSION && !Array.isArray(p.log)) ||
+        (p.openCollections !== undefined && !Array.isArray(p.openCollections));
     })) throw unsupported();
     return data;
   }
@@ -167,6 +168,16 @@ var PROFILES = (function () {
     var profile = data.profiles.find(function (p) { return p.id === profileId; });
     if (!profile) throw new Error("Profile not found.");
     profile.name = checkedName(data, name, profileId);
+    this.write(data);
+    return profile;
+  };
+  // The menu collections a profile has open, by collection id. A profile that
+  // has never opened or closed one has no field, and the menu opens its first.
+  Store.prototype.setOpenCollections = function (profileId, ids) {
+    var data = this.read();
+    var profile = data.profiles.find(function (p) { return p.id === profileId; });
+    if (!profile) throw new Error("Profile not found.");
+    profile.openCollections = ids.slice();
     this.write(data);
     return profile;
   };

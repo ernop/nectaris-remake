@@ -124,6 +124,24 @@ module.exports = function (ok) {
   ok(find(get("normal-section"),"group-progress").textContent==="1 / 16 won" &&
     find(get("advanced-section"),"group-progress").textContent==="0 / 16 won",
     "collection progress counts won levels rather than wins or differently indexed campaigns");
+  function toggleOf(id){return find(get(id+"-section"),"level-group-toggle");}
+  function closedCount(){return get("level-groups").children.filter(function(s){return s.classList.contains("closed");}).length;}
+  ok(get("level-groups").children.every(function(s,i){
+    return s.classList.contains("closed")===(i>0) && find(s,"level-group-toggle").attributes["aria-expanded"]===String(i===0) &&
+      find(s,"level-group-toggle").attributes["aria-controls"]===s.children[1].id;
+  }) && store.active().openCollections===undefined,
+    "a profile that never toggled a collection sees only the first one open");
+  toggleOf("advanced").onclick(); toggleOf("normal").onclick();
+  ok(store.active().openCollections.join()==="advanced" && closedCount()===11,
+    "clicking a collection's name opens or closes it and saves the choice to the profile");
+  setHotseat(true); setHotseat(false);
+  ok(!get("advanced-section").classList.contains("closed") && get("normal-section").classList.contains("closed") && closedCount()===11,
+    "a rebuilt menu keeps each collection as the player left it");
+  get("level-groups-nav").children[6].onclick();
+  ok(!get("bridgeheads-section").classList.contains("closed") && store.active().openCollections.join()==="advanced,bridgeheads",
+    "jumping to a closed collection opens it");
+  toggleOf("normal").onclick(); toggleOf("bridgeheads").onclick();
+  ok(store.active().openCollections.join()==="normal,advanced","collections stay open in menu order");
   var normalCard=cards("mission-list")[0];
   ok(find(normalCard,"mission-record").textContent==="15 attempts · 8W / 7L" &&
     find(normalCard,"mission-record").children.filter(function(c){return c.tagName==="strong";}).map(function(c){return c.textContent;}).join()==="15,8,7",

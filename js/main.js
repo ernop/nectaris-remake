@@ -685,12 +685,20 @@
     host.replaceChildren(); nav.replaceChildren();
     menuTiles = [];
     MAP_THUMBNAIL.reset();
-    levelGroups().forEach(function (group) {
+    var groups = levelGroups();
+    var openIds = activeProfile && activeProfile.openCollections ? activeProfile.openCollections : [groups[0].id];
+    groups.forEach(function (group) {
       var section = document.createElement("section");
       section.className = "level-group"; section.id = group.id + "-section";
       section.setAttribute("aria-labelledby", group.id + "-heading");
       var heading = document.createElement("header"); heading.className = "level-group-header";
-      var title = menuText("h2", "", group.title); title.id = group.id + "-heading";
+      var title = menuText("h2", "", ""); title.id = group.id + "-heading";
+      var toggle = menuText("button", "level-group-toggle", "");
+      toggle.type = "button"; toggle.setAttribute("aria-controls", group.list);
+      toggle.appendChild(menuText("span", "group-chevron", "▸"));
+      toggle.appendChild(menuText("span", "", group.title));
+      toggle.onclick = function () { setCollectionOpen(section, toggle, section.classList.contains("closed")); };
+      title.appendChild(toggle);
       heading.appendChild(title);
       var won = group.levels.filter(function (lv,i) { return levelWasWon(lv, levelOptions(group,i)); }).length;
       heading.appendChild(menuText("span", "group-progress", group.levels.length ? won + " / " + group.levels.length + " won" : "No levels yet"));
@@ -707,13 +715,31 @@
       section.appendChild(list);
       if (!group.levels.length) list.appendChild(menuText("p", "empty-levels", "No levels yet. Create a battlefield or import one below."));
       if (group.id === "custom") section.appendChild(customTools);
+      showCollectionOpen(section, toggle, openIds.indexOf(group.id) >= 0);
       host.appendChild(section);
       var jump = menuText("a", "", group.title);
       jump.href = "#" + section.id;
+      jump.onclick = function () { if (section.classList.contains("closed")) setCollectionOpen(section, toggle, true); };
       jump.appendChild(menuText("span", "", String(group.levels.length)));
       nav.appendChild(jump);
     });
     fitLevelTiles();
+  }
+  // A closed collection shows only its header: name, won count and help.
+  function showCollectionOpen(section, toggle, open) {
+    section.classList.toggle("closed", !open);
+    toggle.setAttribute("aria-expanded", String(open));
+  }
+  // Opening or closing a collection is saved to the profile, so the menu keeps
+  // it that way until the player toggles it again.
+  function setCollectionOpen(section, toggle, open) {
+    closeMenuHelp();
+    showCollectionOpen(section, toggle, open);
+    if (open) fitLevelTiles();
+    var ids = Array.from($("level-groups").children).filter(function (s) { return !s.classList.contains("closed"); })
+      .map(function (s) { return s.id.replace(/-section$/, ""); });
+    try { activeProfile = profiles.setOpenCollections(activeProfile.id, ids); }
+    catch (error) { reportSaveError(error); }
   }
 
   function showImportStatus(className, text) {

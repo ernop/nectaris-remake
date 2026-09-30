@@ -61,6 +61,28 @@ Measured at the change: Classic self-play on each of the 167 bundled boards
 (the test suite's seeds) ended 153 games by a win, 13 by the no-progress draw
 and one, on LABYRINTH FJORDS, at turn 5000.
 
+## Collapsible collection boxes on the mission menu (2026-09-30)
+
+The user asked for "a clearly easily usable visible 'campaign box' around a
+campaigns missions and its name", with every campaign but the first starting
+"closed", "only showing the large campaign name"; clicking the name opens it,
+and the state is kept so "it never reverts". Implemented in `js/main.js`
+(`buildMenu`, `setCollectionOpen`) and `css/nectaris.css` (`.level-group`):
+
+- Every collection on the menu (the original campaigns, Base Nectaris, the
+  terrain campaigns, AI-made, Lunar Frontiers, Custom levels) is a bordered
+  box. Its title is a 24px button with a chevron; clicking it opens or closes
+  the box. A closed box is one header line: the name, the won count
+  ("3 / 16 won") and the collection's help button. The won count stays because
+  it is the collection's one progress figure; the intro line and the level
+  tiles (and, for Custom levels, the import tools) are hidden.
+- The open set is saved per profile as `openCollections` (collection ids in
+  menu order) in the profile store, written on every toggle. A profile that has
+  never toggled a collection has no field and sees only the first collection
+  (Normal campaign) open. Switching profiles shows that profile's own set.
+- Clicking a closed collection's entry in the jump bar opens it (and saves
+  that) before the page scrolls to it, so the jump never lands on an empty box.
+
 ## Mission menu: map pictures, attempts, unfinished matches and play history (2026-09-30)
 
 The user found the level list overwhelming and asked: remove the size and unit
