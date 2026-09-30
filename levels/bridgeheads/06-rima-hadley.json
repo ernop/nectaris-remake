@@ -1,0 +1,131 @@
+{
+  "name": "RIMA HADLEY",
+  "pack": "AI-made: Bridgeheads",
+  "campaignId": "bridgeheads",
+  "mission": 6,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/bridgeheads/06-rima-hadley.json",
+  "description": "Each camp sits behind its own winding rille with a bridge at each end. The open plain between the rilles belongs to whoever crosses first. You bring one extra Kilroy, and the Xenon Lenet starts damaged.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 40 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "valleys and bridges",
+    "mirror symmetry"
+  ],
+  "design": {
+    "theme": "bridgeheads",
+    "symmetry": "mirror"
+  },
+  "turnLimit": 40,
+  "grid": [
+    "MMMMMM.v...........v.MMMMMM",
+    "MMMMMM.v.MMM...MMM.v.MMMMMM",
+    ".......v.MMMM.MMMM.v.......",
+    "......v..MMM...MMM..v......",
+    "......v.............v......",
+    "......v.............v......",
+    "......vv...........vv......",
+    ".......v...........v.......",
+    "........v.........v........",
+    ".B.-.---=---...---=---.-.B.",
+    ".--.-..vv.........vv..-.--.",
+    "..-....v...........v....-..",
+    "..--..v.............v..--..",
+    "...-.-v.............v-.-...",
+    "....-.==--.......--==.-....",
+    ".......v...........v.......",
+    ".......v...........v......."
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 9,
+      "owner": 0
+    },
+    {
+      "col": 25,
+      "row": 9,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 8
+    },
+    {
+      "t": "KILROY",
+      "o": 0,
+      "x": 2,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 2,
+      "y": 10
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 3,
+      "y": 10
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 4,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 23,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 23,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 22,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 24,
+      "y": 9
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 22,
+      "y": 10
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 23,
+      "y": 10,
+      "str": 7
+    }
+  ]
+}

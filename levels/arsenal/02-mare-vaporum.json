@@ -1,0 +1,128 @@
+{
+  "name": "MARE VAPORUM",
+  "pack": "AI-made: Arsenal",
+  "campaignId": "arsenal",
+  "mission": 2,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/arsenal/02-mare-vaporum.json",
+  "description": "Two factories lie in the open middle, each a little closer to one camp. Take yours, and decide whether to reach for theirs. Your camp stands farther forward than Xenon's, but you bring one Charlie fewer, and the Xenon tanks start damaged.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 24 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "factory reserves",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "arsenal",
+    "symmetry": "half"
+  },
+  "turnLimit": 24,
+  "grid": [
+    "........................",
+    "........................",
+    "......h......ww.........",
+    ".....hhh.....ww.........",
+    ".....hhh.....ww.........",
+    ".....hh.................",
+    ".............F------.-..",
+    "....................-.B.",
+    ".-.B....................",
+    "..-.------F.............",
+    ".................hh.....",
+    ".........ww.....hhh.....",
+    ".........ww.....hhh.....",
+    ".........ww......h......",
+    "........................",
+    "........................"
+  ],
+  "buildings": [
+    {
+      "col": 3,
+      "row": 8,
+      "owner": 0
+    },
+    {
+      "col": 22,
+      "row": 7,
+      "owner": 1
+    },
+    {
+      "col": 10,
+      "row": 9,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET"
+      ]
+    },
+    {
+      "col": 13,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 7
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 2,
+      "y": 8
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 4,
+      "y": 8
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 2,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 20,
+      "y": 8
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 19,
+      "y": 7
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 20,
+      "y": 7,
+      "str": 7
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 21,
+      "y": 7,
+      "str": 7
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 19,
+      "y": 8,
+      "str": 7
+    }
+  ]
+}

@@ -19,18 +19,27 @@ Facts we need across sessions:
   logic module ends with `if (typeof module !== "undefined") module.exports`
   so the node test suite loads them.
 - **Tests:** `node test/run-tests.js` — map validation, rule unit-tests, and
-  AI-vs-AI self-play on all 32 normal/advanced campaign + 24 extra-pack + 15 AI-made + 48 terrain-campaign maps (119 total). Run it
+  AI-vs-AI self-play on all 32 normal/advanced campaign + 24 extra-pack + 15 AI-made + 48 terrain-campaign + 48 balance-study maps (167 total). Run it
   after any engine, data, or map change.
 - **Terrain campaigns (2026-09-23):** Open Horizons, The Knotted Heart and Broken
   Ground each have 16 independent missions. Explicitly label all three campaigns
   AI-made in headings/navigation and credit each map as AI-made by Codex.
-  Rebuild only these 48 with
+  Rebuild them (with the balance studies below) with
   `node tools/build-environment-campaigns.js`; authored briefs/rosters live in
   `tools/environment-campaign-specs.js`. No Hunters/Falcons/Eagles; Pelicans are
   permitted. Existing maps must remain intact. Menu/save keys pair campaign ID
   with mission index; Next mission stops at 16. These new physical families are
   not bound to the old fjord-specific counts. See `ENVIRONMENT_CAMPAIGNS.md` and
   PRODUCT for the implemented scope and playtesting limits.
+- **Balance-study campaigns (2026-09-28):** Bridgeheads, Siege Lines and
+  Arsenal, 16 missions each (boards 119-166), labelled AI-made and credited
+  AI-made by Claude Opus 5.5. The same command rebuilds them from
+  `tools/balance-campaign-specs.js` (briefs, armies, limits) and
+  `tools/build-balance-campaigns.js` (terrain and placement). Their armies,
+  strengths, stocks and limits are tuned so that Marshal playing itself gives
+  Union 40-60% (`MAP_BALANCE.md`). After changing a mission, a rule or a bot,
+  run `node tools/sim/export-data.cjs`, then remeasure in `sim/` with
+  `cargo run --release --bin balance -- --a=marshal --boards=119-166 --games=150`.
 - **Local development:** `./serve.sh` serves the repo on fixed backend port
   `127.0.0.1:8001`; do not substitute a random port. The machine's shared
   Caddy registry exposes it at `http://nectaris.localhost` and the local

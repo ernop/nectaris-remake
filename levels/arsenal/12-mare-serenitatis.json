@@ -1,0 +1,149 @@
+{
+  "name": "MARE SERENITATIS",
+  "pack": "AI-made: Arsenal",
+  "campaignId": "arsenal",
+  "mission": 12,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/arsenal/12-mare-serenitatis.json",
+  "description": "Xenon's factories are many but far from its army; Union's are few but close. Whichever side arms faster decides the battle.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 30 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "factory reserves",
+    "unequal sides"
+  ],
+  "design": {
+    "theme": "arsenal",
+    "symmetry": "none"
+  },
+  "turnLimit": 30,
+  "grid": [
+    "...............................",
+    "...............................",
+    "...........................F...",
+    "...................F...........",
+    "...............................",
+    "...............................",
+    "........F......................",
+    "...............h...............",
+    "..............hhh..............",
+    "..............hhh..............",
+    "..B--------------------------B.",
+    "..............hhh..............",
+    "...............h...............",
+    "........F......................",
+    "...............................",
+    "...............................",
+    "...............................",
+    "...........................F...",
+    "...............................",
+    "..............................."
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 10,
+      "owner": 0
+    },
+    {
+      "col": 29,
+      "row": 10,
+      "owner": 1
+    },
+    {
+      "col": 8,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET"
+      ]
+    },
+    {
+      "col": 8,
+      "row": 13,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON"
+      ]
+    },
+    {
+      "col": 27,
+      "row": 2,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON"
+      ]
+    },
+    {
+      "col": 27,
+      "row": 17,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON"
+      ]
+    },
+    {
+      "col": 19,
+      "row": 3,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LENET"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 9
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 5,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 24,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 23,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 24,
+      "y": 9
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 25,
+      "y": 9
+    }
+  ]
+}

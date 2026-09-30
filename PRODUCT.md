@@ -35,7 +35,8 @@ profile and opening-choice records below.
   keep language as a setting (English only; the Base Nectaris data keeps its
   Japanese fields), and the "Briefings & making-of notes: ?" legend.
 - **Collection order:** Normal campaign, Advanced campaign, Base Nectaris, then
-  the three AI-made terrain campaigns, AI-made, Lunar Frontiers and Custom levels.
+  the three AI-made terrain campaigns, the three AI-made balance-study campaigns,
+  AI-made, Lunar Frontiers and Custom levels.
 - **Collection headers:** title, won count and the collection `?`. Category labels
   and introductions are removed except "From the PC Engine campaign." (Normal)
   and "Community terrain, with new forces and briefings for this remake." (Base
@@ -336,7 +337,7 @@ number, and his side, large, plus unit counts. Behavior:
   they stay reachable when a short window makes the panel scroll. Nothing in the
   status block, settings or foot changes size during play.
 - **Status block** (no Tournaments link): campaign name (as titled in the menu:
-  Normal campaign, Advanced campaign, Base Nectaris, each terrain campaign, AI-made,
+  Normal campaign, Advanced campaign, Base Nectaris, each terrain or balance-study campaign, AI-made,
   Lunar Frontiers, Custom levels, Play test), the mission number (the menu's two
   digits; omitted for a play test) beside the mission name (30 px number, 17 px
   name, at most two lines), then "You play" over the side in 30 px bold in its
@@ -2071,6 +2072,29 @@ offers may add units. The briefs describe tactical problems, not hidden objectiv
 mission. The deterministic builder, physical-route tests, menu/save/progression
 tests and all-map CPU self-play cover integration and execution. These are new
 scenarios whose difficulty and multiplayer balance still need human playtesting.
+
+
+## Three balance-study campaigns (2026-09-28)
+
+The user asked for three more campaigns whose bot results would confirm or
+refute ideas about what balanced maps are like, and approved nine aspects on
+2026-09-28 (listed in
+[ENVIRONMENT_CAMPAIGNS.md](ENVIRONMENT_CAMPAIGNS.md#three-balance-study-campaigns)):
+**Bridgeheads** (valleys split every board), **Siege Lines** (Xenon holds a
+fortified camp) and **Arsenal** (neutral factories' reserves decide games), 16
+missions each, one idea per mission, lunar place names, no new rules. Paired
+variants of one map were rejected. They follow the three terrain campaigns in
+the library, titled **AI-made:**, and every level credits **AI-made by Claude
+Opus 5.5**.
+
+Balance standard (user, 2026-09-29): the best bot playing itself should give
+Union (first) and Xenon (second) about equal chances; implemented as Union
+winning 40-60% of Marshal self-play games, with Xenon's wins at the turn limit
+reported separately. Other bots and skill checks are reported, not tuned for.
+All 48 missions meet it on dice seeds the tuning did not use, none within two
+points of the range's edges. The measurements,
+the tuning record and the findings about balanced maps are in
+[MAP_BALANCE.md](MAP_BALANCE.md). Human play has not been measured.
 
 
 ## Fuseki hosting (2026-09-26)

@@ -1,0 +1,114 @@
+{
+  "name": "RIMA BODE",
+  "pack": "AI-made: Bridgeheads",
+  "campaignId": "bridgeheads",
+  "mission": 1,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/bridgeheads/01-rima-bode.json",
+  "description": "A single bridge spans the rille. Your vanguard waits a few hexes short of its near end; the Xenon garrison beyond is under strength. Infantry can climb down anywhere, but a squad in the valley floor ends its move there with no cover.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 20 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "valleys and bridges",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "bridgeheads",
+    "symmetry": "half"
+  },
+  "turnLimit": 20,
+  "grid": [
+    ".........vv.........",
+    ".........vv.........",
+    ".........vv...w.....",
+    ".......h.vv..www....",
+    "......hh.vv...w.....",
+    ".......h.vv.........",
+    ".........==-------B.",
+    ".B-------==.........",
+    ".........vv.h.......",
+    ".....w...vv.hh......",
+    "....www..vv.h.......",
+    ".....w...vv.........",
+    ".........vv.........",
+    ".........vv........."
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 7,
+      "owner": 0
+    },
+    {
+      "col": 18,
+      "row": 6,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 6,
+      "y": 7
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 6
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 6,
+      "y": 6
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 7,
+      "y": 6
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 5,
+      "y": 7
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 16,
+      "y": 7,
+      "str": 7
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 15,
+      "y": 6,
+      "str": 7
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 16,
+      "y": 6,
+      "str": 7
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 17,
+      "y": 6,
+      "str": 7
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 15,
+      "y": 7,
+      "str": 7
+    }
+  ]
+}

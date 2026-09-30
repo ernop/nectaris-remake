@@ -125,13 +125,145 @@ node tools/build-environment-campaigns.js
 node test/run-tests.js
 ```
 
-The builder writes the runtime library, 48 individual JSON levels and three
-import bundles. No existing map is overwritten.
+The builder writes the runtime library, the individual JSON levels and one
+import bundle per campaign, for these three campaigns and the three balance
+studies below. Rebuilding leaves these 48 missions byte-identical.
 
 Checks cover reproducibility, unique layouts, source agreement, terrain legality,
 reachable starting positions, connected ground routes without factory transit,
 real factory exits, carrier compatibility, roster restrictions and the defining
 terrain proportions of each campaign. The menu fixture exercises starting, saving,
 continuing, next-mission boundaries and independent progress. The full suite runs
-CPU self-play to completion on all 119 included maps. This verifies execution and
+CPU self-play to completion on all 167 included maps. This verifies execution and
 termination; difficulty and human-versus-human balance still need playtesting.
+
+# Three balance-study campaigns
+
+Approved 2026-09-28 by the user: three more 16-mission campaigns, AI-made by
+Claude Opus 5.5, whose missions are measured with the simulator bots so that
+the results confirm or refute ideas about what makes a map balanced.
+
+- **Bridgeheads**: valleys split every board; bridges and a few footpaths are
+  the only fast crossings. Hunters and Falcons are mostly absent; Eagles and
+  Pelicans are allowed.
+- **Siege Lines**: Xenon holds a fortified base and Union must break in before
+  the turn limit. Normal air, occasionally more.
+- **Arsenal**: neutral factories whose reserves decide games, so capture
+  timing matters. Normal air, occasionally more.
+- Each mission tests one stated idea about balance. Bot results confirm or
+  refute it, and the findings accumulate in a written guide to balanced maps.
+- Symmetry varies: half-turn (even widths), left-right mirror (odd widths; the
+  only other mirror that preserves this hex grid) and deliberately unequal maps.
+  Moving first already makes every map unequal.
+- Each campaign has an arc from small skirmishes to a large final battle, on
+  boards from about 20×14 to 40×26. No new rules; a fresh army each mission.
+- Balance standard, settled 2026-09-29 after the first measurements: the best
+  bot plays itself, and Union (moving first) and Xenon (second) should have
+  about equal chances, meaning Union wins 40–60% of games. Wins at the turn
+  limit are reported separately. The best bot is the one that scores highest
+  against the others over these boards: Marshal since master `479292c`, which
+  scored 66% against Apex over the 48 boards. This replaces the approval's
+  targets of 40–60% for any bot playing itself and of the stronger bot winning
+  from both seats; other bots and the skill checks are reported as further
+  evidence, not tuned for.
+- Playable by people first: readable layouts, one clear problem per mission,
+  briefings in the existing style, lunar place names.
+- New boards are appended after the existing 119, so existing board numbers
+  and the simulator's lock corpus stay unchanged. Paired variants of one map
+  were proposed and rejected.
+
+**Results.** All 48 missions give Union 40–60% of Marshal self-play games on
+dice seeds that no tuning run used: 150 games for 32 missions, 450 for 15 and
+600 for one. Missions that first finished within two points of an edge were
+re-tuned or measured again; none is that close now, and the nearest are five at
+43% or 57%, measured on 150 games each. Humans have not played them yet. How the missions were measured and tuned,
+what the measurements showed about balanced maps, and each mission's numbers
+are in [MAP_BALANCE.md](MAP_BALANCE.md).
+
+The briefs, rosters and settings live in
+[tools/balance-campaign-specs.js](tools/balance-campaign-specs.js); the
+geometry and placement rules in
+[tools/build-balance-campaigns.js](tools/build-balance-campaigns.js). Union /
+Xenon counts the units on the board at the start, Factories counts factory
+buildings of either owner or neutral, and Rounds is the turn limit.
+
+<a id="bridgeheads"></a>
+
+## AI-made: Bridgeheads
+
+Rilles split every board. Bridges and a few footpaths are the only fast crossings, and holding the far end of one is the campaign's recurring problem.
+
+[Import the whole campaign](levels/bridgeheads.json).
+
+| # | Mission | Board | Union / Xenon | Factories | Symmetry | Rounds | Physical / tactical problem |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | [RIMA BODE](levels/bridgeheads/01-rima-bode.json) | 20×14 | 5 / 5 | 0 | half-turn | 20 | A single bridge spans the rille. Your vanguard waits a few hexes short of its near end; the Xenon garrison beyond is under strength. Infantry can climb down anywhere, but a squad in the valley floor ends its move there with no cover. |
+| 2 | [RIMA HYGINUS](levels/bridgeheads/02-rima-hyginus.json) | 24×14 | 8 / 7 | 0 | half-turn | 48 | A crater sits in the middle of the rille, and the only bridges are at its two ends. An army that crosses at one end leaves the other bridge to the enemy. The Xenon camp stands nearer the rille than yours, and you bring one more Bison. |
+| 3 | [RIMA HESIODUS](levels/bridgeheads/03-rima-hesiodus.json) | 25×16 | 6 / 6 | 0 | mirror | 30 | The camps face each other across the north end of the rille, where a footpath lets infantry cross in two moves. Tanks must go the long way, over the southern bridge. Every Xenon unit is under strength, most of them badly. |
+| 4 | [VALLIS SNELLIUS](levels/bridgeheads/04-vallis-snellius.json) | 24×16 | 10 / 9 | 0 | half-turn | 24 | No bridge crosses this valley. Tanks can only hold their own bank; any attack must walk through the valley floor or fly. You have three Pelicans to Xenon's two, a Hawkeye guards each camp, and the Xenon ground forces are under strength. |
+| 5 | [RIMAE TRIESNECKER](levels/bridgeheads/05-rimae-triesnecker.json) | 28×18 | 5 / 5 | 2 | half-turn | 28 | Two rilles cross at right angles and divide the ground into four fields. Each camp's field has two bridges to the neutral fields, where small factories hold a Charlie each. |
+| 6 | [RIMA HADLEY](levels/bridgeheads/06-rima-hadley.json) | 27×17 | 7 / 6 | 0 | mirror | 40 | Each camp sits behind its own winding rille with a bridge at each end. The open plain between the rilles belongs to whoever crosses first. You bring one extra Kilroy, and the Xenon Lenet starts damaged. |
+| 7 | [VALLIS ALPES](levels/bridgeheads/07-vallis-alpes.json) | 28×16 | 7 / 7 | 0 | half-turn | 28 | A deep valley cuts through the mountain wall, and one long bridge carries the road across. Pelicans can lift a tank over the wall anywhere. The Xenon tanks and infantry are under strength. |
+| 8 | [RIMA SIRSALIS](levels/bridgeheads/08-rima-sirsalis.json) | 28×18 | 6 / 6 | 0 | half-turn | 28 | Guns on either rim can reach across the rille. Your guns start in firing position; Xenon's are damaged and farther back, and its Bison is damaged too. Two bridges carry the tanks, and the artillery decides which of them is usable. |
+| 9 | [RIMA MARIUS](levels/bridgeheads/09-rima-marius.json) | 27×17 | 6 / 6 | 0 | unequal | 28 | The rille runs close to your camp. You defend a narrow bank and Xenon has room to form up, but its camp stands nearer the centre than yours and its army is slightly under strength. |
+| 10 | [RIMA PRINZ](levels/bridgeheads/10-rima-prinz.json) | 30×18 | 7 / 7 | 2 | half-turn | 26 | Eagles fly over the rille as if it were not there. Each side has one Hawkeye to keep the sky over its bridge, and a small factory waits on each far bank. |
+| 11 | [RIMA BIRT](levels/bridgeheads/11-rima-birt.json) | 30×20 | 5 / 5 | 2 | half-turn | 9 | Two parallel rilles enclose a strip of plain with two factories. Each camp is one bridge from the strip and two from the enemy, and there are only nine rounds. |
+| 12 | [VALLIS SCHROTERI](levels/bridgeheads/12-vallis-schroteri.json) | 32×20 | 5 / 5 | 0 | unequal | 24 | The Xenon camp stands inside a loop of the valley, reachable by tanks over one bridge. The armies are equal: the loop is Xenon's advantage, the first move is yours. |
+| 13 | [RIMA MAIRAN](levels/bridgeheads/13-rima-mairan.json) | 30×20 | 10 / 9 | 0 | half-turn | 30 | Each side's Mules start at its bridgeheads, carrying mines. A mine on a bridge closes it to tanks, but a closed bridge also stops your own attack. You bring one more Charlie. |
+| 14 | [RIMAE LITTROW](levels/bridgeheads/14-rimae-littrow.json) | 34×22 | 7 / 7 | 4 | half-turn | 34 | Three rilles run between the camps with their bridges staggered, so every crossing turns the advance sideways. Both armies start between the rilles beside factories; your force is under strength. |
+| 15 | [RIMA CAUCHY](levels/bridgeheads/15-rima-cauchy.json) | 36×22 | 12 / 11 | 0 | half-turn | 48 | A long diagonal rille separates distant camps. Mules carry infantry along the roads; the bridges are far apart and far from home. The Xenon camp stands nearer the rille than yours, and you bring one more Bison, badly damaged. |
+| 16 | [RIMA ARIADAEUS](levels/bridgeheads/16-rima-ariadaeus.json) | 40×26 | 10 / 10 | 4 | half-turn | 30 | The great straight rille cuts the whole board, with branches, footpaths and bridges along its length. Eagles, Pelicans and factories on both banks. |
+
+<a id="siege-lines"></a>
+
+## AI-made: Siege Lines
+
+Xenon holds a fortified crater in every battle. Union must break in and take the camp before the turn limit; walls, gates and guns decide how long that takes.
+
+[Import the whole campaign](levels/siege-lines.json).
+
+| # | Mission | Board | Union / Xenon | Factories | Symmetry | Rounds | Physical / tactical problem |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | [PLATO](levels/siege-lines/01-plato.json) | 22×14 | 6 / 6 | 0 | unequal | 16 | Plato's wall is unbroken except for two gates facing you. Six Xenon units hold the crater, as many as you bring; your Hadrian is the only gun on either side, and you have sixteen rounds to take the camp. |
+| 2 | [ARCHIMEDES](levels/siege-lines/02-archimedes.json) | 24×14 | 7 / 6 | 0 | unequal | 18 | A single gate breaks Archimedes' wall. Whatever holds it holds the crater; infantry can climb the wall anywhere, slowly. Your Hadrian can shell the gate from outside. |
+| 3 | [ARZACHEL](levels/siege-lines/03-arzachel.json) | 24×16 | 8 / 8 | 0 | unequal | 22 | Two guns inside the wall cover both gates. The last few hexes before a gate are under their fire and the wall shields them from direct attack; your own Hadrian can answer them. |
+| 4 | [ALPHONSUS](levels/siege-lines/04-alphonsus.json) | 26×16 | 7 / 8 | 0 | unequal | 20 | Three gates, two of them mined. A mine closes its gate to tanks until it is destroyed, and it is very hard to destroy. |
+| 5 | [PTOLEMAEUS](levels/siege-lines/05-ptolemaeus.json) | 28×18 | 7 / 4 | 1 | unequal | 36 | The great walled plain holds a Xenon factory. Damaged defenders fall back to it for repairs, and its reserves can refill a gate. You bring one Hadrian. |
+| 6 | [COPERNICUS](levels/siege-lines/06-copernicus.json) | 28×18 | 8 / 7 | 0 | unequal | 16 | Two walls: an outer terrace of broken ground open to the north and south, and an inner rim with a single western gate. Getting in means going around. |
+| 7 | [TYCHO](levels/siege-lines/07-tycho.json) | 26×18 | 6 / 5 | 0 | unequal | 24 | The camp sits on Tycho's central peak. One narrow road climbs it; infantry can scramble up the slopes, where every defender has mountain cover. |
+| 8 | [CLAVIUS](levels/siege-lines/08-clavius.json) | 30×18 | 7 / 4 | 2 | unequal | 26 | Two small outpost craters guard the approaches, each with an unguarded Xenon factory. Taking an outpost gives you its reserve and a place to repair. |
+| 9 | [GRIMALDI](levels/siege-lines/09-grimaldi.json) | 30×20 | 7 / 6 | 0 | unequal | 24 | The garrison is small, but a Xenon relief column is marching along the northern edge. Take the camp before it arrives, or turn to meet it. |
+| 10 | [WARGENTIN](levels/siege-lines/10-wargentin.json) | 28×18 | 6 / 8 | 0 | unequal | 20 | Wargentin is a crater filled to the brim: a plateau of hills with no wall at all. One Eagle supports your attack; a Hawkeye and a Seeker defend the sky. |
+| 11 | [GASSENDI](levels/siege-lines/11-gassendi.json) | 30×20 | 8 / 4 | 0 | unequal | 24 | Gassendi's wall has one gate, but walls do not stop Pelicans. Each can carry a squad over the rim into the crater, where a single Seeker guards the sky. |
+| 12 | [POSIDONIUS](levels/siege-lines/12-posidonius.json) | 30×20 | 9 / 6 | 0 | unequal | 26 | A rille runs in front of Posidonius with a single bridge. Tanks must cross it and then find a gate; infantry can climb down and up anywhere, and your Pelican can lift one unit over both. |
+| 13 | [THEOPHILUS](levels/siege-lines/13-theophilus.json) | 32×20 | 8 / 5 | 1 | unequal | 22 | Two craters: the camp in Theophilus and a Xenon factory in its neighbor. The factory's reserves can reinforce the camp unless you take it first. |
+| 14 | [MAUROLYCUS](levels/siege-lines/14-maurolycus.json) | 32×20 | 7 / 6 | 0 | unequal | 30 | A fast Xenon Rabbit starts outside the walls, on the road to your camp. Chase it or ignore it: every unit you leave behind to watch it is one fewer at the gate. |
+| 15 | [PETAVIUS](levels/siege-lines/15-petavius.json) | 34×22 | 10 / 10 | 1 | unequal | 30 | A huge crater with four gates and a rille across its floor. The camp lies beyond the rille; the gates are easy, the rille is not. Your Eagle faces two Hawkeyes and a Seeker. |
+| 16 | [MARE ORIENTALE](levels/siege-lines/16-mare-orientale.json) | 40×26 | 9 / 12 | 1 | unequal | 36 | Three concentric rings of mountains surround the Xenon camp, the innermost two hexes thick, their gates offset so each ring turns the attack sideways. Xenon has more units; it also has more wall to hold. |
+
+<a id="arsenal"></a>
+
+## AI-made: Arsenal
+
+Neutral factories hold the reserves that decide these battles. Which factory to take, and when, matters more than the army you start with.
+
+[Import the whole campaign](levels/arsenal.json).
+
+| # | Mission | Board | Union / Xenon | Factories | Symmetry | Rounds | Physical / tactical problem |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | [SINUS MEDII](levels/arsenal/01-sinus-medii.json) | 21×14 | 4 / 4 | 1 | mirror | 14 | One factory stands at the exact centre, holding a Charlie, a Bison and a Kilroy. You move first, but your capturers are slow Kilroys starting farther back than Xenon's Charlies. |
+| 2 | [MARE VAPORUM](levels/arsenal/02-mare-vaporum.json) | 24×16 | 4 / 5 | 2 | half-turn | 24 | Two factories lie in the open middle, each a little closer to one camp. Take yours, and decide whether to reach for theirs. Your camp stands farther forward than Xenon's, but you bring one Charlie fewer, and the Xenon tanks start damaged. |
+| 3 | [LACUS SOMNIORUM](levels/arsenal/03-lacus-somniorum.json) | 26×16 | 5 / 5 | 6 | half-turn | 26 | Six small factories are scattered across the lake bed, each holding a squad or two. There are more prizes than capturers, and the Xenon camp stands nearer the middle than yours. |
+| 4 | [MARE CRISIUM](levels/arsenal/04-mare-crisium.json) | 27×17 | 6 / 5 | 2 | mirror | 18 | The factories on the rim of Crisium hold aircraft, a Hunter and a Falcon each. Whoever takes one owns the sky over the basin; you bring a second Hawkeye, but one of your Charlies is at half strength. |
+| 5 | [PALUS PUTREDINIS](levels/arsenal/05-palus-putredinis.json) | 28×18 | 6 / 5 | 2 | half-turn | 28 | The marsh factories hold Atlas guns and the Mules to carry them. An Atlas can shell anything within six hexes, but only where a Mule puts it. You bring one more Charlie, and the Xenon force is under strength. |
+| 6 | [MARE NUBIUM](levels/arsenal/06-mare-nubium.json) | 28×18 | 5 / 5 | 4 | half-turn | 28 | A rich factory stands a few hexes from each camp, closer to the enemy's army than to its owner's. A quick capturer can take it; the camp's defenders can hold it. |
+| 7 | [SINUS IRIDUM](levels/arsenal/07-sinus-iridum.json) | 29×18 | 6 / 6 | 3 | mirror | 10 | The richest factory sits inside a horseshoe of mountains with one entrance to the south. Taking it is a race; keeping it is a siege, and you have only ten rounds. |
+| 8 | [MARE FECUNDITATIS](levels/arsenal/08-mare-fecunditatis.json) | 30×20 | 4 / 4 | 4 | half-turn | 28 | An island factory sits inside a ring of valleys that tanks cannot cross. The Pelican in your nearer factory can fly a squad over. The Xenon Lenet starts damaged. |
+| 9 | [MARE HUMORUM](levels/arsenal/09-mare-humorum.json) | 30×20 | 6 / 5 | 4 | half-turn | 30 | Near your camp, a factory holds one squad. Far out on the flank, another holds a tank company. Send your capturers near or far; you have one more Charlie than Xenon. |
+| 10 | [OCEANUS PROCELLARUM](levels/arsenal/10-oceanus-procellarum.json) | 34×22 | 9 / 9 | 8 | half-turn | 32 | An ocean of open ground with eight scattered factories. Every capture draws a response, and no front holds still for long. Your army arrives worn: every unit starts at strength six. |
+| 11 | [MARE COGNITUM](levels/arsenal/11-mare-cognitum.json) | 30×20 | 8 / 8 | 4 | half-turn | 14 | These factories hold only a squad each, but any damaged unit can repair in one. Holding them keeps your army whole. Your Hadrian starts damaged. |
+| 12 | [MARE SERENITATIS](levels/arsenal/12-mare-serenitatis.json) | 31×20 | 4 / 4 | 5 | unequal | 30 | Xenon's factories are many but far from its army; Union's are few but close. Whichever side arms faster decides the battle. |
+| 13 | [MARE TRANQUILLITATIS](levels/arsenal/13-mare-tranquillitatis.json) | 32×20 | 4 / 4 | 6 | half-turn | 30 | Both sides land with infantry only; your landing parties are under strength, and Xenon lands nearer the middle. The factories hold the tanks, and every tank you field is one the enemy does not. |
+| 14 | [MARE INSULARUM](levels/arsenal/14-mare-insularum.json) | 34×22 | 7 / 7 | 4 | half-turn | 32 | Islands of firm ground stand in a sea of valleys, and the factories on them can be reached on foot, slowly, or by Pelican. Each side has one Pelican, and a Hawkeye to shoot the other's down. |
+| 15 | [LACUS MORTIS](levels/arsenal/15-lacus-mortis.json) | 36×22 | 4 / 4 | 4 | half-turn | 40 | Each camp owns a deep reserve of eight units, released from its factory a few at a time. The neutral factories between them decide who runs out first. |
+| 16 | [MARE NECTARIS](levels/arsenal/16-mare-nectaris.json) | 40×26 | 10 / 10 | 8 | half-turn | 40 | The Sea of Nectar: the final battle, with factories of every kind across a wide field. Aircraft, armour and artillery are all waiting to be claimed. |

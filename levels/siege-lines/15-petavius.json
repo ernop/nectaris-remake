@@ -1,0 +1,186 @@
+{
+  "name": "PETAVIUS",
+  "pack": "AI-made: Siege Lines",
+  "campaignId": "siege-lines",
+  "mission": 15,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/siege-lines/15-petavius.json",
+  "description": "A huge crater with four gates and a rille across its floor. The camp lies beyond the rille; the gates are easy, the rille is not. Your Eagle faces two Hawkeyes and a Seeker.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 30 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "fortified camp",
+    "unequal sides"
+  ],
+  "design": {
+    "theme": "siege",
+    "symmetry": "none"
+  },
+  "turnLimit": 30,
+  "grid": [
+    "..................................",
+    "..................................",
+    "..................................",
+    "..................................",
+    ".......................v..........",
+    ".....................MMv..MM......",
+    "...................MM..v....MM....",
+    ".......................v..F...MM..",
+    ".......................v.......M..",
+    ".................M.....v.......M..",
+    ".................M.....v.......M..",
+    "..B..............M-----=--B....M..",
+    ".................M.....v.......M..",
+    ".......................v.......M..",
+    ".......................v.......M..",
+    "...................M...v.....MM...",
+    "....................MM.v...MM.....",
+    "......................Mv..M.......",
+    "..................................",
+    "..................................",
+    "..................................",
+    ".................................."
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 11,
+      "owner": 0
+    },
+    {
+      "col": 26,
+      "row": 11,
+      "owner": 1
+    },
+    {
+      "col": 26,
+      "row": 7,
+      "owner": 1,
+      "stored": [
+        "BISON",
+        "LENET"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 6,
+      "y": 11
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 6,
+      "y": 10
+    },
+    {
+      "t": "KILROY",
+      "o": 0,
+      "x": 7,
+      "y": 10
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 5,
+      "y": 11
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 7,
+      "y": 11
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 6,
+      "y": 12
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 5,
+      "y": 9
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 6,
+      "y": 9
+    },
+    {
+      "t": "EAGLE",
+      "o": 0,
+      "x": 3,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 27,
+      "y": 11
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 27,
+      "y": 10
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 28,
+      "y": 11
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 26,
+      "y": 12
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 27,
+      "y": 12
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 28,
+      "y": 12
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 27,
+      "y": 9
+    },
+    {
+      "t": "HAWKEYE",
+      "o": 1,
+      "x": 25,
+      "y": 10
+    },
+    {
+      "t": "HAWKEYE",
+      "o": 1,
+      "x": 26,
+      "y": 10
+    },
+    {
+      "t": "SEEKER",
+      "o": 1,
+      "x": 28,
+      "y": 10
+    }
+  ]
+}

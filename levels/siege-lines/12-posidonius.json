@@ -1,0 +1,145 @@
+{
+  "name": "POSIDONIUS",
+  "pack": "AI-made: Siege Lines",
+  "campaignId": "siege-lines",
+  "mission": 12,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/siege-lines/12-posidonius.json",
+  "description": "A rille runs in front of Posidonius with a single bridge. Tanks must cross it and then find a gate; infantry can climb down and up anywhere, and your Pelican can lift one unit over both.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 26 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "fortified camp",
+    "unequal sides"
+  ],
+  "design": {
+    "theme": "siege",
+    "symmetry": "none"
+  },
+  "turnLimit": 26,
+  "grid": [
+    ".................v............",
+    ".................v............",
+    ".................v............",
+    ".................v............",
+    ".................v............",
+    ".................v.....MMM....",
+    ".................v...MM...MM..",
+    ".................v.MM.......MM",
+    ".................v.M.........M",
+    ".......-.-.-.-.-.=.-.........M",
+    ".B....-.-.-.-.-.-v-.-...B....M",
+    ".................v.M.........M",
+    ".................v.M.........M",
+    ".................v.........MM.",
+    ".................v....MM.MM...",
+    ".................v......M.....",
+    ".................v............",
+    ".................v............",
+    ".................v............",
+    ".................v............"
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 10,
+      "owner": 0
+    },
+    {
+      "col": 24,
+      "row": 10,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 6,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 6,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 7,
+      "y": 9
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 5,
+      "y": 10
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 7,
+      "y": 10
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 6,
+      "y": 11
+    },
+    {
+      "t": "OCTOPUS",
+      "o": 0,
+      "x": 5,
+      "y": 8
+    },
+    {
+      "t": "PELICAN",
+      "o": 0,
+      "x": 3,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 23,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 24,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 25,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 23,
+      "y": 10
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 25,
+      "y": 10
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 24,
+      "y": 11
+    }
+  ]
+}

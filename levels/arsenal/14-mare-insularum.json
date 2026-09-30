@@ -1,0 +1,181 @@
+{
+  "name": "MARE INSULARUM",
+  "pack": "AI-made: Arsenal",
+  "campaignId": "arsenal",
+  "mission": 14,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/arsenal/14-mare-insularum.json",
+  "description": "Islands of firm ground stand in a sea of valleys, and the factories on them can be reached on foot, slowly, or by Pelican. Each side has one Pelican, and a Hawkeye to shoot the other's down.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 32 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "factory reserves",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "arsenal",
+    "symmetry": "half"
+  },
+  "turnLimit": 32,
+  "grid": [
+    "..................................",
+    "..................................",
+    "..................................",
+    "...........vv.....................",
+    "..........vvvvv.vv................",
+    ".........v....vvvvv...............",
+    ".........v..F.v....v..............",
+    ".........v....v.F..v..............",
+    ".........vv..vv....v..............",
+    "..........vvvvvv..vv..............",
+    "...............vvvv............B..",
+    "..B............vvvv...............",
+    "..............vv..vvvvvv..........",
+    "..............v....vv..vv.........",
+    "..............v..F.v....v.........",
+    "..............v....v.F..v.........",
+    "...............vvvvv....v.........",
+    "................vv.vvvvv..........",
+    ".....................vv...........",
+    "..................................",
+    "..................................",
+    ".................................."
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 11,
+      "owner": 0
+    },
+    {
+      "col": 31,
+      "row": 10,
+      "owner": 1
+    },
+    {
+      "col": 12,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET"
+      ]
+    },
+    {
+      "col": 21,
+      "row": 15,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET"
+      ]
+    },
+    {
+      "col": 17,
+      "row": 14,
+      "owner": -1,
+      "stored": [
+        "BISON",
+        "BISON",
+        "LENET"
+      ]
+    },
+    {
+      "col": 16,
+      "row": 7,
+      "owner": -1,
+      "stored": [
+        "BISON",
+        "BISON",
+        "LENET"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 11
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 10
+    },
+    {
+      "t": "KILROY",
+      "o": 0,
+      "x": 4,
+      "y": 11
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 6,
+      "y": 11
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 4,
+      "y": 12
+    },
+    {
+      "t": "HAWKEYE",
+      "o": 0,
+      "x": 5,
+      "y": 12
+    },
+    {
+      "t": "PELICAN",
+      "o": 0,
+      "x": 3,
+      "y": 7
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 28,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 28,
+      "y": 11
+    },
+    {
+      "t": "KILROY",
+      "o": 1,
+      "x": 29,
+      "y": 10
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 27,
+      "y": 10
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 29,
+      "y": 9
+    },
+    {
+      "t": "HAWKEYE",
+      "o": 1,
+      "x": 28,
+      "y": 9
+    },
+    {
+      "t": "PELICAN",
+      "o": 1,
+      "x": 30,
+      "y": 14
+    }
+  ]
+}

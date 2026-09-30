@@ -1,0 +1,227 @@
+{
+  "name": "RIMA ARIADAEUS",
+  "pack": "AI-made: Bridgeheads",
+  "campaignId": "bridgeheads",
+  "mission": 16,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/bridgeheads/16-rima-ariadaeus.json",
+  "description": "The great straight rille cuts the whole board, with branches, footpaths and bridges along its length. Eagles, Pelicans and factories on both banks.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 30 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "valleys and bridges",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "bridgeheads",
+    "symmetry": "half"
+  },
+  "turnLimit": 30,
+  "grid": [
+    "...........vvv..........................",
+    "...........vvvv.........................",
+    "............vvv.........................",
+    "............vvvv........................",
+    "........----====----------..............",
+    ".......F.....vvv.........-..............",
+    "..............vvvv.......-....hhh.......",
+    "...............vvv........-...hhhh......",
+    "...............vvvvv....Fhhh..hhh.......",
+    "................vvvv.....hhh............",
+    ".................vvvv....hhh............",
+    "..................vvvv.....-............",
+    "..................====---------------B..",
+    "..B---------------====..................",
+    "............-.....vvvv..................",
+    "............hhh....vvvv.................",
+    "............hhh.....vvvv................",
+    ".......hhh..hhhF....vvvvv...............",
+    "......hhhh...-........vvv...............",
+    ".......hhh....-.......vvvv..............",
+    "..............-.........vvv.....F.......",
+    "..............----------====----........",
+    "........................vvvv............",
+    ".........................vvv............",
+    ".........................vvvv...........",
+    "..........................vvv..........."
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 13,
+      "owner": 0
+    },
+    {
+      "col": 37,
+      "row": 12,
+      "owner": 1
+    },
+    {
+      "col": 7,
+      "row": 5,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET"
+      ]
+    },
+    {
+      "col": 32,
+      "row": 20,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET"
+      ]
+    },
+    {
+      "col": 24,
+      "row": 8,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "KILROY",
+        "BISON",
+        "LENET",
+        "HADRIAN",
+        "PELICAN"
+      ]
+    },
+    {
+      "col": 15,
+      "row": 17,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "KILROY",
+        "BISON",
+        "LENET",
+        "HADRIAN",
+        "PELICAN"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 13
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 12
+    },
+    {
+      "t": "KILROY",
+      "o": 0,
+      "x": 4,
+      "y": 13
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 6,
+      "y": 13
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 14
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 5,
+      "y": 14
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 6,
+      "y": 14
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 5,
+      "y": 11
+    },
+    {
+      "t": "EAGLE",
+      "o": 0,
+      "x": 2,
+      "y": 8
+    },
+    {
+      "t": "PELICAN",
+      "o": 0,
+      "x": 1,
+      "y": 7
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 34,
+      "y": 12
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 34,
+      "y": 13
+    },
+    {
+      "t": "KILROY",
+      "o": 1,
+      "x": 35,
+      "y": 12
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 33,
+      "y": 12
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 35,
+      "y": 11
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 34,
+      "y": 11
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 33,
+      "y": 11
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 34,
+      "y": 14
+    },
+    {
+      "t": "EAGLE",
+      "o": 1,
+      "x": 37,
+      "y": 17
+    },
+    {
+      "t": "PELICAN",
+      "o": 1,
+      "x": 38,
+      "y": 18
+    }
+  ]
+}

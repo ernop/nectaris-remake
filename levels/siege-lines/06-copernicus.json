@@ -1,0 +1,143 @@
+{
+  "name": "COPERNICUS",
+  "pack": "AI-made: Siege Lines",
+  "campaignId": "siege-lines",
+  "mission": 6,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/siege-lines/06-copernicus.json",
+  "description": "Two walls: an outer terrace of broken ground open to the north and south, and an inner rim with a single western gate. Getting in means going around.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 16 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "fortified camp",
+    "unequal sides"
+  ],
+  "design": {
+    "theme": "siege",
+    "symmetry": "none"
+  },
+  "turnLimit": 16,
+  "grid": [
+    "............................",
+    "............................",
+    "............................",
+    "...................w...w....",
+    ".................ww.....ww..",
+    "...............ww....M....ww",
+    "..............w....MM.MM....",
+    "..............w..MM.....MM..",
+    "..............w..M.......M..",
+    ".B............w......B...M..",
+    "..............w..M.......M..",
+    "..............w..M.......M..",
+    "..............w...MM...MM...",
+    "..............ww....MMM....w",
+    "................ww.......ww.",
+    "..................ww...ww...",
+    "............................",
+    "............................"
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 9,
+      "owner": 0
+    },
+    {
+      "col": 21,
+      "row": 9,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 6,
+      "y": 9
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 4,
+      "y": 10
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 5,
+      "y": 10
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 6,
+      "y": 10
+    },
+    {
+      "t": "POLAR",
+      "o": 0,
+      "x": 5,
+      "y": 7
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 22,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 21,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 22,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 23,
+      "y": 8
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 23,
+      "y": 9
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 22,
+      "y": 10
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 21,
+      "y": 7
+    }
+  ]
+}

@@ -1,0 +1,184 @@
+{
+  "name": "MARE COGNITUM",
+  "pack": "AI-made: Arsenal",
+  "campaignId": "arsenal",
+  "mission": 11,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/arsenal/11-mare-cognitum.json",
+  "description": "These factories hold only a squad each, but any damaged unit can repair in one. Holding them keeps your army whole. Your Hadrian starts damaged.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 14 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "factory reserves",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "arsenal",
+    "symmetry": "half"
+  },
+  "turnLimit": 14,
+  "grid": [
+    "..............................",
+    "..............................",
+    "..............................",
+    "..............................",
+    "..............................",
+    ".................F............",
+    "...........-F-----............",
+    ".........--...hh..............",
+    ".....----.....hh..............",
+    "...--........hhhh..........-B.",
+    ".B-..........hhhh........--...",
+    "..............hh.....----.....",
+    "..............hh...--.........",
+    "............-----F-...........",
+    "............F.................",
+    "..............................",
+    "..............................",
+    "..............................",
+    "..............................",
+    ".............................."
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 10,
+      "owner": 0
+    },
+    {
+      "col": 28,
+      "row": 9,
+      "owner": 1
+    },
+    {
+      "col": 12,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "CHARLIE"
+      ]
+    },
+    {
+      "col": 17,
+      "row": 13,
+      "owner": -1,
+      "stored": [
+        "CHARLIE"
+      ]
+    },
+    {
+      "col": 12,
+      "row": 14,
+      "owner": -1,
+      "stored": [
+        "CHARLIE"
+      ]
+    },
+    {
+      "col": 17,
+      "row": 5,
+      "owner": -1,
+      "stored": [
+        "CHARLIE"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 5,
+      "y": 9
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 3,
+      "y": 10
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 5,
+      "y": 10
+    },
+    {
+      "t": "POLAR",
+      "o": 0,
+      "x": 4,
+      "y": 11
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 3,
+      "y": 8,
+      "str": 7
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 25,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 25,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 24,
+      "y": 10
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 26,
+      "y": 10
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 24,
+      "y": 11
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 25,
+      "y": 11
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 26,
+      "y": 11
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 25,
+      "y": 8
+    }
+  ]
+}

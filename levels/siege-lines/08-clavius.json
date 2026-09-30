@@ -1,0 +1,135 @@
+{
+  "name": "CLAVIUS",
+  "pack": "AI-made: Siege Lines",
+  "campaignId": "siege-lines",
+  "mission": 8,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/siege-lines/08-clavius.json",
+  "description": "Two small outpost craters guard the approaches, each with an unguarded Xenon factory. Taking an outpost gives you its reserve and a place to repair.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 26 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "fortified camp",
+    "unequal sides"
+  ],
+  "design": {
+    "theme": "siege",
+    "symmetry": "none"
+  },
+  "turnLimit": 26,
+  "grid": [
+    "..............................",
+    "...............MMM............",
+    "..............M...M...........",
+    ".................FM...........",
+    "..............MM.MM...........",
+    "................M......MMM....",
+    ".....................MM...MM..",
+    "....................M.......M.",
+    "....................M.......M.",
+    ".B......................B...M.",
+    "....................M.......M.",
+    "....................MM.....MM.",
+    "...............MMM....MM.MM...",
+    "..............M...M.....M.....",
+    ".................FM...........",
+    "..............MM.MM...........",
+    "................M.............",
+    ".............................."
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 9,
+      "owner": 0
+    },
+    {
+      "col": 24,
+      "row": 9,
+      "owner": 1
+    },
+    {
+      "col": 17,
+      "row": 3,
+      "owner": 1,
+      "stored": [
+        "CHARLIE"
+      ]
+    },
+    {
+      "col": 17,
+      "row": 14,
+      "owner": 1,
+      "stored": [
+        "CHARLIE"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 8
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 6,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 10
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 5,
+      "y": 10
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 6,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 25,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 25,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 26,
+      "y": 9
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 24,
+      "y": 10
+    }
+  ]
+}

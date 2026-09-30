@@ -1,0 +1,115 @@
+{
+  "name": "VALLIS SCHROTERI",
+  "pack": "AI-made: Bridgeheads",
+  "campaignId": "bridgeheads",
+  "mission": 12,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/bridgeheads/12-vallis-schroteri.json",
+  "description": "The Xenon camp stands inside a loop of the valley, reachable by tanks over one bridge. The armies are equal: the loop is Xenon's advantage, the first move is yours.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 24 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "valleys and bridges",
+    "unequal sides"
+  ],
+  "design": {
+    "theme": "bridgeheads",
+    "symmetry": "none"
+  },
+  "turnLimit": 24,
+  "grid": [
+    "................................",
+    "................................",
+    "................................",
+    "..................hh.....vv.....",
+    "............hh....hh....vvvvv...",
+    "...........hhh....hh...v....v...",
+    "...........hhh.........v.....v..",
+    "............hh........v......v..",
+    "......................v......v..",
+    "...-.-.-.-.-.-.-.-.-.-v-.-...v..",
+    "..B.-.-.-.-.-.-.-.-.-.=.-.B..v..",
+    "......................v......v..",
+    "............hh........v......v..",
+    "...........hhh.........v.....v..",
+    "...........hhh.........v....v...",
+    "............hh..........vvvvv...",
+    ".........................vv.....",
+    "................................",
+    "................................",
+    "................................"
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 10,
+      "owner": 0
+    },
+    {
+      "col": 26,
+      "row": 10,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 10
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 6,
+      "y": 10
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 4,
+      "y": 11
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 25,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 25,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 24,
+      "y": 10
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 24,
+      "y": 11
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 25,
+      "y": 11
+    }
+  ]
+}

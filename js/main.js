@@ -412,7 +412,7 @@
     ].concat(ENVIRONMENT_CAMPAIGNS.map(function (campaign) {
       return {id:campaign.id, list:campaign.id+"-list", title:campaign.name,
         levels:campaign.levels, pack:"environmentIndex", environmentCampaign:campaign.id,
-        notes:campaign.description+" Sixteen AI-made battles created by Codex, each with its own terrain, forces and tactical problem. Normal capture/elimination rules apply. No Hunters, Falcons or Eagles; some missions include Pelicans. Forces start fresh each mission.",
+        notes:campaign.description+" "+campaign.notes,
         source:"ENVIRONMENT_CAMPAIGNS.md#"+campaign.id};
     }), [
       {id:"ai-made", list:"ai-made-list", title:"AI-made",

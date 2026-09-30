@@ -1,0 +1,186 @@
+{
+  "name": "RIMAE LITTROW",
+  "pack": "AI-made: Bridgeheads",
+  "campaignId": "bridgeheads",
+  "mission": 14,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/bridgeheads/14-rimae-littrow.json",
+  "description": "Three rilles run between the camps with their bridges staggered, so every crossing turns the advance sideways. Both armies start between the rilles beside factories; your force is under strength.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 34 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "valleys and bridges",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "bridgeheads",
+    "symmetry": "half"
+  },
+  "turnLimit": 34,
+  "grid": [
+    "..........v.....vv.....v..........",
+    "..........v.....vv.....v..........",
+    "..........v.....vv.....v..........",
+    "..........v.....vv.....v..........",
+    "..........v..-.-v=-hF..v..........",
+    "..........v..--.=v.hhh.v..........",
+    "..........v..-..vv.hhh.v..........",
+    "..........v..-..vv..h..v..........",
+    "..........v..-..vv.F...v..........",
+    "..........v..-..vv.....v..........",
+    "..........v..-..vv..---=-------B..",
+    "..B-------=---..vv..-..v..........",
+    "..........v.....vv..-..v..........",
+    "..........v...F.vv..-..v..........",
+    "..........v..h..vv..-..v..........",
+    "..........v.hhh.vv..-..v..........",
+    "..........v.hhh.v=.--..v..........",
+    "..........v..Fh-=v-.-..v..........",
+    "..........v.....vv.....v..........",
+    "..........v.....vv.....v..........",
+    "..........v.....vv.....v..........",
+    "..........v.....vv.....v.........."
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 11,
+      "owner": 0
+    },
+    {
+      "col": 31,
+      "row": 10,
+      "owner": 1
+    },
+    {
+      "col": 13,
+      "row": 17,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET"
+      ]
+    },
+    {
+      "col": 20,
+      "row": 4,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET"
+      ]
+    },
+    {
+      "col": 19,
+      "row": 8,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LENET"
+      ]
+    },
+    {
+      "col": 14,
+      "row": 13,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LENET"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 13,
+      "y": 11,
+      "str": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 13,
+      "y": 10,
+      "str": 6
+    },
+    {
+      "t": "KILROY",
+      "o": 0,
+      "x": 12,
+      "y": 11,
+      "str": 7
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 14,
+      "y": 11,
+      "str": 6
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 12,
+      "y": 12,
+      "str": 6
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 13,
+      "y": 12,
+      "str": 6
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 14,
+      "y": 12,
+      "str": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 20,
+      "y": 11
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 19,
+      "y": 10
+    },
+    {
+      "t": "KILROY",
+      "o": 1,
+      "x": 20,
+      "y": 10
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 21,
+      "y": 10
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 19,
+      "y": 11
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 21,
+      "y": 11
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 20,
+      "y": 12
+    }
+  ]
+}

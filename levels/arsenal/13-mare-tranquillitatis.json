@@ -1,0 +1,163 @@
+{
+  "name": "MARE TRANQUILLITATIS",
+  "pack": "AI-made: Arsenal",
+  "campaignId": "arsenal",
+  "mission": 13,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/arsenal/13-mare-tranquillitatis.json",
+  "description": "Both sides land with infantry only; your landing parties are under strength, and Xenon lands nearer the middle. The factories hold the tanks, and every tank you field is one the enemy does not.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 30 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "factory reserves",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "arsenal",
+    "symmetry": "half"
+  },
+  "turnLimit": 30,
+  "grid": [
+    "................................",
+    "................................",
+    "................................",
+    ".........hh.....................",
+    ".........hh.....................",
+    ".........hh......F..............",
+    "........F..........F............",
+    "................................",
+    "...............hh...............",
+    "..............hhhh...........B..",
+    "..B...........hhhh..............",
+    "...............hh...............",
+    "................................",
+    "............F..........F........",
+    "..............F......hh.........",
+    ".....................hh.........",
+    ".....................hh.........",
+    "................................",
+    "................................",
+    "................................"
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 10,
+      "owner": 0
+    },
+    {
+      "col": 29,
+      "row": 9,
+      "owner": 1
+    },
+    {
+      "col": 8,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "BISON",
+        "LENET"
+      ]
+    },
+    {
+      "col": 23,
+      "row": 13,
+      "owner": -1,
+      "stored": [
+        "BISON",
+        "LENET"
+      ]
+    },
+    {
+      "col": 12,
+      "row": 13,
+      "owner": -1,
+      "stored": [
+        "BISON",
+        "BISON",
+        "LENET"
+      ]
+    },
+    {
+      "col": 19,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "BISON",
+        "BISON",
+        "LENET"
+      ]
+    },
+    {
+      "col": 17,
+      "row": 5,
+      "owner": -1,
+      "stored": [
+        "LENET",
+        "HADRIAN"
+      ]
+    },
+    {
+      "col": 14,
+      "row": 14,
+      "owner": -1,
+      "stored": [
+        "LENET",
+        "HADRIAN"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 10,
+      "str": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 9,
+      "str": 6
+    },
+    {
+      "t": "KILROY",
+      "o": 0,
+      "x": 4,
+      "y": 9,
+      "str": 6
+    },
+    {
+      "t": "PANTHER",
+      "o": 0,
+      "x": 5,
+      "y": 9,
+      "str": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 25,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 25,
+      "y": 9
+    },
+    {
+      "t": "KILROY",
+      "o": 1,
+      "x": 24,
+      "y": 10
+    },
+    {
+      "t": "PANTHER",
+      "o": 1,
+      "x": 26,
+      "y": 10
+    }
+  ]
+}

@@ -1,0 +1,129 @@
+{
+  "name": "RIMAE TRIESNECKER",
+  "pack": "AI-made: Bridgeheads",
+  "campaignId": "bridgeheads",
+  "mission": 5,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/bridgeheads/05-rimae-triesnecker.json",
+  "description": "Two rilles cross at right angles and divide the ground into four fields. Each camp's field has two bridges to the neutral fields, where small factories hold a Charlie each.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 28 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "valleys and bridges",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "bridgeheads",
+    "symmetry": "half"
+  },
+  "turnLimit": 28,
+  "grid": [
+    ".............vv.............",
+    ".............vv.............",
+    ".............vv.............",
+    "...B---------==----Fh.......",
+    "...-.........vv....hh.-.....",
+    "....-........vv....hh.-.....",
+    "....-........vv.......-.....",
+    "....-........vv.......-.....",
+    "vvvv==vvvvvvvvvvvvvvvv=vvvvv",
+    "vvvvv=vvvvvvvvvvvvvvvv==vvvv",
+    ".....-.......vv........-....",
+    ".....-.......vv........-....",
+    ".....-.hh....vv........-....",
+    ".....-.hh....vv.........-...",
+    ".......hF----==---------B...",
+    ".............vv.............",
+    ".............vv.............",
+    ".............vv............."
+  ],
+  "buildings": [
+    {
+      "col": 3,
+      "row": 3,
+      "owner": 0
+    },
+    {
+      "col": 24,
+      "row": 14,
+      "owner": 1
+    },
+    {
+      "col": 19,
+      "row": 3,
+      "owner": -1,
+      "stored": [
+        "CHARLIE"
+      ]
+    },
+    {
+      "col": 8,
+      "row": 14,
+      "owner": -1,
+      "stored": [
+        "CHARLIE"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 3
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 2
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 3
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 6,
+      "y": 3
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 4,
+      "y": 4
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 22,
+      "y": 14
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 22,
+      "y": 15
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 23,
+      "y": 14
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 21,
+      "y": 14
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 23,
+      "y": 13
+    }
+  ]
+}

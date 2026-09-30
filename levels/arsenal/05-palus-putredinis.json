@@ -1,0 +1,144 @@
+{
+  "name": "PALUS PUTREDINIS",
+  "pack": "AI-made: Arsenal",
+  "campaignId": "arsenal",
+  "mission": 5,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/arsenal/05-palus-putredinis.json",
+  "description": "The marsh factories hold Atlas guns and the Mules to carry them. An Atlas can shell anything within six hexes, but only where a Mule puts it. You bring one more Charlie, and the Xenon force is under strength.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 28 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "factory reserves",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "arsenal",
+    "symmetry": "half"
+  },
+  "turnLimit": 28,
+  "grid": [
+    "............................",
+    "............................",
+    "............................",
+    "............................",
+    "..........Fwwwwww...........",
+    "..........wwwwwwww..........",
+    ".........wwwwwwwwww.........",
+    ".........wwwwwwwwww.........",
+    ".............-------------B.",
+    ".B-------------.............",
+    ".........wwwwwwwwww.........",
+    ".........wwwwwwwwww.........",
+    "..........wwwwwwww..........",
+    "...........wwwwwwF..........",
+    "............................",
+    "............................",
+    "............................",
+    "............................"
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 9,
+      "owner": 0
+    },
+    {
+      "col": 26,
+      "row": 8,
+      "owner": 1
+    },
+    {
+      "col": 10,
+      "row": 4,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "MULE",
+        "ATLAS"
+      ]
+    },
+    {
+      "col": 17,
+      "row": 13,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "MULE",
+        "ATLAS"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 8
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 5,
+      "y": 8
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 3,
+      "y": 9
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 5,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 23,
+      "y": 9,
+      "str": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 23,
+      "y": 8,
+      "str": 6
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 22,
+      "y": 9,
+      "str": 6
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 24,
+      "y": 9,
+      "str": 6
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 22,
+      "y": 10,
+      "str": 6
+    }
+  ]
+}

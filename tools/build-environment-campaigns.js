@@ -223,7 +223,12 @@ function build(campaign,spec,index){
     design:{theme:campaign.theme,layout:index+1,formation:spec.formation,road:spec.road},
     turnLimit:spec.limit,grid:grid.map(r=>r.join("")),buildings,units};
 }
-function generate(){return catalog.map(c=>({id:c.id,name:c.name,description:c.intro,levels:c.levels.map((s,i)=>build(c,s,i))}));}
+function generate(){
+  return catalog.map(c=>({id:c.id,name:c.name,description:c.intro,
+    notes:"Sixteen AI-made battles created by Codex, each with its own terrain, forces and tactical problem. Normal capture/elimination rules apply. No Hunters, Falcons or Eagles; some missions include Pelicans. Forces start fresh each mission.",
+    levels:c.levels.map((s,i)=>build(c,s,i))}))
+    .concat(require("./build-balance-campaigns.js")());
+}
 if(require.main===module){
   const root=path.join(__dirname,".."),campaigns=generate();
   campaigns.forEach(c=>{

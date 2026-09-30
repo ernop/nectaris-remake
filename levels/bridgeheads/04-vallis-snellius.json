@@ -1,0 +1,171 @@
+{
+  "name": "VALLIS SNELLIUS",
+  "pack": "AI-made: Bridgeheads",
+  "campaignId": "bridgeheads",
+  "mission": 4,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/bridgeheads/04-vallis-snellius.json",
+  "description": "No bridge crosses this valley. Tanks can only hold their own bank; any attack must walk through the valley floor or fly. You have three Pelicans to Xenon's two, a Hawkeye guards each camp, and the Xenon ground forces are under strength.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 24 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "valleys and bridges",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "bridgeheads",
+    "symmetry": "half"
+  },
+  "turnLimit": 24,
+  "grid": [
+    "..........vvvv..........",
+    "..........vvvv..........",
+    "..........vvvv..........",
+    "..........vvvv..h.......",
+    "......hh..vvvv.hhh......",
+    "......hh..vvvv..hh......",
+    "..........vvvv..........",
+    "..........vvvv........B.",
+    ".B........vvvv..........",
+    "..........vvvv..........",
+    "......hh..vvvv..hh......",
+    "......hhh.vvvv..hh......",
+    ".......h..vvvv..........",
+    "..........vvvv..........",
+    "..........vvvv..........",
+    "..........vvvv.........."
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 8,
+      "owner": 0
+    },
+    {
+      "col": 22,
+      "row": 7,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 8
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 7
+    },
+    {
+      "t": "KILROY",
+      "o": 0,
+      "x": 4,
+      "y": 8
+    },
+    {
+      "t": "KILROY",
+      "o": 0,
+      "x": 6,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 3,
+      "y": 6
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 3,
+      "y": 5
+    },
+    {
+      "t": "PELICAN",
+      "o": 0,
+      "x": 2,
+      "y": 9
+    },
+    {
+      "t": "PELICAN",
+      "o": 0,
+      "x": 2,
+      "y": 8
+    },
+    {
+      "t": "PELICAN",
+      "o": 0,
+      "x": 3,
+      "y": 8
+    },
+    {
+      "t": "HAWKEYE",
+      "o": 0,
+      "x": 1,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 18,
+      "y": 8,
+      "str": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 17,
+      "y": 7,
+      "str": 6
+    },
+    {
+      "t": "KILROY",
+      "o": 1,
+      "x": 18,
+      "y": 7,
+      "str": 6
+    },
+    {
+      "t": "KILROY",
+      "o": 1,
+      "x": 19,
+      "y": 7,
+      "str": 6
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 20,
+      "y": 9,
+      "str": 6
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 19,
+      "y": 8,
+      "str": 6
+    },
+    {
+      "t": "PELICAN",
+      "o": 1,
+      "x": 21,
+      "y": 6
+    },
+    {
+      "t": "PELICAN",
+      "o": 1,
+      "x": 21,
+      "y": 5
+    },
+    {
+      "t": "HAWKEYE",
+      "o": 1,
+      "x": 22,
+      "y": 9
+    }
+  ]
+}

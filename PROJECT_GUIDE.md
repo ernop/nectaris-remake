@@ -41,6 +41,7 @@ retuned. These themes do not authorize extra features or unsourced rule changes.
 | Firing-area borders | User-requested visual trial implemented: outer and inner contours replace per-hex firing outlines; awaiting user assessment. [Trial scope](PRODUCT.md#firing-area-border-trial-2026-09-23). |
 | Remake stock unit roster | Implemented: 23 types, two native 32×32 facings. Map icons scale with zoom; panel/review icons remain native. [Unit record](art/units/README.md). |
 | Three AI-made terrain campaigns | Implemented with explicit AI-made labels and Codex attribution: Open Horizons, The Knotted Heart and Broken Ground, 16 new missions each, with separate progress and next-mission navigation. [48-map catalog](ENVIRONMENT_CAMPAIGNS.md), [scope and design decisions](PRODUCT.md#three-terrain-campaigns-2026-09-23). |
+| Three AI-made balance-study campaigns | Implemented from the user's 2026-09-28 request, credited to Claude Opus 5.5: Bridgeheads, Siege Lines and Arsenal, 16 missions each, each testing one idea about balance. Tuned to the user's 2026-09-29 standard (Marshal self-play gives Union 40-60%); the measurements and findings are the guide to balanced maps. Human play is unmeasured, and the menu has not been looked at in a browser. [Catalog](ENVIRONMENT_CAMPAIGNS.md#three-balance-study-campaigns), [decisions](PRODUCT.md#three-balance-study-campaigns-2026-09-28), [measurements and findings](MAP_BALANCE.md). |
 | Mission library | Each entry stays on one line; wide screens show three levels across per row, with two or one on narrower screens. Faction totals align vertically, the entry starts play, and edge help closes on mouseout with zero delay. Since 2026-09-26 help appears only where notes exist and never on the original campaigns. [Content and interactions](PRODUCT.md#mission-library-and-deliberate-help-controls-2026-09-23), [comparison rule](PRODUCT.md#single-line-comparison-entries-2026-09-23-clarification). |
 | UI contrast | Explicit requirement: opaque readable text and saturated faction colors, including secondary labels and campaign numbers. [Color guidance](PRODUCT.md#readable-interface-colors-2026-09-23). |
 | Factory inspection | Hover supplies contents; clicking opens only an owned building's actionable deployment picker. The 2026-09-26 clarification preserves the existing stars/layout; the reported missing-star mouseover still needs an exact reproducer. [Factory behavior](PRODUCT.md#building-capture-storage-and-deployment-updated-2026-09-23). |
@@ -196,6 +197,12 @@ Release first, verify later (user decision). Examine together later:
     board (it shows the board unturned) and with several supporters around
     the target (tags over neighbouring units); a board under 700 px tall,
     where the machine sprites shrink.
+24. Balance-study campaigns (2026-09-29): Bridgeheads, Siege Lines and Arsenal
+    in the mission library after the terrain campaigns; each collection `?`
+    shows its intro and the Claude Opus 5.5 credit; mission briefings and the
+    single-line entries for long names such as OCEANUS PROCELLARUM; Next
+    mission within each campaign; the readability of rilles, crater walls and
+    factory clusters on Pixel, Legacy, Neon and Classic.
 
 Research rather than a check: direct PC Engine confirmation of the Windows
 combat traces.
@@ -212,6 +219,7 @@ combat traces.
 | [art/pilot/README.md](art/pilot/README.md) | Native-size art review fixture and its validation, not the production map display policy. |
 | [inspiration/nectaris-original/README.md](inspiration/nectaris-original/README.md) | Local reference manifest; captures are gitignored and not runtime/distributable assets. |
 | [PERFORMANCE.md](PERFORMANCE.md) | Dated measurements and reproduction methods; recorded counts/timings describe their tested snapshots. |
+| [MAP_BALANCE.md](MAP_BALANCE.md) | 2026-09-29 bot measurements of the 48 balance-study missions: method, tuning record, findings about balanced maps and per-mission numbers. They describe the bots and rules of the stated master commit, not human play; remeasure after a rule or bot change. |
 | [AI_DESIGN_RESEARCH.md](AI_DESIGN_RESEARCH.md) | 2026-09-23 analysis of the current opponent, rules affecting AI strength and enjoyment, primary research, and proposed alternatives. The baseline sample is not a human-strength rating or balance verdict. |
 | [NECTARIS_CREDITS.md](NECTARIS_CREDITS.md) | 2026-09-27 research requested by the project owner: everyone documented on any Nectaris version and in the fan community the remake draws on, their public channels, letter drafts and open questions. No letters had been sent as of 2026-09-27; the owner sends them and fills in the contact list's Sent and Reply columns (whether and when, never reply contents, because the file is public). |
 

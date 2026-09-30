@@ -1,0 +1,196 @@
+{
+  "name": "MARE ORIENTALE",
+  "pack": "AI-made: Siege Lines",
+  "campaignId": "siege-lines",
+  "mission": 16,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/siege-lines/16-mare-orientale.json",
+  "description": "Three concentric rings of mountains surround the Xenon camp, the innermost two hexes thick, their gates offset so each ring turns the attack sideways. Xenon has more units; it also has more wall to hold.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 36 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "fortified camp",
+    "unequal sides"
+  ],
+  "design": {
+    "theme": "siege",
+    "symmetry": "none"
+  },
+  "turnLimit": 36,
+  "grid": [
+    "........................................",
+    "........................................",
+    "........................................",
+    ".............................MMM........",
+    "...........................MM...MM......",
+    ".........................MM.......MM....",
+    ".......................MM...........MM..",
+    ".....................MM....MM...MM....MM",
+    "....................M....MM.......MM....",
+    "....................M..MM....MMM.F..MM..",
+    "....................M..M...MMMMMMM...M..",
+    "....................M..M..MMM...MMM..M..",
+    "....................M..M..M......MM..M..",
+    "..B.................M..M......B..MM..M..",
+    "....................M..M..MM.....MM..M..",
+    ".......................M..MMMM.MMMM..M..",
+    ".......................M....MMMMM....M..",
+    "........................MM....M....MM...",
+    "....................MM....MM.....MM....M",
+    "......................MM....M...M....MM.",
+    "........................MM.........MM...",
+    "..........................MM.....MM.....",
+    "............................MM.MM.......",
+    "..............................M.........",
+    "........................................",
+    "........................................"
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 13,
+      "owner": 0
+    },
+    {
+      "col": 30,
+      "row": 13,
+      "owner": 1
+    },
+    {
+      "col": 33,
+      "row": 9,
+      "owner": 1,
+      "stored": [
+        "BISON",
+        "LENET"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 6,
+      "y": 13
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 12
+    },
+    {
+      "t": "KILROY",
+      "o": 0,
+      "x": 6,
+      "y": 12
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 7,
+      "y": 12
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 5,
+      "y": 13
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 7,
+      "y": 13
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 6,
+      "y": 14
+    },
+    {
+      "t": "OCTOPUS",
+      "o": 0,
+      "x": 5,
+      "y": 11
+    },
+    {
+      "t": "EAGLE",
+      "o": 0,
+      "x": 2,
+      "y": 8
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 31,
+      "y": 13
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 31,
+      "y": 12
+    },
+    {
+      "t": "KILROY",
+      "o": 1,
+      "x": 32,
+      "y": 13
+    },
+    {
+      "t": "KILROY",
+      "o": 1,
+      "x": 30,
+      "y": 14
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 31,
+      "y": 14
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 32,
+      "y": 14
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 31,
+      "y": 11
+    },
+    {
+      "t": "GRIZZLY",
+      "o": 1,
+      "x": 29,
+      "y": 12
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 30,
+      "y": 12
+    },
+    {
+      "t": "OCTOPUS",
+      "o": 1,
+      "x": 32,
+      "y": 12
+    },
+    {
+      "t": "HAWKEYE",
+      "o": 1,
+      "x": 29,
+      "y": 13
+    },
+    {
+      "t": "SEEKER",
+      "o": 1,
+      "x": 29,
+      "y": 14
+    }
+  ]
+}

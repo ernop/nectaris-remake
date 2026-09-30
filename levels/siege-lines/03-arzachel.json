@@ -1,0 +1,147 @@
+{
+  "name": "ARZACHEL",
+  "pack": "AI-made: Siege Lines",
+  "campaignId": "siege-lines",
+  "mission": 3,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/siege-lines/03-arzachel.json",
+  "description": "Two guns inside the wall cover both gates. The last few hexes before a gate are under their fire and the wall shields them from direct attack; your own Hadrian can answer them.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 22 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "fortified camp",
+    "unequal sides"
+  ],
+  "design": {
+    "theme": "siege",
+    "symmetry": "none"
+  },
+  "turnLimit": 22,
+  "grid": [
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    ".................MMM....",
+    "................M...MM..",
+    "......................M.",
+    "..........hh..........M.",
+    ".B........hh..M...B...M.",
+    "......................M.",
+    ".....................MM.",
+    "................MM.MM...",
+    "..................M.....",
+    "........................",
+    "........................",
+    "........................"
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 8,
+      "owner": 0
+    },
+    {
+      "col": 18,
+      "row": 8,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 8
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 7
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 6,
+      "y": 8
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 4,
+      "y": 9
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 5,
+      "y": 9
+    },
+    {
+      "t": "TITAN",
+      "o": 0,
+      "x": 6,
+      "y": 9
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 5,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 19,
+      "y": 8
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 19,
+      "y": 7
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 20,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 18,
+      "y": 9
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 19,
+      "y": 9
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 20,
+      "y": 9
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 19,
+      "y": 6
+    },
+    {
+      "t": "OCTOPUS",
+      "o": 1,
+      "x": 17,
+      "y": 7
+    }
+  ]
+}

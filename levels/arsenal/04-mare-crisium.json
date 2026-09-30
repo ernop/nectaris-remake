@@ -1,0 +1,137 @@
+{
+  "name": "MARE CRISIUM",
+  "pack": "AI-made: Arsenal",
+  "campaignId": "arsenal",
+  "mission": 4,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/arsenal/04-mare-crisium.json",
+  "description": "The factories on the rim of Crisium hold aircraft, a Hunter and a Falcon each. Whoever takes one owns the sky over the basin; you bring a second Hawkeye, but one of your Charlies is at half strength.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 18 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "factory reserves",
+    "mirror symmetry"
+  ],
+  "design": {
+    "theme": "arsenal",
+    "symmetry": "mirror"
+  },
+  "turnLimit": 18,
+  "grid": [
+    "...........................",
+    "...........................",
+    "..........F.....F..........",
+    "...........................",
+    "...........M...M...........",
+    ".........MM.....MM.........",
+    "........M.........M........",
+    "........M.........M........",
+    ".B.-.-.-.-.-.-.-.-.-.-.-.B.",
+    "..-.-.-.-.-.-.-.-.-.-.-.-..",
+    "........M.........M........",
+    "........MM.......MM........",
+    "..........MM...MM..........",
+    "...........................",
+    "...........................",
+    "...........................",
+    "..........................."
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 8,
+      "owner": 0
+    },
+    {
+      "col": 25,
+      "row": 8,
+      "owner": 1
+    },
+    {
+      "col": 10,
+      "row": 2,
+      "owner": -1,
+      "stored": [
+        "FALCON",
+        "HUNTER"
+      ]
+    },
+    {
+      "col": 16,
+      "row": 2,
+      "owner": -1,
+      "stored": [
+        "FALCON",
+        "HUNTER"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 8,
+      "str": 4
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 7
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 7
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 5,
+      "y": 7
+    },
+    {
+      "t": "HAWKEYE",
+      "o": 0,
+      "x": 3,
+      "y": 8
+    },
+    {
+      "t": "HAWKEYE",
+      "o": 0,
+      "x": 5,
+      "y": 8
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 22,
+      "y": 8
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 21,
+      "y": 7
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 22,
+      "y": 7
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 23,
+      "y": 7
+    },
+    {
+      "t": "HAWKEYE",
+      "o": 1,
+      "x": 21,
+      "y": 8
+    }
+  ]
+}

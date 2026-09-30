@@ -1,0 +1,133 @@
+{
+  "name": "GRIMALDI",
+  "pack": "AI-made: Siege Lines",
+  "campaignId": "siege-lines",
+  "mission": 9,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/siege-lines/09-grimaldi.json",
+  "description": "The garrison is small, but a Xenon relief column is marching along the northern edge. Take the camp before it arrives, or turn to meet it.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 24 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "fortified camp",
+    "unequal sides"
+  ],
+  "design": {
+    "theme": "siege",
+    "symmetry": "none"
+  },
+  "turnLimit": 24,
+  "grid": [
+    "..............................",
+    ".........-.-.-.-.-.-..........",
+    "..........-.-.-.-.--..........",
+    "...................-..........",
+    "...................-..........",
+    "...................-..........",
+    "..................-....MMM....",
+    "..................-..MM...MM..",
+    "..................-.M.......M.",
+    "..................-.M.......M.",
+    ".B............hh..-.....B...M.",
+    "..............hh....M.......M.",
+    "..............hh....MM.....MM.",
+    "..............hh......MM.MM...",
+    "........................M.....",
+    "..............................",
+    "..............................",
+    "..............................",
+    "..............................",
+    ".............................."
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 10,
+      "owner": 0
+    },
+    {
+      "col": 24,
+      "row": 10,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 12
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 11
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 12
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 6,
+      "y": 12
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 4,
+      "y": 13
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 5,
+      "y": 13
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 6,
+      "y": 13
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 23,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 24,
+      "y": 9
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 25,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 15,
+      "y": 1
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 15,
+      "y": 0
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 14,
+      "y": 1
+    }
+  ]
+}

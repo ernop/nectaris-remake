@@ -1,0 +1,155 @@
+{
+  "name": "LACUS MORTIS",
+  "pack": "AI-made: Arsenal",
+  "campaignId": "arsenal",
+  "mission": 15,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/arsenal/15-lacus-mortis.json",
+  "description": "Each camp owns a deep reserve of eight units, released from its factory a few at a time. The neutral factories between them decide who runs out first.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 40 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "factory reserves",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "arsenal",
+    "symmetry": "half"
+  },
+  "turnLimit": 40,
+  "grid": [
+    "....................................",
+    "....................................",
+    "....................................",
+    "....................................",
+    "....................................",
+    "..............F.....................",
+    "....F...............................",
+    "....................................",
+    ".................hh.................",
+    "................hhhh................",
+    "................h----------------B..",
+    "..B----------------h................",
+    "................hhhh................",
+    ".................hh.................",
+    "....................................",
+    "...............................F....",
+    ".....................F..............",
+    "....................................",
+    "....................................",
+    "....................................",
+    "....................................",
+    "...................................."
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 11,
+      "owner": 0
+    },
+    {
+      "col": 33,
+      "row": 10,
+      "owner": 1
+    },
+    {
+      "col": 4,
+      "row": 6,
+      "owner": 0,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "BISON",
+        "LENET",
+        "LENET",
+        "HADRIAN",
+        "POLAR",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 31,
+      "row": 15,
+      "owner": 1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "BISON",
+        "LENET",
+        "LENET",
+        "HADRIAN",
+        "POLAR",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 14,
+      "row": 5,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET"
+      ]
+    },
+    {
+      "col": 21,
+      "row": 16,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 6,
+      "y": 11
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 10
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 6,
+      "y": 10
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 7,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 29,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 30,
+      "y": 11
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 29,
+      "y": 11
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 28,
+      "y": 11
+    }
+  ]
+}

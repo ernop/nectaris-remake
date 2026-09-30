@@ -1,0 +1,129 @@
+{
+  "name": "PTOLEMAEUS",
+  "pack": "AI-made: Siege Lines",
+  "campaignId": "siege-lines",
+  "mission": 5,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/siege-lines/05-ptolemaeus.json",
+  "description": "The great walled plain holds a Xenon factory. Damaged defenders fall back to it for repairs, and its reserves can refill a gate. You bring one Hadrian.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 36 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "fortified camp",
+    "unequal sides"
+  ],
+  "design": {
+    "theme": "siege",
+    "symmetry": "none"
+  },
+  "turnLimit": 36,
+  "grid": [
+    "............................",
+    "............................",
+    "............................",
+    ".....................M......",
+    "...................MM.MM....",
+    ".................MM.....MM..",
+    ".......................F..MM",
+    "...........................M",
+    "...............M...........M",
+    ".B.............M.....B.....M",
+    "...............M...........M",
+    "...........................M",
+    "...........................M",
+    ".................M.......MM.",
+    "..................MM...MM...",
+    "............................",
+    "............................",
+    "............................"
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 9,
+      "owner": 0
+    },
+    {
+      "col": 21,
+      "row": 9,
+      "owner": 1
+    },
+    {
+      "col": 23,
+      "row": 6,
+      "owner": 1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 6,
+      "y": 9
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 4,
+      "y": 10
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 5,
+      "y": 10
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 6,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 21,
+      "y": 8
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 20,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 22,
+      "y": 9
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 20,
+      "y": 10
+    }
+  ]
+}

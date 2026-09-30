@@ -1,0 +1,143 @@
+{
+  "name": "THEOPHILUS",
+  "pack": "AI-made: Siege Lines",
+  "campaignId": "siege-lines",
+  "mission": 13,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/siege-lines/13-theophilus.json",
+  "description": "Two craters: the camp in Theophilus and a Xenon factory in its neighbor. The factory's reserves can reinforce the camp unless you take it first.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 22 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "fortified camp",
+    "unequal sides"
+  ],
+  "design": {
+    "theme": "siege",
+    "symmetry": "none"
+  },
+  "turnLimit": 22,
+  "grid": [
+    "................................",
+    "................................",
+    ".........................MMM....",
+    ".......................MM...MM..",
+    "..............................M.",
+    "..............................M.",
+    "......................M...B...M.",
+    "......................M.......M.",
+    "......................MM.....MM.",
+    "........................MM.MM...",
+    "..B.......................M.....",
+    "................................",
+    ".....................MMM........",
+    "...................MM...MM......",
+    ".........................M......",
+    ".......................F.M......",
+    "...................M.....M......",
+    "....................MM.MM.......",
+    "......................M.........",
+    "................................"
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 10,
+      "owner": 0
+    },
+    {
+      "col": 26,
+      "row": 6,
+      "owner": 1
+    },
+    {
+      "col": 23,
+      "row": 15,
+      "owner": 1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 6,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 6,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 7,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 5,
+      "y": 10
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 7,
+      "y": 10
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 6,
+      "y": 11
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 5,
+      "y": 8
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 27,
+      "y": 6
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 27,
+      "y": 5
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 28,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 23,
+      "y": 14
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 23,
+      "y": 13
+    }
+  ]
+}

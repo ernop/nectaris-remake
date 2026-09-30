@@ -1,0 +1,144 @@
+{
+  "name": "MARE FECUNDITATIS",
+  "pack": "AI-made: Arsenal",
+  "campaignId": "arsenal",
+  "mission": 8,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/arsenal/08-mare-fecunditatis.json",
+  "description": "An island factory sits inside a ring of valleys that tanks cannot cross. The Pelican in your nearer factory can fly a squad over. The Xenon Lenet starts damaged.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 28 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "factory reserves",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "arsenal",
+    "symmetry": "half"
+  },
+  "turnLimit": 28,
+  "grid": [
+    "..............................",
+    "..............................",
+    "..............................",
+    "..............................",
+    ".............vvvv.............",
+    ".......F...vvvvvvvv...........",
+    "..........vv......vv..........",
+    "..........v........v..........",
+    ".........vv........vv..-.-.-..",
+    ".........vv..F.....vv.-.-.-.B.",
+    ".B.-.-.-.vv.....F..vv.........",
+    "..-.-.-..vv........vv.........",
+    "..........v........v..........",
+    "..........vv......vv..........",
+    "...........vvvvvvvv...F.......",
+    ".............vvvv.............",
+    "..............................",
+    "..............................",
+    "..............................",
+    ".............................."
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 10,
+      "owner": 0
+    },
+    {
+      "col": 28,
+      "row": 9,
+      "owner": 1
+    },
+    {
+      "col": 7,
+      "row": 5,
+      "owner": -1,
+      "stored": [
+        "PELICAN",
+        "CHARLIE"
+      ]
+    },
+    {
+      "col": 22,
+      "row": 14,
+      "owner": -1,
+      "stored": [
+        "PELICAN",
+        "CHARLIE"
+      ]
+    },
+    {
+      "col": 13,
+      "row": 9,
+      "owner": -1,
+      "stored": [
+        "BISON",
+        "BISON",
+        "LENET",
+        "LENET"
+      ]
+    },
+    {
+      "col": 16,
+      "row": 10,
+      "owner": -1,
+      "stored": [
+        "BISON",
+        "BISON",
+        "LENET",
+        "LENET"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 9
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 5,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 25,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 25,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 24,
+      "y": 10
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 26,
+      "y": 10,
+      "str": 7
+    }
+  ]
+}

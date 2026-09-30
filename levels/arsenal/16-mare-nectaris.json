@@ -1,0 +1,261 @@
+{
+  "name": "MARE NECTARIS",
+  "pack": "AI-made: Arsenal",
+  "campaignId": "arsenal",
+  "mission": 16,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/arsenal/16-mare-nectaris.json",
+  "description": "The Sea of Nectar: the final battle, with factories of every kind across a wide field. Aircraft, armour and artillery are all waiting to be claimed.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 40 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "factory reserves",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "arsenal",
+    "symmetry": "half"
+  },
+  "turnLimit": 40,
+  "grid": [
+    "........................v...............",
+    "........................v...............",
+    "........................v...............",
+    "...........MMM..........v...............",
+    ".........MM...MM........v...............",
+    ".......................Fv...............",
+    "............F...........v......F........",
+    ".........M.....M........v...............",
+    "..........MM.MM...F.....v...............",
+    "............M...........v...............",
+    "..................hhhh..................",
+    ".................hhhhhh.................",
+    ".................hh------------------B..",
+    "..B------------------hh.................",
+    ".................hhhhhh.................",
+    "..................hhhh..................",
+    "...............v...........M............",
+    "...............v.....F...MM.MM..........",
+    "...............v........M.....M.........",
+    "........F......v...........F............",
+    "...............vF.......................",
+    "...............v........MM...MM.........",
+    "...............v..........MMM...........",
+    "...............v........................",
+    "...............v........................",
+    "...............v........................"
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 13,
+      "owner": 0
+    },
+    {
+      "col": 37,
+      "row": 12,
+      "owner": 1
+    },
+    {
+      "col": 12,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "EAGLE",
+        "HUNTER",
+        "PELICAN"
+      ]
+    },
+    {
+      "col": 27,
+      "row": 19,
+      "owner": -1,
+      "stored": [
+        "EAGLE",
+        "HUNTER",
+        "PELICAN"
+      ]
+    },
+    {
+      "col": 8,
+      "row": 19,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET"
+      ]
+    },
+    {
+      "col": 31,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "LENET"
+      ]
+    },
+    {
+      "col": 18,
+      "row": 8,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "ATLAS",
+        "HADRIAN"
+      ]
+    },
+    {
+      "col": 21,
+      "row": 17,
+      "owner": -1,
+      "stored": [
+        "MULE",
+        "ATLAS",
+        "HADRIAN"
+      ]
+    },
+    {
+      "col": 16,
+      "row": 20,
+      "owner": -1,
+      "stored": [
+        "GRIZZLY",
+        "TITAN",
+        "POLAR"
+      ]
+    },
+    {
+      "col": 23,
+      "row": 5,
+      "owner": -1,
+      "stored": [
+        "GRIZZLY",
+        "TITAN",
+        "POLAR"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 13
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 12
+    },
+    {
+      "t": "KILROY",
+      "o": 0,
+      "x": 4,
+      "y": 13
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 6,
+      "y": 13
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 14
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 5,
+      "y": 14
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 6,
+      "y": 14
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 5,
+      "y": 11
+    },
+    {
+      "t": "HAWKEYE",
+      "o": 0,
+      "x": 3,
+      "y": 12
+    },
+    {
+      "t": "EAGLE",
+      "o": 0,
+      "x": 2,
+      "y": 8
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 34,
+      "y": 12
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 34,
+      "y": 13
+    },
+    {
+      "t": "KILROY",
+      "o": 1,
+      "x": 35,
+      "y": 12
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 33,
+      "y": 12
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 35,
+      "y": 11
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 34,
+      "y": 11
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 33,
+      "y": 11
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 34,
+      "y": 14
+    },
+    {
+      "t": "HAWKEYE",
+      "o": 1,
+      "x": 36,
+      "y": 13
+    },
+    {
+      "t": "EAGLE",
+      "o": 1,
+      "x": 37,
+      "y": 17
+    }
+  ]
+}

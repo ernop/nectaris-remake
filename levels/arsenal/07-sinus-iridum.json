@@ -1,0 +1,151 @@
+{
+  "name": "SINUS IRIDUM",
+  "pack": "AI-made: Arsenal",
+  "campaignId": "arsenal",
+  "mission": 7,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/arsenal/07-sinus-iridum.json",
+  "description": "The richest factory sits inside a horseshoe of mountains with one entrance to the south. Taking it is a race; keeping it is a siege, and you have only ten rounds.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 10 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "factory reserves",
+    "mirror symmetry"
+  ],
+  "design": {
+    "theme": "arsenal",
+    "symmetry": "mirror"
+  },
+  "turnLimit": 10,
+  "grid": [
+    ".............................",
+    ".............................",
+    ".............MMM.............",
+    "......F....MM...MM....F......",
+    "...........M.....M...........",
+    "...........M..F..M...........",
+    "...........M.....M...........",
+    "............M.-.M............",
+    "..............-..............",
+    "..............-..............",
+    ".B-------------------------B.",
+    ".............................",
+    ".............................",
+    ".............................",
+    ".............................",
+    ".............................",
+    ".............................",
+    "............................."
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 10,
+      "owner": 0
+    },
+    {
+      "col": 27,
+      "row": 10,
+      "owner": 1
+    },
+    {
+      "col": 14,
+      "row": 5,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON",
+        "BISON"
+      ]
+    },
+    {
+      "col": 6,
+      "row": 3,
+      "owner": -1,
+      "stored": [
+        "CHARLIE"
+      ]
+    },
+    {
+      "col": 22,
+      "row": 3,
+      "owner": -1,
+      "stored": [
+        "CHARLIE"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 9
+    },
+    {
+      "t": "KILROY",
+      "o": 0,
+      "x": 4,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 5,
+      "y": 9
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 3,
+      "y": 10
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 5,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 24,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 25,
+      "y": 9
+    },
+    {
+      "t": "KILROY",
+      "o": 1,
+      "x": 24,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 23,
+      "y": 9
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 25,
+      "y": 10
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 23,
+      "y": 10
+    }
+  ]
+}

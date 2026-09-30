@@ -1,0 +1,127 @@
+{
+  "name": "GASSENDI",
+  "pack": "AI-made: Siege Lines",
+  "campaignId": "siege-lines",
+  "mission": 11,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/siege-lines/11-gassendi.json",
+  "description": "Gassendi's wall has one gate, but walls do not stop Pelicans. Each can carry a squad over the rim into the crater, where a single Seeker guards the sky.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 24 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "fortified camp",
+    "unequal sides"
+  ],
+  "design": {
+    "theme": "siege",
+    "symmetry": "none"
+  },
+  "turnLimit": 24,
+  "grid": [
+    "..............................",
+    "..............................",
+    "..............................",
+    "..............................",
+    "..............hh..............",
+    "..............hh.......M......",
+    "..............hh.....MM.MM....",
+    "..............hh...MM.....MM..",
+    "..................M.........M.",
+    "..................M.........M.",
+    ".B.....................B....M.",
+    "............................M.",
+    "..................M.........M.",
+    "..................MM.......MM.",
+    "....................MM...MM...",
+    "......................MMM.....",
+    "..............................",
+    "..............................",
+    "..............................",
+    ".............................."
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 10,
+      "owner": 0
+    },
+    {
+      "col": 23,
+      "row": 10,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 6,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 9
+    },
+    {
+      "t": "KILROY",
+      "o": 0,
+      "x": 6,
+      "y": 9
+    },
+    {
+      "t": "KILROY",
+      "o": 0,
+      "x": 7,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 5,
+      "y": 10
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 7,
+      "y": 10
+    },
+    {
+      "t": "PELICAN",
+      "o": 0,
+      "x": 3,
+      "y": 7
+    },
+    {
+      "t": "PELICAN",
+      "o": 0,
+      "x": 3,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 24,
+      "y": 10
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 23,
+      "y": 9
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 24,
+      "y": 9
+    },
+    {
+      "t": "SEEKER",
+      "o": 1,
+      "x": 25,
+      "y": 9
+    }
+  ]
+}

@@ -1,0 +1,196 @@
+{
+  "name": "RIMA CAUCHY",
+  "pack": "AI-made: Bridgeheads",
+  "campaignId": "bridgeheads",
+  "mission": 15,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/bridgeheads/15-rima-cauchy.json",
+  "description": "A long diagonal rille separates distant camps. Mules carry infantry along the roads; the bridges are far apart and far from home. The Xenon camp stands nearer the rille than yours, and you bring one more Bison, badly damaged.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 48 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "valleys and bridges",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "bridgeheads",
+    "symmetry": "half"
+  },
+  "turnLimit": 48,
+  "grid": [
+    "..........vv........................",
+    "..........vvv.......................",
+    "...........vvv......................",
+    "..........--==------..........w.....",
+    "......hhh...vvv.....-........www....",
+    ".....hhhhh...vvv....--.......www....",
+    "......hhh.....vv.--...--.....ww.....",
+    "......hhh.....v==......-............",
+    ".............--vvv......--..........",
+    ".............-..vv.......-..........",
+    "...........--...vvv......----------.",
+    ".B---------......vvv...--.......B...",
+    "..........-.......vv..-.............",
+    "..........--......vvv--.............",
+    "............-......==v.....hhh......",
+    ".....ww.....--...--.vv.....hhh......",
+    "....www.......--....vvv...hhhhh.....",
+    "....www........-.....vvv...hhh......",
+    ".....w..........------==--..........",
+    "......................vvv...........",
+    ".......................vvv..........",
+    "........................vv.........."
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 11,
+      "owner": 0
+    },
+    {
+      "col": 32,
+      "row": 11,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 11
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 10
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 10
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 5,
+      "y": 10
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 3,
+      "y": 11
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 5,
+      "y": 11
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 4,
+      "y": 12
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 3,
+      "y": 9,
+      "str": 5
+    },
+    {
+      "t": "MULE",
+      "o": 0,
+      "x": 3,
+      "y": 7
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 6
+    },
+    {
+      "t": "MULE",
+      "o": 0,
+      "x": 2,
+      "y": 7
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 7
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 31,
+      "y": 11
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 31,
+      "y": 10
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 30,
+      "y": 11
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 30,
+      "y": 12
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 31,
+      "y": 12
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 32,
+      "y": 12
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 31,
+      "y": 9
+    },
+    {
+      "t": "MULE",
+      "o": 1,
+      "x": 32,
+      "y": 14
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 31,
+      "y": 13
+    },
+    {
+      "t": "MULE",
+      "o": 1,
+      "x": 32,
+      "y": 13
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 33,
+      "y": 13
+    }
+  ]
+}

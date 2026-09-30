@@ -1,0 +1,169 @@
+{
+  "name": "RIMA MAIRAN",
+  "pack": "AI-made: Bridgeheads",
+  "campaignId": "bridgeheads",
+  "mission": 13,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/bridgeheads/13-rima-mairan.json",
+  "description": "Each side's Mules start at its bridgeheads, carrying mines. A mine on a bridge closes it to tanks, but a closed bridge also stops your own attack. You bring one more Charlie.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 30 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "valleys and bridges",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "bridgeheads",
+    "symmetry": "half"
+  },
+  "turnLimit": 30,
+  "grid": [
+    "..............vv..............",
+    "..............vv..............",
+    "..............vv..............",
+    "..............vv..............",
+    "..............v=.-.-..........",
+    ".........-.-.-==-.-.-.........",
+    "........-.-.-.=v....--........",
+    "........-.....vv.....-........",
+    ".......--.....vv......-.......",
+    "......-.......vv......------B.",
+    ".B------......vv.......-......",
+    ".......-......vv.....--.......",
+    "........-.....vv.....-........",
+    "........--....v=.-.-.-........",
+    ".........-.-.-==-.-.-.........",
+    "..........-.-.=v..............",
+    "..............vv..............",
+    "..............vv..............",
+    "..............vv..............",
+    "..............vv.............."
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 10,
+      "owner": 0
+    },
+    {
+      "col": 28,
+      "row": 9,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 10
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 6,
+      "y": 10
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 11
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 5,
+      "y": 11
+    },
+    {
+      "t": "MULE",
+      "o": 0,
+      "x": 12,
+      "y": 5
+    },
+    {
+      "t": "TRIGGER",
+      "o": 0,
+      "x": 11,
+      "y": 4
+    },
+    {
+      "t": "MULE",
+      "o": 0,
+      "x": 12,
+      "y": 14
+    },
+    {
+      "t": "TRIGGER",
+      "o": 0,
+      "x": 11,
+      "y": 13
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 24,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 23,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 24,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 25,
+      "y": 9
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 23,
+      "y": 10
+    },
+    {
+      "t": "MULE",
+      "o": 1,
+      "x": 17,
+      "y": 14
+    },
+    {
+      "t": "TRIGGER",
+      "o": 1,
+      "x": 17,
+      "y": 13
+    },
+    {
+      "t": "MULE",
+      "o": 1,
+      "x": 17,
+      "y": 5
+    },
+    {
+      "t": "TRIGGER",
+      "o": 1,
+      "x": 17,
+      "y": 4
+    }
+  ]
+}

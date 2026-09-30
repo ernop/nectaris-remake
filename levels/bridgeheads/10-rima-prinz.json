@@ -1,0 +1,155 @@
+{
+  "name": "RIMA PRINZ",
+  "pack": "AI-made: Bridgeheads",
+  "campaignId": "bridgeheads",
+  "mission": 10,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/bridgeheads/10-rima-prinz.json",
+  "description": "Eagles fly over the rille as if it were not there. Each side has one Hawkeye to keep the sky over its bridge, and a small factory waits on each far bank.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 26 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "valleys and bridges",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "bridgeheads",
+    "symmetry": "half"
+  },
+  "turnLimit": 26,
+  "grid": [
+    "..............vv..............",
+    "..............vv..............",
+    "..............vv..............",
+    "........hhh...vv.....ww.......",
+    ".......hhhh...vv.....www......",
+    "........hhh...vv...F.www......",
+    "........hh....vv..............",
+    "..............v=.-.-.-.-.-.-..",
+    "..............=v-.-.-.-.-.-.B.",
+    ".B.-.-.-.-.-.-v=..............",
+    "..-.-.-.-.-.-.=v..............",
+    "..............vv....hh........",
+    "......www.F...vv...hhh........",
+    "......www.....vv...hhhh.......",
+    ".......ww.....vv...hhh........",
+    "..............vv..............",
+    "..............vv..............",
+    "..............vv.............."
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 9,
+      "owner": 0
+    },
+    {
+      "col": 28,
+      "row": 8,
+      "owner": 1
+    },
+    {
+      "col": 19,
+      "row": 5,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON"
+      ]
+    },
+    {
+      "col": 10,
+      "row": 12,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 9
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 6,
+      "y": 9
+    },
+    {
+      "t": "HAWKEYE",
+      "o": 0,
+      "x": 4,
+      "y": 10
+    },
+    {
+      "t": "EAGLE",
+      "o": 0,
+      "x": 2,
+      "y": 5
+    },
+    {
+      "t": "EAGLE",
+      "o": 0,
+      "x": 1,
+      "y": 4
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 24,
+      "y": 8
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 24,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 25,
+      "y": 8
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 23,
+      "y": 8
+    },
+    {
+      "t": "HAWKEYE",
+      "o": 1,
+      "x": 25,
+      "y": 7
+    },
+    {
+      "t": "EAGLE",
+      "o": 1,
+      "x": 27,
+      "y": 12
+    },
+    {
+      "t": "EAGLE",
+      "o": 1,
+      "x": 28,
+      "y": 13
+    }
+  ]
+}

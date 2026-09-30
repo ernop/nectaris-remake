@@ -83,7 +83,8 @@ module.exports = function (ok) {
   });
   ok(get("level-groups").children.map(function(s){return s.id;}).join(",")===
     "normal-section,advanced-section,basenec-section,open-horizons-section,knotted-heart-section,broken-ground-section,"+
-    "ai-made-section,expansion-section,custom-section" && get("level-groups-nav").children.length===9,
+    "bridgeheads-section,siege-lines-section,arsenal-section,"+
+    "ai-made-section,expansion-section,custom-section" && get("level-groups-nav").children.length===12,
     "collections list Normal, Advanced and Base Nectaris first, then the remaining packs, with jump navigation");
   ok(get("level-groups").children.map(function(s){return (find(s,"level-group-intro")||{}).textContent||"";}).filter(Boolean).join("|")===
     "From the PC Engine campaign.|Community terrain, with new forces and briefings for this remake.",

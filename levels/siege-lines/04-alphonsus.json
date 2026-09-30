@@ -1,0 +1,141 @@
+{
+  "name": "ALPHONSUS",
+  "pack": "AI-made: Siege Lines",
+  "campaignId": "siege-lines",
+  "mission": 4,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/siege-lines/04-alphonsus.json",
+  "description": "Three gates, two of them mined. A mine closes its gate to tanks until it is destroyed, and it is very hard to destroy.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 20 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "fortified camp",
+    "unequal sides"
+  ],
+  "design": {
+    "theme": "siege",
+    "symmetry": "none"
+  },
+  "turnLimit": 20,
+  "grid": [
+    "..........................",
+    "..........................",
+    "..........................",
+    "...................MMM....",
+    "..........hh......M...MM..",
+    "..........hh...M........MM",
+    "...............M.........M",
+    ".........................M",
+    ".B..................B....M",
+    "...............M.........M",
+    "...............M.........M",
+    ".......................MM.",
+    "..................MM.MM...",
+    "....................M.....",
+    "..........................",
+    ".........................."
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 8,
+      "owner": 0
+    },
+    {
+      "col": 20,
+      "row": 8,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "TRIGGER",
+      "o": 1,
+      "x": 16,
+      "y": 11
+    },
+    {
+      "t": "TRIGGER",
+      "o": 1,
+      "x": 17,
+      "y": 11
+    },
+    {
+      "t": "TRIGGER",
+      "o": 1,
+      "x": 17,
+      "y": 4
+    },
+    {
+      "t": "TRIGGER",
+      "o": 1,
+      "x": 16,
+      "y": 5
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 8
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 7
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 6,
+      "y": 8
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 4,
+      "y": 9
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 5,
+      "y": 9
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 6,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 21,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 21,
+      "y": 7
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 22,
+      "y": 8
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 20,
+      "y": 9
+    }
+  ]
+}

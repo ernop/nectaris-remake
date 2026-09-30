@@ -1,0 +1,159 @@
+{
+  "name": "MARE HUMORUM",
+  "pack": "AI-made: Arsenal",
+  "campaignId": "arsenal",
+  "mission": 9,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/arsenal/09-mare-humorum.json",
+  "description": "Near your camp, a factory holds one squad. Far out on the flank, another holds a tank company. Send your capturers near or far; you have one more Charlie than Xenon.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 30 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "factory reserves",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "arsenal",
+    "symmetry": "half"
+  },
+  "turnLimit": 30,
+  "grid": [
+    "..............................",
+    "..............................",
+    "...........-----F-............",
+    "...........-..................",
+    "..........-...................",
+    ".........--...................",
+    ".........-....................",
+    "........-....hhhh......F......",
+    ".......--...hhhhhh............",
+    ".......-....hhhhhh.....-----B.",
+    ".B-----.....hhhhhh....-.......",
+    "............hhhhhh...--.......",
+    "......F......hhhh....-........",
+    "....................-.........",
+    "...................--.........",
+    "...................-..........",
+    "..................-...........",
+    "............-F-----...........",
+    "..............................",
+    ".............................."
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 10,
+      "owner": 0
+    },
+    {
+      "col": 28,
+      "row": 9,
+      "owner": 1
+    },
+    {
+      "col": 6,
+      "row": 12,
+      "owner": -1,
+      "stored": [
+        "CHARLIE"
+      ]
+    },
+    {
+      "col": 23,
+      "row": 7,
+      "owner": -1,
+      "stored": [
+        "CHARLIE"
+      ]
+    },
+    {
+      "col": 16,
+      "row": 2,
+      "owner": -1,
+      "stored": [
+        "BISON",
+        "BISON",
+        "LENET",
+        "TITAN"
+      ]
+    },
+    {
+      "col": 13,
+      "row": 17,
+      "owner": -1,
+      "stored": [
+        "BISON",
+        "BISON",
+        "LENET",
+        "TITAN"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 5,
+      "y": 9
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 3,
+      "y": 10
+    },
+    {
+      "t": "RABBIT",
+      "o": 0,
+      "x": 5,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 25,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 25,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 24,
+      "y": 10
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 26,
+      "y": 10
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 24,
+      "y": 11
+    }
+  ]
+}

@@ -1,0 +1,2399 @@
+{
+  "name": "AI-made: Bridgeheads",
+  "levels": [
+    {
+      "name": "RIMA BODE",
+      "pack": "AI-made: Bridgeheads",
+      "campaignId": "bridgeheads",
+      "mission": 1,
+      "author": "AI-made by Claude Opus 5.5",
+      "source": "levels/bridgeheads/01-rima-bode.json",
+      "description": "A single bridge spans the rille. Your vanguard waits a few hexes short of its near end; the Xenon garrison beyond is under strength. Infantry can climb down anywhere, but a squad in the valley floor ends its move there with no cover.",
+      "special": "Capture the enemy camp or eliminate its eligible forces within 20 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "tags": [
+        "valleys and bridges",
+        "half-turn symmetry"
+      ],
+      "design": {
+        "theme": "bridgeheads",
+        "symmetry": "half"
+      },
+      "turnLimit": 20,
+      "grid": [
+        ".........vv.........",
+        ".........vv.........",
+        ".........vv...w.....",
+        ".......h.vv..www....",
+        "......hh.vv...w.....",
+        ".......h.vv.........",
+        ".........==-------B.",
+        ".B-------==.........",
+        ".........vv.h.......",
+        ".....w...vv.hh......",
+        "....www..vv.h.......",
+        ".....w...vv.........",
+        ".........vv.........",
+        ".........vv........."
+      ],
+      "buildings": [
+        {
+          "col": 1,
+          "row": 7,
+          "owner": 0
+        },
+        {
+          "col": 18,
+          "row": 6,
+          "owner": 1
+        }
+      ],
+      "units": [
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 6,
+          "y": 7
+        },
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 5,
+          "y": 6
+        },
+        {
+          "t": "BISON",
+          "o": 0,
+          "x": 6,
+          "y": 6
+        },
+        {
+          "t": "BISON",
+          "o": 0,
+          "x": 7,
+          "y": 6
+        },
+        {
+          "t": "LENET",
+          "o": 0,
+          "x": 5,
+          "y": 7
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 16,
+          "y": 7,
+          "str": 7
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 15,
+          "y": 6,
+          "str": 7
+        },
+        {
+          "t": "BISON",
+          "o": 1,
+          "x": 16,
+          "y": 6,
+          "str": 7
+        },
+        {
+          "t": "BISON",
+          "o": 1,
+          "x": 17,
+          "y": 6,
+          "str": 7
+        },
+        {
+          "t": "LENET",
+          "o": 1,
+          "x": 15,
+          "y": 7,
+          "str": 7
+        }
+      ]
+    },
+    {
+      "name": "RIMA HYGINUS",
+      "pack": "AI-made: Bridgeheads",
+      "campaignId": "bridgeheads",
+      "mission": 2,
+      "author": "AI-made by Claude Opus 5.5",
+      "source": "levels/bridgeheads/02-rima-hyginus.json",
+      "description": "A crater sits in the middle of the rille, and the only bridges are at its two ends. An army that crosses at one end leaves the other bridge to the enemy. The Xenon camp stands nearer the rille than yours, and you bring one more Bison.",
+      "special": "Capture the enemy camp or eliminate its eligible forces within 48 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "tags": [
+        "valleys and bridges",
+        "half-turn symmetry"
+      ],
+      "design": {
+        "theme": "bridgeheads",
+        "symmetry": "half"
+      },
+      "turnLimit": 48,
+      "grid": [
+        "...........vv...........",
+        "...........vv...........",
+        "........---==---........",
+        ".......--..vv...-.......",
+        ".......-...Mv...--......",
+        "......-..MMMMM...-......",
+        ".....--h.MMvMMM.h.-----.",
+        ".B----.h.MMMvMM.h--..B..",
+        "......-...MMMMM..-......",
+        "......--...vM...-.......",
+        ".......-...vv..--.......",
+        "........---==---........",
+        "...........vv...........",
+        "...........vv..........."
+      ],
+      "buildings": [
+        {
+          "col": 1,
+          "row": 7,
+          "owner": 0
+        },
+        {
+          "col": 21,
+          "row": 7,
+          "owner": 1
+        }
+      ],
+      "units": [
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 3,
+          "y": 7
+        },
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 3,
+          "y": 6
+        },
+        {
+          "t": "BISON",
+          "o": 0,
+          "x": 2,
+          "y": 7
+        },
+        {
+          "t": "BISON",
+          "o": 0,
+          "x": 4,
+          "y": 7
+        },
+        {
+          "t": "BISON",
+          "o": 0,
+          "x": 2,
+          "y": 8
+        },
+        {
+          "t": "LENET",
+          "o": 0,
+          "x": 3,
+          "y": 8
+        },
+        {
+          "t": "LENET",
+          "o": 0,
+          "x": 4,
+          "y": 8
+        },
+        {
+          "t": "HADRIAN",
+          "o": 0,
+          "x": 3,
+          "y": 5
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 20,
+          "y": 7
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 19,
+          "y": 6
+        },
+        {
+          "t": "BISON",
+          "o": 1,
+          "x": 20,
+          "y": 6
+        },
+        {
+          "t": "BISON",
+          "o": 1,
+          "x": 21,
+          "y": 6
+        },
+        {
+          "t": "LENET",
+          "o": 1,
+          "x": 19,
+          "y": 7
+        },
+        {
+          "t": "LENET",
+          "o": 1,
+          "x": 20,
+          "y": 8
+        },
+        {
+          "t": "HADRIAN",
+          "o": 1,
+          "x": 19,
+          "y": 5
+        }
+      ]
+    },
+    {
+      "name": "RIMA HESIODUS",
+      "pack": "AI-made: Bridgeheads",
+      "campaignId": "bridgeheads",
+      "mission": 3,
+      "author": "AI-made by Claude Opus 5.5",
+      "source": "levels/bridgeheads/03-rima-hesiodus.json",
+      "description": "The camps face each other across the north end of the rille, where a footpath lets infantry cross in two moves. Tanks must go the long way, over the southern bridge. Every Xenon unit is under strength, most of them badly.",
+      "special": "Capture the enemy camp or eliminate its eligible forces within 30 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "tags": [
+        "valleys and bridges",
+        "mirror symmetry"
+      ],
+      "design": {
+        "theme": "bridgeheads",
+        "symmetry": "mirror"
+      },
+      "turnLimit": 30,
+      "grid": [
+        "...........vvv...........",
+        "...........vvv...........",
+        "...........vvv...........",
+        "...B-......vvv......-B...",
+        "....-......vvv......-....",
+        "....-......vvv......-....",
+        "....-......vvv......-....",
+        "....-..hh..vvv..hh..-....",
+        "....-..hh..vvv..hh..-....",
+        "....-......vvv......-....",
+        "....-......vvv......-....",
+        "....-------===-------....",
+        "...........vvv...........",
+        "...........vvv...........",
+        "...........vvv...........",
+        "...........vvv..........."
+      ],
+      "buildings": [
+        {
+          "col": 3,
+          "row": 3,
+          "owner": 0
+        },
+        {
+          "col": 21,
+          "row": 3,
+          "owner": 1
+        }
+      ],
+      "units": [
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 5,
+          "y": 5
+        },
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 5,
+          "y": 4
+        },
+        {
+          "t": "KILROY",
+          "o": 0,
+          "x": 4,
+          "y": 5
+        },
+        {
+          "t": "KILROY",
+          "o": 0,
+          "x": 6,
+          "y": 5
+        },
+        {
+          "t": "BISON",
+          "o": 0,
+          "x": 4,
+          "y": 7
+        },
+        {
+          "t": "LENET",
+          "o": 0,
+          "x": 3,
+          "y": 6
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 19,
+          "y": 5,
+          "str": 5
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 19,
+          "y": 4,
+          "str": 5
+        },
+        {
+          "t": "KILROY",
+          "o": 1,
+          "x": 18,
+          "y": 5,
+          "str": 6
+        },
+        {
+          "t": "KILROY",
+          "o": 1,
+          "x": 20,
+          "y": 5,
+          "str": 6
+        },
+        {
+          "t": "BISON",
+          "o": 1,
+          "x": 20,
+          "y": 7,
+          "str": 5
+        },
+        {
+          "t": "LENET",
+          "o": 1,
+          "x": 19,
+          "y": 6,
+          "str": 5
+        }
+      ]
+    },
+    {
+      "name": "VALLIS SNELLIUS",
+      "pack": "AI-made: Bridgeheads",
+      "campaignId": "bridgeheads",
+      "mission": 4,
+      "author": "AI-made by Claude Opus 5.5",
+      "source": "levels/bridgeheads/04-vallis-snellius.json",
+      "description": "No bridge crosses this valley. Tanks can only hold their own bank; any attack must walk through the valley floor or fly. You have three Pelicans to Xenon's two, a Hawkeye guards each camp, and the Xenon ground forces are under strength.",
+      "special": "Capture the enemy camp or eliminate its eligible forces within 24 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "tags": [
+        "valleys and bridges",
+        "half-turn symmetry"
+      ],
+      "design": {
+        "theme": "bridgeheads",
+        "symmetry": "half"
+      },
+      "turnLimit": 24,
+      "grid": [
+        "..........vvvv..........",
+        "..........vvvv..........",
+        "..........vvvv..........",
+        "..........vvvv..h.......",
+        "......hh..vvvv.hhh......",
+        "......hh..vvvv..hh......",
+        "..........vvvv..........",
+        "..........vvvv........B.",
+        ".B........vvvv..........",
+        "..........vvvv..........",
+        "......hh..vvvv..hh......",
+        "......hhh.vvvv..hh......",
+        ".......h..vvvv..........",
+        "..........vvvv..........",
+        "..........vvvv..........",
+        "..........vvvv.........."
+      ],
+      "buildings": [
+        {
+          "col": 1,
+          "row": 8,
+          "owner": 0
+        },
+        {
+          "col": 22,
+          "row": 7,
+          "owner": 1
+        }
+      ],
+      "units": [
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 5,
+          "y": 8
+        },
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 5,
+          "y": 7
+        },
+        {
+          "t": "KILROY",
+          "o": 0,
+          "x": 4,
+          "y": 8
+        },
+        {
+          "t": "KILROY",
+          "o": 0,
+          "x": 6,
+          "y": 8
+        },
+        {
+          "t": "BISON",
+          "o": 0,
+          "x": 3,
+          "y": 6
+        },
+        {
+          "t": "LENET",
+          "o": 0,
+          "x": 3,
+          "y": 5
+        },
+        {
+          "t": "PELICAN",
+          "o": 0,
+          "x": 2,
+          "y": 9
+        },
+        {
+          "t": "PELICAN",
+          "o": 0,
+          "x": 2,
+          "y": 8
+        },
+        {
+          "t": "PELICAN",
+          "o": 0,
+          "x": 3,
+          "y": 8
+        },
+        {
+          "t": "HAWKEYE",
+          "o": 0,
+          "x": 1,
+          "y": 6
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 18,
+          "y": 8,
+          "str": 6
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 17,
+          "y": 7,
+          "str": 6
+        },
+        {
+          "t": "KILROY",
+          "o": 1,
+          "x": 18,
+          "y": 7,
+          "str": 6
+        },
+        {
+          "t": "KILROY",
+          "o": 1,
+          "x": 19,
+          "y": 7,
+          "str": 6
+        },
+        {
+          "t": "BISON",
+          "o": 1,
+          "x": 20,
+          "y": 9,
+          "str": 6
+        },
+        {
+          "t": "LENET",
+          "o": 1,
+          "x": 19,
+          "y": 8,
+          "str": 6
+        },
+        {
+          "t": "PELICAN",
+          "o": 1,
+          "x": 21,
+          "y": 6
+        },
+        {
+          "t": "PELICAN",
+          "o": 1,
+          "x": 21,
+          "y": 5
+        },
+        {
+          "t": "HAWKEYE",
+          "o": 1,
+          "x": 22,
+          "y": 9
+        }
+      ]
+    },
+    {
+      "name": "RIMAE TRIESNECKER",
+      "pack": "AI-made: Bridgeheads",
+      "campaignId": "bridgeheads",
+      "mission": 5,
+      "author": "AI-made by Claude Opus 5.5",
+      "source": "levels/bridgeheads/05-rimae-triesnecker.json",
+      "description": "Two rilles cross at right angles and divide the ground into four fields. Each camp's field has two bridges to the neutral fields, where small factories hold a Charlie each.",
+      "special": "Capture the enemy camp or eliminate its eligible forces within 28 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "tags": [
+        "valleys and bridges",
+        "half-turn symmetry"
+      ],
+      "design": {
+        "theme": "bridgeheads",
+        "symmetry": "half"
+      },
+      "turnLimit": 28,
+      "grid": [
+        ".............vv.............",
+        ".............vv.............",
+        ".............vv.............",
+        "...B---------==----Fh.......",
+        "...-.........vv....hh.-.....",
+        "....-........vv....hh.-.....",
+        "....-........vv.......-.....",
+        "....-........vv.......-.....",
+        "vvvv==vvvvvvvvvvvvvvvv=vvvvv",
+        "vvvvv=vvvvvvvvvvvvvvvv==vvvv",
+        ".....-.......vv........-....",
+        ".....-.......vv........-....",
+        ".....-.hh....vv........-....",
+        ".....-.hh....vv.........-...",
+        ".......hF----==---------B...",
+        ".............vv.............",
+        ".............vv.............",
+        ".............vv............."
+      ],
+      "buildings": [
+        {
+          "col": 3,
+          "row": 3,
+          "owner": 0
+        },
+        {
+          "col": 24,
+          "row": 14,
+          "owner": 1
+        },
+        {
+          "col": 19,
+          "row": 3,
+          "owner": -1,
+          "stored": [
+            "CHARLIE"
+          ]
+        },
+        {
+          "col": 8,
+          "row": 14,
+          "owner": -1,
+          "stored": [
+            "CHARLIE"
+          ]
+        }
+      ],
+      "units": [
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 5,
+          "y": 3
+        },
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 5,
+          "y": 2
+        },
+        {
+          "t": "BISON",
+          "o": 0,
+          "x": 4,
+          "y": 3
+        },
+        {
+          "t": "LENET",
+          "o": 0,
+          "x": 6,
+          "y": 3
+        },
+        {
+          "t": "LENET",
+          "o": 0,
+          "x": 4,
+          "y": 4
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 22,
+          "y": 14
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 22,
+          "y": 15
+        },
+        {
+          "t": "BISON",
+          "o": 1,
+          "x": 23,
+          "y": 14
+        },
+        {
+          "t": "LENET",
+          "o": 1,
+          "x": 21,
+          "y": 14
+        },
+        {
+          "t": "LENET",
+          "o": 1,
+          "x": 23,
+          "y": 13
+        }
+      ]
+    },
+    {
+      "name": "RIMA HADLEY",
+      "pack": "AI-made: Bridgeheads",
+      "campaignId": "bridgeheads",
+      "mission": 6,
+      "author": "AI-made by Claude Opus 5.5",
+      "source": "levels/bridgeheads/06-rima-hadley.json",
+      "description": "Each camp sits behind its own winding rille with a bridge at each end. The open plain between the rilles belongs to whoever crosses first. You bring one extra Kilroy, and the Xenon Lenet starts damaged.",
+      "special": "Capture the enemy camp or eliminate its eligible forces within 40 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "tags": [
+        "valleys and bridges",
+        "mirror symmetry"
+      ],
+      "design": {
+        "theme": "bridgeheads",
+        "symmetry": "mirror"
+      },
+      "turnLimit": 40,
+      "grid": [
+        "MMMMMM.v...........v.MMMMMM",
+        "MMMMMM.v.MMM...MMM.v.MMMMMM",
+        ".......v.MMMM.MMMM.v.......",
+        "......v..MMM...MMM..v......",
+        "......v.............v......",
+        "......v.............v......",
+        "......vv...........vv......",
+        ".......v...........v.......",
+        "........v.........v........",
+        ".B.-.---=---...---=---.-.B.",
+        ".--.-..vv.........vv..-.--.",
+        "..-....v...........v....-..",
+        "..--..v.............v..--..",
+        "...-.-v.............v-.-...",
+        "....-.==--.......--==.-....",
+        ".......v...........v.......",
+        ".......v...........v......."
+      ],
+      "buildings": [
+        {
+          "col": 1,
+          "row": 9,
+          "owner": 0
+        },
+        {
+          "col": 25,
+          "row": 9,
+          "owner": 1
+        }
+      ],
+      "units": [
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 3,
+          "y": 9
+        },
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 3,
+          "y": 8
+        },
+        {
+          "t": "KILROY",
+          "o": 0,
+          "x": 2,
+          "y": 9
+        },
+        {
+          "t": "BISON",
+          "o": 0,
+          "x": 4,
+          "y": 9
+        },
+        {
+          "t": "BISON",
+          "o": 0,
+          "x": 2,
+          "y": 10
+        },
+        {
+          "t": "LENET",
+          "o": 0,
+          "x": 3,
+          "y": 10
+        },
+        {
+          "t": "HADRIAN",
+          "o": 0,
+          "x": 4,
+          "y": 10
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 23,
+          "y": 9
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 23,
+          "y": 8
+        },
+        {
+          "t": "BISON",
+          "o": 1,
+          "x": 22,
+          "y": 9
+        },
+        {
+          "t": "BISON",
+          "o": 1,
+          "x": 24,
+          "y": 9
+        },
+        {
+          "t": "HADRIAN",
+          "o": 1,
+          "x": 22,
+          "y": 10
+        },
+        {
+          "t": "LENET",
+          "o": 1,
+          "x": 23,
+          "y": 10,
+          "str": 7
+        }
+      ]
+    },
+    {
+      "name": "VALLIS ALPES",
+      "pack": "AI-made: Bridgeheads",
+      "campaignId": "bridgeheads",
+      "mission": 7,
+      "author": "AI-made by Claude Opus 5.5",
+      "source": "levels/bridgeheads/07-vallis-alpes.json",
+      "description": "A deep valley cuts through the mountain wall, and one long bridge carries the road across. Pelicans can lift a tank over the wall anywhere. The Xenon tanks and infantry are under strength.",
+      "special": "Capture the enemy camp or eliminate its eligible forces within 28 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "tags": [
+        "valleys and bridges",
+        "half-turn symmetry"
+      ],
+      "design": {
+        "theme": "bridgeheads",
+        "symmetry": "half"
+      },
+      "turnLimit": 28,
+      "grid": [
+        "...........MMMMMM...........",
+        "...........MMMMMM...........",
+        "...........MMMMMM...........",
+        "...........MMMMMM...........",
+        "...........MMMMMM...........",
+        "...........MMMMMM...........",
+        ".........vvvvvvvvv..........",
+        ".........vvvv======-------B.",
+        ".B-------======vvvv.........",
+        "..........vvvvvvvvv.........",
+        "...........MMMMMM...........",
+        "...........MMMMMM...........",
+        "...........MMMMMM...........",
+        "...........MMMMMM...........",
+        "...........MMMMMM...........",
+        "...........MMMMMM..........."
+      ],
+      "buildings": [
+        {
+          "col": 1,
+          "row": 8,
+          "owner": 0
+        },
+        {
+          "col": 26,
+          "row": 7,
+          "owner": 1
+        }
+      ],
+      "units": [
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 5,
+          "y": 8
+        },
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 5,
+          "y": 7
+        },
+        {
+          "t": "BISON",
+          "o": 0,
+          "x": 4,
+          "y": 8
+        },
+        {
+          "t": "BISON",
+          "o": 0,
+          "x": 6,
+          "y": 8
+        },
+        {
+          "t": "LENET",
+          "o": 0,
+          "x": 4,
+          "y": 9
+        },
+        {
+          "t": "PELICAN",
+          "o": 0,
+          "x": 3,
+          "y": 5
+        },
+        {
+          "t": "PELICAN",
+          "o": 0,
+          "x": 3,
+          "y": 4
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 22,
+          "y": 8,
+          "str": 6
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 21,
+          "y": 7,
+          "str": 7
+        },
+        {
+          "t": "BISON",
+          "o": 1,
+          "x": 22,
+          "y": 7,
+          "str": 7
+        },
+        {
+          "t": "BISON",
+          "o": 1,
+          "x": 23,
+          "y": 7,
+          "str": 7
+        },
+        {
+          "t": "LENET",
+          "o": 1,
+          "x": 21,
+          "y": 8,
+          "str": 7
+        },
+        {
+          "t": "PELICAN",
+          "o": 1,
+          "x": 24,
+          "y": 11
+        },
+        {
+          "t": "PELICAN",
+          "o": 1,
+          "x": 23,
+          "y": 10
+        }
+      ]
+    },
+    {
+      "name": "RIMA SIRSALIS",
+      "pack": "AI-made: Bridgeheads",
+      "campaignId": "bridgeheads",
+      "mission": 8,
+      "author": "AI-made by Claude Opus 5.5",
+      "source": "levels/bridgeheads/08-rima-sirsalis.json",
+      "description": "Guns on either rim can reach across the rille. Your guns start in firing position; Xenon's are damaged and farther back, and its Bison is damaged too. Two bridges carry the tanks, and the artillery decides which of them is usable.",
+      "special": "Capture the enemy camp or eliminate its eligible forces within 28 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "tags": [
+        "valleys and bridges",
+        "half-turn symmetry"
+      ],
+      "design": {
+        "theme": "bridgeheads",
+        "symmetry": "half"
+      },
+      "turnLimit": 28,
+      "grid": [
+        "............vvvv............",
+        "............vvvv............",
+        "............vvvv............",
+        "............vvvv............",
+        "........----====----........",
+        ".......--...vvvv....-.......",
+        ".......-....vvvv....--......",
+        "......-..hh.vvvv.hh..-.-.-..",
+        ".....--.hhh.vvvv.hhh..-.-.B.",
+        ".B.-.-..hhh.vvvv.hhh.--.....",
+        "..-.-.-..hh.vvvv.hh..-......",
+        "......--....vvvv....-.......",
+        ".......-....vvvv...--.......",
+        "........----====----........",
+        "............vvvv............",
+        "............vvvv............",
+        "............vvvv............",
+        "............vvvv............"
+      ],
+      "buildings": [
+        {
+          "col": 1,
+          "row": 9,
+          "owner": 0
+        },
+        {
+          "col": 26,
+          "row": 8,
+          "owner": 1
+        }
+      ],
+      "units": [
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 5,
+          "y": 9
+        },
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 5,
+          "y": 8
+        },
+        {
+          "t": "BISON",
+          "o": 0,
+          "x": 4,
+          "y": 9
+        },
+        {
+          "t": "LENET",
+          "o": 0,
+          "x": 6,
+          "y": 9
+        },
+        {
+          "t": "HADRIAN",
+          "o": 0,
+          "x": 9,
+          "y": 9
+        },
+        {
+          "t": "OCTOPUS",
+          "o": 0,
+          "x": 9,
+          "y": 8
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 22,
+          "y": 9
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 21,
+          "y": 8
+        },
+        {
+          "t": "BISON",
+          "o": 1,
+          "x": 22,
+          "y": 8,
+          "str": 7
+        },
+        {
+          "t": "LENET",
+          "o": 1,
+          "x": 23,
+          "y": 8
+        },
+        {
+          "t": "HADRIAN",
+          "o": 1,
+          "x": 24,
+          "y": 9,
+          "str": 6
+        },
+        {
+          "t": "OCTOPUS",
+          "o": 1,
+          "x": 24,
+          "y": 8,
+          "str": 6
+        }
+      ]
+    },
+    {
+      "name": "RIMA MARIUS",
+      "pack": "AI-made: Bridgeheads",
+      "campaignId": "bridgeheads",
+      "mission": 9,
+      "author": "AI-made by Claude Opus 5.5",
+      "source": "levels/bridgeheads/09-rima-marius.json",
+      "description": "The rille runs close to your camp. You defend a narrow bank and Xenon has room to form up, but its camp stands nearer the centre than yours and its army is slightly under strength.",
+      "special": "Capture the enemy camp or eliminate its eligible forces within 28 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "tags": [
+        "valleys and bridges",
+        "unequal sides"
+      ],
+      "design": {
+        "theme": "bridgeheads",
+        "symmetry": "none"
+      },
+      "turnLimit": 28,
+      "grid": [
+        "..........v................",
+        "..........v................",
+        "..........v................",
+        "..........v-----------.....",
+        ".......hh.v-..........-....",
+        ".......hh.=...........--...",
+        "........h-=............-...",
+        ".........-v.............-..",
+        ".B.-.-.---v-.-.-.-.-.-B---.",
+        "..-.-.-.-.=.-.-.-.-.-.-.-..",
+        "..........v........hh......",
+        "..........v........hh......",
+        "..........v........hh......",
+        "..........v................",
+        "..........v................",
+        "..........v................",
+        "..........v................"
+      ],
+      "buildings": [
+        {
+          "col": 1,
+          "row": 8,
+          "owner": 0
+        },
+        {
+          "col": 22,
+          "row": 8,
+          "owner": 1
+        }
+      ],
+      "units": [
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 4,
+          "y": 8
+        },
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 3,
+          "y": 7
+        },
+        {
+          "t": "BISON",
+          "o": 0,
+          "x": 4,
+          "y": 7
+        },
+        {
+          "t": "BISON",
+          "o": 0,
+          "x": 5,
+          "y": 7
+        },
+        {
+          "t": "LENET",
+          "o": 0,
+          "x": 3,
+          "y": 8
+        },
+        {
+          "t": "HADRIAN",
+          "o": 0,
+          "x": 5,
+          "y": 8
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 21,
+          "y": 7,
+          "str": 7
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 22,
+          "y": 7,
+          "str": 7
+        },
+        {
+          "t": "BISON",
+          "o": 1,
+          "x": 23,
+          "y": 7,
+          "str": 7
+        },
+        {
+          "t": "BISON",
+          "o": 1,
+          "x": 21,
+          "y": 8,
+          "str": 7
+        },
+        {
+          "t": "LENET",
+          "o": 1,
+          "x": 23,
+          "y": 8,
+          "str": 7
+        },
+        {
+          "t": "HADRIAN",
+          "o": 1,
+          "x": 22,
+          "y": 9,
+          "str": 7
+        }
+      ]
+    },
+    {
+      "name": "RIMA PRINZ",
+      "pack": "AI-made: Bridgeheads",
+      "campaignId": "bridgeheads",
+      "mission": 10,
+      "author": "AI-made by Claude Opus 5.5",
+      "source": "levels/bridgeheads/10-rima-prinz.json",
+      "description": "Eagles fly over the rille as if it were not there. Each side has one Hawkeye to keep the sky over its bridge, and a small factory waits on each far bank.",
+      "special": "Capture the enemy camp or eliminate its eligible forces within 26 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "tags": [
+        "valleys and bridges",
+        "half-turn symmetry"
+      ],
+      "design": {
+        "theme": "bridgeheads",
+        "symmetry": "half"
+      },
+      "turnLimit": 26,
+      "grid": [
+        "..............vv..............",
+        "..............vv..............",
+        "..............vv..............",
+        "........hhh...vv.....ww.......",
+        ".......hhhh...vv.....www......",
+        "........hhh...vv...F.www......",
+        "........hh....vv..............",
+        "..............v=.-.-.-.-.-.-..",
+        "..............=v-.-.-.-.-.-.B.",
+        ".B.-.-.-.-.-.-v=..............",
+        "..-.-.-.-.-.-.=v..............",
+        "..............vv....hh........",
+        "......www.F...vv...hhh........",
+        "......www.....vv...hhhh.......",
+        ".......ww.....vv...hhh........",
+        "..............vv..............",
+        "..............vv..............",
+        "..............vv.............."
+      ],
+      "buildings": [
+        {
+          "col": 1,
+          "row": 9,
+          "owner": 0
+        },
+        {
+          "col": 28,
+          "row": 8,
+          "owner": 1
+        },
+        {
+          "col": 19,
+          "row": 5,
+          "owner": -1,
+          "stored": [
+            "CHARLIE",
+            "BISON"
+          ]
+        },
+        {
+          "col": 10,
+          "row": 12,
+          "owner": -1,
+          "stored": [
+            "CHARLIE",
+            "BISON"
+          ]
+        }
+      ],
+      "units": [
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 5,
+          "y": 9
+        },
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 5,
+          "y": 8
+        },
+        {
+          "t": "BISON",
+          "o": 0,
+          "x": 4,
+          "y": 9
+        },
+        {
+          "t": "LENET",
+          "o": 0,
+          "x": 6,
+          "y": 9
+        },
+        {
+          "t": "HAWKEYE",
+          "o": 0,
+          "x": 4,
+          "y": 10
+        },
+        {
+          "t": "EAGLE",
+          "o": 0,
+          "x": 2,
+          "y": 5
+        },
+        {
+          "t": "EAGLE",
+          "o": 0,
+          "x": 1,
+          "y": 4
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 24,
+          "y": 8
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 24,
+          "y": 9
+        },
+        {
+          "t": "BISON",
+          "o": 1,
+          "x": 25,
+          "y": 8
+        },
+        {
+          "t": "LENET",
+          "o": 1,
+          "x": 23,
+          "y": 8
+        },
+        {
+          "t": "HAWKEYE",
+          "o": 1,
+          "x": 25,
+          "y": 7
+        },
+        {
+          "t": "EAGLE",
+          "o": 1,
+          "x": 27,
+          "y": 12
+        },
+        {
+          "t": "EAGLE",
+          "o": 1,
+          "x": 28,
+          "y": 13
+        }
+      ]
+    },
+    {
+      "name": "RIMA BIRT",
+      "pack": "AI-made: Bridgeheads",
+      "campaignId": "bridgeheads",
+      "mission": 11,
+      "author": "AI-made by Claude Opus 5.5",
+      "source": "levels/bridgeheads/11-rima-birt.json",
+      "description": "Two parallel rilles enclose a strip of plain with two factories. Each camp is one bridge from the strip and two from the enemy, and there are only nine rounds.",
+      "special": "Capture the enemy camp or eliminate its eligible forces within 9 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "tags": [
+        "valleys and bridges",
+        "half-turn symmetry"
+      ],
+      "design": {
+        "theme": "bridgeheads",
+        "symmetry": "half"
+      },
+      "turnLimit": 9,
+      "grid": [
+        "..........v........v..........",
+        "..........v........v..........",
+        "..........v........v..........",
+        "..........v........v..........",
+        "..........v....F...v..........",
+        "......----=--------=----......",
+        "......-...v........v...-......",
+        "......-...v........v...-......",
+        "......-...v........v...-......",
+        "......-...v........v...-----B.",
+        ".B-----...v........v...-......",
+        "......-...v........v...-......",
+        "......-...v........v...-......",
+        "......-...v........v...-......",
+        "......----=--------=----......",
+        "..........v...F....v..........",
+        "..........v........v..........",
+        "..........v........v..........",
+        "..........v........v..........",
+        "..........v........v.........."
+      ],
+      "buildings": [
+        {
+          "col": 1,
+          "row": 10,
+          "owner": 0
+        },
+        {
+          "col": 28,
+          "row": 9,
+          "owner": 1
+        },
+        {
+          "col": 15,
+          "row": 4,
+          "owner": -1,
+          "stored": [
+            "CHARLIE",
+            "BISON",
+            "LENET"
+          ]
+        },
+        {
+          "col": 14,
+          "row": 15,
+          "owner": -1,
+          "stored": [
+            "CHARLIE",
+            "BISON",
+            "LENET"
+          ]
+        }
+      ],
+      "units": [
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 4,
+          "y": 10
+        },
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 3,
+          "y": 9
+        },
+        {
+          "t": "BISON",
+          "o": 0,
+          "x": 4,
+          "y": 9
+        },
+        {
+          "t": "LENET",
+          "o": 0,
+          "x": 5,
+          "y": 9
+        },
+        {
+          "t": "HADRIAN",
+          "o": 0,
+          "x": 3,
+          "y": 10
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 25,
+          "y": 9
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 26,
+          "y": 10
+        },
+        {
+          "t": "BISON",
+          "o": 1,
+          "x": 25,
+          "y": 10
+        },
+        {
+          "t": "LENET",
+          "o": 1,
+          "x": 24,
+          "y": 10
+        },
+        {
+          "t": "HADRIAN",
+          "o": 1,
+          "x": 26,
+          "y": 9
+        }
+      ]
+    },
+    {
+      "name": "VALLIS SCHROTERI",
+      "pack": "AI-made: Bridgeheads",
+      "campaignId": "bridgeheads",
+      "mission": 12,
+      "author": "AI-made by Claude Opus 5.5",
+      "source": "levels/bridgeheads/12-vallis-schroteri.json",
+      "description": "The Xenon camp stands inside a loop of the valley, reachable by tanks over one bridge. The armies are equal: the loop is Xenon's advantage, the first move is yours.",
+      "special": "Capture the enemy camp or eliminate its eligible forces within 24 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "tags": [
+        "valleys and bridges",
+        "unequal sides"
+      ],
+      "design": {
+        "theme": "bridgeheads",
+        "symmetry": "none"
+      },
+      "turnLimit": 24,
+      "grid": [
+        "................................",
+        "................................",
+        "................................",
+        "..................hh.....vv.....",
+        "............hh....hh....vvvvv...",
+        "...........hhh....hh...v....v...",
+        "...........hhh.........v.....v..",
+        "............hh........v......v..",
+        "......................v......v..",
+        "...-.-.-.-.-.-.-.-.-.-v-.-...v..",
+        "..B.-.-.-.-.-.-.-.-.-.=.-.B..v..",
+        "......................v......v..",
+        "............hh........v......v..",
+        "...........hhh.........v.....v..",
+        "...........hhh.........v....v...",
+        "............hh..........vvvvv...",
+        ".........................vv.....",
+        "................................",
+        "................................",
+        "................................"
+      ],
+      "buildings": [
+        {
+          "col": 2,
+          "row": 10,
+          "owner": 0
+        },
+        {
+          "col": 26,
+          "row": 10,
+          "owner": 1
+        }
+      ],
+      "units": [
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 5,
+          "y": 10
+        },
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 5,
+          "y": 9
+        },
+        {
+          "t": "BISON",
+          "o": 0,
+          "x": 4,
+          "y": 10
+        },
+        {
+          "t": "LENET",
+          "o": 0,
+          "x": 6,
+          "y": 10
+        },
+        {
+          "t": "HADRIAN",
+          "o": 0,
+          "x": 4,
+          "y": 11
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 25,
+          "y": 10
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 25,
+          "y": 9
+        },
+        {
+          "t": "BISON",
+          "o": 1,
+          "x": 24,
+          "y": 10
+        },
+        {
+          "t": "LENET",
+          "o": 1,
+          "x": 24,
+          "y": 11
+        },
+        {
+          "t": "HADRIAN",
+          "o": 1,
+          "x": 25,
+          "y": 11
+        }
+      ]
+    },
+    {
+      "name": "RIMA MAIRAN",
+      "pack": "AI-made: Bridgeheads",
+      "campaignId": "bridgeheads",
+      "mission": 13,
+      "author": "AI-made by Claude Opus 5.5",
+      "source": "levels/bridgeheads/13-rima-mairan.json",
+      "description": "Each side's Mules start at its bridgeheads, carrying mines. A mine on a bridge closes it to tanks, but a closed bridge also stops your own attack. You bring one more Charlie.",
+      "special": "Capture the enemy camp or eliminate its eligible forces within 30 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "tags": [
+        "valleys and bridges",
+        "half-turn symmetry"
+      ],
+      "design": {
+        "theme": "bridgeheads",
+        "symmetry": "half"
+      },
+      "turnLimit": 30,
+      "grid": [
+        "..............vv..............",
+        "..............vv..............",
+        "..............vv..............",
+        "..............vv..............",
+        "..............v=.-.-..........",
+        ".........-.-.-==-.-.-.........",
+        "........-.-.-.=v....--........",
+        "........-.....vv.....-........",
+        ".......--.....vv......-.......",
+        "......-.......vv......------B.",
+        ".B------......vv.......-......",
+        ".......-......vv.....--.......",
+        "........-.....vv.....-........",
+        "........--....v=.-.-.-........",
+        ".........-.-.-==-.-.-.........",
+        "..........-.-.=v..............",
+        "..............vv..............",
+        "..............vv..............",
+        "..............vv..............",
+        "..............vv.............."
+      ],
+      "buildings": [
+        {
+          "col": 1,
+          "row": 10,
+          "owner": 0
+        },
+        {
+          "col": 28,
+          "row": 9,
+          "owner": 1
+        }
+      ],
+      "units": [
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 5,
+          "y": 10
+        },
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 5,
+          "y": 9
+        },
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 4,
+          "y": 10
+        },
+        {
+          "t": "BISON",
+          "o": 0,
+          "x": 6,
+          "y": 10
+        },
+        {
+          "t": "BISON",
+          "o": 0,
+          "x": 4,
+          "y": 11
+        },
+        {
+          "t": "LENET",
+          "o": 0,
+          "x": 5,
+          "y": 11
+        },
+        {
+          "t": "MULE",
+          "o": 0,
+          "x": 12,
+          "y": 5
+        },
+        {
+          "t": "TRIGGER",
+          "o": 0,
+          "x": 11,
+          "y": 4
+        },
+        {
+          "t": "MULE",
+          "o": 0,
+          "x": 12,
+          "y": 14
+        },
+        {
+          "t": "TRIGGER",
+          "o": 0,
+          "x": 11,
+          "y": 13
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 24,
+          "y": 10
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 23,
+          "y": 9
+        },
+        {
+          "t": "BISON",
+          "o": 1,
+          "x": 24,
+          "y": 9
+        },
+        {
+          "t": "BISON",
+          "o": 1,
+          "x": 25,
+          "y": 9
+        },
+        {
+          "t": "LENET",
+          "o": 1,
+          "x": 23,
+          "y": 10
+        },
+        {
+          "t": "MULE",
+          "o": 1,
+          "x": 17,
+          "y": 14
+        },
+        {
+          "t": "TRIGGER",
+          "o": 1,
+          "x": 17,
+          "y": 13
+        },
+        {
+          "t": "MULE",
+          "o": 1,
+          "x": 17,
+          "y": 5
+        },
+        {
+          "t": "TRIGGER",
+          "o": 1,
+          "x": 17,
+          "y": 4
+        }
+      ]
+    },
+    {
+      "name": "RIMAE LITTROW",
+      "pack": "AI-made: Bridgeheads",
+      "campaignId": "bridgeheads",
+      "mission": 14,
+      "author": "AI-made by Claude Opus 5.5",
+      "source": "levels/bridgeheads/14-rimae-littrow.json",
+      "description": "Three rilles run between the camps with their bridges staggered, so every crossing turns the advance sideways. Both armies start between the rilles beside factories; your force is under strength.",
+      "special": "Capture the enemy camp or eliminate its eligible forces within 34 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "tags": [
+        "valleys and bridges",
+        "half-turn symmetry"
+      ],
+      "design": {
+        "theme": "bridgeheads",
+        "symmetry": "half"
+      },
+      "turnLimit": 34,
+      "grid": [
+        "..........v.....vv.....v..........",
+        "..........v.....vv.....v..........",
+        "..........v.....vv.....v..........",
+        "..........v.....vv.....v..........",
+        "..........v..-.-v=-hF..v..........",
+        "..........v..--.=v.hhh.v..........",
+        "..........v..-..vv.hhh.v..........",
+        "..........v..-..vv..h..v..........",
+        "..........v..-..vv.F...v..........",
+        "..........v..-..vv.....v..........",
+        "..........v..-..vv..---=-------B..",
+        "..B-------=---..vv..-..v..........",
+        "..........v.....vv..-..v..........",
+        "..........v...F.vv..-..v..........",
+        "..........v..h..vv..-..v..........",
+        "..........v.hhh.vv..-..v..........",
+        "..........v.hhh.v=.--..v..........",
+        "..........v..Fh-=v-.-..v..........",
+        "..........v.....vv.....v..........",
+        "..........v.....vv.....v..........",
+        "..........v.....vv.....v..........",
+        "..........v.....vv.....v.........."
+      ],
+      "buildings": [
+        {
+          "col": 2,
+          "row": 11,
+          "owner": 0
+        },
+        {
+          "col": 31,
+          "row": 10,
+          "owner": 1
+        },
+        {
+          "col": 13,
+          "row": 17,
+          "owner": -1,
+          "stored": [
+            "CHARLIE",
+            "BISON",
+            "LENET"
+          ]
+        },
+        {
+          "col": 20,
+          "row": 4,
+          "owner": -1,
+          "stored": [
+            "CHARLIE",
+            "BISON",
+            "LENET"
+          ]
+        },
+        {
+          "col": 19,
+          "row": 8,
+          "owner": -1,
+          "stored": [
+            "CHARLIE",
+            "LENET"
+          ]
+        },
+        {
+          "col": 14,
+          "row": 13,
+          "owner": -1,
+          "stored": [
+            "CHARLIE",
+            "LENET"
+          ]
+        }
+      ],
+      "units": [
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 13,
+          "y": 11,
+          "str": 6
+        },
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 13,
+          "y": 10,
+          "str": 6
+        },
+        {
+          "t": "KILROY",
+          "o": 0,
+          "x": 12,
+          "y": 11,
+          "str": 7
+        },
+        {
+          "t": "BISON",
+          "o": 0,
+          "x": 14,
+          "y": 11,
+          "str": 6
+        },
+        {
+          "t": "BISON",
+          "o": 0,
+          "x": 12,
+          "y": 12,
+          "str": 6
+        },
+        {
+          "t": "LENET",
+          "o": 0,
+          "x": 13,
+          "y": 12,
+          "str": 6
+        },
+        {
+          "t": "HADRIAN",
+          "o": 0,
+          "x": 14,
+          "y": 12,
+          "str": 6
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 20,
+          "y": 11
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 19,
+          "y": 10
+        },
+        {
+          "t": "KILROY",
+          "o": 1,
+          "x": 20,
+          "y": 10
+        },
+        {
+          "t": "BISON",
+          "o": 1,
+          "x": 21,
+          "y": 10
+        },
+        {
+          "t": "BISON",
+          "o": 1,
+          "x": 19,
+          "y": 11
+        },
+        {
+          "t": "LENET",
+          "o": 1,
+          "x": 21,
+          "y": 11
+        },
+        {
+          "t": "HADRIAN",
+          "o": 1,
+          "x": 20,
+          "y": 12
+        }
+      ]
+    },
+    {
+      "name": "RIMA CAUCHY",
+      "pack": "AI-made: Bridgeheads",
+      "campaignId": "bridgeheads",
+      "mission": 15,
+      "author": "AI-made by Claude Opus 5.5",
+      "source": "levels/bridgeheads/15-rima-cauchy.json",
+      "description": "A long diagonal rille separates distant camps. Mules carry infantry along the roads; the bridges are far apart and far from home. The Xenon camp stands nearer the rille than yours, and you bring one more Bison, badly damaged.",
+      "special": "Capture the enemy camp or eliminate its eligible forces within 48 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "tags": [
+        "valleys and bridges",
+        "half-turn symmetry"
+      ],
+      "design": {
+        "theme": "bridgeheads",
+        "symmetry": "half"
+      },
+      "turnLimit": 48,
+      "grid": [
+        "..........vv........................",
+        "..........vvv.......................",
+        "...........vvv......................",
+        "..........--==------..........w.....",
+        "......hhh...vvv.....-........www....",
+        ".....hhhhh...vvv....--.......www....",
+        "......hhh.....vv.--...--.....ww.....",
+        "......hhh.....v==......-............",
+        ".............--vvv......--..........",
+        ".............-..vv.......-..........",
+        "...........--...vvv......----------.",
+        ".B---------......vvv...--.......B...",
+        "..........-.......vv..-.............",
+        "..........--......vvv--.............",
+        "............-......==v.....hhh......",
+        ".....ww.....--...--.vv.....hhh......",
+        "....www.......--....vvv...hhhhh.....",
+        "....www........-.....vvv...hhh......",
+        ".....w..........------==--..........",
+        "......................vvv...........",
+        ".......................vvv..........",
+        "........................vv.........."
+      ],
+      "buildings": [
+        {
+          "col": 1,
+          "row": 11,
+          "owner": 0
+        },
+        {
+          "col": 32,
+          "row": 11,
+          "owner": 1
+        }
+      ],
+      "units": [
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 4,
+          "y": 11
+        },
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 3,
+          "y": 10
+        },
+        {
+          "t": "BISON",
+          "o": 0,
+          "x": 4,
+          "y": 10
+        },
+        {
+          "t": "BISON",
+          "o": 0,
+          "x": 5,
+          "y": 10
+        },
+        {
+          "t": "LENET",
+          "o": 0,
+          "x": 3,
+          "y": 11
+        },
+        {
+          "t": "LENET",
+          "o": 0,
+          "x": 5,
+          "y": 11
+        },
+        {
+          "t": "HADRIAN",
+          "o": 0,
+          "x": 4,
+          "y": 12
+        },
+        {
+          "t": "BISON",
+          "o": 0,
+          "x": 3,
+          "y": 9,
+          "str": 5
+        },
+        {
+          "t": "MULE",
+          "o": 0,
+          "x": 3,
+          "y": 7
+        },
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 3,
+          "y": 6
+        },
+        {
+          "t": "MULE",
+          "o": 0,
+          "x": 2,
+          "y": 7
+        },
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 4,
+          "y": 7
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 31,
+          "y": 11
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 31,
+          "y": 10
+        },
+        {
+          "t": "BISON",
+          "o": 1,
+          "x": 30,
+          "y": 11
+        },
+        {
+          "t": "BISON",
+          "o": 1,
+          "x": 30,
+          "y": 12
+        },
+        {
+          "t": "LENET",
+          "o": 1,
+          "x": 31,
+          "y": 12
+        },
+        {
+          "t": "LENET",
+          "o": 1,
+          "x": 32,
+          "y": 12
+        },
+        {
+          "t": "HADRIAN",
+          "o": 1,
+          "x": 31,
+          "y": 9
+        },
+        {
+          "t": "MULE",
+          "o": 1,
+          "x": 32,
+          "y": 14
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 31,
+          "y": 13
+        },
+        {
+          "t": "MULE",
+          "o": 1,
+          "x": 32,
+          "y": 13
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 33,
+          "y": 13
+        }
+      ]
+    },
+    {
+      "name": "RIMA ARIADAEUS",
+      "pack": "AI-made: Bridgeheads",
+      "campaignId": "bridgeheads",
+      "mission": 16,
+      "author": "AI-made by Claude Opus 5.5",
+      "source": "levels/bridgeheads/16-rima-ariadaeus.json",
+      "description": "The great straight rille cuts the whole board, with branches, footpaths and bridges along its length. Eagles, Pelicans and factories on both banks.",
+      "special": "Capture the enemy camp or eliminate its eligible forces within 30 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+      "tags": [
+        "valleys and bridges",
+        "half-turn symmetry"
+      ],
+      "design": {
+        "theme": "bridgeheads",
+        "symmetry": "half"
+      },
+      "turnLimit": 30,
+      "grid": [
+        "...........vvv..........................",
+        "...........vvvv.........................",
+        "............vvv.........................",
+        "............vvvv........................",
+        "........----====----------..............",
+        ".......F.....vvv.........-..............",
+        "..............vvvv.......-....hhh.......",
+        "...............vvv........-...hhhh......",
+        "...............vvvvv....Fhhh..hhh.......",
+        "................vvvv.....hhh............",
+        ".................vvvv....hhh............",
+        "..................vvvv.....-............",
+        "..................====---------------B..",
+        "..B---------------====..................",
+        "............-.....vvvv..................",
+        "............hhh....vvvv.................",
+        "............hhh.....vvvv................",
+        ".......hhh..hhhF....vvvvv...............",
+        "......hhhh...-........vvv...............",
+        ".......hhh....-.......vvvv..............",
+        "..............-.........vvv.....F.......",
+        "..............----------====----........",
+        "........................vvvv............",
+        ".........................vvv............",
+        ".........................vvvv...........",
+        "..........................vvv..........."
+      ],
+      "buildings": [
+        {
+          "col": 2,
+          "row": 13,
+          "owner": 0
+        },
+        {
+          "col": 37,
+          "row": 12,
+          "owner": 1
+        },
+        {
+          "col": 7,
+          "row": 5,
+          "owner": -1,
+          "stored": [
+            "CHARLIE",
+            "BISON",
+            "LENET"
+          ]
+        },
+        {
+          "col": 32,
+          "row": 20,
+          "owner": -1,
+          "stored": [
+            "CHARLIE",
+            "BISON",
+            "LENET"
+          ]
+        },
+        {
+          "col": 24,
+          "row": 8,
+          "owner": -1,
+          "stored": [
+            "CHARLIE",
+            "KILROY",
+            "BISON",
+            "LENET",
+            "HADRIAN",
+            "PELICAN"
+          ]
+        },
+        {
+          "col": 15,
+          "row": 17,
+          "owner": -1,
+          "stored": [
+            "CHARLIE",
+            "KILROY",
+            "BISON",
+            "LENET",
+            "HADRIAN",
+            "PELICAN"
+          ]
+        }
+      ],
+      "units": [
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 5,
+          "y": 13
+        },
+        {
+          "t": "CHARLIE",
+          "o": 0,
+          "x": 5,
+          "y": 12
+        },
+        {
+          "t": "KILROY",
+          "o": 0,
+          "x": 4,
+          "y": 13
+        },
+        {
+          "t": "BISON",
+          "o": 0,
+          "x": 6,
+          "y": 13
+        },
+        {
+          "t": "BISON",
+          "o": 0,
+          "x": 4,
+          "y": 14
+        },
+        {
+          "t": "LENET",
+          "o": 0,
+          "x": 5,
+          "y": 14
+        },
+        {
+          "t": "LENET",
+          "o": 0,
+          "x": 6,
+          "y": 14
+        },
+        {
+          "t": "HADRIAN",
+          "o": 0,
+          "x": 5,
+          "y": 11
+        },
+        {
+          "t": "EAGLE",
+          "o": 0,
+          "x": 2,
+          "y": 8
+        },
+        {
+          "t": "PELICAN",
+          "o": 0,
+          "x": 1,
+          "y": 7
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 34,
+          "y": 12
+        },
+        {
+          "t": "CHARLIE",
+          "o": 1,
+          "x": 34,
+          "y": 13
+        },
+        {
+          "t": "KILROY",
+          "o": 1,
+          "x": 35,
+          "y": 12
+        },
+        {
+          "t": "BISON",
+          "o": 1,
+          "x": 33,
+          "y": 12
+        },
+        {
+          "t": "BISON",
+          "o": 1,
+          "x": 35,
+          "y": 11
+        },
+        {
+          "t": "LENET",
+          "o": 1,
+          "x": 34,
+          "y": 11
+        },
+        {
+          "t": "LENET",
+          "o": 1,
+          "x": 33,
+          "y": 11
+        },
+        {
+          "t": "HADRIAN",
+          "o": 1,
+          "x": 34,
+          "y": 14
+        },
+        {
+          "t": "EAGLE",
+          "o": 1,
+          "x": 37,
+          "y": 17
+        },
+        {
+          "t": "PELICAN",
+          "o": 1,
+          "x": 38,
+          "y": 18
+        }
+      ]
+    }
+  ]
+}

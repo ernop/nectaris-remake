@@ -1,0 +1,133 @@
+{
+  "name": "MAUROLYCUS",
+  "pack": "AI-made: Siege Lines",
+  "campaignId": "siege-lines",
+  "mission": 14,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/siege-lines/14-maurolycus.json",
+  "description": "A fast Xenon Rabbit starts outside the walls, on the road to your camp. Chase it or ignore it: every unit you leave behind to watch it is one fewer at the gate.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 30 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "fortified camp",
+    "unequal sides"
+  ],
+  "design": {
+    "theme": "siege",
+    "symmetry": "none"
+  },
+  "turnLimit": 30,
+  "grid": [
+    "................................",
+    "................................",
+    ".................-.----.........",
+    ".............-.--.-.............",
+    ".........----.-.................",
+    ".......--.......................",
+    ".......-.................MMM....",
+    ".....--................MM...MM..",
+    "....-.................M.......M.",
+    "...--.................M.......M.",
+    "..B.......................B...M.",
+    "......................M.......M.",
+    "......................MM.....MM.",
+    "........................MM.MM...",
+    "..........................M.....",
+    "................................",
+    "................................",
+    "................................",
+    "................................",
+    "................................"
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 10,
+      "owner": 0
+    },
+    {
+      "col": 26,
+      "row": 10,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 6,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 6,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 7,
+      "y": 9
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 5,
+      "y": 10
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 7,
+      "y": 10
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 6,
+      "y": 11
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 27,
+      "y": 10
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 27,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 28,
+      "y": 10
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 26,
+      "y": 11
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 27,
+      "y": 11
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 20,
+      "y": 2
+    }
+  ]
+}

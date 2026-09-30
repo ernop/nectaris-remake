@@ -1,0 +1,246 @@
+{
+  "name": "OCEANUS PROCELLARUM",
+  "pack": "AI-made: Arsenal",
+  "campaignId": "arsenal",
+  "mission": 10,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/arsenal/10-oceanus-procellarum.json",
+  "description": "An ocean of open ground with eight scattered factories. Every capture draws a response, and no front holds still for long. Your army arrives worn: every unit starts at strength six.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 32 rounds. At the turn limit, Xenon wins. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "factory reserves",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "arsenal",
+    "symmetry": "half"
+  },
+  "turnLimit": 32,
+  "grid": [
+    "..................................",
+    "..................................",
+    "..................................",
+    "....................F.............",
+    ".......F..........................",
+    "..........h.......h..F............",
+    ".........hhh...F.hhh..............",
+    ".........hhh.....hhh..............",
+    "..................................",
+    "...................ww.............",
+    "...................ww..........B..",
+    "..B..........ww...................",
+    ".............ww...................",
+    "..................................",
+    "..............hhh.....hhh.........",
+    "..............hhh.F...hhh.........",
+    "............F..h.......h..........",
+    "..........................F.......",
+    ".............F....................",
+    "..................................",
+    "..................................",
+    ".................................."
+  ],
+  "buildings": [
+    {
+      "col": 2,
+      "row": 11,
+      "owner": 0
+    },
+    {
+      "col": 31,
+      "row": 10,
+      "owner": 1
+    },
+    {
+      "col": 7,
+      "row": 4,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LENET"
+      ]
+    },
+    {
+      "col": 26,
+      "row": 17,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LENET"
+      ]
+    },
+    {
+      "col": 12,
+      "row": 16,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON"
+      ]
+    },
+    {
+      "col": 21,
+      "row": 5,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "BISON"
+      ]
+    },
+    {
+      "col": 15,
+      "row": 6,
+      "owner": -1,
+      "stored": [
+        "BISON",
+        "LENET"
+      ]
+    },
+    {
+      "col": 18,
+      "row": 15,
+      "owner": -1,
+      "stored": [
+        "BISON",
+        "LENET"
+      ]
+    },
+    {
+      "col": 20,
+      "row": 3,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LYNX"
+      ]
+    },
+    {
+      "col": 13,
+      "row": 18,
+      "owner": -1,
+      "stored": [
+        "CHARLIE",
+        "LYNX"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 11,
+      "str": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 10,
+      "str": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 11,
+      "str": 6
+    },
+    {
+      "t": "PANTHER",
+      "o": 0,
+      "x": 6,
+      "y": 11,
+      "str": 6
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 12,
+      "str": 6
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 5,
+      "y": 12,
+      "str": 6
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 6,
+      "y": 12,
+      "str": 6
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 5,
+      "y": 9,
+      "str": 6
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 3,
+      "y": 10,
+      "str": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 28,
+      "y": 11
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 27,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 28,
+      "y": 10
+    },
+    {
+      "t": "PANTHER",
+      "o": 1,
+      "x": 29,
+      "y": 10
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 27,
+      "y": 11
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 29,
+      "y": 11
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 28,
+      "y": 12
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 27,
+      "y": 9
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 28,
+      "y": 9
+    }
+  ]
+}

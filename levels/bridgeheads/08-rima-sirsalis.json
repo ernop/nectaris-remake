@@ -1,0 +1,128 @@
+{
+  "name": "RIMA SIRSALIS",
+  "pack": "AI-made: Bridgeheads",
+  "campaignId": "bridgeheads",
+  "mission": 8,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/bridgeheads/08-rima-sirsalis.json",
+  "description": "Guns on either rim can reach across the rille. Your guns start in firing position; Xenon's are damaged and farther back, and its Bison is damaged too. Two bridges carry the tanks, and the artillery decides which of them is usable.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 28 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "valleys and bridges",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "bridgeheads",
+    "symmetry": "half"
+  },
+  "turnLimit": 28,
+  "grid": [
+    "............vvvv............",
+    "............vvvv............",
+    "............vvvv............",
+    "............vvvv............",
+    "........----====----........",
+    ".......--...vvvv....-.......",
+    ".......-....vvvv....--......",
+    "......-..hh.vvvv.hh..-.-.-..",
+    ".....--.hhh.vvvv.hhh..-.-.B.",
+    ".B.-.-..hhh.vvvv.hhh.--.....",
+    "..-.-.-..hh.vvvv.hh..-......",
+    "......--....vvvv....-.......",
+    ".......-....vvvv...--.......",
+    "........----====----........",
+    "............vvvv............",
+    "............vvvv............",
+    "............vvvv............",
+    "............vvvv............"
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 9,
+      "owner": 0
+    },
+    {
+      "col": 26,
+      "row": 8,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 9
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 6,
+      "y": 9
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 9,
+      "y": 9
+    },
+    {
+      "t": "OCTOPUS",
+      "o": 0,
+      "x": 9,
+      "y": 8
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 22,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 21,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 22,
+      "y": 8,
+      "str": 7
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 23,
+      "y": 8
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 24,
+      "y": 9,
+      "str": 6
+    },
+    {
+      "t": "OCTOPUS",
+      "o": 1,
+      "x": 24,
+      "y": 8,
+      "str": 6
+    }
+  ]
+}

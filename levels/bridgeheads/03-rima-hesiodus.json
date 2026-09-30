@@ -1,0 +1,129 @@
+{
+  "name": "RIMA HESIODUS",
+  "pack": "AI-made: Bridgeheads",
+  "campaignId": "bridgeheads",
+  "mission": 3,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/bridgeheads/03-rima-hesiodus.json",
+  "description": "The camps face each other across the north end of the rille, where a footpath lets infantry cross in two moves. Tanks must go the long way, over the southern bridge. Every Xenon unit is under strength, most of them badly.",
+  "special": "Capture the enemy camp or eliminate its eligible forces within 30 rounds. At the turn limit, Xenon wins. No Hunters or Falcons. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "valleys and bridges",
+    "mirror symmetry"
+  ],
+  "design": {
+    "theme": "bridgeheads",
+    "symmetry": "mirror"
+  },
+  "turnLimit": 30,
+  "grid": [
+    "...........vvv...........",
+    "...........vvv...........",
+    "...........vvv...........",
+    "...B-......vvv......-B...",
+    "....-......vvv......-....",
+    "....-......vvv......-....",
+    "....-......vvv......-....",
+    "....-..hh..vvv..hh..-....",
+    "....-..hh..vvv..hh..-....",
+    "....-......vvv......-....",
+    "....-......vvv......-....",
+    "....-------===-------....",
+    "...........vvv...........",
+    "...........vvv...........",
+    "...........vvv...........",
+    "...........vvv..........."
+  ],
+  "buildings": [
+    {
+      "col": 3,
+      "row": 3,
+      "owner": 0
+    },
+    {
+      "col": 21,
+      "row": 3,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 5
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 4
+    },
+    {
+      "t": "KILROY",
+      "o": 0,
+      "x": 4,
+      "y": 5
+    },
+    {
+      "t": "KILROY",
+      "o": 0,
+      "x": 6,
+      "y": 5
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 7
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 3,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 19,
+      "y": 5,
+      "str": 5
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 19,
+      "y": 4,
+      "str": 5
+    },
+    {
+      "t": "KILROY",
+      "o": 1,
+      "x": 18,
+      "y": 5,
+      "str": 6
+    },
+    {
+      "t": "KILROY",
+      "o": 1,
+      "x": 20,
+      "y": 5,
+      "str": 6
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 20,
+      "y": 7,
+      "str": 5
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 19,
+      "y": 6,
+      "str": 5
+    }
+  ]
+}
