@@ -229,19 +229,17 @@ buildings of either owner or neutral.
 
 ## AI-made: Bridgeheads
 
-Rilles split every board. Bridges and a few footpaths are the only fast crossings, and holding the far end of one is the campaign's recurring problem. Ridges on each bank stop a force that has crossed from running along the rim to the camp.
+Rilles split every board. Bridges and a few footpaths are the only fast crossings, and holding the far end of one is the campaign's recurring problem. Rilles, and on two boards mountain ridges, cut the top and bottom edges, so no army can circle the rim.
 
-Since 2026-09-30 (the edge-barrier request above) every Bridgeheads board has
-mountain ridges from the top and bottom edges on each bank, placed per mission
-by `rims()` in the specs and drawn before the rilles and roads, so a road that
-meets one fails the build. The rilles already cut the edges on most boards;
-the ridges close boards 2, 6 and 12, whose edge bridges or open ends let
-vehicles run along the rim, and keep a force that has crossed from following
-the edge to the camp. Under the draw rules Marshal self-play (the first of the
-three balance tests) gave Union 40-60%
-on 14 of 16 boards without the ridges and on 4 of 16 with them
-([MAP_BALANCE.md](MAP_BALANCE.md#bridgeheads)); the missions have not been
-re-tuned.
+Edge barriers (2026-09-30, the request above): on 13 boards a rille already ran
+from edge to edge, and those boards are unchanged. Three let vehicles drive
+along an edge. RIMA HYGINUS's bridges now stand one row further from the edges,
+so its rille closes them. RIMA HADLEY has a mirrored pair of mountain ridges
+from the bottom edge of the plain between its rilles. VALLIS SCHROTERI has
+ridges from both edges on each side (`rims()` in the specs). A first version
+put ridges on each bank of all 16 boards; Marshal self-play then gave Union
+40-60% on only 4 of them, and the user chose this smaller change
+([MAP_BALANCE.md](MAP_BALANCE.md#bridgeheads)).
 
 [Import the whole campaign](levels/bridgeheads.json).
 

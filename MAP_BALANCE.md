@@ -378,6 +378,22 @@ Without ridges, 14 of 16 boards passed the self-play test (40-60%) under the dra
 in both runs except on VALLIS SNELLIUS (43 and 58 of 150) and VALLIS ALPES
 (11 and 24). The ridges, not the draw rule, moved the other boards out of range.
 
+The user then chose the smallest change that still stops edge circling: the
+13 boards whose rille already runs edge to edge went back to their earlier
+terrain, so their numbers are the *Before* column. The other three, same seed:
+
+| # | Mission | Edge barrier | No ridges | Final |
+| --- | --- | --- | ---: | ---: |
+| 2 | RIMA HYGINUS | bridges one row further from the edges, so the rille closes them | 47% | 47% |
+| 6 | RIMA HADLEY | mirrored mountain ridges from the bottom edge of the middle plain | 50% | 54% |
+| 12 | VALLIS SCHROTERI | ridges from both edges on each side | 45% | 45% |
+
+Hyginus and Hadley: 300 games; Schroteri: 150. Ridges tried on Hyginus instead
+gave Union 60% (corner ridges, 300 games), 69% and 76%. With the final boards,
+14 of 16 missions pass the self-play test, as before the ridges; VALLIS ALPES
+(82%) and RIMA BIRT (97%) do not. The weak-bot and no-sure-win tests were not
+rerun.
+
 | # | Mission | Idea | Verdict | Evidence |
 | --- | --- | --- | --- | --- |
 | 1 | RIMA BODE | One crossing: the side that reaches the bridge first holds it, and a held bridge is a stalemate the turn limit awards to Xenon. | Apex only | Apex: 53% of games ended at the limit. Marshal: none did; Union won 85% by attacking over the bridge. |

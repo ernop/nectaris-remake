@@ -18,73 +18,74 @@
  * D Eagle, F Falcon, N Hunter. */
 "use strict";
 // Mountain ridges from the top and bottom edges at x, `depth` of the board
-// deep (user, 2026-09-30): a force that crosses a rille cannot run along the
-// rim to the camp. Symmetric maps paint the other bank's pair; an unequal map
-// calls this once per bank. Drawn first, so a road that meets one fails.
+// deep, where a rille does not already cut both edges (user, 2026-09-30: no
+// army may circle a board along its rim). Symmetric maps paint the other
+// bank's pair; an unequal map calls this once per bank. Drawn first, so a
+// road that meets one fails.
 const rims=(d,x,depth=.2)=>{d.stroke([[x,0],[x,depth]],"M");d.stroke([[x,1],[x,1-depth]],"M");};
 const bridgeheads=[
   {name:"RIMA BODE",size:[20,14],sym:"half",
     idea:"A single bridge spans the rille. Your vanguard waits a few hexes short of its near end; the Xenon garrison beyond is under strength. Infantry can climb down anywhere, but a squad in the valley floor ends its move there with no cover.",
     test:"One crossing: the side that reaches the bridge first holds it, and a held bridge is a stalemate the turn limit awards to Xenon.",
-    draw(d){rims(d,.25,.22);d.valley([[.5,0],[.5,1]]);d.road([[.05,.5],[.5,.5]]);d.ellipse([.36,.3],.05,.12,"h");d.ellipse([.26,.78],.06,.1,"w");},
+    draw(d){d.valley([[.5,0],[.5,1]]);d.road([[.05,.5],[.5,.5]]);d.ellipse([.36,.3],.05,.12,"h");d.ellipse([.26,.78],.06,.1,"w");},
     bases:[[.05,.5]],union:[["CCBBL",[.3,.5]]],xenon:[["CCBBL",[.86,.5],{str:7}]]},
   {name:"RIMA HYGINUS",size:[24,14],sym:"half",xenonCamp:[.9,.5],
     idea:"A crater sits in the middle of the rille, and the only bridges are at its two ends. An army that crosses at one end leaves the other bridge to the enemy. The Xenon camp stands nearer the rille than yours, and you bring one more Bison.",
     test:"Two distant crossings force a split or a gamble, which should make games more decisive than one bridge.",
-    draw(d){rims(d,.2,.22);d.valley([[.5,0],[.5,1]]);d.disk([.5,.5],2,"M");d.disk([.5,.5],0,"v");
-      d.road([[.05,.5],[.2,.5],[.35,.12],[.5,.12]]);d.road([[.2,.5],[.35,.88],[.5,.88]]);d.ellipse([.3,.5],.04,.1,"h");},
+    draw(d){d.valley([[.5,0],[.5,1]]);d.disk([.5,.5],2,"M");d.disk([.5,.5],0,"v");
+      d.road([[.05,.5],[.2,.5],[.35,.22],[.5,.22]]);d.road([[.2,.5],[.35,.78],[.5,.78]]);d.ellipse([.3,.5],.04,.1,"h");},
     bases:[[.05,.5]],union:[["CCBBBLLH",[.15,.5]]],xenon:[["CCBBLLH",[.85,.5]]]},
   {name:"RIMA HESIODUS",size:[25,16],sym:"mirror",
     idea:"The camps face each other across the north end of the rille, where a footpath lets infantry cross in two moves. Tanks must go the long way, over the southern bridge. Every Xenon unit is under strength, most of them badly.",
     test:"Footpaths give capturers fast crossings, which should favor the infantry-heavy side and the first mover.",
-    draw(d){rims(d,.3,.2);d.valley([[.5,0],[.5,1]]);d.valley([[.5,0],[.5,.12]],1);d.valley([[.5,.28],[.5,1]],1);
+    draw(d){d.valley([[.5,0],[.5,1]]);d.valley([[.5,0],[.5,.12]],1);d.valley([[.5,.28],[.5,1]],1);
       d.road([[.15,.75],[.85,.75]]);d.road([[.15,.2],[.15,.75]]);d.ellipse([.3,.5],.05,.1,"h");},
     bases:[[.12,.2]],union:[["CCKK",[.2,.3]],["BL",[.15,.45]]],xenon:[["CC",[.8,.3],{str:5}],["KK",[.8,.3],{str:6}],["BL",[.85,.45],{str:5}]]},
   {name:"VALLIS SNELLIUS",size:[24,16],sym:"half",split:true,
     idea:"No bridge crosses this valley. Tanks can only hold their own bank; any attack must walk through the valley floor or fly. You have three Pelicans to Xenon's two, a Hawkeye guards each camp, and the Xenon ground forces are under strength.",
     test:"Without a vehicle crossing the defender's tanks are never threatened, so the turn limit should decide most games for Xenon.",
-    draw(d){rims(d,.25,.22);d.valley([[.5,0],[.5,1]],1);d.ellipse([.3,.3],.05,.1,"h");d.ellipse([.3,.72],.05,.1,"h");},
+    draw(d){d.valley([[.5,0],[.5,1]],1);d.ellipse([.3,.3],.05,.1,"h");d.ellipse([.3,.72],.05,.1,"h");},
     bases:[[.05,.5]],union:[["CCKK",[.2,.5]],["BL",[.13,.4]],["QQQ",[.1,.62]],["W",[.06,.4]]],
     xenon:[["CCKK",[.8,.5],{str:6}],["BL",[.87,.6],{str:6}],["QQ",[.9,.38]],["W",[.94,.6]]]},
   {name:"RIMAE TRIESNECKER",size:[28,18],sym:"half",
     idea:"Two rilles cross at right angles and divide the ground into four fields. Each camp's field has two bridges to the neutral fields, where small factories hold a Charlie each.",
     test:"Four bridges spread the defense; each side can only guard two, which should make attacks succeed more often than on one-bridge maps.",
-    draw(d){rims(d,.3,.12);d.valley([[.5,0],[.5,1]]);d.valley([[0,.5],[1,.5]]);
+    draw(d){d.valley([[.5,0],[.5,1]]);d.valley([[0,.5],[1,.5]]);
       d.road([[.1,.2],[.5,.2],[.75,.2]]);d.road([[.1,.2],[.2,.5],[.2,.75]]);d.ellipse([.72,.25],.05,.1,"h");},
     bases:[[.1,.2]],factories:[{at:[.72,.2],stock:"C"}],union:[["CCBLL",[.2,.2]]]},
   {name:"RIMA HADLEY",size:[27,17],sym:"mirror",
     idea:"Each camp sits behind its own winding rille with a bridge at each end. The open plain between the rilles belongs to whoever crosses first. You bring one extra Kilroy, and the Xenon Lenet starts damaged.",
     test:"Mirror symmetry puts both armies' mountain flanks on the same side, a head-on meeting unlike a half-turn's crossed flanks.",
-    draw(d){rims(d,.5,.2);d.valley([[.28,0],[.22,.3],[.3,.55],[.24,.8],[.28,1]]);d.rect([0,0],[.2,.1],"M");d.ellipse([.4,.12],.07,.12,"M");
+    draw(d){d.stroke([[.42,1],[.42,.85]],"M");d.valley([[.28,0],[.22,.3],[.3,.55],[.24,.8],[.28,1]]);d.rect([0,0],[.2,.1],"M");d.ellipse([.4,.12],.07,.12,"M");
       d.road([[.05,.55],[.2,.55],[.3,.55],[.42,.55]]);d.road([[.1,.8],[.24,.9],[.35,.9]]);d.road([[.05,.55],[.1,.8]]);},
     bases:[[.05,.55]],union:[["CCKBBLH",[.12,.55]]],xenon:[["CCBBH",[.88,.55]],["L",[.88,.55],{str:7}]]},
   {name:"VALLIS ALPES",size:[28,16],sym:"half",
     idea:"A deep valley cuts through the mountain wall, and one long bridge carries the road across. Pelicans can lift a tank over the wall anywhere. The Xenon tanks and infantry are under strength.",
     test:"Air transport bypasses a single chokepoint, so it should reduce stalemates compared with a one-bridge map.",
-    draw(d){rims(d,.22,.25);d.rect([.38,0],[.62,1],"M");d.valley([[.36,.5],[.64,.5]],1);d.road([[.05,.5],[.5,.5]]);},
+    draw(d){d.rect([.38,0],[.62,1],"M");d.valley([[.36,.5],[.64,.5]],1);d.road([[.05,.5],[.5,.5]]);},
     bases:[[.05,.5]],union:[["CCBBL",[.18,.5]],["QQ",[.1,.3]]],xenon:[["C",[.82,.5],{str:6}],["CBBL",[.82,.5],{str:7}],["QQ",[.9,.7]]]},
   {name:"RIMA SIRSALIS",size:[28,18],sym:"half",
     idea:"Guns on either rim can reach across the rille. Your guns start in firing position; Xenon's are damaged and farther back, and its Bison is damaged too. Two bridges carry the tanks, and the artillery decides which of them is usable.",
     test:"Artillery across a chasm rewards the first volley, which should favor Union's first move.",
-    draw(d){rims(d,.22,.18);d.valley([[.5,0],[.5,1]],1);d.road([[.05,.5],[.2,.5],[.3,.25],[.5,.25]]);d.road([[.2,.5],[.3,.75],[.5,.75]]);
+    draw(d){d.valley([[.5,0],[.5,1]],1);d.road([[.05,.5],[.2,.5],[.3,.25],[.5,.25]]);d.road([[.2,.5],[.3,.75],[.5,.75]]);
       d.ellipse([.34,.5],.05,.12,"h");},
     bases:[[.05,.5]],union:[["CCBL",[.18,.5]],["HU",[.32,.5]]],
     xenon:[["CC",[.82,.5]],["B",[.82,.5],{str:7}],["L",[.82,.5]],["HU",[.9,.5],{str:6}]]},
   {name:"RIMA MARIUS",size:[27,17],sym:"none",
     idea:"The rille runs close to your camp. You defend a narrow bank and Xenon has room to form up, but its camp stands nearer the centre than yours and its army is slightly under strength.",
     test:"Moving the only obstacle toward one camp shifts the balance toward the side it shelters.",
-    draw(d){rims(d,.2,.2);rims(d,.65,.12);d.valley([[.38,0],[.38,1]]);d.road([[.05,.5],[.95,.5]]);d.road([[.3,.5],[.45,.2],[.8,.2],[.95,.5]]);
+    draw(d){d.valley([[.38,0],[.38,1]]);d.road([[.05,.5],[.95,.5]]);d.road([[.3,.5],[.45,.2],[.8,.2],[.95,.5]]);
       d.ellipse([.75,.7],.04,.1,"h");d.ellipse([.3,.3],.04,.1,"h");},
     bases:[[.05,.5],[.85,.5]],union:[["CCBBLH",[.15,.5]]],xenon:[["CCBBLH",[.86,.5],{str:7}]]},
   {name:"RIMA PRINZ",size:[30,18],sym:"half",
     idea:"Eagles fly over the rille as if it were not there. Each side has one Hawkeye to keep the sky over its bridge, and a small factory waits on each far bank.",
     test:"Ground-attack aircraft remove the chokepoint's defensive value, which should make games more decisive.",
-    draw(d){rims(d,.2,.22);d.valley([[.5,0],[.5,1]]);d.road([[.05,.5],[.5,.5]]);d.ellipse([.3,.25],.06,.12,"h");d.ellipse([.25,.75],.05,.1,"w");},
+    draw(d){d.valley([[.5,0],[.5,1]]);d.road([[.05,.5],[.5,.5]]);d.ellipse([.3,.25],.06,.12,"h");d.ellipse([.25,.75],.05,.1,"w");},
     bases:[[.05,.5]],factories:[{at:[.66,.3],stock:"CB"}],union:[["CCBLW",[.16,.5]],["DD",[.08,.3]]]},
   {name:"RIMA BIRT",size:[30,20],sym:"half",
     idea:"Two parallel rilles enclose a strip of plain with two factories. Each camp is one bridge from the strip and two from the enemy.",
     test:"A contested middle with factories rewards the first crossing, which should favor the first mover.",
-    draw(d){rims(d,.25,.15);d.valley([[.36,0],[.36,1]]);d.valley([[.64,0],[.64,1]]);d.road([[.05,.5],[.2,.5],[.2,.25],[.5,.25]]);d.road([[.2,.5],[.2,.75],[.5,.75]]);},
+    draw(d){d.valley([[.36,0],[.36,1]]);d.valley([[.64,0],[.64,1]]);d.road([[.05,.5],[.2,.5],[.2,.25],[.5,.25]]);d.road([[.2,.5],[.2,.75],[.5,.75]]);},
     bases:[[.05,.5]],factories:[{at:[.5,.2],stock:"CBL"}],union:[["CCBLH",[.14,.5]]]},
   {name:"VALLIS SCHROTERI",size:[32,20],sym:"none",
     idea:"The Xenon camp stands inside a loop of the valley, reachable by tanks over one bridge. The armies are equal: the loop is Xenon's advantage, the first move is yours.",
@@ -95,26 +96,26 @@ const bridgeheads=[
   {name:"RIMA MAIRAN",size:[30,20],sym:"half",
     idea:"Each side's Mules start at its bridgeheads, carrying mines. A mine on a bridge closes it to tanks, but a closed bridge also stops your own attack. You bring one more Charlie.",
     test:"Mines turn crossings into walls; the more closable the crossings, the more games end at the turn limit.",
-    draw(d){rims(d,.2,.2);d.valley([[.5,0],[.5,1]]);d.road([[.05,.5],[.2,.5],[.3,.25],[.5,.25]]);d.road([[.2,.5],[.3,.75],[.5,.75]]);},
+    draw(d){d.valley([[.5,0],[.5,1]]);d.road([[.05,.5],[.2,.5],[.3,.25],[.5,.25]]);d.road([[.2,.5],[.3,.75],[.5,.75]]);},
     bases:[[.05,.5]],union:[["CCCBBL",[.16,.5]],["MZ",[.4,.25]],["MZ",[.4,.75]]],
     xenon:[["CCBBL",[.84,.5]],["MZ",[.6,.75]],["MZ",[.6,.25]]]},
   {name:"RIMAE LITTROW",size:[34,22],sym:"half",
     idea:"Three rilles run between the camps with their bridges staggered, so every crossing turns the advance sideways. Both armies start between the rilles beside factories; your force is under strength.",
     test:"Crossings in series multiply the defender's advantage, pushing the result toward the turn limit.",
-    draw(d){rims(d,.15,.2);[.3,.5,.7].forEach(x=>d.valley([[x,0],[x,1]]));
+    draw(d){[.3,.5,.7].forEach(x=>d.valley([[x,0],[x,1]]));
       d.road([[.05,.5],[.3,.5],[.4,.5],[.4,.2],[.5,.2],[.6,.2]]);d.ellipse([.4,.75],.04,.1,"h");},
     bases:[[.05,.5]],factories:[{at:[.4,.8],stock:"CBL"},{at:[.58,.4],stock:"CL"}],
     union:[["CC",[.38,.5],{str:6}],["K",[.38,.5],{str:7}],["BBLH",[.38,.5],{str:6}]],xenon:[["CCKBBLH",[.62,.5]]]},
   {name:"RIMA CAUCHY",size:[36,22],sym:"half",xenonCamp:[.9,.5],
     idea:"A long diagonal rille separates distant camps. Mules carry infantry along the roads; the bridges are far apart and far from home. The Xenon camp stands nearer the rille than yours, and you bring one more Bison, badly damaged.",
     test:"Long approaches spread out the first mover's tempo; the longer the march, the closer the result should be to even.",
-    draw(d){rims(d,.15,.2);d.valley([[.3,0],[.7,1]]);d.road([[.04,.5],[.25,.5],[.5,.3]]);d.road([[.25,.5],[.45,.85],[.7,.85]]);
+    draw(d){d.valley([[.3,0],[.7,1]]);d.road([[.04,.5],[.25,.5],[.5,.3]]);d.road([[.25,.5],[.45,.85],[.7,.85]]);
       d.ellipse([.2,.25],.06,.1,"h");d.ellipse([.15,.78],.05,.08,"w");},
     bases:[[.04,.5]],union:[["CCBBLLH",[.12,.5]],["B",[.12,.5],{str:5}],["MCMC",[.08,.35]]],xenon:[["CCBBLLH",[.88,.5]],["MCMC",[.92,.65]]]},
   {name:"RIMA ARIADAEUS",size:[40,26],sym:"half",
     idea:"The great straight rille cuts the whole board, with branches, footpaths and bridges along its length. Eagles, Pelicans and factories on both banks.",
     test:"Many kinds of crossing at once: with several ways across, no single hold decides the game.",
-    draw(d){rims(d,.12,.2);d.valley([[.3,0],[.7,1]]);d.valley([[.3,0],[.37,.18]],1);d.valley([[.41,.28],[.5,.5]],1);
+    draw(d){d.valley([[.3,0],[.7,1]]);d.valley([[.3,0],[.37,.18]],1);d.valley([[.41,.28],[.5,.5]],1);
       d.road([[.04,.5],[.3,.5],[.55,.5]]);d.road([[.3,.5],[.35,.85],[.8,.85]]);d.ellipse([.2,.72],.05,.08,"h");d.ellipse([.66,.36],.04,.08,"h");},
     bases:[[.04,.5]],factories:[{at:[.18,.2],stock:"CBL"},{at:[.62,.3],stock:"CKBLHQ"}],union:[["CCKBBLLH",[.12,.5]],["DQ",[.06,.3]]]}
 ];
@@ -297,7 +298,7 @@ const arsenal=[
 ];
 module.exports=[
   {id:"bridgeheads",name:"AI-made: Bridgeheads",theme:"bridgeheads",tag:"valleys and bridges",roster:"No Hunters or Falcons.",edgeBarriers:true,
-    intro:"Rilles split every board. Bridges and a few footpaths are the only fast crossings, and holding the far end of one is the campaign's recurring problem. Ridges on each bank stop a force that has crossed from running along the rim to the camp.",
+    intro:"Rilles split every board. Bridges and a few footpaths are the only fast crossings, and holding the far end of one is the campaign's recurring problem. Rilles, and on two boards mountain ridges, cut the top and bottom edges, so no army can circle the rim.",
     levels:bridgeheads},
   {id:"siege-lines",name:"AI-made: Siege Lines",theme:"siege",tag:"fortified camp",roster:"",
     intro:"Xenon holds a fortified crater in every battle. Union must break in and take the camp; walls, gates and guns decide how long that takes.",

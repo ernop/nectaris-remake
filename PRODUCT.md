@@ -2390,14 +2390,16 @@ Implementation: barriers come in symmetric pairs from the top and bottom
 edges, at least two per board. Open Horizons has mountain headlands; The
 Knotted Heart has ridges ending in a one-hex hill pass beside the knot, because
 its briefs rely on a long way round; Broken Ground has valley gullies (its four
-valley missions already had seams crossing both edges); Bridgeheads has
-mountain ridges on each bank. Roads cross passes but never pave them, and
-nothing is carved through a barrier. Details:
+valley missions already had seams crossing both edges). Roads cross passes
+but never pave them, and nothing is carved through a barrier. On Bridgeheads
+the rilles already cut both edges on 13 boards; RIMA HYGINUS's bridges moved one
+row inward so its rille does too, and RIMA HADLEY and VALLIS SCHROTERI have
+mountain ridges. A first version with ridges on each bank of all 16 boards
+moved Bridgeheads from 14 of 16 boards passing the self-play balance test
+(Union 40-60%) to 4 of 16; the user chose the smaller change, which is back
+to 14 of 16 ([MAP_BALANCE.md](MAP_BALANCE.md#bridgeheads)). Details:
 [ENVIRONMENT_CAMPAIGNS.md](ENVIRONMENT_CAMPAIGNS.md). The seven lock-corpus
-games on changed boards were re-recorded. Measured under the draw rules, the
-ridges moved Bridgeheads from 14 of 16 boards passing the self-play balance
-test (Union 40-60%) to 4 of 16; the other two tests were not run ([MAP_BALANCE.md](MAP_BALANCE.md#bridgeheads)); not
-re-tuned.
+games on changed boards were re-recorded.
 
 
 ## Fuseki hosting (2026-09-26)
