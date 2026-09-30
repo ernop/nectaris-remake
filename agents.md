@@ -273,8 +273,9 @@ Facts we need across sessions:
   campaign; keep it short. One header row: large **NECTARIS**, **Campaigns** /
   **Bot tournament** tabs (since 2026-09-30 also **History**, `index.html#history`),
   and "You are logged in as Wilson" in the corner (menu: Rename, New profile,
-  Switch to, record). One settings row: **Mode**
-  (Normal default / Offer for first), hotseat, **AI**. No language option, no
+  Switch to, record). One settings row: **AI opponent** (first and larger since
+  2026-09-30), **Mode** (Normal default / Offer for first), then hotseat in small
+  type (rarely used). No language option, no
   map-default mode, no explanatory paragraphs. Order: Normal, Advanced, Base
   Nectaris, then the other packs. Match defaults: Pixel + Legacy, Watch AI on,
   and a separate **Move animation** toggle. See PRODUCT's campaign menu record.
@@ -403,13 +404,15 @@ Facts we need across sessions:
   `test/combat-panel-tests.js` and `test/forecast-tests.js`.
 
 - **Level menu (2026-09-23, entries changed 2026-09-30):** restore its scroll position after leaving a level.
-  All campaigns, packs and custom maps share dense, internally single-line entries:
-  map picture (`js/map-thumbnail.js`, at most 80 × 40), number, name, "Resume
-  turn N" for an unfinished match, "N attempts · xW / yL", then a small
-  "as Xenon". No map size, army totals or column headings (user, 2026-09-30).
-  Aim for three complete entries across per row on wide screens (two or one
-  on narrower screens); never stack or wrap fields
-  inside one listing. Scroll horizontally when needed, without truncating text. The main
+  All campaigns, packs and custom maps share tiles: the map picture (SVG,
+  `js/map-thumbnail.js`) over one caption line of number, name, "Resume turn N"
+  for an unfinished match and "N attempts · xW / yL". Every tile in a collection
+  is as wide as its longest caption (`fitLevelTiles`), as many across as fit, so
+  no caption has empty space in its middle (user: "we definitely never want to
+  have useless garbage like that"). As Xenon is a small mark over the picture's
+  top right corner, help `?` the top left. No map size, army totals, column
+  headings or gold border for won levels (user, 2026-09-30). Never stack or wrap
+  fields inside a caption. Scroll horizontally when needed, without truncating text. The main
   entry is a large click-to-play target; omit turn limits and the tiny Play button.
   Details open only from small edge `?` controls (intentional hover, focus or
   click/tap), never whole-card mouseovers. Keep briefings, making-of notes and

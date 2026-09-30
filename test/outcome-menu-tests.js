@@ -18,7 +18,8 @@ module.exports = function (ok) {
   storage.setItem("nectaris-custom-levels",JSON.stringify([custom]));
   function element(tag) {
     var classes = new Set(), html = "", text = "", id;
-    var node = {tagName:tag,children:[],style:{},value:"",attributes:{},events:{},
+    var node = {tagName:tag,children:[],value:"",attributes:{},events:{},
+      style:{setProperty:function(name,value){this[name]=value;}},
       get id(){return id;},set id(value){id=value;nodes[value]=this;},
       get className(){return Array.from(classes).join(" ");},set className(value){classes=new Set(value.split(/\s+/));},
       get textContent(){return text+this.children.map(function(c){return c.textContent;}).join("");},
@@ -48,7 +49,7 @@ module.exports = function (ok) {
   var context = {document:{getElementById:get,createElement:element,baseURI:"http://nectaris.localhost/",activeElement:null,
       addEventListener:function(name,fn){documentListeners[name]=fn;}},
     localStorage:storage,PROFILES:PROFILES,AI_SEARCH:require("../js/ai-search.js"),URL:URL,
-    MAP_THUMBNAIL:{canvas:function(level,width,height){thumbnails.push({level:level,width:width,height:height});return element("canvas");}},
+    MAP_THUMBNAIL:{picture:function(level){thumbnails.push(level);return element("svg");}},
     setTimeout:function(fn){timers.set(++timerId,fn);return timerId;},clearTimeout:function(id){timers.delete(id);},
     window:{scrollY:0,innerWidth:1000,innerHeight:800,confirm:function(){return true;},
       history:{pushState:function(){context.location.hash="";}},
@@ -79,13 +80,19 @@ module.exports = function (ok) {
   }
   // The menu draws every level's picture as it opens, so one it cannot draw would stop the whole menu.
   var THUMB=require("../js/map-thumbnail.js"),letters=Object.keys(require("../js/data-terrain.js").TERRAIN_BY_CHAR).join("");
-  ok(THUMB.paint({grid:[letters]},60,10).length===60*10*4,"map pictures have a color for every terrain letter");
+  ok(THUMB.markup({grid:[letters]}).indexOf(' viewBox="0 0 '+(8*letters.length+4)+' 12"')>0,
+    "map pictures have a color for every terrain letter and measure the board in eighths of a hex pitch");
   var shipped=[].concat(campaign,context.ADVANCED_CAMPAIGN,context.EXPANSION_LEVELS,context.BASE_NECTARIS_LEVELS,
     context.AI_MADE_LEVELS,[].concat.apply([],context.ENVIRONMENT_CAMPAIGNS.map(function(c){return c.levels;})));
-  ok(shipped.every(function(level){
-    var size=THUMB.fit(level,160,80);
-    return size.width<=160 && size.height<=80 && THUMB.paint(level,size.width,size.height).length===size.width*size.height*4;
-  }),"every shipped level's picture fits its box and paints");
+  ok(shipped.every(function(level){return /^<svg [^<]*><g [^<]*>(<path [^<]*\/>)+<\/g>(<path [^<]*\/>)*<\/svg>$/.test(THUMB.markup(level));}),
+    "every shipped level's picture builds");
+  var colors=THUMB.markup(custom);
+  ok(["#8088e8","#e0c020","#c8e4b4","#4a90e8","#3cb44b"].every(function(color){return colors.indexOf('fill="'+color+'"')>0;}),
+    "pictures show bases and factories in their owner's colors and each army's units in its color");
+  function throws(fn){try{fn();}catch(e){return true;}return false;}
+  ok(throws(function(){THUMB.markup({grid:["x"]});}) &&
+    throws(function(){THUMB.markup({grid:["."],units:[{t:"CHARLIE",o:0,x:'0"/><img src=x>',y:0}]});}),
+    "a picture refuses unknown terrain and unit positions that are not whole numbers");
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,"../js/main.js"),"utf8"),context);
   listeners.DOMContentLoaded();
   ok(cards("mission-list").length===16 && cards("advanced-mission-list").length===16,
@@ -111,23 +118,24 @@ module.exports = function (ok) {
     "From the PC Engine campaign.|Community terrain, with new forces and briefings for this remake.",
     "only the Normal campaign and Base Nectaris keep a one-line introduction");
   ["mission-list","advanced-mission-list"].forEach(function(id){
-    ok(!all(get(id).parentNode,"level-help").length && get(id).classList.contains("no-help") &&
-      cards(id).every(function(card){return card.classList.contains("no-help");}),
-      id+": original-game campaigns show no level or collection help");
+    ok(!all(get(id).parentNode,"level-help").length,id+": original-game campaigns show no level or collection help");
   });
   ["mission-list","advanced-mission-list","ai-made-list","expansion-list","basenec-list","custom-list",
     "open-horizons-list","knotted-heart-list","broken-ground-list"].forEach(function(id){
     var card=cards(id)[0], original=/mission-list$/.test(id), custom=id==="custom-list";
-    ok(!all(get(id),"level-columns").length && card.tagName==="article" && find(card,"level-thumb") &&
-      find(card,"level-card-heading") && find(card,"level-resume") && find(card,"mission-record") && find(card,"level-play") &&
+    var play=find(card,"level-play"), caption=find(card,"level-caption");
+    ok(card.tagName==="article" && play.children[0]===find(card,"level-thumb") && play.children[1]===caption &&
+      find(caption,"level-number") && find(caption,"level-card-heading") &&
       !find(card,"level-card-meta") && !find(card,"level-card-forces") && !!find(card,"level-help")===!(original || custom),
-      id+": one line of map picture, number, name, unfinished match and record, without a header row, size or army totals");
+      id+": a tile of the map picture over one caption of number and name, without size or army totals");
     ok(!card.onclick && !card.onmouseenter && !card.onfocus && !card.title,
       id+": the wrapper never opens hover details or a native title tooltip");
-    ok(find(card,"level-play").contains(find(card,"level-thumb")) && find(card,"level-play").contains(find(card,"level-card-heading")) &&
-      (!find(card,"level-help") || !find(card,"level-play").contains(find(card,"level-help"))),
-      id+": the map picture and name are clickable, and help is separate");
+    ok(find(card,"level-play-xenon") && !play.contains(find(card,"level-play-xenon")) &&
+      (!find(card,"level-help") || !play.contains(find(card,"level-help"))),
+      id+": the picture and caption play the level, and As Xenon and help are separate buttons");
+    ok(get(id).style["--caption-width"]==="360px",id+": the tiles take the width of the collection's longest caption");
   });
+  ok(get("normal-section").children[0].children[1].className==="group-progress","a collection's won count follows its title");
   ok(find(get("normal-section"),"group-progress").textContent==="1 / 16 won" &&
     find(get("advanced-section"),"group-progress").textContent==="0 / 16 won",
     "collection progress counts won levels rather than wins or differently indexed campaigns");
@@ -135,8 +143,8 @@ module.exports = function (ok) {
   ok(find(normalCard,"mission-record").textContent==="15 attempts · 8W / 7L" &&
     find(normalCard,"mission-record").children.filter(function(c){return c.tagName==="strong";}).map(function(c){return c.textContent;}).join()==="15,8,7",
     "cards count every attempt and the result totals, with the numbers set apart from their words");
-  ok(thumbnails.some(function(t){return t.level===campaign[0] && t.width===80 && t.height===40;}),
-    "every entry draws its map picture at most 80 × 40");
+  ok(thumbnails.indexOf(campaign[0])>=0 && find(normalCard,"level-thumb").children[0].tagName==="svg",
+    "every tile shows its level's map picture");
   var newest=get("history-list").children[0];
   ok(get("history-list").children.length===15 && newest.children.slice(1).map(function(c){return c.textContent;}).join("|")===
     "Won|Normal campaign 01 REVOLT|Union|turn 3|Base captured" &&
@@ -230,11 +238,12 @@ module.exports = function (ok) {
   ok(lastEvent()==="leave" && find(advancedCard,"level-resume").textContent==="Resume turn 1" &&
     find(advancedCard,"mission-record").textContent==="1 attempt" && get("continue-list").children.length===1,
     "leaving records the exit, and the entry and the Continue line offer the unfinished match");
+  ok(!find(advancedCard,"level-play-xenon"),"hotseat tiles have no As Xenon mark");
   var previousSave=JSON.stringify(store.sessions(first.id)),previousUI=liveUI;
   ok(get("opening-select").value==="original" && previousUI.game.firstPlayer===0 && !previousUI.game.balance,
     "Normal is the default Mode and starts play without offers");
   setHotseat(false);
-  ok(find(cards("advanced-mission-list")[0],"level-resume").textContent==="",
+  ok(!find(cards("advanced-mission-list")[0],"level-resume"),
     "a hotseat match is its own slot, apart from the solo match of the same level");
   selectOpening("offers");
   ok(data["nectaris-opening"]==="offers","the chosen Mode persists");
@@ -317,14 +326,14 @@ module.exports = function (ok) {
   act();
   ok(store.session(first.id,"campaign:0:xenon").options.humanSide===1,"the Xenon match has its own save");
   liveUI.options.onMenu();
-  ok(find(cards("mission-list")[0],"level-play-xenon").textContent==="as Xenon · turn 1",
+  ok(find(cards("mission-list")[0],"level-play-xenon").textContent==="turn 1",
     "As Xenon shows the turn of its unfinished match");
   find(cards("mission-list")[0],"level-play-xenon").onclick();
   liveUI.game.winner=1;liveUI.game.winReason="base";liveUI.options.onGameOver(1);
   ok(get("gameover-record").textContent.indexOf("Victory")===0,"the Xenon player's win is reported as a victory");
   liveUI.options.onMenu();
   ok(find(get("normal-section"),"group-progress").textContent===wonBefore &&
-    find(cards("mission-list")[0],"level-play-xenon").textContent==="as Xenon ✓",
+    find(cards("mission-list")[0],"level-play-xenon").textContent==="✓",
     "a Xenon win marks As Xenon and does not count toward the campaign's won total");
   var rows=get("history-list").children;
   ok(rows.slice(0,4).map(function(row){return find(row,"history-event").textContent;}).join()==="Won,Resumed,Left,Started" &&

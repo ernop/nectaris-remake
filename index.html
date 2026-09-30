@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nectaris — hex tactics remake</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpolygon points='24,16 20,23 12,23 8,16 12,9 20,9' fill='%23ffd94a'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="css/nectaris.css?v=20260930-sessions">
+<link rel="stylesheet" href="css/nectaris.css?v=20260930-tiles">
 <link rel="stylesheet" href="css/battle-dock.css?v=20260930-sessions">
 <link rel="stylesheet" href="css/combat-panel.css?v=20260929-battle-faceoff">
 </head>
@@ -49,14 +49,14 @@
   </header>
   <div id="campaigns-view">
   <div class="library-toolbar">
+    <label class="toolbar-ai">AI opponent <select id="menu-opponent"></select></label>
     <label>Mode
       <select id="opening-select">
         <option value="original">Normal</option>
         <option value="offers">Offer for first</option>
       </select>
     </label>
-    <label><input type="checkbox" id="chk-hotseat"> Two players (hotseat)</label>
-    <label>AI <select id="menu-opponent"></select></label>
+    <label class="toolbar-hotseat"><input type="checkbox" id="chk-hotseat"> Two players (hotseat)</label>
   </div>
   <div id="continue-match" class="hidden">
     <strong>Continue</strong>
@@ -293,7 +293,7 @@
 <script src="js/battle-report.js?v=20260929-battle-hexmap"></script>
 <script src="js/ui.js?v=20260929-think-overlap"></script>
 <script src="js/profiles.js?v=20260930-sessions"></script>
-<script src="js/map-thumbnail.js?v=20260930-sessions"></script>
-<script src="js/main.js?v=20260930-sessions"></script>
+<script src="js/map-thumbnail.js?v=20260930-tiles"></script>
+<script src="js/main.js?v=20260930-tiles"></script>
 </body>
 </html>

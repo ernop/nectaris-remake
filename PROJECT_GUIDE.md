@@ -43,8 +43,8 @@ retuned. These themes do not authorize extra features or unsourced rule changes.
 | Remake stock unit roster | Implemented: 23 types, two native 32×32 facings. Map icons scale with zoom; panel/review icons remain native. [Unit record](art/units/README.md). |
 | Three AI-made terrain campaigns | Implemented with explicit AI-made labels and Codex attribution: Open Horizons, The Knotted Heart and Broken Ground, 16 new missions each, with separate progress and next-mission navigation. [48-map catalog](ENVIRONMENT_CAMPAIGNS.md), [scope and design decisions](PRODUCT.md#three-terrain-campaigns-2026-09-23). |
 | Three AI-made balance-study campaigns | Implemented from the user's 2026-09-28 request, credited to Claude Opus 5.5: Bridgeheads, Siege Lines and Arsenal, 16 missions each, each testing one idea about balance. Tuned to the user's 2026-09-29 standard (Marshal self-play gives Union 40-60%); the measurements and findings are the guide to balanced maps. Human play is unmeasured, and the menu has not been looked at in a browser. [Catalog](ENVIRONMENT_CAMPAIGNS.md#three-balance-study-campaigns), [decisions](PRODUCT.md#three-balance-study-campaigns-2026-09-28), [measurements and findings](MAP_BALANCE.md). |
-| Mission menu and play history | Implemented from the user's 2026-09-30 request: each entry is one line of map picture (`js/map-thumbnail.js`), number, name, unfinished match, attempts and results, and a smaller as Xenon; no map size or army totals. Every board, side, Mode and hotseat choice keeps its own unfinished match, all listed on the Continue line; a match is saved and counted once the player changes it. The History tab lists every start, return, exit, restart and result. Restart sits in the match panel. Profile data version 2 keeps each unfinished match under its own key; version 1 profiles upgrade on first read. Not yet looked at in a browser. [Record](PRODUCT.md#mission-menu-map-pictures-attempts-unfinished-matches-and-play-history-2026-09-30). |
-| Mission library | Each entry stays on one line; wide screens show three levels across per row, with two or one on narrower screens. Since 2026-09-30 a map picture, attempts and results replace size and faction totals (row above); the entry starts play, and edge help closes on mouseout with zero delay. Since 2026-09-26 help appears only where notes exist and never on the original campaigns. [Content and interactions](PRODUCT.md#mission-library-and-deliberate-help-controls-2026-09-23), [comparison rule](PRODUCT.md#single-line-comparison-entries-2026-09-23-clarification). |
+| Mission menu and play history | Implemented from the user's 2026-09-30 requests: each level is a tile, the map picture (SVG, `js/map-thumbnail.js`) over one caption line of number, name, unfinished match, attempts and results, every tile in a collection as wide as its longest caption and as many across as fit; As Xenon is a small mark over the picture's corner; no gold border for won levels, map size or army totals; the settings row puts a larger AI opponent first and hotseat last. Every board, side, Mode and hotseat choice keeps its own unfinished match, all listed on the Continue line; a match is saved and counted once the player changes it. The History tab lists every start, return, exit, restart and result. Restart sits in the match panel. Profile data version 2 keeps each unfinished match under its own key; version 1 profiles upgrade on first read. Not yet looked at in a browser. [Record](PRODUCT.md#mission-menu-map-pictures-attempts-unfinished-matches-and-play-history-2026-09-30). |
+| Mission library | Since 2026-09-30 each level is a tile of map picture over one caption line, as many tiles across as fit (row above; before, one-line entries three across); attempts and results replace size and faction totals; the entry starts play, and edge help closes on mouseout with zero delay. Since 2026-09-26 help appears only where notes exist and never on the original campaigns. [Content and interactions](PRODUCT.md#mission-library-and-deliberate-help-controls-2026-09-23), [comparison rule](PRODUCT.md#single-line-comparison-entries-2026-09-23-clarification). |
 | UI contrast | Explicit requirement: opaque readable text and saturated faction colors, including secondary labels and campaign numbers. [Color guidance](PRODUCT.md#readable-interface-colors-2026-09-23). |
 | Factory inspection | Hover supplies contents; clicking opens only an owned building's actionable deployment picker. The 2026-09-26 clarification preserves the existing stars/layout; the reported missing-star mouseover still needs an exact reproducer. [Factory behavior](PRODUCT.md#building-capture-storage-and-deployment-updated-2026-09-23). |
 | Legacy unit icons | Rebuilt 2026-09-26 after the user reported a broken Rabbit: all 46 frames had see-through holes and uneven pixels. The importer now reads the chart's 2×2 art-pixel grid; every unit, infantry included, is drawn at exactly 2× by user decision, and the Remake size limits no longer apply to Legacy. [Decision](PRODUCT.md#selectable-art-sets-2026-09-20), [method](art/legacy/README.md). |
@@ -138,8 +138,7 @@ Release first, verify later (user decision). Examine together later:
       210 px and 330 px panel widths and with two-line mission names; the
       segmented Style / Art / Board rows at 210 px; End Turn and Undo / Redo
       staying in view on a 600 px-high window; the end-turn confirmation
-      opening beside the panel; the menu's **As Xenon** column at three levels
-      across; a solo Xenon match from start (Xenon moves first since
+      opening beside the panel; a solo Xenon match from start (Xenon moves first since
       2026-09-30; the Union AI's turn follows End Turn, and the turn counter
       advances after it) through Continue, Replay and Next mission; Offer for
       first as Xenon, including no deal.
@@ -208,9 +207,17 @@ Release first, verify later (user decision). Examine together later:
     mission within each campaign; the readability of rilles, crater walls and
     factory clusters on Pixel, Legacy, Neon and Classic.
 25. Mission menu and play history (2026-09-30, unbrowsed):
-    - the map pictures at 1× and 2× pixel density, for small and large boards,
-      in the three-across layout; entries staying on one line with "Resume
-      turn N", attempts, results and as Xenon;
+    - the level tiles on wide and narrow windows: no empty space inside a
+      tile's caption line, each collection's tile width, the list scrolling
+      sideways on a window narrower than one tile, and the hover and focus
+      border;
+    - the SVG map pictures for small, tall and 65 × 49 boards: hex edges, relief
+      and unit dots legible, and the time the menu takes to open the first
+      time (about 3.7 MB of picture markup for the shipped levels);
+    - the As Xenon mark and help `?` over the picture's corners, with "✓" and
+      "turn N";
+    - the settings row: AI opponent first and larger, hotseat last and
+      smaller, and the AI dropdown while hotseat disables it;
     - the Continue line with many unfinished matches (it scrolls sideways);
     - the History tab: one line per event, the tab highlight, Back and Forward
       between Campaigns and History, and the History links on the tournament,

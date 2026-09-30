@@ -70,8 +70,13 @@ select, input[type="url"] {
 .library-toolbar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 24px; padding: 0 0 12px; font-size: 14px; }
 .library-toolbar label { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; }
 .library-toolbar select { font-size: 14px; }
+/* The AI plays every solo match, so its choice leads; hotseat is rare. */
+.library-toolbar .toolbar-ai { color: #ffe498; font-size: 17px; font-weight: 800; }
+.library-toolbar .toolbar-ai select { padding: 6px 10px; border: 2px solid #d4af43; color: #fff; font-size: 17px; font-weight: 700; }
+.library-toolbar .toolbar-hotseat { font-size: 12px; font-weight: 600; }
+.library-toolbar select:disabled { opacity: 1; border-style: dashed; cursor: not-allowed; }
 /* Every unfinished match on one scrolling line, newest first. */
-#continue-match { display: flex; align-items: center; gap: 10px; margin: 0 0 12px;
+#continue-match { display: flex; align-items: center; gap: 10px; width: fit-content; max-width: 100%; margin: 0 0 12px;
   padding: 6px 10px; border: 1px solid #d4af43; border-radius: 5px; background: #2b2417; }
 #continue-match > strong { flex: none; color: #ffdb59; font-size: 15px; font-weight: 800; }
 #continue-list { display: flex; gap: 6px; min-width: 0; overflow-x: auto;
@@ -89,50 +94,49 @@ select, input[type="url"] {
 #level-groups-nav a:hover, #level-groups-nav a:focus-visible { color: #ffe498; background: #2c261a; }
 #level-groups-nav a span { color: var(--ui-secondary); font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .level-group { margin-top: 14px; scroll-margin-top: 50px; }
-.level-group-header { display: flex; align-items: center; gap: 6px 14px; margin-bottom: 5px; }
+.level-group-header { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; margin-bottom: 6px; }
 .level-group h2 { font-size: 19px; font-weight: 700; margin: 0; color: #fff; }
 .level-group-intro { margin: 0; font-size: 13px; }
 .section-note { color: var(--ui-secondary); font-size: 13px; line-height: 1.5; }
-.group-progress { flex-shrink: 0; margin-left: auto; color: var(--ui-secondary); font: 700 13px ui-monospace, SFMono-Regular, Menlo, monospace; }
-/* One line per level: map picture, number, name, unfinished match, attempts
-   and record (together the Play button), then As Xenon and help. */
-.level-library { --level-tracks: 86px 3ch minmax(max-content, 1fr) max-content max-content max-content 26px;
-  --level-span: 7; display: grid; grid-template-columns: var(--level-tracks);
-  gap: 3px 8px; overflow-x: auto; font-size: 12px; scrollbar-width: thin; scrollbar-color: #8b7850 #211d16; }
-.level-library.no-help { --level-tracks: 86px 3ch minmax(max-content, 1fr) max-content max-content max-content; --level-span: 6; }
-.level-card { display: grid; grid-template-columns: subgrid; grid-column: span var(--level-span); white-space: nowrap; }
-.level-card { align-items: stretch; padding: 0; background: #211d16;
+.group-progress { flex-shrink: 0; color: var(--ui-secondary); font: 700 15px ui-monospace, SFMono-Regular, Menlo, monospace; }
+/* One tile per level: the map picture over one caption line of number, name,
+   unfinished match, attempts and record (together the Play button, as Union),
+   with As Xenon and help over the picture's top corners. buildMenu sets
+   --caption-width to the collection's longest caption, so tiles are as narrow
+   as their text allows and as many fit across as the window holds; a window
+   narrower than one tile scrolls the list sideways rather than cut a caption. */
+.level-library { display: grid; gap: 6px; overflow-x: auto; font-size: 12px;
+  grid-template-columns: repeat(auto-fill, minmax(max(176px, calc(var(--caption-width) + 10px)), 1fr));
+  scrollbar-width: thin; scrollbar-color: #8b7850 #211d16; }
+.level-card { position: relative; display: flex; min-width: 0; background: #211d16;
   border: 1px solid #685b40; border-radius: 4px; }
-.level-card.cleared { border-color: #d4af43; }
-.level-play { display: grid; grid-template-columns: subgrid; grid-column: 1 / 6; align-items: center;
-  padding: 2px 0; border: 0; border-radius: 3px 0 0 3px;
-  text-align: left; color: var(--ui-text); background: transparent; font: inherit; white-space: nowrap; }
-.level-thumb { display: flex; align-items: center; justify-content: center; height: 40px; }
-.map-thumbnail { display: block; }
-/* The same level from the other side; the row itself plays as Union. */
-.level-play-xenon { display: flex; align-items: center; gap: 5px; align-self: stretch; padding: 0 8px;
-  border: 0; border-radius: 0; background: transparent; color: #fff; font-size: 11px; font-weight: 500; white-space: nowrap; }
-.xenon-mark { flex: none; width: 9px; height: 8px; background: var(--xenon-color);
+.level-play { display: flex; flex-direction: column; gap: 4px; width: 100%; min-width: 0; padding: 4px;
+  border: 0; border-radius: 3px; text-align: left; color: var(--ui-text); background: transparent; font: inherit; }
+.level-thumb { display: block; aspect-ratio: 8 / 5; max-height: 200px; overflow: hidden; border-radius: 2px; background: #0f0c09; }
+.map-thumbnail { display: block; width: 100%; height: 100%; }
+.level-caption { display: flex; align-items: baseline; gap: 7px; width: max-content; padding: 0 2px; white-space: nowrap; }
+.level-play-xenon { position: absolute; top: 8px; right: 8px; display: flex; align-items: center; gap: 4px;
+  height: 20px; padding: 0 6px; border: 1px solid #4d4431; border-radius: 3px; background: #14110cd9;
+  color: #fff; font-size: 11px; font-weight: 700; white-space: nowrap; }
+.xenon-mark { flex: none; width: 10px; height: 9px; background: var(--xenon-color);
   clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%); }
-.level-play-xenon .xenon-turn { color: #ffdb59; font-weight: 700; }
-.level-play-xenon .xenon-turn strong { font-size: 12px; font-variant-numeric: tabular-nums; }
-.level-card.no-help .level-play-xenon { border-radius: 0 3px 3px 0; }
-.level-play-xenon:hover:not(:disabled) { background: #1f3323; }
-.level-play-xenon:disabled { color: #fff; background: transparent; text-decoration: line-through; }
-.level-play-xenon:disabled .xenon-mark { background: #fff; }
-.level-play-xenon:focus-visible { outline: 2px solid #e6c867; outline-offset: -2px; }
+.level-play-xenon .xenon-won { color: var(--xenon-text); font-size: 12px; }
+.level-play-xenon .xenon-turn { color: #ffdb59; }
+.level-play-xenon .xenon-turn strong { font-size: 12px; font-weight: 800; font-variant-numeric: tabular-nums; }
+.level-play-xenon:hover:not(:disabled) { background: #1f3323; border-color: var(--xenon-color); }
+.level-play-xenon:focus-visible { outline: 2px solid #e6c867; outline-offset: 1px; }
 .level-play:hover:not(:disabled) { background: #28251e; }
 .level-card:has(.level-play:hover), .level-card:focus-within { border-color: #ffdb59; }
 .level-number { color: #ffdb59; font: 600 12px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; }
 .level-card-heading { font-size: 13px; line-height: 1.4; font-weight: 650; color: var(--ui-text); }
 .level-resume { color: #ffdb59; font-size: 12px; font-weight: 700; }
 .level-resume strong { font-size: 14px; font-weight: 800; font-variant-numeric: tabular-nums; }
-.level-play .mission-record { margin: 0; padding-right: 6px; color: #fff; font-size: 11px; line-height: 1.3; }
+.level-play .mission-record { margin: 0; color: #fff; font-size: 11px; line-height: 1.3; }
 .level-play .mission-record strong { font-size: 13px; font-weight: 800; font-variant-numeric: tabular-nums; }
-.level-card > .level-help-wrap { display: flex; align-items: center; justify-content: center; border-left: 1px solid #514733; }
+.level-card > .level-help-wrap { position: absolute; top: 8px; left: 8px; }
 .level-help-wrap { flex-shrink: 0; }
 .level-help { display: flex; justify-content: center; align-items: center; width: 20px; height: 20px; padding: 0;
-  border: 1px solid #514936; border-radius: 50%; background: transparent; color: var(--ui-secondary); font: 13px/1 Georgia, serif; }
+  border: 1px solid #514936; border-radius: 50%; background: #14110cd9; color: var(--ui-secondary); font: 13px/1 Georgia, serif; }
 .level-help:hover:not(:disabled), .level-help[aria-expanded="true"] { background: #342c1e; color: #e8cc83; border-color: #9a8043; }
 .level-help:focus-visible, .level-play:focus-visible, #level-groups-nav a:focus-visible { outline: 2px solid #e6c867; outline-offset: 3px; }
 .level-play:focus-visible { outline-offset: -2px; }
@@ -155,12 +159,6 @@ select, input[type="url"] {
 #custom-level-tools a { color: var(--ui-secondary); }
 .menu-footer { margin-top: 40px; padding-top: 20px; border-top: 1px solid #393326; color: var(--ui-secondary); font-size: 12px; line-height: 1.7; }
 .menu-footer a { color: var(--ui-secondary); }
-@media (min-width: 920px) {
-  .level-library { grid-template-columns: var(--level-tracks) var(--level-tracks); }
-}
-@media (min-width: 1360px) {
-  .level-library { grid-template-columns: var(--level-tracks) var(--level-tracks) var(--level-tracks); }
-}
 
 /* ---------- play history ---------- */
 .history-header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 28px; margin: 4px 0 12px; }

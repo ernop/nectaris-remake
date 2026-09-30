@@ -17,25 +17,65 @@ play action in sequence (started, lost, won, quit), where looking at a map
 without starting it needs no entry. Implemented; this supersedes the conflicting
 parts of the records below, which point here.
 
-- **Level entry**, one line: map picture, number, name, the unfinished match
-  ("Resume turn N" in gold), the record, then **as Xenon**. No column headings,
-  map size or army totals. Clicking the picture or the name plays.
-- **Map picture** (`js/map-thumbnail.js`): the starting position drawn pixel by
-  pixel within 80 × 40 CSS pixels, at the display's pixel density. Terrain in
-  the Legacy tiles' colors; bases and factories in their owner's colors (neutral
-  bases near-white, neutral factories yellow); each starting unit a dot in its
-  army's color. Hills and mountains get relief shading and hexes get edges once
-  a hex is large enough to show them. The menu draws every picture as it opens,
-  so a terrain letter the picture has no color for stops the menu with an error;
-  the tests paint every shipped level and every terrain letter.
+Later the same day, looking at the result, the user found the entries "way too
+wide": "they should be taller so more of the map can be seen" and "much
+narrower", and "that huge horizontal, totally empty space in the middle is
+completely useless ... we should design them so that there's not this huge
+space in the middle". He asked for a subtler "as xenon"; asked what the outer
+yellow border meant now that wins and losses are written out; and asked for a
+larger, more visible AI selector, with Two players (hotseat) given lower
+priority "because that'll be fairly rare". The level tiles, As Xenon mark,
+border, header, Continue and settings items below implement that request and
+replace the first version's one-line rows (80 × 40 canvas picture, number,
+name, match and record across a stretched name column, then "as Xenon" text).
+
+- **Level tile:** the map picture on top, then one caption line: number, name,
+  the unfinished match ("Resume turn N" in gold) and the record. Picture and
+  caption together are the Play button (as Union). No column headings, map size
+  or army totals. Every tile in a collection has the width of that collection's
+  longest caption (at least 176 px), so each caption keeps one line with its
+  fields packed together; the grid fits as many tiles across as the window holds
+  and stretches them to fill the row. A window narrower than one tile scrolls
+  the list sideways rather than cut a caption. The picture box keeps an 8:5
+  shape up to 200 px tall; a map of another shape is centered in it with dark
+  bands. Implementation: `fitLevelTiles` (`js/main.js`) measures the captions
+  after every menu build and whenever the Campaigns view is shown, and sets
+  `--caption-width` on the collection's list.
+- **Map picture** (`js/map-thumbnail.js`): the starting position as SVG, so it
+  fills its box sharply at any size and pixel density. Terrain in the Legacy
+  tiles' colors, in three shades per terrain varying hex by hex; bases and
+  factories in their owner's colors (neutral bases near-white, neutral
+  factories yellow); each starting unit a dot in its army's color. Hills and
+  mountains are lit from the upper left; every hex has a thin dark edge. The
+  menu builds every picture as it opens, so a terrain letter the picture has no
+  color for stops the menu with an error; the tests build every shipped level
+  and every terrain letter. Implementation choice: SVG replaced the first
+  version's canvas pixels on the same day, because canvases at the larger tile
+  sizes would keep about 30 MB of bitmaps at 1× pixel density and about 120 MB
+  at 2× for the 167 shipped levels. The SVG markup for all of them is about
+  3.7 MB, and each level's picture is built once per page and reused when the
+  menu is rebuilt.
 - **Record:** "N attempts · xW / yL · h hotseat". Attempts count every match begun
   on the board: either side, any Mode, solo or hotseat, finished, left, abandoned
   or still open. The W/L and hotseat numbers are this row's results (Union side,
   in the Mode selected in the settings row). A level won before per-level
   results existed still reads "Cleared".
-- **as Xenon:** small white text after a small green hexagon; "as Xenon ✓" once
-  won; "· turn N" when its match is unfinished. Struck through and disabled while
-  Two players (hotseat) is ticked.
+- **As Xenon:** a small dark mark over the picture's top right corner: a green
+  hexagon, then "✓" once won as Xenon and a gold "turn N" while its match is
+  unfinished. Its tooltip and accessible name say "Play … as Xenon" or "Resume
+  … as Xenon". Not shown while Two players (hotseat) is ticked, since hotseat
+  has no other side. A level's help "?" sits over the top left corner.
+- **No gold border for won levels:** the gold border marked the levels won as
+  Union in the selected Mode, the ones the collection's "N / M won" counts. The
+  record's W / L numbers say the same, so it is removed. The bright yellow
+  border stays as the hover and keyboard-focus highlight.
+- **Collection header:** the won count ("N / M won", 15 px bold) follows the
+  title directly instead of sitting at the far right of the page.
+- **Continue line:** only as wide as its matches.
+- **Settings row:** **AI opponent** first and larger (17 px gold label,
+  gold-bordered dropdown with white text); then **Mode**; then **Two players
+  (hotseat)** last in 12 px type. The user wrote "on the little screen";
+  interpreted as the menu's settings row, the only place with both controls.
 - **Unfinished matches:** one per board, side (Union or Xenon), Mode (Normal or
   Offer for first) and players (solo or hotseat). Opening an entry resumes its
   unfinished match or starts a new one; opening another level never ends or asks
@@ -107,6 +147,9 @@ profile and opening-choice records below.
   first-visit username prompt and the large player-profile panel.
 - **Settings row** under the title: **Mode** (**Normal**, the default, or **Offer
   for first**), **Two players (hotseat)** and **AI** (the bot for moves and offers).
+  Since 2026-09-30 the order is **AI opponent** (larger), Mode, then hotseat in
+  small type (see Mission menu: map pictures, attempts, unfinished matches and
+  play history).
   The user named the second mode only approximately ("like new user offer"); it
   keeps its earlier name. The map-default mode and the explanatory paragraphs are
   removed; a stored map-default preference opens as Normal. The **Continue** line
@@ -438,10 +481,10 @@ number, and his side, large, plus unit counts. Behavior:
   the panel.
 - **Top row** (2026-09-30): **Restart** sits beside Save & Menu; see Mission
   menu: map pictures, attempts, unfinished matches and play history.
-- **Playing Union or Xenon:** every mission-menu entry keeps its whole-row Play
-  (as Union) and adds an **As Xenon** button at the end of the
-  row (a check mark once won; small white text since 2026-09-30). Chosen from the menu only; disabled
-  while Two players (hotseat) is ticked. The AI takes the other side. The human's side is saved with the match
+- **Playing Union or Xenon:** every mission-menu entry keeps its whole-entry Play
+  (as Union) and adds an **As Xenon** button (a check mark once won; since
+  2026-09-30 a small mark over the map picture's corner). Chosen from the menu
+  only; not offered while Two players (hotseat) is ticked. The AI takes the other side. The human's side is saved with the match
   (`humanSide`; saves without it are Union matches), so Continue restores it, and
   **Next mission** and **Replay** keep it. Victory means the human's side won.
   Xenon results are their own record (level keys end `:xenon`), do not count
@@ -963,10 +1006,14 @@ stacking breaks comparability even when every card has the same height. Multiple
 complete listings may sit side by side in columns when there is room. The latest
 user preference is **three levels across per row** on wide screens, with two or
 one on narrower screens. This supersedes the two-column desktop maximum; it is
-not a requirement for only one listing across the entire page.
+not a requirement for only one listing across the entire page. Superseded for
+the mission library on 2026-09-30: each level is a tile of map picture over one
+caption line, as many tiles across as fit (see Mission menu: map pictures,
+attempts, unfinished matches and play history); the caption keeps this one-line
+rule.
 
 Keep corresponding fields aligned down each column. In the mission library,
-map pictures, names, unfinished-match turns and records remain on the same line
+each tile's number, name, unfinished-match turn and record remain on one line
 (dimensions and faction totals were removed on 2026-09-30). Use
 horizontal scrolling when necessary, preserving full text rather than wrapping,
 fading or truncating it. The earlier two-line dense cards are superseded.
@@ -1437,7 +1484,7 @@ The implemented content layout is:
 | Location | Visible content |
 | --- | --- |
 | Collection header | Category, title, one-line introduction, number of levels won and a small help button |
-| Every level entry | One line containing map picture, number, name, unfinished match, attempts and personal results, then As Xenon; the entry itself is the Play target (since 2026-09-30; previously map dimensions and Union/Xenon/Neutral totals) |
+| Every level entry | A tile: map picture over one caption line of number, name, unfinished match, attempts and personal results, with As Xenon and help over the picture's top corners; picture and caption are the Play target (since 2026-09-30; previously map dimensions and Union/Xenon/Neutral totals) |
 | Level help | Briefing, design/special notes, tags, author/terrain attribution, source link and last-match detail, where supplied |
 | Collection help | Making-of context, provenance and links to the detailed collection record |
 

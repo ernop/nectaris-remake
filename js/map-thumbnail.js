@@ -1,122 +1,101 @@
-/* Nectaris remake — small pixel pictures of a level's starting position for the
+/* Nectaris remake — small pictures of a level's starting position for the
  * mission menu: terrain in the Legacy tiles' colors, bases and factories in
  * their owner's colors, and every starting unit as a dot in its army's color.
  * Hexes sit as on the Legacy board: one pitch apart in both directions, odd
- * columns half a pitch lower, each hex 1.5 pitches wide with slanted sides. */
+ * columns half a pitch lower, each hex 1.5 pitches wide with slanted sides.
+ * Pictures are SVG, so they fill any box sharply at any pixel density without
+ * keeping a bitmap for every level on the menu. */
 "use strict";
 var MAP_THUMBNAIL = (function () {
-  function rgb(hex) { var n = parseInt(hex.slice(1), 16); return [n >> 16, n >> 8 & 255, n & 255]; }
-  var TERRAIN = {".": rgb("#521b26"), "-": rgb("#b5b9ad"), "=": rgb("#d6d9cc"), w: rgb("#6e3a44"),
-    h: rgb("#80837a"), M: rgb("#97787a"), v: rgb("#130d15")};
+  // Three shades of each terrain color, picked per hex like the Legacy speckle.
+  var TERRAIN = {".": "#521b26", "-": "#b5b9ad", "=": "#d6d9cc", w: "#6e3a44", h: "#80837a", M: "#97787a", v: "#130d15"};
+  Object.keys(TERRAIN).forEach(function (ch) {
+    var n = parseInt(TERRAIN[ch].slice(1), 16);
+    TERRAIN[ch] = [0.9, 1, 1.1].map(function (k) {
+      return "#" + [n >> 16, n >> 8 & 255, n & 255].map(function (v) {
+        return Math.min(255, Math.round(v * k)).toString(16).padStart(2, "0");
+      }).join("");
+    });
+  });
   // By owner: Union, Xenon, neutral.
-  var BASE = [rgb("#c8ccff"), rgb("#c8e4b4"), rgb("#eef0e4")];
-  var FACTORY = [rgb("#8088e8"), rgb("#78a868"), rgb("#e0c020")];
-  var UNIT = [rgb("#4a90e8"), rgb("#3cb44b")];
-  var UNIT_EDGE = [rgb("#0c1d3a"), rgb("#0b2e12")];
+  var BASE = ["#c8ccff", "#c8e4b4", "#eef0e4"];
+  var FACTORY = ["#8088e8", "#78a868", "#e0c020"];
+  var UNIT = ["#4a90e8", "#3cb44b"];
+  var UNIT_EDGE = ["#0c1d3a", "#0b2e12"];
 
   function hash(col, row) {
     var h = Math.imul(col + 71, 374761393) ^ Math.imul(row + 43, 668265263);
     h = Math.imul(h ^ (h >>> 13), 1274126177);
-    return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
+    return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
   }
 
-  // Pixel size of the whole board within width × height, keeping its shape.
-  function fit(level, width, height) {
-    var cols = level.grid[0].length + 0.5, rows = level.grid.length + 0.5;
-    var pitch = Math.min(width / cols, height / rows);
-    return {width: Math.max(1, Math.round(cols * pitch)), height: Math.max(1, Math.round(rows * pitch))};
+  // Shapes drawn from a start point, in eighths of a pitch so every
+  // coordinate is a whole number. A hex starts at its left corner. Hills and
+  // mountains are lit from the upper left: two halves either side of the line
+  // through the center from upper right to lower left, both starting on it.
+  var HEX = "l4-4h4l4 4-4 4h-4z";
+  var LIT = "l-1-1h-4l-4 4 3 3z", SHADED = "l3 3-4 4h-4l-1-1z";
+  var DOT = "a2.5 2.5 0 1 0 5 0a2.5 2.5 0 1 0-5 0";
+  // Every shape ends where it began, so each next one moves from there.
+  function pathData(starts, shape) {
+    var x = 0, y = 0;
+    return starts.map(function (at) {
+      var move = "m" + (at[0] - x) + " " + (at[1] - y);
+      x = at[0]; y = at[1];
+      return move + shape;
+    }).join("");
   }
 
-  // RGBA bytes, row by row, of the level drawn width × height pixels.
-  function paint(level, width, height) {
+  // SVG markup of the level's starting position. Every value written into the
+  // markup is a number or one of the colors above, so level data cannot add
+  // markup of its own.
+  function markup(level) {
     var grid = level.grid, cols = grid[0].length, rows = grid.length;
-    var pitch = Math.min(width / (cols + 0.5), height / (rows + 0.5));
-    var ox = (width - pitch * (cols + 0.5)) / 2, oy = (height - pitch * (rows + 0.5)) / 2;
-    var owners = {};
+    var owners = {}, fills = {}, relief = [], dots = [[], []];
     (level.buildings || []).forEach(function (b) { owners[b.col + "," + b.row] = b.owner === 0 || b.owner === 1 ? b.owner : 2; });
-    function building(col, row) {
-      var ch = grid[row][col], owner = owners[col + "," + row];
-      if (ch !== "B" && ch !== "F") return null;
-      return (ch === "B" ? BASE : FACTORY)[owner === undefined ? 2 : owner];
-    }
-    // One color per hex, with a slight per-hex variation like the Legacy speckle.
-    var fill = [], relief = [];
     for (var r = 0; r < rows; r++) for (var c = 0; c < cols; c++) {
-      var ch = grid[r][c], own = building(c, r), vary = 0.9 + 0.2 * hash(c, r);
-      if (!own && !TERRAIN[ch]) throw new Error("Bad terrain char '" + ch + "' at " + c + "," + r);
-      fill.push(own || TERRAIN[ch].map(function (v) { return v * vary; }));
-      relief.push(ch === "M" || ch === "h");
+      var ch = grid[r][c], y = 8 * r + 4 + 4 * (c & 1), owner = owners[c + "," + r], color;
+      if (ch === "B" || ch === "F") color = (ch === "B" ? BASE : FACTORY)[owner === undefined ? 2 : owner];
+      else if (TERRAIN[ch]) color = TERRAIN[ch][Math.floor(hash(c, r) * 3)];
+      else throw new Error("Bad terrain char '" + ch + "' at " + c + "," + r);
+      (fills[color] = fills[color] || []).push([8 * c, y]);
+      if (ch === "h" || ch === "M") relief.push([8 * c + 9, y - 3]);
     }
-    var out = new Uint8ClampedArray(width * height * 4);
-    // Relief lit from the upper left once a hex spans a few pixels; hex outlines
-    // once it spans enough to keep its fill.
-    var lit = pitch >= 3, edge = pitch >= 6 ? 1.2 / pitch : 0;
-    for (var y = 0; y < height; y++) {
-      var by = (y + 0.5 - oy) / pitch;
-      for (var x = 0; x < width; x++) {
-        var bx = (x + 0.5 - ox) / pitch, col = Math.floor(bx), hit = -1, dx = 0, dy = 0;
-        // The point lies in hex column floor(bx) or in the slanted side of the one before.
-        for (var k = 0; k < 2 && hit < 0; k++, col--) {
-          if (col < 0 || col >= cols) continue;
-          var shift = (col & 1) / 2, row = Math.floor(by - shift);
-          if (row < 0 || row >= rows) continue;
-          dx = bx - col - 0.75; dy = by - row - 0.5 - shift;
-          if (Math.abs(dx) + Math.abs(dy) <= 0.75) hit = row * cols + col;
-        }
-        if (hit < 0) continue;
-        var shade = lit && relief[hit] ? 1 - 0.3 * (dx + dy) / 0.75 : 1;
-        if (edge && (0.75 - Math.abs(dx) - Math.abs(dy) < edge || 0.5 - Math.abs(dy) < edge * 0.7)) shade *= 0.8;
-        var color = fill[hit], at = (y * width + x) * 4;
-        out[at] = color[0] * shade; out[at + 1] = color[1] * shade; out[at + 2] = color[2] * shade; out[at + 3] = 255;
+    (level.units || []).forEach(function (u, i) {
+      if ((u.o !== 0 && u.o !== 1) || !Number.isInteger(u.x) || !Number.isInteger(u.y)) {
+        throw new Error("Unit " + (i + 1) + " needs a side of 0 or 1 and whole-number x and y.");
       }
-    }
-    // A disc at a hex's center. Its radius never drops below the distance to the
-    // nearest pixel center, so every unit and building stays visible on large maps.
-    function disc(col, row, radius, color, rim) {
-      var cx = ox + (col + 0.75) * pitch, cy = oy + (row + 0.5 + (col & 1) / 2) * pitch;
-      radius = Math.max(0.72, radius);
-      var outer = rim ? radius + 1 : radius;
-      for (var py = Math.max(0, Math.floor(cy - outer)); py <= Math.min(height - 1, Math.ceil(cy + outer)); py++) {
-        for (var px = Math.max(0, Math.floor(cx - outer)); px <= Math.min(width - 1, Math.ceil(cx + outer)); px++) {
-          var d = Math.hypot(px + 0.5 - cx, py + 0.5 - cy), paintWith = d <= radius ? color : d <= outer ? rim : null;
-          if (!paintWith) continue;
-          var at = (py * width + px) * 4;
-          out[at] = paintWith[0]; out[at + 1] = paintWith[1]; out[at + 2] = paintWith[2]; out[at + 3] = 255;
-        }
-      }
-    }
-    if (pitch < 1.5) for (r = 0; r < rows; r++) for (c = 0; c < cols; c++) {
-      var small = building(c, r);
-      if (small) disc(c, r, 0, small, null);
-    }
-    (level.units || []).forEach(function (unit) {
-      disc(unit.x, unit.y, 0.3 * pitch, UNIT[unit.o], pitch >= 5 ? UNIT_EDGE[unit.o] : null);
+      dots[u.o].push([8 * u.x + 3.5, 8 * u.y + 4 + 4 * (u.x & 1)]);
     });
-    return out;
-  }
-
-  // Levels keep their object identity for the page's lifetime, so each is
-  // painted once per size and pixel density.
-  var painted = new WeakMap();
-  // A canvas at most maxWidth × height CSS pixels, sharp at the display's density.
-  function canvas(level, maxWidth, height) {
-    var ratio = window.devicePixelRatio, size = fit(level, maxWidth * ratio, height * ratio);
-    var key = size.width + "x" + size.height, cached = painted.get(level);
-    if (!cached || cached.key !== key) {
-      cached = {key: key, pixels: paint(level, size.width, size.height)};
-      painted.set(level, cached);
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + (8 * cols + 4) + " " + (8 * rows + 4) +
+      '" aria-hidden="true"><g stroke="#000" stroke-opacity=".3" stroke-width=".5">';
+    Object.keys(fills).forEach(function (fill) { svg += '<path fill="' + fill + '" d="' + pathData(fills[fill], HEX) + '"/>'; });
+    svg += "</g>";
+    if (relief.length) {
+      svg += '<path fill="#fff" fill-opacity=".2" d="' + pathData(relief, LIT) + '"/>' +
+        '<path fill="#000" fill-opacity=".25" d="' + pathData(relief, SHADED) + '"/>';
     }
-    var node = document.createElement("canvas");
-    node.width = size.width; node.height = size.height;
-    node.style.width = size.width / ratio + "px"; node.style.height = size.height / ratio + "px";
-    node.className = "map-thumbnail";
-    node.setAttribute("aria-hidden", "true");
-    var context = node.getContext("2d"), image = context.createImageData(size.width, size.height);
-    image.data.set(cached.pixels);
-    context.putImageData(image, 0, 0);
-    return node;
+    dots.forEach(function (starts, side) {
+      if (starts.length) svg += '<path fill="' + UNIT[side] + '" stroke="' + UNIT_EDGE[side] + '" stroke-width=".6" d="' + pathData(starts, DOT) + '"/>';
+    });
+    return svg + "</svg>";
   }
 
-  return {fit: fit, paint: paint, canvas: canvas};
+  // Levels keep their object identity for the page's lifetime, so each picture
+  // is built once and moved into every rebuilt menu.
+  var pictures = new WeakMap();
+  function picture(level) {
+    var svg = pictures.get(level);
+    if (!svg) {
+      var holder = document.createElement("div");
+      holder.innerHTML = markup(level);
+      svg = holder.firstChild;
+      svg.setAttribute("class", "map-thumbnail");
+      pictures.set(level, svg);
+    }
+    return svg;
+  }
+
+  return {markup: markup, picture: picture};
 })();
 if (typeof module !== "undefined") module.exports = MAP_THUMBNAIL;

@@ -92,7 +92,7 @@ bind error rather than selecting a different port.
 
 ## Deployment
 
-The menu's **AI** setting selects Classic, Tactical, Sequence, Simulation
+The menu's **AI opponent** setting selects Classic, Tactical, Sequence, Simulation
 or Apex. A new match defaults to Classic unless another choice was saved; the opponent stays fixed for the whole match. The **Bot tournament** tab opens the self-play lab with
 board, game-count, round-cap and worker controls, Elo tables and saved replays.
 See [AI_OPPONENTS.md](AI_OPPONENTS.md) for algorithms and large disk runs.
@@ -114,9 +114,10 @@ logged in as Wilson** in the upper-right corner to **Rename**, add a **New
 profile** or **Switch to** another one. Each has its own campaign stars,
 results, play history and unfinished matches.
 
-Each level shows a small picture of its map, **Resume turn N** when you have an
-unfinished match there, how many times you have started it, and your wins and
-losses. Every level can have an unfinished match at the same time (separately
+Each level is a tile: a picture of its map above one line with its number and
+name, **Resume turn N** when you have an unfinished match there, how many times
+you have started it, and your wins and losses. The small green mark on the
+picture's corner plays the level as Xenon. Every level can have an unfinished match at the same time (separately
 as Union, as Xenon, in each Mode and in hotseat): leave one with **Save &
 Menu**, open another, and come back to either from its entry or the
 **Continue** line. Opening a level only to look at it leaves no save and no
@@ -150,7 +151,7 @@ that menu’s packages is enough, so it tries a larger one. Normally this finds
 your switch point in at most six questions. **Change previous answer** lets you
 correct an answer. Mixed packages are alternatives, not universal unit prices.
 
-The **AI** dropdown picks the bot for both moves and opening offers. Both players
+The **AI opponent** dropdown picks the bot for both moves and opening offers. Both players
 answer privately. Solo evaluates independently in the background; hotseat
 uses a pass-the-device screen. Once both switch points are known, the lower one
 sets the compensation and its accepting player goes second. Matching switch

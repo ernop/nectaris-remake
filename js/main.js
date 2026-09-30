@@ -227,6 +227,7 @@
     $("history-view").classList.toggle("hidden", !history);
     $("tab-campaigns").setAttribute("aria-current", history ? "false" : "page");
     $("tab-history").setAttribute("aria-current", history ? "page" : "false");
+    fitLevelTiles();
   }
   function switchView() {
     var toHistory = location.hash === "#history";
@@ -241,10 +242,8 @@
     var key = PROFILES.sessionKey(level, options);
     return open.find(function (match) { return match.key === key; }) || null;
   }
-  function resumeCell(match) {
-    return match ? figures("span", "level-resume", ["Resume turn ", match.state.turn]) : menuText("span", "level-resume", "");
-  }
-  // Attempts on the board (either side, any Mode), then this row's own record.
+  // Attempts on the board (either side, any Mode), then this entry's own
+  // record; null before the first attempt.
   function recordCell(level, options, attempts) {
     var record = PROFILES.levelRecord(activeProfile, level, options), pieces = [];
     function add(number, label) { if (pieces.length) pieces[pieces.length - 1] += " · "; pieces.push(number, label); }
@@ -252,12 +251,20 @@
     if (record.wins || record.losses) { add(record.wins, "W / "); pieces.push(record.losses, "L"); }
     if (record.hotseat) add(record.hotseat, " hotseat");
     if (!pieces.length && levelWasWon(level, options)) return menuText("span", "mission-record", "Cleared");
-    return figures("span", "mission-record", pieces);
+    return pieces.length ? figures("span", "mission-record", pieces) : null;
   }
-  function thumbnail(level) {
-    var cell = menuText("span", "level-thumb", "");
-    cell.appendChild(MAP_THUMBNAIL.canvas(level, 80, 40));
-    return cell;
+
+  // Caption lines of the menu's level tiles, by collection list.
+  var menuTiles = [];
+  // Every tile in a collection is as wide as the collection's longest caption,
+  // so each caption keeps one line and the map picture fills the rest. All
+  // widths are read before any is set, so the page lays out once.
+  function fitLevelTiles() {
+    if ($("campaigns-view").classList.contains("hidden")) return;
+    var widths = menuTiles.map(function (collection) {
+      return collection.captions.reduce(function (width, caption) { return Math.max(width, caption.offsetWidth); }, 0);
+    });
+    menuTiles.forEach(function (collection, i) { collection.list.style.setProperty("--caption-width", widths[i] + "px"); });
   }
 
   function getCustomLevels() {
@@ -594,46 +601,51 @@
       (lv.tags && lv.tags.length) || lv.author || lv.sourceFile || safeSource(lv.source));
   }
   // The same level from the other side: the player commands Xenon and moves
-  // first; the AI plays Union. It has its own record and unfinished match, and
-  // hotseat has no "other side".
+  // first; the AI plays Union. A small mark over the picture's corner, since
+  // the tile itself plays Union. It has its own record and unfinished match,
+  // and hotseat has no "other side".
   function sideButton(level, options, name, open) {
     var xenon = Object.assign({}, options, {humanSide: 1, hotseat: false});
     var won = PROFILES.levelRecord(activeProfile, level, xenon).wins > 0, match = openMatch(open, level, xenon);
     var button = menuText("button", "level-play-xenon", "");
     button.appendChild(menuText("span", "xenon-mark", ""));
-    button.appendChild(menuText("span", "", won ? "as Xenon ✓" : "as Xenon"));
-    if (match) button.appendChild(figures("span", "xenon-turn", [" · turn ", match.state.turn]));
+    if (won) button.appendChild(menuText("span", "xenon-won", "✓"));
+    if (match) button.appendChild(figures("span", "xenon-turn", ["turn ", match.state.turn]));
     button.type = "button";
     button.setAttribute("aria-label", (match ? "Resume " : LABELS.play + " ") + name + " as Xenon" + (won ? ", already won" : ""));
-    button.disabled = $("chk-hotseat").checked;
+    button.title = (match ? "Resume as Xenon, turn " + match.state.turn : "Play as Xenon") + (won ? " (won as Xenon)" : "");
     button.onclick = function () { closeMenuHelp(); startGame(level, xenon); };
     return button;
   }
+  // One tile per level: the map picture over one caption line. Returns the
+  // captions, which set the collection's tile width.
   function renderLevelCards(host, group, open, attempts) {
-    var L = LABELS;
-    group.levels.forEach(function (lv, i) {
+    var L = LABELS, hotseat = $("chk-hotseat").checked;
+    return group.levels.map(function (lv, i) {
       var options = levelOptions(group, i), name = lv.name, help = levelHasHelp(group, lv);
-      var union = Object.assign({}, options, {hotseat: $("chk-hotseat").checked, humanSide: 0});
-      var match = openMatch(open, lv, union);
+      var match = openMatch(open, lv, Object.assign({}, options, {hotseat: hotseat, humanSide: 0}));
       var card = document.createElement("article");
-      card.className = "level-card" + (levelWasWon(lv, options) ? " cleared" : "") + (help ? "" : " no-help") +
-        (match ? " in-progress" : "");
+      card.className = "level-card";
       var play = menuText("button", "level-play", "");
       play.type = "button"; play.setAttribute("aria-label", (match ? "Resume " : L.play + " ") + name);
-      play.title = union.hotseat ? (match ? "Resume hotseat match" : "Play hotseat") : (match ? "Resume as Union" : "Play as Union");
+      play.title = hotseat ? (match ? "Resume hotseat match" : "Play hotseat") : (match ? "Resume as Union" : "Play as Union");
       play.onclick = function () {
         closeMenuHelp(); startGame(lv, Object.assign({}, options, {hotseat: $("chk-hotseat").checked, humanSide: 0}));
       };
+      var picture = menuText("span", "level-thumb", "");
+      picture.appendChild(MAP_THUMBNAIL.picture(lv));
+      var caption = menuText("span", "level-caption", "");
       var title = menuText("span", "level-card-heading", name);
       title.id = group.id + "-level-" + i;
       card.setAttribute("aria-labelledby", title.id);
-      play.appendChild(thumbnail(lv));
-      play.appendChild(menuText("span", "level-number", String(i + 1 + (group.offset || 0)).padStart(2, "0")));
-      play.appendChild(title);
-      play.appendChild(resumeCell(match));
-      play.appendChild(recordCell(lv, options, attempts ? attempts(lv, options) : 0));
+      caption.appendChild(menuText("span", "level-number", String(i + 1 + (group.offset || 0)).padStart(2, "0")));
+      caption.appendChild(title);
+      if (match) caption.appendChild(figures("span", "level-resume", ["Resume turn ", match.state.turn]));
+      var record = recordCell(lv, options, attempts ? attempts(lv, options) : 0);
+      if (record) caption.appendChild(record);
+      play.appendChild(picture); play.appendChild(caption);
       card.appendChild(play);
-      card.appendChild(sideButton(lv, options, name, open));
+      if (!hotseat) card.appendChild(sideButton(lv, options, name, open));
       if (help) card.appendChild(createMenuHelp(title.id + "-details", name, function (panel) {
         addHelpText(panel, L.briefing, lv.description || lv.blurb);
         addHelpText(panel, L.design, lv.special);
@@ -646,6 +658,7 @@
         addHelpSource(panel, lv.source || group.source, lv.source ? L.source : L.collectionSource);
       }));
       host.appendChild(card);
+      return caption;
     });
   }
   function buildMenu() {
@@ -663,6 +676,7 @@
     customTools.remove();
     var host = $("level-groups"), nav = $("level-groups-nav");
     host.replaceChildren(); nav.replaceChildren();
+    menuTiles = [];
     levelGroups().forEach(function (group) {
       var section = document.createElement("section");
       section.className = "level-group"; section.id = group.id + "-section";
@@ -670,18 +684,19 @@
       var heading = document.createElement("header"); heading.className = "level-group-header";
       var title = menuText("h2", "", group.title); title.id = group.id + "-heading";
       heading.appendChild(title);
-      if (group.intro) heading.appendChild(menuText("p", "level-group-intro", group.intro));
       var won = group.levels.filter(function (lv,i) { return levelWasWon(lv, levelOptions(group,i)); }).length;
       heading.appendChild(menuText("span", "group-progress", group.levels.length ? won + " / " + group.levels.length + " won" : "No levels yet"));
+      if (group.intro) heading.appendChild(menuText("p", "level-group-intro", group.intro));
       if (group.notes) heading.appendChild(createMenuHelp(group.id + "-details", group.title, function (panel) {
         addHelpText(panel, LABELS.collection, group.notes);
         addHelpSource(panel, group.source, LABELS.collectionSource);
       }));
       section.appendChild(heading);
       var list = document.createElement("div"); list.id = group.list;
-      list.className = "level-library" + (group.levels.some(function (lv) { return levelHasHelp(group, lv); }) ? "" : " no-help");
+      list.className = "level-library";
       list.addEventListener("scroll", closeMenuHelp);
-      renderLevelCards(list, group, open, attempts); section.appendChild(list);
+      menuTiles.push({list: list, captions: renderLevelCards(list, group, open, attempts)});
+      section.appendChild(list);
       if (!group.levels.length) list.appendChild(menuText("p", "empty-levels", "No levels yet. Create a battlefield or import one below."));
       if (group.id === "custom") section.appendChild(customTools);
       host.appendChild(section);
@@ -690,6 +705,7 @@
       jump.appendChild(menuText("span", "", String(group.levels.length)));
       nav.appendChild(jump);
     });
+    fitLevelTiles();
   }
 
   function showImportStatus(className, text) {
@@ -764,7 +780,7 @@
     opponent.value="classic";
     try{opponent.value=AI_SEARCH.get(localStorage.getItem("nectaris-opponent")||"classic").id;}catch(e){}
     opponent.onchange=function(){try{localStorage.setItem("nectaris-opponent",opponent.value);}catch(e){}};
-    // Hotseat matches are their own slot, so the rows show that slot's records.
+    // Hotseat matches are their own slot, so the tiles show that slot's records.
     $("chk-hotseat").onchange=function(){
       opponent.disabled=this.checked;
       buildMenu();
