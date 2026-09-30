@@ -271,6 +271,11 @@ read future match randomness.
 - A match saved before this change is refused with the older-version message.
 - Details and enforcement: AI_TRAINING_PLAN.md, "Fair dice".
 
+**No bot plays badly on purpose** (user rule, 2026-09-30): a weak bot is weak
+because it does not search deeply, and it still plays as well as it can. There
+is never a deliberately weakened bot: no random moves, no handicaps. Classic and
+Tactical, the weak bots in the map-balance tests, are weak in this sense.
+
 **The opponent is fixed for the whole match** (user instruction, 2026-09-26): it
 is chosen before play with the menu's **AI** setting, and the match panel only
 names it ("Opponent: …", or "Two players (hotseat)"). This supersedes the
@@ -2311,16 +2316,59 @@ variants of one map were rejected. They follow the three terrain campaigns in
 the library, titled **AI-made:**, and every level credits **AI-made by Claude
 Opus 5.5**.
 
-Balance standard (user, 2026-09-29): the best bot playing itself should give
-Union (first) and Xenon (second) about equal chances; implemented as Union
-winning 40-60% of Marshal self-play games, with Xenon's wins at the turn limit
-reported separately. Other bots and skill checks are reported, not tuned for.
-All 48 missions met it on dice seeds the tuning did not use, none within two
-points of the range's edges, while Xenon won at each board's own turn limit;
-under the [draw rule](#fixed-turn-limit-and-draws-2026-09-30) their balance is
-unmeasured. The measurements,
-the tuning record and the findings about balanced maps are in
-[MAP_BALANCE.md](MAP_BALANCE.md). Human play has not been measured.
+Balance standard (user, 2026-09-29, restated 2026-09-30): each map is a game in
+which "you playing well matters"; neither side, first or second, should have "a
+way to win with very high chances". In the user's words, "this would mean that
+in self-play, both sides have a good chance to win, and that bad bots would
+mostly lose". Implemented as three tests: Union wins 40-60% of Marshal
+self-play games (Xenon's wins at the turn limit reported separately); Classic
+and Tactical each lose more than half their games to Marshal in each seat; and
+no bot, in either seat, wins 90% or more against each of Marshal, Apex, Classic
+and Tactical. The missions were tuned for self-play alone, while Xenon won at
+each board's own turn limit: all 48 met the self-play test on dice seeds the
+tuning did not use, none within two points of the range's edges, and 23 of 48
+passed all three tests. The user decided on 2026-09-30 to keep them as they
+are; a re-tune of the other 25, started that day, was stopped. Under the
+[draw rule](#fixed-turn-limit-and-draws-2026-09-30) their balance is
+unmeasured. The measurements, the tuning record and the findings about
+balanced maps are in [MAP_BALANCE.md](MAP_BALANCE.md). Human play has not been
+measured.
+
+## Campaign design: a difficulty curve (2026-09-30)
+
+The user described how a campaign should work (spoken on 2026-09-30; quoted
+where the transcript is clear, otherwise paraphrased):
+
+- A campaign is meant to teach the player, who moves first (in a Normal solo
+  match the player's side opens, since 2026-09-30).
+- Each map's difficulty is the first player's chance to win "assuming perfect
+  play by the first player and the second player". On the first few maps it is
+  close to 100%: the first player's advantage is "almost overwhelmingly
+  strong". A new player does not know the game well, so those maps can still
+  be a challenge. The chance falls map by map, and "the first player should
+  win maybe only down to 60% of the most difficult map in the campaign", which
+  takes very good play to win.
+- Perfect play is stood in for by the best bot playing both sides: "the best
+  bot we know about should define it, whatever we have done at the time"
+  (user, 2026-09-30). Marshal is that bot since 2026-09-29; when a stronger
+  bot arrives, a campaign's curve is measured again with it.
+- The user's description of the built-in campaign is that it works this way.
+  Measured 2026-09-30 on its 16 maps under the rules of `2e14241` (turn limits,
+  and the factory entry rule before `375a392`), with Marshal on both sides, 60
+  games per map, and Marshal's Union against Classic, 32 games: with the
+  original CPU (Classic) as Xenon, a strong Union won 81-100% on maps 1-10 and
+  44-91% on maps 11-16 except KAISER (3%), which fits the description. With
+  Marshal on both sides, Union won 98-100% on maps 1-2, 53-87% on maps 3, 4, 6
+  and 7, and 0-27% on the rest (0-3% from map 11 on). The curve the user
+  describes is the one the original campaign has against its own CPU.
+- The purpose of the map work is to understand how to design a campaign that is
+  fun for human players; developing new missions matters more than the shipped
+  ones, which stay as they are.
+
+The balance-study findings in [MAP_BALANCE.md](MAP_BALANCE.md) (how strength,
+extra units, camps and factory stock move the result, and how much the
+measurements vary) are the tools for hitting a target chance on each map. The
+per-board turn limit, a strong lever in those studies, no longer exists.
 
 
 ## Edge barriers on four campaigns (2026-09-30)

@@ -32,11 +32,24 @@ Xenon wins then, now play on.
 
 ## How balance is measured
 
-**The standard**, settled with the user on 2026-09-29: the best bot plays
-itself, and Union (moving first) and Xenon (moving second) should have about
-equal chances, meaning Union wins 40-60% of games. Xenon's wins at the turn
-limit are reported separately, because that rule, not the fighting, decides
-them.
+**The standard**, settled with the user on 2026-09-29 and restated by the user
+on 2026-09-30: each map is a game, and it should be one where "you playing well
+matters". If one side, first or second, "has a way to win with very high
+chances", the map is not fun; the dice make every result a chance. In the
+user's words, "this would mean that in self-play, both sides have a good chance
+to win, and that bad bots would mostly lose". Three tests follow:
+
+- **Self-play:** Marshal, the best bot, plays itself, and Union (moving first)
+  wins 40-60% of games. Xenon's wins at the turn limit are reported
+  separately, because that rule, not the fighting, decides them.
+- **Weak bots lose:** Classic and Tactical, the two weakest bots, each play
+  Marshal in both seats and lose more than half their games in each seat. A
+  stricter bar would ask more than Marshal shows on the original game's 32
+  maps, where it scores 78% against Classic and 69.5% against Tactical over
+  both seats ([BOTS.md](BOTS.md)).
+- **No sure win:** no bot, playing either seat, wins 90% or more of its games
+  against each of the four bots (Marshal, Apex, Classic, Tactical) on the
+  other side. The 90% is this guide's reading of "very high chances".
 
 **The best bot** is the one that scores highest against the others over these
 boards. Marshal (Apex search with separately tuned weights for each seat,
@@ -50,9 +63,11 @@ re-tuned or measured again after their first confirmation; and 600 (three
 seeds) for RIMA BIRT. At 150 games the 95% interval is about ±8 points; at
 450, about ±5.
 
-**Reported, not tuned for:** Apex self-play and Classic self-play (100 games
-per mission), and Marshal against Apex (128 games per mission, 64 in each
-seat).
+**The four-bot grid** behind the last two tests: on each mission, every bot
+plays every other in both seats, 64 seat-swapped pairs per pairing, and each
+bot plays itself (Marshal as above; Apex, Classic and Tactical 100 games).
+Tuning until 2026-09-29 used self-play alone; finding 13 shows what the other
+two tests found on those missions.
 
 The tool is `sim/src/bin/balance.rs`:
 
@@ -60,8 +75,8 @@ The tool is `sim/src/bin/balance.rs`:
 cd sim
 # The standard: Marshal self-play on the 48 balance-study boards.
 cargo run --release --bin balance -- --a=marshal --boards=119-166 --games=150
-# Marshal against Apex, each in both seats.
-cargo run --release --bin balance -- --a=marshal --b=apex --boards=119-166 --games=64
+# Marshal against a weak bot, each in both seats (also --b=tactical, apex).
+cargo run --release --bin balance -- --a=marshal --b=classic --boards=119-166 --games=64
 ```
 
 `--boards` takes ranges and lists (`121,124,128-130`). `--data=PATH` measures
@@ -276,9 +291,26 @@ tuning.
     Xenon on average. On four missions one seat won more than 90% of mixed
     games whichever bot played it: Marshal scored 9% as Union and 95% as Xenon
     on RIMAE TRIESNECKER, 100% and 2% on SINUS MEDII, 3% and 92% on SINUS
-    IRIDUM, and 5% and 92% on MARE HUMORUM. The missions meet the standard,
-    Marshal playing itself; other pairings can find them one-sided, and human
-    play is unmeasured.
+    IRIDUM, and 5% and 92% on MARE HUMORUM.
+
+13. **Even self-play does not make playing well matter.** On the 48 missions
+    as tuned for self-play alone (commit `2e14241`), Classic and Tactical each
+    played Marshal 64 seat-swapped pairs per mission. Both lost more than half
+    their games to Marshal in each seat on 24 missions. On the other 24, a
+    weak bot won at least half its games against Marshal in one seat or more:
+    33 cases of a weak bot in a seat. In 22 of the 33,
+    Apex lost from that seat to the same weak bot, so the map, not Marshal
+    alone, let the weaker play win; Apex shares Marshal's search, so the two
+    may also share blind spots. Two kinds recur. Classic playing Union beat
+    both strong Xenons on the sieges of ALPHONSUS (Marshal won 11% as Xenon,
+    Apex 5%), GRIMALDI (2% and 16%) and PTOLEMAEUS (38% and 28%), and on MARE
+    CRISIUM (9% and 30%). Tactical playing Xenon beat both strong Unions on
+    RIMA BIRT (Marshal won 3% as Union, Apex 0%), ARCHIMEDES (23% and 2%) and
+    ARZACHEL (20% and 0%). The no-sure-win test failed on SINUS IRIDUM alone:
+    Apex's Xenon beat each of the four Unions at least 97% of the times it
+    met them, while Marshal's Xenon beat Marshal's Union 55% of the time.
+    Self-play measures how two copies of one bot's habits meet; a weaker bot
+    with different habits can find what those copies leave open.
 
 ## Per-mission results
 

@@ -184,15 +184,19 @@ the results confirm or refute ideas about what makes a map balanced.
   Moving first already makes every map unequal.
 - Each campaign has an arc from small skirmishes to a large final battle, on
   boards from about 20×14 to 40×26. No new rules; a fresh army each mission.
-- Balance standard, settled 2026-09-29 after the first measurements: the best
-  bot plays itself, and Union (moving first) and Xenon (second) should have
-  about equal chances, meaning Union wins 40–60% of games. Wins at the turn
-  limit are reported separately. The best bot is the one that scores highest
-  against the others over these boards: Marshal since master `479292c`, which
-  scored 66% against Apex over the 48 boards. This replaces the approval's
-  targets of 40–60% for any bot playing itself and of the stronger bot winning
-  from both seats; other bots and the skill checks are reported as further
-  evidence, not tuned for.
+- Balance standard, settled 2026-09-29 and restated by the user on 2026-09-30:
+  each map is a game where "you playing well matters", and neither side,
+  first or second, should have "a way to win with very high chances". Three
+  tests: Marshal self-play gives Union 40–60% (wins at the turn limit reported
+  separately); Classic and Tactical, the two weakest bots, each lose more than
+  half their games to Marshal in each seat; and no bot in either seat wins 90%
+  or more against each of the four bots. The best bot is the one that scores
+  highest against the others over these boards: Marshal since master
+  `479292c`, which scored 66% against Apex over the 48 boards. The 2026-09-29
+  version used self-play alone; its missions passed all three tests on 23 of
+  48 ([MAP_BALANCE.md](MAP_BALANCE.md), finding 13), while each board had its
+  own turn limit. The user decided on 2026-09-30 to keep the missions as they
+  are.
 - Playable by people first: readable layouts, one clear problem per mission,
   briefings in the existing style, lunar place names.
 - New boards are appended after the existing 119, so existing board numbers
