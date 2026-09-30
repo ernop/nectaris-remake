@@ -729,7 +729,7 @@ var ENGINE = (function () {
       unit.moved = true;
       unit.movePointsLeft = 0;
       this.log.push({ t: "load", unit: unit.id, into: transport.id });
-      return { loaded: true, path: path };
+      return { loaded: true, path: path, effects: [] };
     }
     unit.col = col; unit.row = row;
     // ZOC ends this move, but a buggy can use its unspent allowance after
@@ -737,7 +737,10 @@ var ENGINE = (function () {
     // Terrain that drains movement already charged the full budget above.
     if (rec.stop && (!unit.type.moveAfterAttack || unit.attacked)) unit.movePointsLeft = 0;
     this.log.push({ t: "move", unit: unit.id, col: col, row: row });
-    return { loaded: false, path: path };
+    // Storage and capture complete within the move, as in the original: no
+    // attack may follow, and the turn cannot end with the unit left on the hex.
+    var effects = this.entersBuilding(unit, col, row) ? this.finishUnit(unit) : [];
+    return { loaded: false, path: path, effects: effects };
   };
 
   /* Commit the movement phase without consuming a legal follow-up shot.
@@ -746,9 +749,7 @@ var ENGINE = (function () {
     unit.shifted = true;
     if (!unit.type.moveAfterAttack || unit.attacked) unit.movePointsLeft = 0;
     if (unit.moved || unit.carriedBy || unit.inFactory) return [];
-    if (this.entersBuilding(unit, unit.col, unit.row) || !this.legalAttackTargets(unit).length) {
-      return this.finishUnit(unit);
-    }
+    if (!this.legalAttackTargets(unit).length) return this.finishUnit(unit);
     return [];
   };
 

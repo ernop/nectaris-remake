@@ -1158,6 +1158,11 @@ capturing infantry. Since 2026-09-29 this includes aircraft, which only fly
 over them (user request to match the original; evidence in `MECHANICS.md`).
 Loaded carrier entry separates its passenger into storage; both are repaired.
 Factory entry ends the activation immediately and is not a firing position.
+Since 2026-09-30 the move command itself stores the unit or captures the
+factory, so no attack, turn end or other command can come between the move and
+the storage or capture (user request to match the original, whose post-move
+routine does both before returning control to the map; evidence in
+`MECHANICS.md`).
 
 Capturing infantry enters the factory immediately instead of remaining on its
 map hex. The factory becomes unoccupied and clickable, its existing inventory

@@ -148,6 +148,13 @@ process never runs a whole match. Public-position simulation seeds are independe
 of the real combat RNG. Exact equal role scores accept second. Each survey records
 its policy, budgets and first/second scores; earlier packages remain available.
 
+Protocol **2026-09-30.1** makes factory entry part of the move: moving onto an
+own factory stores the unit, and moving infantry onto a neutral or enemy factory
+captures it, in the same command (`MECHANICS.md`). Bots no longer record a
+separate finish after such a move. In the lock corpus this removed 296 commands
+and changed no bot decision or result. Runs from earlier versions cannot resume
+or be watched.
+
 Protocol **2026-09-29.1** follows a rule change: aircraft can no longer stop or
 deploy on neutral and enemy factories (`MECHANICS.md`). Bots read legality from
 the engine, so their code is unchanged, but games that used such stops play

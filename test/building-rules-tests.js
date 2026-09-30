@@ -35,8 +35,8 @@ module.exports = function (ok) {
 
       game = fixture(kind, owner, "CHARLIE");
       var infantry = game.units[0];
-      game.moveUnit(infantry, 1, 0); game.finishUnit(infantry);
-      ok(game.buildingAt(1, 0).owner === 0, kind + ": infantry may capture or enter a building");
+      game.moveUnit(infantry, 1, 0);
+      ok(game.buildingAt(1, 0).owner === 0, kind + ": infantry capture or enter a building within the move");
       if (kind === "B" && owner === 1) {
         ok(game.winner === 0 && game.winReason === "base", "enemy base capture still wins the match");
       } else {
@@ -51,7 +51,7 @@ module.exports = function (ok) {
       ok(range[HEX.key(2, 0)].canStop && range[HEX.key(2, 0)].prev === HEX.key(1, 0),
         kind + ": aircraft may fly over the building " + owner);
       if (owner === 0) {
-        game.moveUnit(aircraft, 1, 0); game.finishUnit(aircraft);
+        game.moveUnit(aircraft, 1, 0);
         ok(!game.unitAt(1, 0) && building.stored[0] === aircraft && aircraft.strength === 8 && building.owner === 0,
           kind + ": aircraft enter friendly factories for repair");
       } else {
@@ -82,9 +82,9 @@ module.exports = function (ok) {
     });
 
     var game = fixture(kind, 0), tank = game.units[0], building = game.buildingAt(1, 0);
-    game.moveUnit(tank, 1, 0); game.finishUnit(tank);
+    game.moveUnit(tank, 1, 0);
     ok(!game.unitAt(1, 0) && building.stored[0] === tank && tank.moved && tank.strength === 8 && tank.exp === 2,
-      kind + ": friendly entry stores, repairs and preserves experience");
+      kind + ": friendly entry stores, repairs and preserves experience within the move");
     game.finishUnit(tank);
     ok(building.stored.length === 1, kind + ": finishing an already stored unit cannot duplicate it");
     rejectsWithoutMutation(game, function () { game.deployFromFactory(building, tank, 2, 0); },
@@ -96,6 +96,23 @@ module.exports = function (ok) {
     restored.deployFromFactory(savedBuilding, savedTank, 2, 0);
     ok(restored.unitAt(2, 0) === savedTank && savedTank.moved && !savedBuilding.stored.length,
       kind + ": stored tank deploys from the building on its next turn");
+  });
+
+  [[0, "EAGLE"], [1, "CHARLIE"]].forEach(function (entry) {
+    var owner = entry[0], type = entry[1];
+    var game = new ENGINE.Game({ name: "Entry ends the activation", grid: [".F......", "........"],
+      buildings: [{ col: 1, row: 0, owner: owner }],
+      units: [{ t: type, o: 0, x: 0, y: 0, str: 3 }, { t: "BISON", o: 1, x: 2, y: 0 }, { t: "BISON", o: 1, x: 7, y: 1 }],
+    }, { seed: 1 });
+    var unit = game.units[0], enemy = game.units[1];
+    var moved = game.moveUnit(unit, 1, 0);
+    ok(unit.inFactory && game.buildingAt(1, 0).owner === 0 && !game.unitAt(1, 0) &&
+      moved.effects.map(function (e) { return e.t; }).join() === (owner === 0 ? "store" : "capture,store"),
+      type + ": entering completes storage or capture within the move command");
+    ok(!game.legalCommands().some(function (c) { return c[1].indexOf(unit) >= 0; }),
+      type + ": no command for the unit follows its entering move");
+    rejectsWithoutMutation(game, function () { game.attack(unit, enemy); },
+      type + ": no attack from the building after entering it");
   });
 
   ["BISON", "EAGLE"].forEach(function (type) {

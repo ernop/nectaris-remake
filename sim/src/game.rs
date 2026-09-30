@@ -914,6 +914,9 @@ impl<'d> Game<'d> {
         if flags & STOP != 0 && (!t.move_after_attack || unit.attacked) {
             unit.mp = 0;
         }
+        if self.enters_building(u, col, row) {
+            self.finish_unit(u);
+        }
         Ok(false)
     }
 

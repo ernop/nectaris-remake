@@ -475,7 +475,7 @@ var AI = (function () {
         }
         var from = { col: unit.col, row: unit.row };
         var moved = game.moveUnit(unit, dest.col, dest.row, range);
-        var effects = game.finishUnit(unit);
+        var effects = unit.moved ? moved.effects : game.finishUnit(unit);
         return {
           t: "move", unit: unit, from: from,
           to: { col: dest.col, row: dest.row },
@@ -510,7 +510,7 @@ var AI = (function () {
         pending.push(function () {
           var from = { col: unit.col, row: unit.row };
           var moved = game.moveUnit(unit, action.dest.col, action.dest.row, action.range);
-          var effects = moved.loaded ? [] : game.finishUnit(unit);
+          var effects = unit.moved ? moved.effects : game.finishUnit(unit);
           return {
             t: "move", unit: unit, from: from,
             to: { col: action.dest.col, row: action.dest.row },

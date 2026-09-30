@@ -219,7 +219,8 @@ Facts we need across sessions:
   `moveOrFire`, surround (defender-only, never at the map edge), counter
   eligibility, the experience table, and the factory
   model (store-to-repair, adjacent-exit deployment, no stopping on unowned
-  factories except by capturing infantry, aircraft included since 2026-09-29)
+  factories except by capturing infantry, aircraft included since 2026-09-29;
+  since 2026-09-30 the entering move itself stores or captures)
   all follow the published documentation, each with tests. Do not
   "simplify" them back. Combat follows the community-recovered per-machine
   formula and temporary-HP casualty calculation. Damage rolls use the 14-outcome weighted table in Anka d5,

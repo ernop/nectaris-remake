@@ -549,13 +549,16 @@ fn run_step(g: &mut Game, step: Step, pending: &mut VecDeque<Step>) {
                 None => g.do_finish(u),
                 Some((c, r)) => {
                     g.do_move(u, c, r);
-                    g.do_finish(u);
+                    if !g.units[u].moved {
+                        g.do_finish(u);
+                    }
                 }
             }
         }
         Step::Finish(u) => g.do_finish(u),
         Step::Move(u, (c, r)) => {
-            if !g.do_move(u, c, r) {
+            g.do_move(u, c, r);
+            if !g.units[u].moved {
                 g.do_finish(u);
             }
         }

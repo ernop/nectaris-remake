@@ -1620,9 +1620,6 @@ pub fn execute(g: &mut Game, action: &Action, ctx: &mut Ctx) {
     }
     if let Some((c, r)) = action.to {
         let loaded = g.do_move(u, c, r);
-        if !loaded && g.enters_building(u, c, r) {
-            g.do_finish(u);
-        }
         if loaded || g.units[u].in_factory || g.winner >= 0 {
             return;
         }
@@ -1638,7 +1635,9 @@ pub fn execute(g: &mut Game, action: &Action, ctx: &mut Ctx) {
             }
             if let Some((c, r)) = retreat(g, u, ctx) {
                 g.do_move(u, c, r);
-                g.do_finish(u);
+                if !g.units[u].moved {
+                    g.do_finish(u);
+                }
             }
         }
     }

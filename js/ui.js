@@ -1409,7 +1409,7 @@ var UI = (function () {
     if (!rec || !rec.canStop) return false;
     var before = this.game.snapshot();
     var moved = this.game.moveUnit(unit, col, row, this.range);
-    var events = this.game.finishMovement(unit), self = this;
+    var events = moved.effects.concat(this.game.finishMovement(unit)), self = this;
     this.recordUndo(before, unitView.name(unit) + " move");
     this.clearSelection();
     this.busy = true;

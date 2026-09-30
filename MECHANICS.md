@@ -227,6 +227,17 @@ Ready reserves can deploy immediately; the capturer must wait. Deployment
 uses adjacent legal exits or compatible transports. There is no production
 or resource economy. The TG-16 FAQ independently describes loaded-carrier repair.
 
+Storage and capture are part of the move onto the factory. The Windows
+executable's post-move routine (`0x402230`) captures or stores and then returns
+control to the map, never to the attack state
+([evidence](ORIGINAL_EXECUTABLE_NOTES.md#factory-endpoints--2026-09-29)).
+Until 2026-09-30 the remake's rules engine completed entry only when the unit
+was finished. The player's moves and the existing bots finished at once, but
+the engine's list of legal commands still offered an attack from the factory,
+or the turn's end before the storage or capture, to any player choosing from
+that list. The user had it match the original on 2026-09-30 (tournament
+protocol 2026-09-30.1).
+
 Only Charlie, Kilroy and Panther may end a move on a neutral or enemy factory,
 which captures it. Every other unit, aircraft and loaded Pelicans included, may
 only pass over it, and no reserve deploys onto it. Hudson's Windows executable

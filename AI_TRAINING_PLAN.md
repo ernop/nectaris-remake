@@ -94,9 +94,9 @@ The browser game stays plain JavaScript. Rust is a development tool
   - Sequence v Simulation for 4 rounds on 3 small boards;
   - Apex v Tactical and Marshal v Apex for 3 rounds on 2 small boards.
 
-  It converts them into `test/fixtures/sim-corpus.json.gz` (16,893 commands
-  since the 2026-09-29 factory rule, a fingerprint after each). Regenerating
-  gives a byte-identical file.
+  It converts them into `test/fixtures/sim-corpus.json.gz` (16,597 commands
+  since factory entry became part of the move on 2026-09-30, a fingerprint
+  after each). Regenerating gives a byte-identical file.
 - `test/sim-lock-tests.js`, in the main suite, replays every command and
   re-plays one game per pairing with its bots.
 
