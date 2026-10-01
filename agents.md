@@ -19,7 +19,7 @@ Facts we need across sessions:
   logic module ends with `if (typeof module !== "undefined") module.exports`
   so the node test suite loads them.
 - **Tests:** `node test/run-tests.js` — map validation, rule unit-tests, and
-  AI-vs-AI self-play on all 32 normal/advanced campaign + 24 extra-pack + 15 AI-made + 48 terrain-campaign + 48 balance-study maps (167 total). Run it
+  AI-vs-AI self-play on all 32 normal/advanced campaign + 24 extra-pack + 15 AI-made + 48 terrain-campaign + 48 balance-study + 16 teaching maps (183 total). Run it
   after any engine, data, or map change.
 - **Terrain campaigns (2026-09-23):** Open Horizons, The Knotted Heart and Broken
   Ground each have 16 independent missions. Explicitly label all three campaigns
@@ -47,6 +47,15 @@ Facts we need across sessions:
   unmeasured. After changing a mission, a rule or a bot,
   run `node tools/sim/export-data.cjs`, then remeasure in `sim/` with
   `cargo run --release --bin balance -- --a=marshal --boards=119-166 --games=150`.
+- **Teaching campaign (2026-09-30):** Training Ground, 16 missions (boards
+  167-182), AI-made by Claude Opus 5.5, one lesson each on growing boards,
+  tuned to the user's difficulty curve: Marshal self-play gives Union 95-100%
+  on missions 1-3 falling to about 60% on 16, and Tactical's and Classic's
+  Union win less often than Marshal's (under 25% on 13-16). Specs, including
+  the seeded rough-ground `texture()` whose output the measurements depend
+  on, are in `tools/teaching-campaign-specs.js`; built by
+  `tools/build-teaching-campaign.js` with the same rebuild command. Method and
+  numbers: `MAP_BALANCE.md`, Designing a campaign.
 - **Local development:** `./serve.sh` serves the repo on fixed backend port
   `127.0.0.1:8001`; do not substitute a random port. The machine's shared
   Caddy registry exposes it at `http://nectaris.localhost` and the local

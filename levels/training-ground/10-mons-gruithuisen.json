@@ -1,0 +1,140 @@
+{
+  "name": "MONS GRUITHUISEN",
+  "pack": "AI-made: Training Ground",
+  "campaignId": "training-ground",
+  "mission": 10,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/training-ground/10-mons-gruithuisen.json",
+  "description": "New: anti-air. The Seeker is a fast tank whose guns are made for aircraft. The Hawkeye fires missiles at aircraft two to five hexes away, but moves or fires. The Xenon brings an Eagle; keep your anti-air beside the units it will dive on.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "teaching campaign",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "teaching",
+    "symmetry": "half"
+  },
+  "grid": [
+    "w..ww.M...hhh..M.MM..w",
+    "w.....M...hh...MMMM..w",
+    "......M....h.h.M.MM...",
+    "w.....ww...hhh.M.hww..",
+    "w.....ww.........hw...",
+    "......w...............",
+    "...hh...h.hh.-.-.-.-..",
+    "....h.....hh-.-.-.-.B.",
+    ".B.-.-.-.-hh.....h....",
+    "..-.-.-.-.hh.h...hh...",
+    "...............w......",
+    "...wh.........ww.....w",
+    "..wwh.M.hhh...ww.....w",
+    "...MM.M.h.h....M......",
+    "w..MMMM...hh...M.....w",
+    "w..MM.M..hhh...M.ww..w"
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 8,
+      "owner": 0
+    },
+    {
+      "col": 20,
+      "row": 7,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "SEEKER",
+      "o": 0,
+      "x": 3,
+      "y": 8
+    },
+    {
+      "t": "HAWKEYE",
+      "o": 0,
+      "x": 3,
+      "y": 7
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 2,
+      "y": 8
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 8
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 2,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 3,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 3,
+      "y": 6
+    },
+    {
+      "t": "EAGLE",
+      "o": 1,
+      "x": 18,
+      "y": 8
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 17,
+      "y": 7
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 18,
+      "y": 7
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 19,
+      "y": 7
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 17,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 19,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 18,
+      "y": 9
+    }
+  ]
+}

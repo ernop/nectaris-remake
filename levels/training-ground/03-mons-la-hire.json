@@ -1,0 +1,106 @@
+{
+  "name": "MONS LA HIRE",
+  "pack": "AI-made: Training Ground",
+  "campaignId": "training-ground",
+  "mission": 3,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/training-ground/03-mons-la-hire.json",
+  "description": "A unit that moves next to an enemy must stop there. A mountain wall splits the board, with a pass at each end, and one unit in a pass stops enemy tanks beside it. Hold one pass with a single Bison and push through the other with the rest.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "teaching campaign",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "teaching",
+    "symmetry": "half"
+  },
+  "grid": [
+    "....M......M....",
+    "....M.-....M....",
+    "....M--MM..M....",
+    ".....-.MM.......",
+    ".....-.MM.......",
+    "....-..MM..---B.",
+    ".B---..MM..-....",
+    ".......MM.-.....",
+    ".......MM.-.....",
+    "....M..MM--M....",
+    "....M....-.M....",
+    "....M......M...."
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 6,
+      "owner": 0
+    },
+    {
+      "col": 14,
+      "row": 5,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 5
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 2,
+      "y": 6
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 6
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 2,
+      "y": 7
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 3,
+      "y": 7
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 12,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 11,
+      "y": 5
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 12,
+      "y": 5
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 13,
+      "y": 5
+    }
+  ]
+}

@@ -1,0 +1,139 @@
+{
+  "name": "MONS ARGAEUS",
+  "pack": "AI-made: Training Ground",
+  "campaignId": "training-ground",
+  "mission": 8,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/training-ground/08-mons-argaeus.json",
+  "description": "New: buggies. A Rabbit attacks and then keeps any movement it has left, so it can strike and pull back out of reach. The Lynx does the same but fires at ground units exactly two hexes away. Use them on guns and damaged units, not on fresh tanks.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "teaching campaign",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "teaching",
+    "symmetry": "half"
+  },
+  "grid": [
+    ".....M........MMM..h",
+    ".....M.....hh.M.....",
+    "M....Mw..MMMh.M.....",
+    "M...wMw..wwMh.M.....",
+    "....www..wwhh.......",
+    ".....hw..ww.h.......",
+    ".....h...---------B.",
+    ".B---------...h.....",
+    ".......h.ww..wh.....",
+    ".......hhww..www....",
+    ".....M.hMww..wMw...M",
+    ".....M.hMMM..wM....M",
+    ".....M.hh.....M.....",
+    "h..MMM........M....."
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 7,
+      "owner": 0
+    },
+    {
+      "col": 18,
+      "row": 6,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "RABBIT",
+      "o": 0,
+      "x": 3,
+      "y": 7
+    },
+    {
+      "t": "LYNX",
+      "o": 0,
+      "x": 3,
+      "y": 6
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 2,
+      "y": 7
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 7
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 2,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 3,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 3,
+      "y": 5,
+      "str": 6
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 16,
+      "y": 7
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 15,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 16,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 17,
+      "y": 6
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 15,
+      "y": 7
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 17,
+      "y": 7
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 16,
+      "y": 8
+    }
+  ]
+}

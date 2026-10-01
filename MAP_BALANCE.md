@@ -7,6 +7,8 @@ balance-study campaigns in
 The tables at the end record whether its measurements confirmed the idea and
 how the mission was tuned; the findings collect what the 48 missions showed
 together. Every claim names the board and the numbers behind it.
+[Designing a campaign](#designing-a-campaign) records the method for a
+campaign with a difficulty curve and its first test, Training Ground.
 
 The numbers describe the rules and simulator bots of commit `2730eac`
 (2026-09-29), under which aircraft can no longer stop on neutral or enemy
@@ -150,6 +152,124 @@ from the first round to the last. Marshal's Union attacks because its weights
 value advancing, not because time is short. A person playing Union would press
 harder as time ran out, so missions where Xenon wins many games at the limit
 (the "At limit" column) may be easier for a human Union than the bots show.
+
+## Designing a campaign
+
+Approved by the user on 2026-09-30 and tested on one new campaign,
+[Training Ground](ENVIRONMENT_CAMPAIGNS.md#training-ground). Unlike the rest
+of this guide, everything in this section was measured under the current
+rules: draws instead of turn limits, factory entry within the move (commit
+`abefc7e`).
+
+**The model, in the user's words:** a campaign teaches, and the player moves
+first. With "perfect play" on both sides the first player's chance is about
+100% on the first maps and falls to about 60% on the hardest. "The best bot we
+know about should define it, whatever we have done at the time": today that is
+Marshal. No bot is made deliberately weak to produce a curve.
+
+**Targets for a 16-mission campaign:**
+
+- **Curve:** Union (moving first) wins 95-100% of Marshal self-play games on
+  missions 1-3, falling evenly to about 60% on mission 16.
+- **Playing well matters:** against Marshal's Xenon, Tactical's and Classic's
+  Union each win less often than Marshal's Union on every mission, and under a
+  quarter of their games on missions 13-16 (the user chose this tuning on
+  2026-09-30).
+
+Win rates count wins over games; a draw is not a win.
+
+**Acceptance**, on pooled confirmation games: Marshal self-play within 6 points
+of the mission's target (at least 95% on missions 1-3); each weak Union at
+least 5 points below Marshal's Union; each weak Union under 25% on missions
+13-16. Six points is about the 95% interval at 300 games.
+
+**Reference: the original campaign under the current rules.** Union's wins over
+60 games on the 16 maps of the PC Engine campaign, REVOLT to NECTOR:
+
+| Map | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Marshal self-play | 92 | 100 | 68 | 58 | 0 | 55 | 92 | 13 | 15 | 38 | 0 | 3 | 0 | 0 | 0 | 0 |
+| Classic's Union vs Marshal's Xenon (draws half) | 41 | 100 | 50 | 0 | 0 | 66 | 25 | 0 | 34 | 0 | 0 | 0 | 9 | 0 | 0 | 0 |
+
+The original falls far below the target curve from map 5 on, which suits a
+human player against the original's weaker computer opponent, not against the
+best bot. Marshal's Union beat Classic's Xenon in 78-100% of games on maps 1-10
+and 44-94% on 11-16 (KAISER 6%). The same maps under the turn-limit rules of
+`2e14241` gave nearly the same numbers.
+
+**The process used for Training Ground:**
+
+1. Draft 16 missions, each introducing one thing a new player needs, on boards
+   that grow from 14×10 to 30×20, with edge barriers
+   ([tools/teaching-campaign-specs.js](tools/teaching-campaign-specs.js)).
+2. Screen variants that change one thing: the terrain seed of a clustered
+   rough-ground layer (hills, wasteland, mountains placed from value noise,
+   `texture()` in the specs), one unit more or less, or one squad's starting
+   strength. Screens used Marshal and Classic, 20-60 games per pairing.
+3. Confirm the best candidate per mission with Marshal, Tactical and Classic,
+   every ordered pairing, 150 games each, on a dice seed no screen used; repeat
+   on a second fresh seed and pool.
+4. Write the confirmed variant into the specs and check that the built board
+   (terrain, buildings, units) is identical to the one measured.
+
+Nine screening rounds measured 226 boards (drafts and variants), and five
+confirmation rounds 63 boards, some of them the same variant on a second seed;
+about 126,000 bot games in all.
+
+**What the tuning showed:**
+
+1. **Open boards let material decide.** On the open drafts, Classic's Union
+   did as well as Marshal's: whichever army was larger won, however it was
+   played. Choke points and cover created the skill gap.
+2. **Terrain alone moves the result as much as the armies do.** With the same
+   armies, changing only the rough-ground seed took Classic's Union from 100%
+   to 50% on mission 2, and Marshal's Union from 95% to 25% on mission 8.
+3. **Material steps are large and not monotone.** On mission 5, Xenon Bisons
+   at strength 8, 7 and 6 gave Marshal's Union 80%, 45% and 100%, and
+   Classic's 5%, 80% and 23%. On mission 10 one strength-2 Xenon Bison took
+   Marshal's Union from about 90% to 5%. On mission 15 an extra Union Bison at
+   strength 8, 4 and 2 gave 80%, 58% and 85%. Expect to search, not
+   interpolate.
+4. **Picks from noisy screens regress toward the middle.** A variant chosen as
+   the best of many short screens usually confirms a few points worse; one
+   mission-13 candidate went from 68% in its screen to 78% in confirmation.
+   Two fresh seeds of 150 games sometimes differed by 13 points (78% and 65%),
+   which is why picks are confirmed on two seeds.
+5. **Moving first can be a disadvantage.** On the mission-16 draft, with equal
+   armies, Union won 17% of Marshal self-play; it needed two extra Bisons to
+   reach 61%.
+6. **Tactical's Union stalls.** Against Marshal's Xenon it wins almost
+   nothing, but with draws counted half it scores about 50% on most missions:
+   neither side attacks for 100 turns. It meets the "wins less often" test
+   only because a draw is not a win. Classic, which attacks directly, is the
+   weak bot that limited the tuning.
+
+**Results.** Union's wins in Marshal self-play (M), and Tactical's (T) and
+Classic's (C) Union against Marshal's Xenon, pooled over two fresh seeds (300
+games per pairing; mission 4, 450):
+
+| # | Mission | Lesson | Target | M | T | C |
+|---:|---|---|---:|---:|---:|---:|
+| 1 | MONS PICO | capture the camp | 98 | 97 | 43 | 72 |
+| 2 | MONS PITON | terrain defense | 97 | 100 | 0 | 49 |
+| 3 | MONS LA HIRE | zones of control | 96 | 100 | 64 | 27 |
+| 4 | MONS HUYGENS | support and surround | 93 | 96 | 8 | 73 |
+| 5 | MONS BRADLEY | factories | 90 | 94 | 0 | 15 |
+| 6 | MONS WOLFF | Kilroy | 87 | 89 | 51 | 68 |
+| 7 | MONS AMPERE | artillery | 84 | 84 | 0 | 29 |
+| 8 | MONS ARGAEUS | buggies | 81 | 80 | 0 | 48 |
+| 9 | MONS VINOGRADOV | aircraft | 78 | 82 | 45 | 53 |
+| 10 | MONS GRUITHUISEN | anti-air | 76 | 80 | 2 | 2 |
+| 11 | MONS RUMKER | transports and roads | 73 | 67 | 0 | 18 |
+| 12 | MONTES JURA | valleys and the Pelican | 70 | 67 | 27 | 3 |
+| 13 | MONTES CAUCASUS | heavy armor | 68 | 66 | 21 | 12 |
+| 14 | MONTES HAEMUS | experience | 65 | 67 | 3 | 11 |
+| 15 | MONTES TAURUS | mines and fixed guns | 62 | 68 | 8 | 5 |
+| 16 | MONTES APENNINUS | all arms | 60 | 61 | 20 | 5 |
+
+All 16 meet the acceptance rule. Missions 11-15 measured 66-68%, within the
+tolerance of targets that fall from 73 to 62, so the measured curve is flat
+there rather than falling evenly. Humans have not played the campaign yet.
 
 ## Findings
 

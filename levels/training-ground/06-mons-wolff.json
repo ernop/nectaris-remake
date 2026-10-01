@@ -1,0 +1,121 @@
+{
+  "name": "MONS WOLFF",
+  "pack": "AI-made: Training Ground",
+  "campaignId": "training-ground",
+  "mission": 6,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/training-ground/06-mons-wolff.json",
+  "description": "New: the Kilroy, heavy infantry. It moves only two hexes but hits tanks four times as hard as a Charlie, and on a mountain it is very hard to shift. Put your Kilroys on the ridge and let the Xenon tanks come to them.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "teaching campaign",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "teaching",
+    "symmetry": "half"
+  },
+  "grid": [
+    "..w..M...MMMM..w.h",
+    "..w..M.h.hh.M..w.h",
+    "..MM.M.M..M.M..w..",
+    "..MM.M.M..M.h..ww.",
+    "..M...M..hMMh.....",
+    "......M..hhM......",
+    "........--------B.",
+    ".B--------........",
+    "......Mhh..M......",
+    ".....hMMh..M...M..",
+    ".ww..h.M..M.M.MM..",
+    "..w..M.M..M.M.MM..",
+    "h.w..M.hh.h.M..w..",
+    "h.w..MMMM...M..w.."
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 7,
+      "owner": 0
+    },
+    {
+      "col": 16,
+      "row": 6,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "KILROY",
+      "o": 0,
+      "x": 4,
+      "y": 7
+    },
+    {
+      "t": "KILROY",
+      "o": 0,
+      "x": 3,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 6
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 3,
+      "y": 7
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 5,
+      "y": 7
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 8,
+      "str": 6
+    },
+    {
+      "t": "KILROY",
+      "o": 1,
+      "x": 13,
+      "y": 7
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 13,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 12,
+      "y": 7
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 14,
+      "y": 7
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 12,
+      "y": 8
+    }
+  ]
+}

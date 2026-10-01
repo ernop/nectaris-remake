@@ -96,8 +96,8 @@ module.exports = function (ok) {
   });
   ok(get("level-groups").children.map(function(s){return s.id;}).join(",")===
     "normal-section,advanced-section,basenec-section,open-horizons-section,knotted-heart-section,broken-ground-section,"+
-    "bridgeheads-section,siege-lines-section,arsenal-section,"+
-    "ai-made-section,expansion-section,custom-section" && get("level-groups-nav").children.length===12,
+    "bridgeheads-section,siege-lines-section,arsenal-section,training-ground-section,"+
+    "ai-made-section,expansion-section,custom-section" && get("level-groups-nav").children.length===13,
     "collections list Normal, Advanced and Base Nectaris first, then the remaining packs, with jump navigation");
   ok(get("level-groups").children.map(function(s){return (find(s,"level-group-intro")||{}).textContent||"";}).filter(Boolean).join("|")===
     "From the PC Engine campaign.|Community terrain, with new forces and briefings for this remake.",
@@ -132,10 +132,10 @@ module.exports = function (ok) {
   }) && store.active().openCollections===undefined,
     "a profile that never toggled a collection sees only the first one open");
   toggleOf("advanced").onclick(); toggleOf("normal").onclick();
-  ok(store.active().openCollections.join()==="advanced" && closedCount()===11,
+  ok(store.active().openCollections.join()==="advanced" && closedCount()===12,
     "clicking a collection's name opens or closes it and saves the choice to the profile");
   setHotseat(true); setHotseat(false);
-  ok(!get("advanced-section").classList.contains("closed") && get("normal-section").classList.contains("closed") && closedCount()===11,
+  ok(!get("advanced-section").classList.contains("closed") && get("normal-section").classList.contains("closed") && closedCount()===12,
     "a rebuilt menu keeps each collection as the player left it");
   get("level-groups-nav").children[6].onclick();
   ok(!get("bridgeheads-section").classList.contains("closed") && store.active().openCollections.join()==="advanced,bridgeheads",

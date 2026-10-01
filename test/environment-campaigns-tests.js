@@ -4,16 +4,17 @@ module.exports = function (ok) {
   const fs = require("node:fs"), path = require("node:path");
   const campaigns = require("../js/data-environment-campaigns.js");
   const catalog = require("../tools/environment-campaign-specs.js");
-  const studies = require("../tools/balance-campaign-specs.js");
+  const studies = require("../tools/balance-campaign-specs.js").concat(require("../tools/teaching-campaign-specs.js"));
   const HEX = require("../js/hex.js"), ENGINE = require("../js/engine.js");
   const {UNIT_TYPES: types} = require("../js/data-units.js");
   const {terrainCost, TERRAIN_BY_CHAR: terrain} = require("../js/data-terrain.js");
   const {edgeRun} = require("../tools/edge-barriers.js");
   const allTypes = new Set(), signatures = new Set();
-  ok(campaigns.length === 6 && campaigns.every(c => c.levels.length === 16), "six separate 16-mission campaigns");
+  ok(campaigns.length === 7 && campaigns.every(c => c.levels.length === 16), "seven separate 16-mission campaigns");
   ok(JSON.stringify(require("../tools/build-environment-campaigns.js")()) === JSON.stringify(campaigns),
     "all campaign assets rebuild deterministically from the authored catalogs");
-  // The first three campaigns (Codex); the balance studies follow (MAP_BALANCE.md).
+  // The first three campaigns (Codex); the balance studies follow, then the
+  // teaching campaign (MAP_BALANCE.md).
   campaigns.forEach((campaign, ci) => {
     const study = ci >= 3, spec = study ? studies[ci - 3] : catalog[ci];
     const bundle = JSON.parse(fs.readFileSync(path.join(__dirname, "../levels", campaign.id + ".json")));
@@ -116,10 +117,16 @@ module.exports = function (ok) {
         ok(fraction(p => ["h","w","v"].includes(at(p))) > .25, label + "difficult terrain materially affects movement");
         if ([3,9,14,15].includes(index)) ok(map.grid.join("").includes("="), label + "valley mission includes actual bridge terrain");
       }
-      if (ci <= 3) ok(edgeRun(map.grid) === null, label + "barriers stop vehicles circling the board along its top and bottom edges");
+      if (ci <= 3 || ci === 6) ok(edgeRun(map.grid) === null, label + "barriers stop vehicles circling the board along its top and bottom edges");
       if (ci === 3) ok(map.grid.join("").includes("v"), label + "a rille divides the board");
       if (ci === 4) ok(rival && /[Mw]/.test(map.grid.join("")), label + "the Xenon camp has walls of mountains or broken ground");
       if (ci === 5) ok(map.buildings.some(b => b.owner === -1 && b.stored.length), label + "neutral factories hold reserves to fight for");
+      if (ci === 6) {
+        const prior = campaign.levels[index-1], target = spec.levels[index].target;
+        ok(!prior || w*h >= prior.grid[0].length*prior.grid.length, label + "the board is no smaller than the mission before");
+        ok(spec.levels[index].lesson && target <= (index ? spec.levels[index-1].target : 100) && target >= (index < 3 ? 95 : 55),
+          label + "a named lesson, and a target on the falling difficulty curve");
+      }
       const restored = ENGINE.Game.restore(new ENGINE.Game(map,{seed:37}).snapshot());
       ok(restored.units.length === map.units.length && restored.map.campaignId === campaign.id,
         label + "campaign identity and authored army survive save/restore");

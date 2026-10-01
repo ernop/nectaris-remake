@@ -1,0 +1,242 @@
+{
+  "name": "MONTES APENNINUS",
+  "pack": "AI-made: Training Ground",
+  "campaignId": "training-ground",
+  "mission": 16,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/training-ground/16-montes-apenninus.json",
+  "description": "Everything together. New: the Falcon hunts aircraft and cannot touch ground units; the Hunter fights both. The Xenon army matches yours except for your two extra Bisons. Win the air, cover your guns, and capture the factories before the Xenon does.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "teaching campaign",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "teaching",
+    "symmetry": "half"
+  },
+  "grid": [
+    ".........M..w....w..M.........",
+    ".........M..w....w..M.........",
+    ".........M..w....w..M.........",
+    ".........M..w....w..M.........",
+    ".........MM.........M.........",
+    ".......F..MM..................",
+    "..........MM.-----............",
+    "..........MM..hh..--..........",
+    ".............hhhh...--.-.-.-..",
+    ".............hhhh.....-.-.-.B.",
+    ".B.-.-.-.....hhhh.............",
+    "..-.-.-.--...hhhh.............",
+    "..........--..hh..MM..........",
+    "............-----.MM..........",
+    "..................MM..F.......",
+    ".........M.........MM.........",
+    ".........M..w....w..M.........",
+    ".........M..w....w..M.........",
+    ".........M..w....w..M.........",
+    ".........M..w....w..M........."
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 10,
+      "owner": 0
+    },
+    {
+      "col": 28,
+      "row": 9,
+      "owner": 1
+    },
+    {
+      "col": 7,
+      "row": 5,
+      "owner": -1,
+      "stored": [
+        "BISON",
+        "CHARLIE",
+        "HADRIAN"
+      ]
+    },
+    {
+      "col": 22,
+      "row": 14,
+      "owner": -1,
+      "stored": [
+        "BISON",
+        "CHARLIE",
+        "HADRIAN"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "HUNTER",
+      "o": 0,
+      "x": 4,
+      "y": 10
+    },
+    {
+      "t": "FALCON",
+      "o": 0,
+      "x": 3,
+      "y": 9
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 4,
+      "y": 9
+    },
+    {
+      "t": "HAWKEYE",
+      "o": 0,
+      "x": 5,
+      "y": 9
+    },
+    {
+      "t": "SEEKER",
+      "o": 0,
+      "x": 3,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 11
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 3,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 5,
+      "y": 8
+    },
+    {
+      "t": "TITAN",
+      "o": 0,
+      "x": 2,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 6,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 2,
+      "y": 10
+    },
+    {
+      "t": "PELICAN",
+      "o": 0,
+      "x": 6,
+      "y": 6
+    },
+    {
+      "t": "KILROY",
+      "o": 0,
+      "x": 5,
+      "y": 5
+    },
+    {
+      "t": "HUNTER",
+      "o": 1,
+      "x": 25,
+      "y": 10
+    },
+    {
+      "t": "FALCON",
+      "o": 1,
+      "x": 25,
+      "y": 9
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 24,
+      "y": 10
+    },
+    {
+      "t": "HAWKEYE",
+      "o": 1,
+      "x": 26,
+      "y": 10
+    },
+    {
+      "t": "SEEKER",
+      "o": 1,
+      "x": 24,
+      "y": 11
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 25,
+      "y": 11
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 26,
+      "y": 11
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 25,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 23,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 24,
+      "y": 9
+    },
+    {
+      "t": "TITAN",
+      "o": 1,
+      "x": 26,
+      "y": 9
+    },
+    {
+      "t": "PELICAN",
+      "o": 1,
+      "x": 23,
+      "y": 13
+    },
+    {
+      "t": "KILROY",
+      "o": 1,
+      "x": 23,
+      "y": 12
+    }
+  ]
+}

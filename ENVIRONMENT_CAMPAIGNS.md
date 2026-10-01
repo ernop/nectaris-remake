@@ -152,15 +152,15 @@ node test/run-tests.js
 ```
 
 The builder writes the runtime library, the individual JSON levels and one
-import bundle per campaign, for these three campaigns and the three balance
-studies below. Rebuilding leaves these 48 missions byte-identical.
+import bundle per campaign, for these three campaigns, the three balance
+studies and the teaching campaign below. Rebuilding leaves these 48 missions byte-identical.
 
 Checks cover reproducibility, unique layouts, source agreement, terrain legality,
 reachable starting positions, connected ground routes without factory transit,
 edge barriers (above), real factory exits, carrier compatibility, roster restrictions and the defining
 terrain proportions of each campaign. The menu fixture exercises starting, saving,
 continuing, next-mission boundaries and independent progress. The full suite runs
-CPU self-play to completion on all 167 included maps. This verifies execution and
+CPU self-play to completion on all 183 included maps. This verifies execution and
 termination; difficulty and human-versus-human balance still need playtesting.
 
 # Three balance-study campaigns
@@ -315,3 +315,49 @@ Neutral factories hold the reserves that decide these battles. Which factory to 
 | 14 | [MARE INSULARUM](levels/arsenal/14-mare-insularum.json) | 34×22 | 7 / 7 | 4 | half-turn | Islands of firm ground stand in a sea of valleys, and the factories on them can be reached on foot, slowly, or by Pelican. Each side has one Pelican, and a Hawkeye to shoot the other's down. |
 | 15 | [LACUS MORTIS](levels/arsenal/15-lacus-mortis.json) | 36×22 | 4 / 4 | 4 | half-turn | Each camp owns a deep reserve of eight units, released from its factory a few at a time. The neutral factories between them decide who runs out first. |
 | 16 | [MARE NECTARIS](levels/arsenal/16-mare-nectaris.json) | 40×26 | 10 / 10 | 8 | half-turn | The Sea of Nectar: the final battle, with factories of every kind across a wide field. Aircraft, armour and artillery are all waiting to be claimed. |
+
+<a id="training-ground"></a>
+
+# AI-made: Training Ground
+
+Approved 2026-09-30 by the user as the test of a campaign designed around a
+difficulty curve ([decision](PRODUCT.md#campaign-design-a-difficulty-curve-2026-09-30)).
+Sixteen missions, AI-made by Claude Opus 5.5, each introducing one thing a new
+player needs, on boards that grow from 14×10 to 30×20. Every board has edge
+barriers. The armies are often unequal: the early advantage comes from a
+larger or fresher army, not from a weaker opponent.
+
+When Marshal, the best bot, plays both sides, Union wins 94-100% of games on
+missions 1-5, falling to 61% on mission 16. Tactical and Classic win less often
+as Union against Marshal than Marshal does, and under a quarter of their games
+on missions 13-16. Humans have not played it yet. The method and each
+mission's numbers are in [MAP_BALANCE.md](MAP_BALANCE.md#designing-a-campaign).
+
+The briefs, armies and terrain seeds live in
+[tools/teaching-campaign-specs.js](tools/teaching-campaign-specs.js), built by
+[tools/build-teaching-campaign.js](tools/build-teaching-campaign.js) with the
+balance-study builder. Most boards start from a seeded layer of clustered
+hills, wasteland and mountains (`texture()` in the specs); the bot results
+belong to those exact boards, so changing the seed, the function or an army
+means measuring again.
+
+[Import the whole campaign](levels/training-ground.json).
+
+| # | Mission | Board | Union / Xenon | Factories | Lesson | Setup |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | [MONS PICO](levels/training-ground/01-mons-pico.json) | 14×10 | 5 / 4 | 0 | capture the camp | Charlies and Bisons only; you have one more Bison. |
+| 2 | [MONS PITON](levels/training-ground/02-mons-piton.json) | 16×10 | 6 / 4 | 0 | terrain defense | The Xenon waits on wasteland in the middle. |
+| 3 | [MONS LA HIRE](levels/training-ground/03-mons-la-hire.json) | 16×12 | 6 / 4 | 0 | zones of control | A mountain wall with a pass at each end. |
+| 4 | [MONS HUYGENS](levels/training-ground/04-mons-huygens.json) | 18×12 | 6 / 5 | 0 | support and surround | One more Bison than the Xenon. |
+| 5 | [MONS BRADLEY](levels/training-ground/05-mons-bradley.json) | 18×12 | 4 / 4 | 2 | factories | Two neutral factories hold two Bisons each; the Xenon Bisons start damaged. |
+| 6 | [MONS WOLFF](levels/training-ground/06-mons-wolff.json) | 18×14 | 7 / 5 | 0 | Kilroy | Two Kilroys to the Xenon's one, and a damaged extra Bison. |
+| 7 | [MONS AMPERE](levels/training-ground/07-mons-ampere.json) | 20×14 | 6 / 6 | 0 | artillery | Two Hadrians to one; the Xenon has a third Charlie instead. |
+| 8 | [MONS ARGAEUS](levels/training-ground/08-mons-argaeus.json) | 20×14 | 8 / 7 | 0 | buggies | A Rabbit and a Lynx; one of your Bisons is damaged. |
+| 9 | [MONS VINOGRADOV](levels/training-ground/09-mons-vinogradov.json) | 22×14 | 7 / 7 | 0 | aircraft | Your weakened Eagle squad against a Rabbit. |
+| 10 | [MONS GRUITHUISEN](levels/training-ground/10-mons-gruithuisen.json) | 22×16 | 8 / 7 | 0 | anti-air | A Seeker and a Hawkeye against one Xenon Eagle. |
+| 11 | [MONS RUMKER](levels/training-ground/11-mons-rumker.json) | 24×16 | 9 / 8 | 2 | transports and roads | Mules, Panthers and roads; one more Bison. |
+| 12 | [MONTES JURA](levels/training-ground/12-montes-jura.json) | 24×16 | 9 / 8 | 0 | valleys and the Pelican | A valley crossed by two bridges; one Pelican each. |
+| 13 | [MONTES CAUCASUS](levels/training-ground/13-montes-caucasus.json) | 26×16 | 9 / 9 | 0 | heavy armor | Giant and Grizzly against Polar and two Slaggers. |
+| 14 | [MONTES HAEMUS](levels/training-ground/14-montes-haemus.json) | 26×18 | 9 / 10 | 2 | experience | Your main squads start with a star; the Xenon has more units. |
+| 15 | [MONTES TAURUS](levels/training-ground/15-montes-taurus.json) | 28×18 | 12 / 12 | 0 | mines and fixed guns | Unequal sides: two Trigger mines, an Atlas and an Octopus hold the Xenon line. |
+| 16 | [MONTES APENNINUS](levels/training-ground/16-montes-apenninus.json) | 30×20 | 15 / 13 | 2 | all arms | Every arm, including Hunters and Falcons; you have two more Bisons. |

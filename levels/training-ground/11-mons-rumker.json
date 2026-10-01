@@ -1,0 +1,170 @@
+{
+  "name": "MONS RUMKER",
+  "pack": "AI-made: Training Ground",
+  "campaignId": "training-ground",
+  "mission": 11,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/training-ground/11-mons-rumker.json",
+  "description": "New: wheels. The Mule carries one Charlie or Kilroy; the Panther is a fast infantry car that captures. Wheels pay double on plains and cannot enter wasteland, so use the roads. Two neutral factories hold reserves.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "teaching campaign",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "teaching",
+    "symmetry": "half"
+  },
+  "grid": [
+    "wh.....wMhhh....w....w..",
+    "whww...wM.h....hwhh.....",
+    ".......wM......hw.......",
+    "..MMM..w.-----Fhw...h..w",
+    "..MMMM...-....--........",
+    "...wMM.--..ww..-........",
+    "...h...-..wwww..-.......",
+    ".......-..wwww..------B.",
+    ".B------..wwww..-.......",
+    ".......-..wwww..-...h...",
+    "........-..ww..--.MMw...",
+    "........--....-...MMMM..",
+    "w..h...whF-----.w..MMM..",
+    ".......wh......Mw.......",
+    ".....hhwh....h.Mw...wwhw",
+    "..w....w....hhhMw.....hw"
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 8,
+      "owner": 0
+    },
+    {
+      "col": 22,
+      "row": 7,
+      "owner": 1
+    },
+    {
+      "col": 9,
+      "row": 12,
+      "owner": -1,
+      "stored": [
+        "BISON",
+        "CHARLIE"
+      ]
+    },
+    {
+      "col": 14,
+      "row": 3,
+      "owner": -1,
+      "stored": [
+        "BISON",
+        "CHARLIE"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "MULE",
+      "o": 0,
+      "x": 3,
+      "y": 8
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 7
+    },
+    {
+      "t": "PANTHER",
+      "o": 0,
+      "x": 2,
+      "y": 8
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 4,
+      "y": 8
+    },
+    {
+      "t": "SEEKER",
+      "o": 0,
+      "x": 2,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 3,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 3,
+      "y": 6
+    },
+    {
+      "t": "KILROY",
+      "o": 0,
+      "x": 5,
+      "y": 5
+    },
+    {
+      "t": "MULE",
+      "o": 1,
+      "x": 20,
+      "y": 8
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 19,
+      "y": 7
+    },
+    {
+      "t": "PANTHER",
+      "o": 1,
+      "x": 20,
+      "y": 7
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 21,
+      "y": 7
+    },
+    {
+      "t": "SEEKER",
+      "o": 1,
+      "x": 19,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 21,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 20,
+      "y": 9
+    },
+    {
+      "t": "KILROY",
+      "o": 1,
+      "x": 18,
+      "y": 10
+    }
+  ]
+}

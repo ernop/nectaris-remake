@@ -1,0 +1,158 @@
+{
+  "name": "MONTES CAUCASUS",
+  "pack": "AI-made: Training Ground",
+  "campaignId": "training-ground",
+  "mission": 13,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/training-ground/13-montes-caucasus.json",
+  "description": "New: heavy tanks. The Polar and Grizzly are slow and hard to crack; the Titan is strong and a little quicker; the Slagger is as tough and the fastest tank of all; the Lenet is a lighter Bison. The Giant moves only two hexes, but hits hardest of all and fires at aircraft too.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "teaching campaign",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "teaching",
+    "symmetry": "half"
+  },
+  "grid": [
+    "MMMw.MM.M...h....M..h.hhhh",
+    "Mwwww..hM........M.whhhhhh",
+    "........M........M....hh..",
+    "........M........MM...hh..",
+    "........wwM....M..M......w",
+    "........wwM.hh....M.......",
+    "..........Mhhhh-.-M-.-.-..",
+    "...........hhh-.-.-.-.-.B.",
+    ".B.-.-.-.-.-hhh...........",
+    "..-.-.-M-.-hhhhM..........",
+    ".......M....hh.Mww........",
+    "w......M..M....Mww........",
+    "..hh...MM........M........",
+    "..hh....M........M........",
+    "hhhhhhw.M........Mh..wwwwM",
+    "hhhh.h..M....h...M.MM.wMMM"
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 8,
+      "owner": 0
+    },
+    {
+      "col": 24,
+      "row": 7,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "GIANT",
+      "o": 0,
+      "x": 4,
+      "y": 8
+    },
+    {
+      "t": "GRIZZLY",
+      "o": 0,
+      "x": 3,
+      "y": 7
+    },
+    {
+      "t": "TITAN",
+      "o": 0,
+      "x": 4,
+      "y": 7
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 5,
+      "y": 7
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 3,
+      "y": 8
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 8
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 3,
+      "y": 6
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 6
+    },
+    {
+      "t": "POLAR",
+      "o": 1,
+      "x": 21,
+      "y": 8
+    },
+    {
+      "t": "SLAGGER",
+      "o": 1,
+      "x": 21,
+      "y": 7
+    },
+    {
+      "t": "SLAGGER",
+      "o": 1,
+      "x": 20,
+      "y": 8
+    },
+    {
+      "t": "TITAN",
+      "o": 1,
+      "x": 22,
+      "y": 8
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 20,
+      "y": 9
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 21,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 22,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 21,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 19,
+      "y": 7
+    }
+  ]
+}

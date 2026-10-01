@@ -1,0 +1,112 @@
+{
+  "name": "MONS HUYGENS",
+  "pack": "AI-made: Training Ground",
+  "campaignId": "training-ground",
+  "mission": 4,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/training-ground/04-mons-huygens.json",
+  "description": "Each of your units beside the target adds to an attack, and each Xenon unit beside the attacker adds to its defense. When your units stand on both sides of an enemy it is surrounded, and its attack and defense are halved. Attack together; a lone tank loses.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "teaching campaign",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "teaching",
+    "symmetry": "half"
+  },
+  "grid": [
+    "Mwww.MhhMhhwM....h",
+    ".....M..M..wM.....",
+    ".....Mw.....M.....",
+    ".....Mw..MM.M..hh.",
+    ".........MM.......",
+    "........hh------B.",
+    ".B------hh........",
+    ".......MM.........",
+    ".hh..M.MM..wM.....",
+    ".....M.....wM.....",
+    ".....Mw..M..M.....",
+    "h....MwhhMhhM.wwwM"
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 6,
+      "owner": 0
+    },
+    {
+      "col": 16,
+      "row": 5,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 5
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 2,
+      "y": 6
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 6
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 2,
+      "y": 7
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 3,
+      "y": 7
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 14,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 13,
+      "y": 5
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 14,
+      "y": 5
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 15,
+      "y": 5
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 13,
+      "y": 6
+    }
+  ]
+}

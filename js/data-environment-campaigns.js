@@ -16688,6 +16688,2310 @@ var ENVIRONMENT_CAMPAIGNS = [
         ]
       }
     ]
+  },
+  {
+    "id": "training-ground",
+    "name": "AI-made: Training Ground",
+    "description": "Sixteen battles that teach the game one idea at a time, from capturing a camp with infantry and tanks to a fight with every arm.",
+    "notes": "Sixteen AI-made battles created by Claude Opus 5.5, each introducing one thing a new player needs, on boards that grow from small to large. They were tuned so that when the strongest simulator bot plays both sides, Union wins nearly every game of the first three missions and about 60% of the last, and so that weaker bots playing Union win less often than it does. Normal capture/elimination rules apply. Forces start fresh each mission.",
+    "levels": [
+      {
+        "name": "MONS PICO",
+        "pack": "AI-made: Training Ground",
+        "campaignId": "training-ground",
+        "mission": 1,
+        "author": "AI-made by Claude Opus 5.5",
+        "source": "levels/training-ground/01-mons-pico.json",
+        "description": "Your Charlies are infantry: move one onto the Xenon camp and you win. Your Bisons are tanks, the strongest units here; they attack from the hex beside an enemy. You also win by destroying every Xenon unit. You have one more Bison than the Xenon.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+        "tags": [
+          "teaching campaign",
+          "half-turn symmetry"
+        ],
+        "design": {
+          "theme": "teaching",
+          "symmetry": "half"
+        },
+        "grid": [
+          "w...M..hhMhh..",
+          "w...M...hMh...",
+          "...MM.hh.M....",
+          "...MMM.-h-.-..",
+          "...MMM-.-.-.B.",
+          ".B.-.-.-MMM...",
+          "..-.-h-.MMM...",
+          "....M.hh.MM...",
+          "...hMh...M...w",
+          "..hhMhh..M...w"
+        ],
+        "buildings": [
+          {
+            "col": 1,
+            "row": 5,
+            "owner": 0
+          },
+          {
+            "col": 12,
+            "row": 4,
+            "owner": 1
+          }
+        ],
+        "units": [
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 3,
+            "y": 5
+          },
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 3,
+            "y": 4
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 2,
+            "y": 5
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 4,
+            "y": 5
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 2,
+            "y": 6
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 10,
+            "y": 5
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 9,
+            "y": 4
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 10,
+            "y": 4
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 11,
+            "y": 4
+          }
+        ]
+      },
+      {
+        "name": "MONS PITON",
+        "pack": "AI-made: Training Ground",
+        "campaignId": "training-ground",
+        "mission": 2,
+        "author": "AI-made by Claude Opus 5.5",
+        "source": "levels/training-ground/02-mons-piton.json",
+        "description": "Ground adds to a unit's defense: plains 5, hills 20, wasteland 30, mountains 40. Tanks cannot climb mountains, and wasteland slows them. The Xenon waits on the wasteland in the middle; draw it out or strike it from hills of your own.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+        "tags": [
+          "teaching campaign",
+          "half-turn symmetry"
+        ],
+        "design": {
+          "theme": "teaching",
+          "symmetry": "half"
+        },
+        "grid": [
+          "w.hhM..h...Mww..",
+          "....M......M...h",
+          "h...Mh.wwM.MM.ww",
+          ".....hhwwwM-.-..",
+          "......wMww-.-.B.",
+          ".B.-.-wwMw......",
+          "..-.-Mwwwhh.....",
+          "ww.MM.Mww.hM...h",
+          "h...M......M....",
+          "..wwM...h..Mhh.w"
+        ],
+        "buildings": [
+          {
+            "col": 1,
+            "row": 5,
+            "owner": 0
+          },
+          {
+            "col": 14,
+            "row": 4,
+            "owner": 1
+          }
+        ],
+        "units": [
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 3,
+            "y": 5
+          },
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 3,
+            "y": 4
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 2,
+            "y": 5
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 4,
+            "y": 5
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 2,
+            "y": 6
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 3,
+            "y": 6
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 9,
+            "y": 5
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 9,
+            "y": 4
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 10,
+            "y": 5
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 9,
+            "y": 6
+          }
+        ]
+      },
+      {
+        "name": "MONS LA HIRE",
+        "pack": "AI-made: Training Ground",
+        "campaignId": "training-ground",
+        "mission": 3,
+        "author": "AI-made by Claude Opus 5.5",
+        "source": "levels/training-ground/03-mons-la-hire.json",
+        "description": "A unit that moves next to an enemy must stop there. A mountain wall splits the board, with a pass at each end, and one unit in a pass stops enemy tanks beside it. Hold one pass with a single Bison and push through the other with the rest.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+        "tags": [
+          "teaching campaign",
+          "half-turn symmetry"
+        ],
+        "design": {
+          "theme": "teaching",
+          "symmetry": "half"
+        },
+        "grid": [
+          "....M......M....",
+          "....M.-....M....",
+          "....M--MM..M....",
+          ".....-.MM.......",
+          ".....-.MM.......",
+          "....-..MM..---B.",
+          ".B---..MM..-....",
+          ".......MM.-.....",
+          ".......MM.-.....",
+          "....M..MM--M....",
+          "....M....-.M....",
+          "....M......M...."
+        ],
+        "buildings": [
+          {
+            "col": 1,
+            "row": 6,
+            "owner": 0
+          },
+          {
+            "col": 14,
+            "row": 5,
+            "owner": 1
+          }
+        ],
+        "units": [
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 3,
+            "y": 6
+          },
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 3,
+            "y": 5
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 2,
+            "y": 6
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 4,
+            "y": 6
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 2,
+            "y": 7
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 3,
+            "y": 7
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 12,
+            "y": 6
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 11,
+            "y": 5
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 12,
+            "y": 5
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 13,
+            "y": 5
+          }
+        ]
+      },
+      {
+        "name": "MONS HUYGENS",
+        "pack": "AI-made: Training Ground",
+        "campaignId": "training-ground",
+        "mission": 4,
+        "author": "AI-made by Claude Opus 5.5",
+        "source": "levels/training-ground/04-mons-huygens.json",
+        "description": "Each of your units beside the target adds to an attack, and each Xenon unit beside the attacker adds to its defense. When your units stand on both sides of an enemy it is surrounded, and its attack and defense are halved. Attack together; a lone tank loses.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+        "tags": [
+          "teaching campaign",
+          "half-turn symmetry"
+        ],
+        "design": {
+          "theme": "teaching",
+          "symmetry": "half"
+        },
+        "grid": [
+          "Mwww.MhhMhhwM....h",
+          ".....M..M..wM.....",
+          ".....Mw.....M.....",
+          ".....Mw..MM.M..hh.",
+          ".........MM.......",
+          "........hh------B.",
+          ".B------hh........",
+          ".......MM.........",
+          ".hh..M.MM..wM.....",
+          ".....M.....wM.....",
+          ".....Mw..M..M.....",
+          "h....MwhhMhhM.wwwM"
+        ],
+        "buildings": [
+          {
+            "col": 1,
+            "row": 6,
+            "owner": 0
+          },
+          {
+            "col": 16,
+            "row": 5,
+            "owner": 1
+          }
+        ],
+        "units": [
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 3,
+            "y": 6
+          },
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 3,
+            "y": 5
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 2,
+            "y": 6
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 4,
+            "y": 6
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 2,
+            "y": 7
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 3,
+            "y": 7
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 14,
+            "y": 6
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 13,
+            "y": 5
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 14,
+            "y": 5
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 15,
+            "y": 5
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 13,
+            "y": 6
+          }
+        ]
+      },
+      {
+        "name": "MONS BRADLEY",
+        "pack": "AI-made: Training Ground",
+        "campaignId": "training-ground",
+        "mission": 5,
+        "author": "AI-made by Claude Opus 5.5",
+        "source": "levels/training-ground/05-mons-bradley.json",
+        "description": "A factory stores units. Move a Charlie onto a neutral factory to capture it: the Bisons inside join you and can leave next to it at once. A unit that enters your own factory is repaired to full strength and can leave again next turn. The Xenon Bisons start damaged.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+        "tags": [
+          "teaching campaign",
+          "half-turn symmetry"
+        ],
+        "design": {
+          "theme": "teaching",
+          "symmetry": "half"
+        },
+        "grid": [
+          "......M..M.Mwwwwh.",
+          "......M...hM......",
+          "h....FMhhhhM......",
+          ".....-M-.-hMM...MM",
+          "...--M-.-h..Mww...",
+          "...-.M..hh..M..-B.",
+          ".B-..M..hh..M.-...",
+          "...wwM..h-.-M--...",
+          "MM...MMh-.-M-.....",
+          "......MhhhhMF....h",
+          "......Mh...M......",
+          ".hwwwwM.M..M......"
+        ],
+        "buildings": [
+          {
+            "col": 1,
+            "row": 6,
+            "owner": 0
+          },
+          {
+            "col": 16,
+            "row": 5,
+            "owner": 1
+          },
+          {
+            "col": 5,
+            "row": 2,
+            "owner": -1,
+            "stored": [
+              "BISON",
+              "BISON"
+            ]
+          },
+          {
+            "col": 12,
+            "row": 9,
+            "owner": -1,
+            "stored": [
+              "BISON",
+              "BISON"
+            ]
+          }
+        ],
+        "units": [
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 3,
+            "y": 6
+          },
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 3,
+            "y": 5
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 2,
+            "y": 6
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 4,
+            "y": 6
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 14,
+            "y": 6
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 13,
+            "y": 5
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 14,
+            "y": 5,
+            "str": 6
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 15,
+            "y": 5,
+            "str": 6
+          }
+        ]
+      },
+      {
+        "name": "MONS WOLFF",
+        "pack": "AI-made: Training Ground",
+        "campaignId": "training-ground",
+        "mission": 6,
+        "author": "AI-made by Claude Opus 5.5",
+        "source": "levels/training-ground/06-mons-wolff.json",
+        "description": "New: the Kilroy, heavy infantry. It moves only two hexes but hits tanks four times as hard as a Charlie, and on a mountain it is very hard to shift. Put your Kilroys on the ridge and let the Xenon tanks come to them.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+        "tags": [
+          "teaching campaign",
+          "half-turn symmetry"
+        ],
+        "design": {
+          "theme": "teaching",
+          "symmetry": "half"
+        },
+        "grid": [
+          "..w..M...MMMM..w.h",
+          "..w..M.h.hh.M..w.h",
+          "..MM.M.M..M.M..w..",
+          "..MM.M.M..M.h..ww.",
+          "..M...M..hMMh.....",
+          "......M..hhM......",
+          "........--------B.",
+          ".B--------........",
+          "......Mhh..M......",
+          ".....hMMh..M...M..",
+          ".ww..h.M..M.M.MM..",
+          "..w..M.M..M.M.MM..",
+          "h.w..M.hh.h.M..w..",
+          "h.w..MMMM...M..w.."
+        ],
+        "buildings": [
+          {
+            "col": 1,
+            "row": 7,
+            "owner": 0
+          },
+          {
+            "col": 16,
+            "row": 6,
+            "owner": 1
+          }
+        ],
+        "units": [
+          {
+            "t": "KILROY",
+            "o": 0,
+            "x": 4,
+            "y": 7
+          },
+          {
+            "t": "KILROY",
+            "o": 0,
+            "x": 3,
+            "y": 6
+          },
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 4,
+            "y": 6
+          },
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 5,
+            "y": 6
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 3,
+            "y": 7
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 5,
+            "y": 7
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 4,
+            "y": 8,
+            "str": 6
+          },
+          {
+            "t": "KILROY",
+            "o": 1,
+            "x": 13,
+            "y": 7
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 13,
+            "y": 6
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 12,
+            "y": 7
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 14,
+            "y": 7
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 12,
+            "y": 8
+          }
+        ]
+      },
+      {
+        "name": "MONS AMPERE",
+        "pack": "AI-made: Training Ground",
+        "campaignId": "training-ground",
+        "mission": 7,
+        "author": "AI-made by Claude Opus 5.5",
+        "source": "levels/training-ground/07-mons-ampere.json",
+        "description": "New: the Hadrian, a self-propelled gun. It fires two to five hexes away, and nobody can shoot back, but in one turn it either moves or fires. Keep your tanks in front of it: a gun caught beside an enemy is easy prey.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+        "tags": [
+          "teaching campaign",
+          "half-turn symmetry"
+        ],
+        "design": {
+          "theme": "teaching",
+          "symmetry": "half"
+        },
+        "grid": [
+          "w.....M..w...M..M...",
+          "......Mh.....M......",
+          "......Mh....MM....MM",
+          "...wM.ww....MM....MM",
+          "...w..ww........hhhM",
+          ".....hhw.hh.....h...",
+          "....hhhMMh--------B.",
+          ".B--------hMMhhh....",
+          "...h.....hh.whh.....",
+          "Mhhh........ww..w...",
+          "MM....MM....ww.Mw...",
+          "MM....MM....hM......",
+          "......M.....hM......",
+          "...M..M...w..M.....w"
+        ],
+        "buildings": [
+          {
+            "col": 1,
+            "row": 7,
+            "owner": 0
+          },
+          {
+            "col": 18,
+            "row": 6,
+            "owner": 1
+          }
+        ],
+        "units": [
+          {
+            "t": "HADRIAN",
+            "o": 0,
+            "x": 3,
+            "y": 7
+          },
+          {
+            "t": "HADRIAN",
+            "o": 0,
+            "x": 3,
+            "y": 6
+          },
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 2,
+            "y": 7
+          },
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 4,
+            "y": 7
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 2,
+            "y": 8
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 3,
+            "y": 8
+          },
+          {
+            "t": "HADRIAN",
+            "o": 1,
+            "x": 16,
+            "y": 7
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 15,
+            "y": 6
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 16,
+            "y": 6
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 17,
+            "y": 6
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 15,
+            "y": 7
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 17,
+            "y": 7
+          }
+        ]
+      },
+      {
+        "name": "MONS ARGAEUS",
+        "pack": "AI-made: Training Ground",
+        "campaignId": "training-ground",
+        "mission": 8,
+        "author": "AI-made by Claude Opus 5.5",
+        "source": "levels/training-ground/08-mons-argaeus.json",
+        "description": "New: buggies. A Rabbit attacks and then keeps any movement it has left, so it can strike and pull back out of reach. The Lynx does the same but fires at ground units exactly two hexes away. Use them on guns and damaged units, not on fresh tanks.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+        "tags": [
+          "teaching campaign",
+          "half-turn symmetry"
+        ],
+        "design": {
+          "theme": "teaching",
+          "symmetry": "half"
+        },
+        "grid": [
+          ".....M........MMM..h",
+          ".....M.....hh.M.....",
+          "M....Mw..MMMh.M.....",
+          "M...wMw..wwMh.M.....",
+          "....www..wwhh.......",
+          ".....hw..ww.h.......",
+          ".....h...---------B.",
+          ".B---------...h.....",
+          ".......h.ww..wh.....",
+          ".......hhww..www....",
+          ".....M.hMww..wMw...M",
+          ".....M.hMMM..wM....M",
+          ".....M.hh.....M.....",
+          "h..MMM........M....."
+        ],
+        "buildings": [
+          {
+            "col": 1,
+            "row": 7,
+            "owner": 0
+          },
+          {
+            "col": 18,
+            "row": 6,
+            "owner": 1
+          }
+        ],
+        "units": [
+          {
+            "t": "RABBIT",
+            "o": 0,
+            "x": 3,
+            "y": 7
+          },
+          {
+            "t": "LYNX",
+            "o": 0,
+            "x": 3,
+            "y": 6
+          },
+          {
+            "t": "HADRIAN",
+            "o": 0,
+            "x": 2,
+            "y": 7
+          },
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 4,
+            "y": 7
+          },
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 2,
+            "y": 8
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 3,
+            "y": 8
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 4,
+            "y": 8
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 3,
+            "y": 5,
+            "str": 6
+          },
+          {
+            "t": "RABBIT",
+            "o": 1,
+            "x": 16,
+            "y": 7
+          },
+          {
+            "t": "HADRIAN",
+            "o": 1,
+            "x": 15,
+            "y": 6
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 16,
+            "y": 6
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 17,
+            "y": 6
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 15,
+            "y": 7
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 17,
+            "y": 7
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 16,
+            "y": 8
+          }
+        ]
+      },
+      {
+        "name": "MONS VINOGRADOV",
+        "pack": "AI-made: Training Ground",
+        "campaignId": "training-ground",
+        "mission": 9,
+        "author": "AI-made by Claude Opus 5.5",
+        "source": "levels/training-ground/09-mons-vinogradov.json",
+        "description": "New: the Eagle. It flies over mountains and valleys, hits ground units hard, and no Bison can shoot at it; only infantry and buggies fire back, weakly. Aircraft get no defense from terrain. The Xenon has no aircraft, and your Eagle squad is down to three machines.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+        "tags": [
+          "teaching campaign",
+          "half-turn symmetry"
+        ],
+        "design": {
+          "theme": "teaching",
+          "symmetry": "half"
+        },
+        "grid": [
+          "......M.hh..M.wMw....M",
+          "......M.hh.....M......",
+          "......M.hhMM...M......",
+          ".h.hhhM.hMMM...M......",
+          ".h.......MMM...w......",
+          "..........MM...M......",
+          ".....MMhh.----------B.",
+          ".B----------.hhMM.....",
+          "......M...MM..........",
+          "......w...MMM.......h.",
+          "......M...MMMh.Mhhh.h.",
+          "......M...MMhh.M......",
+          "......M.....hh.M......",
+          "M....wMw.M..hh.M......"
+        ],
+        "buildings": [
+          {
+            "col": 1,
+            "row": 7,
+            "owner": 0
+          },
+          {
+            "col": 20,
+            "row": 6,
+            "owner": 1
+          }
+        ],
+        "units": [
+          {
+            "t": "HADRIAN",
+            "o": 0,
+            "x": 3,
+            "y": 7
+          },
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 3,
+            "y": 6
+          },
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 2,
+            "y": 7
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 4,
+            "y": 7
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 2,
+            "y": 8
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 3,
+            "y": 8
+          },
+          {
+            "t": "EAGLE",
+            "o": 0,
+            "x": 4,
+            "y": 8,
+            "str": 3
+          },
+          {
+            "t": "HADRIAN",
+            "o": 1,
+            "x": 18,
+            "y": 7
+          },
+          {
+            "t": "RABBIT",
+            "o": 1,
+            "x": 17,
+            "y": 6
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 18,
+            "y": 6
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 19,
+            "y": 6
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 17,
+            "y": 7
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 19,
+            "y": 7
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 18,
+            "y": 8
+          }
+        ]
+      },
+      {
+        "name": "MONS GRUITHUISEN",
+        "pack": "AI-made: Training Ground",
+        "campaignId": "training-ground",
+        "mission": 10,
+        "author": "AI-made by Claude Opus 5.5",
+        "source": "levels/training-ground/10-mons-gruithuisen.json",
+        "description": "New: anti-air. The Seeker is a fast tank whose guns are made for aircraft. The Hawkeye fires missiles at aircraft two to five hexes away, but moves or fires. The Xenon brings an Eagle; keep your anti-air beside the units it will dive on.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+        "tags": [
+          "teaching campaign",
+          "half-turn symmetry"
+        ],
+        "design": {
+          "theme": "teaching",
+          "symmetry": "half"
+        },
+        "grid": [
+          "w..ww.M...hhh..M.MM..w",
+          "w.....M...hh...MMMM..w",
+          "......M....h.h.M.MM...",
+          "w.....ww...hhh.M.hww..",
+          "w.....ww.........hw...",
+          "......w...............",
+          "...hh...h.hh.-.-.-.-..",
+          "....h.....hh-.-.-.-.B.",
+          ".B.-.-.-.-hh.....h....",
+          "..-.-.-.-.hh.h...hh...",
+          "...............w......",
+          "...wh.........ww.....w",
+          "..wwh.M.hhh...ww.....w",
+          "...MM.M.h.h....M......",
+          "w..MMMM...hh...M.....w",
+          "w..MM.M..hhh...M.ww..w"
+        ],
+        "buildings": [
+          {
+            "col": 1,
+            "row": 8,
+            "owner": 0
+          },
+          {
+            "col": 20,
+            "row": 7,
+            "owner": 1
+          }
+        ],
+        "units": [
+          {
+            "t": "SEEKER",
+            "o": 0,
+            "x": 3,
+            "y": 8
+          },
+          {
+            "t": "HAWKEYE",
+            "o": 0,
+            "x": 3,
+            "y": 7
+          },
+          {
+            "t": "HADRIAN",
+            "o": 0,
+            "x": 2,
+            "y": 8
+          },
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 4,
+            "y": 8
+          },
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 2,
+            "y": 9
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 3,
+            "y": 9
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 4,
+            "y": 9
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 3,
+            "y": 6
+          },
+          {
+            "t": "EAGLE",
+            "o": 1,
+            "x": 18,
+            "y": 8
+          },
+          {
+            "t": "HADRIAN",
+            "o": 1,
+            "x": 17,
+            "y": 7
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 18,
+            "y": 7
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 19,
+            "y": 7
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 17,
+            "y": 8
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 19,
+            "y": 8
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 18,
+            "y": 9
+          }
+        ]
+      },
+      {
+        "name": "MONS RUMKER",
+        "pack": "AI-made: Training Ground",
+        "campaignId": "training-ground",
+        "mission": 11,
+        "author": "AI-made by Claude Opus 5.5",
+        "source": "levels/training-ground/11-mons-rumker.json",
+        "description": "New: wheels. The Mule carries one Charlie or Kilroy; the Panther is a fast infantry car that captures. Wheels pay double on plains and cannot enter wasteland, so use the roads. Two neutral factories hold reserves.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+        "tags": [
+          "teaching campaign",
+          "half-turn symmetry"
+        ],
+        "design": {
+          "theme": "teaching",
+          "symmetry": "half"
+        },
+        "grid": [
+          "wh.....wMhhh....w....w..",
+          "whww...wM.h....hwhh.....",
+          ".......wM......hw.......",
+          "..MMM..w.-----Fhw...h..w",
+          "..MMMM...-....--........",
+          "...wMM.--..ww..-........",
+          "...h...-..wwww..-.......",
+          ".......-..wwww..------B.",
+          ".B------..wwww..-.......",
+          ".......-..wwww..-...h...",
+          "........-..ww..--.MMw...",
+          "........--....-...MMMM..",
+          "w..h...whF-----.w..MMM..",
+          ".......wh......Mw.......",
+          ".....hhwh....h.Mw...wwhw",
+          "..w....w....hhhMw.....hw"
+        ],
+        "buildings": [
+          {
+            "col": 1,
+            "row": 8,
+            "owner": 0
+          },
+          {
+            "col": 22,
+            "row": 7,
+            "owner": 1
+          },
+          {
+            "col": 9,
+            "row": 12,
+            "owner": -1,
+            "stored": [
+              "BISON",
+              "CHARLIE"
+            ]
+          },
+          {
+            "col": 14,
+            "row": 3,
+            "owner": -1,
+            "stored": [
+              "BISON",
+              "CHARLIE"
+            ]
+          }
+        ],
+        "units": [
+          {
+            "t": "MULE",
+            "o": 0,
+            "x": 3,
+            "y": 8
+          },
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 3,
+            "y": 7
+          },
+          {
+            "t": "PANTHER",
+            "o": 0,
+            "x": 2,
+            "y": 8
+          },
+          {
+            "t": "HADRIAN",
+            "o": 0,
+            "x": 4,
+            "y": 8
+          },
+          {
+            "t": "SEEKER",
+            "o": 0,
+            "x": 2,
+            "y": 9
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 3,
+            "y": 9
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 4,
+            "y": 9
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 3,
+            "y": 6
+          },
+          {
+            "t": "KILROY",
+            "o": 0,
+            "x": 5,
+            "y": 5
+          },
+          {
+            "t": "MULE",
+            "o": 1,
+            "x": 20,
+            "y": 8
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 19,
+            "y": 7
+          },
+          {
+            "t": "PANTHER",
+            "o": 1,
+            "x": 20,
+            "y": 7
+          },
+          {
+            "t": "HADRIAN",
+            "o": 1,
+            "x": 21,
+            "y": 7
+          },
+          {
+            "t": "SEEKER",
+            "o": 1,
+            "x": 19,
+            "y": 8
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 21,
+            "y": 8
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 20,
+            "y": 9
+          },
+          {
+            "t": "KILROY",
+            "o": 1,
+            "x": 18,
+            "y": 10
+          }
+        ]
+      },
+      {
+        "name": "MONTES JURA",
+        "pack": "AI-made: Training Ground",
+        "campaignId": "training-ground",
+        "mission": 12,
+        "author": "AI-made by Claude Opus 5.5",
+        "source": "levels/training-ground/12-montes-jura.json",
+        "description": "New: the Pelican, an air transport for any one ground unit; it must land its passenger on plains, roads or bridges. A valley runs down the board: infantry can climb in and out, but vehicles cross only at the bridges. A Pelican can land a tank behind the Xenon lines.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+        "tags": [
+          "teaching campaign",
+          "half-turn symmetry"
+        ],
+        "design": {
+          "theme": "teaching",
+          "symmetry": "half"
+        },
+        "grid": [
+          "......M....vv...hM.....M",
+          "......M....vv...hM.....M",
+          "......M....vv....Mh....M",
+          "......M....vv.hh.MMhh..M",
+          "......w.w..vv.hhh.M....M",
+          ".......hw-.==..h.......M",
+          "...h...hh-.vv..hh-.-.-..",
+          ".......h-w.vv..--.-.-.B.",
+          ".B.-.-.--..vv.w-h.......",
+          "..-.-.-hh..vv.-hh...h...",
+          "M.......h..==.-wh.......",
+          "M....M.hhh.vv..w.w......",
+          "M..hhMM.hh.vv....M......",
+          "M....hM....vv....M......",
+          "M.....Mh...vv....M......",
+          "M.....Mh...vv....M......"
+        ],
+        "buildings": [
+          {
+            "col": 1,
+            "row": 8,
+            "owner": 0
+          },
+          {
+            "col": 22,
+            "row": 7,
+            "owner": 1
+          }
+        ],
+        "units": [
+          {
+            "t": "PELICAN",
+            "o": 0,
+            "x": 3,
+            "y": 8
+          },
+          {
+            "t": "HADRIAN",
+            "o": 0,
+            "x": 3,
+            "y": 7
+          },
+          {
+            "t": "SEEKER",
+            "o": 0,
+            "x": 2,
+            "y": 8
+          },
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 4,
+            "y": 8
+          },
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 2,
+            "y": 9
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 3,
+            "y": 9
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 4,
+            "y": 9
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 3,
+            "y": 6
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 1,
+            "y": 7
+          },
+          {
+            "t": "PELICAN",
+            "o": 1,
+            "x": 20,
+            "y": 8
+          },
+          {
+            "t": "HADRIAN",
+            "o": 1,
+            "x": 19,
+            "y": 7
+          },
+          {
+            "t": "SEEKER",
+            "o": 1,
+            "x": 20,
+            "y": 7
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 21,
+            "y": 7
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 19,
+            "y": 8
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 21,
+            "y": 8
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 20,
+            "y": 9
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 19,
+            "y": 6
+          }
+        ]
+      },
+      {
+        "name": "MONTES CAUCASUS",
+        "pack": "AI-made: Training Ground",
+        "campaignId": "training-ground",
+        "mission": 13,
+        "author": "AI-made by Claude Opus 5.5",
+        "source": "levels/training-ground/13-montes-caucasus.json",
+        "description": "New: heavy tanks. The Polar and Grizzly are slow and hard to crack; the Titan is strong and a little quicker; the Slagger is as tough and the fastest tank of all; the Lenet is a lighter Bison. The Giant moves only two hexes, but hits hardest of all and fires at aircraft too.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+        "tags": [
+          "teaching campaign",
+          "half-turn symmetry"
+        ],
+        "design": {
+          "theme": "teaching",
+          "symmetry": "half"
+        },
+        "grid": [
+          "MMMw.MM.M...h....M..h.hhhh",
+          "Mwwww..hM........M.whhhhhh",
+          "........M........M....hh..",
+          "........M........MM...hh..",
+          "........wwM....M..M......w",
+          "........wwM.hh....M.......",
+          "..........Mhhhh-.-M-.-.-..",
+          "...........hhh-.-.-.-.-.B.",
+          ".B.-.-.-.-.-hhh...........",
+          "..-.-.-M-.-hhhhM..........",
+          ".......M....hh.Mww........",
+          "w......M..M....Mww........",
+          "..hh...MM........M........",
+          "..hh....M........M........",
+          "hhhhhhw.M........Mh..wwwwM",
+          "hhhh.h..M....h...M.MM.wMMM"
+        ],
+        "buildings": [
+          {
+            "col": 1,
+            "row": 8,
+            "owner": 0
+          },
+          {
+            "col": 24,
+            "row": 7,
+            "owner": 1
+          }
+        ],
+        "units": [
+          {
+            "t": "GIANT",
+            "o": 0,
+            "x": 4,
+            "y": 8
+          },
+          {
+            "t": "GRIZZLY",
+            "o": 0,
+            "x": 3,
+            "y": 7
+          },
+          {
+            "t": "TITAN",
+            "o": 0,
+            "x": 4,
+            "y": 7
+          },
+          {
+            "t": "LENET",
+            "o": 0,
+            "x": 5,
+            "y": 7
+          },
+          {
+            "t": "HADRIAN",
+            "o": 0,
+            "x": 3,
+            "y": 8
+          },
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 5,
+            "y": 8
+          },
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 4,
+            "y": 9
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 3,
+            "y": 6
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 4,
+            "y": 6
+          },
+          {
+            "t": "POLAR",
+            "o": 1,
+            "x": 21,
+            "y": 8
+          },
+          {
+            "t": "SLAGGER",
+            "o": 1,
+            "x": 21,
+            "y": 7
+          },
+          {
+            "t": "SLAGGER",
+            "o": 1,
+            "x": 20,
+            "y": 8
+          },
+          {
+            "t": "TITAN",
+            "o": 1,
+            "x": 22,
+            "y": 8
+          },
+          {
+            "t": "LENET",
+            "o": 1,
+            "x": 20,
+            "y": 9
+          },
+          {
+            "t": "HADRIAN",
+            "o": 1,
+            "x": 21,
+            "y": 9
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 22,
+            "y": 9
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 21,
+            "y": 6
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 19,
+            "y": 7
+          }
+        ]
+      },
+      {
+        "name": "MONTES HAEMUS",
+        "pack": "AI-made: Training Ground",
+        "campaignId": "training-ground",
+        "mission": 14,
+        "author": "AI-made by Claude Opus 5.5",
+        "source": "levels/training-ground/14-montes-haemus.json",
+        "description": "Experience: a unit that damages or destroys enemies earns stars, and each star makes it hit harder. Your main squads start with a star. Keep them alive: a damaged veteran is worth repairing in a factory, and repairs keep its stars.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+        "tags": [
+          "teaching campaign",
+          "half-turn symmetry"
+        ],
+        "design": {
+          "theme": "teaching",
+          "symmetry": "half"
+        },
+        "grid": [
+          "Mwww.hhwMhhh.....M....w.M.",
+          ".......hMh.......M....w...",
+          "....w...M......h.M........",
+          "h...w...MMMMMMMhhM......ww",
+          "........MMM.MMMh.M.......w",
+          "........MM.....h.F........",
+          "......hhMM..hh.h.-.w......",
+          "............hh..M.--.-.-..",
+          "............hh......-.-.B.",
+          ".B.-.-......hh............",
+          "..-.-.--.M..hh............",
+          "......w.-.h.hh..MMhh......",
+          "........F.h.....MM........",
+          "w.......M.hMMM.MMM........",
+          "ww......MhhMMMMMMM...w...h",
+          "........M.h......M...w....",
+          "...w....M.......hMh.......",
+          ".M.w....M.....hhhMwhh.wwwM"
+        ],
+        "buildings": [
+          {
+            "col": 1,
+            "row": 9,
+            "owner": 0
+          },
+          {
+            "col": 24,
+            "row": 8,
+            "owner": 1
+          },
+          {
+            "col": 8,
+            "row": 12,
+            "owner": -1,
+            "stored": [
+              "BISON",
+              "SEEKER"
+            ]
+          },
+          {
+            "col": 17,
+            "row": 5,
+            "owner": -1,
+            "stored": [
+              "BISON",
+              "SEEKER"
+            ]
+          }
+        ],
+        "units": [
+          {
+            "t": "TITAN",
+            "o": 0,
+            "x": 4,
+            "y": 9,
+            "exp": 1
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 3,
+            "y": 8,
+            "exp": 1
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 4,
+            "y": 8,
+            "exp": 1
+          },
+          {
+            "t": "HADRIAN",
+            "o": 0,
+            "x": 5,
+            "y": 8,
+            "exp": 1
+          },
+          {
+            "t": "HAWKEYE",
+            "o": 0,
+            "x": 3,
+            "y": 9,
+            "exp": 1
+          },
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 5,
+            "y": 9,
+            "exp": 1
+          },
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 5,
+            "y": 7
+          },
+          {
+            "t": "EAGLE",
+            "o": 0,
+            "x": 5,
+            "y": 6
+          },
+          {
+            "t": "RABBIT",
+            "o": 0,
+            "x": 4,
+            "y": 7
+          },
+          {
+            "t": "TITAN",
+            "o": 1,
+            "x": 21,
+            "y": 9
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 21,
+            "y": 8
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 20,
+            "y": 9
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 22,
+            "y": 9
+          },
+          {
+            "t": "HADRIAN",
+            "o": 1,
+            "x": 20,
+            "y": 10
+          },
+          {
+            "t": "HAWKEYE",
+            "o": 1,
+            "x": 21,
+            "y": 10
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 22,
+            "y": 10
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 21,
+            "y": 7
+          },
+          {
+            "t": "EAGLE",
+            "o": 1,
+            "x": 19,
+            "y": 9
+          },
+          {
+            "t": "RABBIT",
+            "o": 1,
+            "x": 19,
+            "y": 10
+          }
+        ]
+      },
+      {
+        "name": "MONTES TAURUS",
+        "pack": "AI-made: Training Ground",
+        "campaignId": "training-ground",
+        "mission": 15,
+        "author": "AI-made by Claude Opus 5.5",
+        "source": "levels/training-ground/15-montes-taurus.json",
+        "description": "New: fixed defenses. Trigger mines never move or fire but are very hard to destroy and still stop units beside them. An Atlas gun, set down by a transport, fires two to six hexes away but never moves again. The Octopus is a shorter-ranged, harder-hitting gun. Break the line with your own guns first.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+        "tags": [
+          "teaching campaign",
+          "unequal sides"
+        ],
+        "design": {
+          "theme": "teaching",
+          "symmetry": "none"
+        },
+        "grid": [
+          ".....M................M.....",
+          ".....M................M.....",
+          ".....M................M.....",
+          ".....M................M.....",
+          ".....M...........M....M.....",
+          ".................M..........",
+          ".................M..........",
+          "..........hh.....M..........",
+          "..........hhh...............",
+          ".B-------------....-------B.",
+          "..........hh.....M..........",
+          ".................M..........",
+          ".................M..........",
+          ".....M...........M....M.....",
+          ".....M................M.....",
+          ".....M................M.....",
+          ".....M................M.....",
+          ".....M................M....."
+        ],
+        "buildings": [
+          {
+            "col": 1,
+            "row": 9,
+            "owner": 0
+          },
+          {
+            "col": 26,
+            "row": 9,
+            "owner": 1
+          }
+        ],
+        "units": [
+          {
+            "t": "OCTOPUS",
+            "o": 0,
+            "x": 4,
+            "y": 9
+          },
+          {
+            "t": "OCTOPUS",
+            "o": 0,
+            "x": 3,
+            "y": 8
+          },
+          {
+            "t": "HADRIAN",
+            "o": 0,
+            "x": 4,
+            "y": 8
+          },
+          {
+            "t": "HADRIAN",
+            "o": 0,
+            "x": 5,
+            "y": 8
+          },
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 3,
+            "y": 9
+          },
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 5,
+            "y": 9
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 4,
+            "y": 10
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 3,
+            "y": 7
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 4,
+            "y": 7
+          },
+          {
+            "t": "LENET",
+            "o": 0,
+            "x": 5,
+            "y": 7
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 2,
+            "y": 8,
+            "str": 4
+          },
+          {
+            "t": "SEEKER",
+            "o": 0,
+            "x": 5,
+            "y": 6
+          },
+          {
+            "t": "TRIGGER",
+            "o": 1,
+            "x": 17,
+            "y": 9
+          },
+          {
+            "t": "TRIGGER",
+            "o": 1,
+            "x": 17,
+            "y": 8
+          },
+          {
+            "t": "MULE",
+            "o": 1,
+            "x": 22,
+            "y": 9
+          },
+          {
+            "t": "ATLAS",
+            "o": 1,
+            "x": 21,
+            "y": 8
+          },
+          {
+            "t": "OCTOPUS",
+            "o": 1,
+            "x": 23,
+            "y": 9
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 23,
+            "y": 8
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 24,
+            "y": 9
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 22,
+            "y": 10
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 23,
+            "y": 10
+          },
+          {
+            "t": "TITAN",
+            "o": 1,
+            "x": 24,
+            "y": 10
+          },
+          {
+            "t": "LENET",
+            "o": 1,
+            "x": 23,
+            "y": 7
+          },
+          {
+            "t": "HAWKEYE",
+            "o": 1,
+            "x": 24,
+            "y": 6
+          }
+        ]
+      },
+      {
+        "name": "MONTES APENNINUS",
+        "pack": "AI-made: Training Ground",
+        "campaignId": "training-ground",
+        "mission": 16,
+        "author": "AI-made by Claude Opus 5.5",
+        "source": "levels/training-ground/16-montes-apenninus.json",
+        "description": "Everything together. New: the Falcon hunts aircraft and cannot touch ground units; the Hunter fights both. The Xenon army matches yours except for your two extra Bisons. Win the air, cover your guns, and capture the factories before the Xenon does.",
+        "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+        "tags": [
+          "teaching campaign",
+          "half-turn symmetry"
+        ],
+        "design": {
+          "theme": "teaching",
+          "symmetry": "half"
+        },
+        "grid": [
+          ".........M..w....w..M.........",
+          ".........M..w....w..M.........",
+          ".........M..w....w..M.........",
+          ".........M..w....w..M.........",
+          ".........MM.........M.........",
+          ".......F..MM..................",
+          "..........MM.-----............",
+          "..........MM..hh..--..........",
+          ".............hhhh...--.-.-.-..",
+          ".............hhhh.....-.-.-.B.",
+          ".B.-.-.-.....hhhh.............",
+          "..-.-.-.--...hhhh.............",
+          "..........--..hh..MM..........",
+          "............-----.MM..........",
+          "..................MM..F.......",
+          ".........M.........MM.........",
+          ".........M..w....w..M.........",
+          ".........M..w....w..M.........",
+          ".........M..w....w..M.........",
+          ".........M..w....w..M........."
+        ],
+        "buildings": [
+          {
+            "col": 1,
+            "row": 10,
+            "owner": 0
+          },
+          {
+            "col": 28,
+            "row": 9,
+            "owner": 1
+          },
+          {
+            "col": 7,
+            "row": 5,
+            "owner": -1,
+            "stored": [
+              "BISON",
+              "CHARLIE",
+              "HADRIAN"
+            ]
+          },
+          {
+            "col": 22,
+            "row": 14,
+            "owner": -1,
+            "stored": [
+              "BISON",
+              "CHARLIE",
+              "HADRIAN"
+            ]
+          }
+        ],
+        "units": [
+          {
+            "t": "HUNTER",
+            "o": 0,
+            "x": 4,
+            "y": 10
+          },
+          {
+            "t": "FALCON",
+            "o": 0,
+            "x": 3,
+            "y": 9
+          },
+          {
+            "t": "HADRIAN",
+            "o": 0,
+            "x": 4,
+            "y": 9
+          },
+          {
+            "t": "HAWKEYE",
+            "o": 0,
+            "x": 5,
+            "y": 9
+          },
+          {
+            "t": "SEEKER",
+            "o": 0,
+            "x": 3,
+            "y": 10
+          },
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 5,
+            "y": 10
+          },
+          {
+            "t": "CHARLIE",
+            "o": 0,
+            "x": 4,
+            "y": 11
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 3,
+            "y": 8
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 4,
+            "y": 8
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 5,
+            "y": 8
+          },
+          {
+            "t": "TITAN",
+            "o": 0,
+            "x": 2,
+            "y": 9
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 6,
+            "y": 9
+          },
+          {
+            "t": "BISON",
+            "o": 0,
+            "x": 2,
+            "y": 10
+          },
+          {
+            "t": "PELICAN",
+            "o": 0,
+            "x": 6,
+            "y": 6
+          },
+          {
+            "t": "KILROY",
+            "o": 0,
+            "x": 5,
+            "y": 5
+          },
+          {
+            "t": "HUNTER",
+            "o": 1,
+            "x": 25,
+            "y": 10
+          },
+          {
+            "t": "FALCON",
+            "o": 1,
+            "x": 25,
+            "y": 9
+          },
+          {
+            "t": "HADRIAN",
+            "o": 1,
+            "x": 24,
+            "y": 10
+          },
+          {
+            "t": "HAWKEYE",
+            "o": 1,
+            "x": 26,
+            "y": 10
+          },
+          {
+            "t": "SEEKER",
+            "o": 1,
+            "x": 24,
+            "y": 11
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 25,
+            "y": 11
+          },
+          {
+            "t": "CHARLIE",
+            "o": 1,
+            "x": 26,
+            "y": 11
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 25,
+            "y": 8
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 23,
+            "y": 9
+          },
+          {
+            "t": "BISON",
+            "o": 1,
+            "x": 24,
+            "y": 9
+          },
+          {
+            "t": "TITAN",
+            "o": 1,
+            "x": 26,
+            "y": 9
+          },
+          {
+            "t": "PELICAN",
+            "o": 1,
+            "x": 23,
+            "y": 13
+          },
+          {
+            "t": "KILROY",
+            "o": 1,
+            "x": 23,
+            "y": 12
+          }
+        ]
+      }
+    ]
   }
 ];
 if(typeof module!=="undefined")module.exports=ENVIRONMENT_CAMPAIGNS;

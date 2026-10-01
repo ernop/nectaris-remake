@@ -1,0 +1,133 @@
+{
+  "name": "MONS VINOGRADOV",
+  "pack": "AI-made: Training Ground",
+  "campaignId": "training-ground",
+  "mission": 9,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/training-ground/09-mons-vinogradov.json",
+  "description": "New: the Eagle. It flies over mountains and valleys, hits ground units hard, and no Bison can shoot at it; only infantry and buggies fire back, weakly. Aircraft get no defense from terrain. The Xenon has no aircraft, and your Eagle squad is down to three machines.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "teaching campaign",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "teaching",
+    "symmetry": "half"
+  },
+  "grid": [
+    "......M.hh..M.wMw....M",
+    "......M.hh.....M......",
+    "......M.hhMM...M......",
+    ".h.hhhM.hMMM...M......",
+    ".h.......MMM...w......",
+    "..........MM...M......",
+    ".....MMhh.----------B.",
+    ".B----------.hhMM.....",
+    "......M...MM..........",
+    "......w...MMM.......h.",
+    "......M...MMMh.Mhhh.h.",
+    "......M...MMhh.M......",
+    "......M.....hh.M......",
+    "M....wMw.M..hh.M......"
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 7,
+      "owner": 0
+    },
+    {
+      "col": 20,
+      "row": 6,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 3,
+      "y": 7
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 2,
+      "y": 7
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 7
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 2,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 3,
+      "y": 8
+    },
+    {
+      "t": "EAGLE",
+      "o": 0,
+      "x": 4,
+      "y": 8,
+      "str": 3
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 18,
+      "y": 7
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 17,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 18,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 19,
+      "y": 6
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 17,
+      "y": 7
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 19,
+      "y": 7
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 18,
+      "y": 8
+    }
+  ]
+}

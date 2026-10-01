@@ -1,0 +1,120 @@
+{
+  "name": "MONS AMPERE",
+  "pack": "AI-made: Training Ground",
+  "campaignId": "training-ground",
+  "mission": 7,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/training-ground/07-mons-ampere.json",
+  "description": "New: the Hadrian, a self-propelled gun. It fires two to five hexes away, and nobody can shoot back, but in one turn it either moves or fires. Keep your tanks in front of it: a gun caught beside an enemy is easy prey.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "teaching campaign",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "teaching",
+    "symmetry": "half"
+  },
+  "grid": [
+    "w.....M..w...M..M...",
+    "......Mh.....M......",
+    "......Mh....MM....MM",
+    "...wM.ww....MM....MM",
+    "...w..ww........hhhM",
+    ".....hhw.hh.....h...",
+    "....hhhMMh--------B.",
+    ".B--------hMMhhh....",
+    "...h.....hh.whh.....",
+    "Mhhh........ww..w...",
+    "MM....MM....ww.Mw...",
+    "MM....MM....hM......",
+    "......M.....hM......",
+    "...M..M...w..M.....w"
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 7,
+      "owner": 0
+    },
+    {
+      "col": 18,
+      "row": 6,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 3,
+      "y": 7
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 3,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 2,
+      "y": 7
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 7
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 2,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 3,
+      "y": 8
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 16,
+      "y": 7
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 15,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 16,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 17,
+      "y": 6
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 15,
+      "y": 7
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 17,
+      "y": 7
+    }
+  ]
+}

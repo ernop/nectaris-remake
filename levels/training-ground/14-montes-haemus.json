@@ -1,0 +1,190 @@
+{
+  "name": "MONTES HAEMUS",
+  "pack": "AI-made: Training Ground",
+  "campaignId": "training-ground",
+  "mission": 14,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/training-ground/14-montes-haemus.json",
+  "description": "Experience: a unit that damages or destroys enemies earns stars, and each star makes it hit harder. Your main squads start with a star. Keep them alive: a damaged veteran is worth repairing in a factory, and repairs keep its stars.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "teaching campaign",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "teaching",
+    "symmetry": "half"
+  },
+  "grid": [
+    "Mwww.hhwMhhh.....M....w.M.",
+    ".......hMh.......M....w...",
+    "....w...M......h.M........",
+    "h...w...MMMMMMMhhM......ww",
+    "........MMM.MMMh.M.......w",
+    "........MM.....h.F........",
+    "......hhMM..hh.h.-.w......",
+    "............hh..M.--.-.-..",
+    "............hh......-.-.B.",
+    ".B.-.-......hh............",
+    "..-.-.--.M..hh............",
+    "......w.-.h.hh..MMhh......",
+    "........F.h.....MM........",
+    "w.......M.hMMM.MMM........",
+    "ww......MhhMMMMMMM...w...h",
+    "........M.h......M...w....",
+    "...w....M.......hMh.......",
+    ".M.w....M.....hhhMwhh.wwwM"
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 9,
+      "owner": 0
+    },
+    {
+      "col": 24,
+      "row": 8,
+      "owner": 1
+    },
+    {
+      "col": 8,
+      "row": 12,
+      "owner": -1,
+      "stored": [
+        "BISON",
+        "SEEKER"
+      ]
+    },
+    {
+      "col": 17,
+      "row": 5,
+      "owner": -1,
+      "stored": [
+        "BISON",
+        "SEEKER"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "TITAN",
+      "o": 0,
+      "x": 4,
+      "y": 9,
+      "exp": 1
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 3,
+      "y": 8,
+      "exp": 1
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 8,
+      "exp": 1
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 5,
+      "y": 8,
+      "exp": 1
+    },
+    {
+      "t": "HAWKEYE",
+      "o": 0,
+      "x": 3,
+      "y": 9,
+      "exp": 1
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 9,
+      "exp": 1
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 7
+    },
+    {
+      "t": "EAGLE",
+      "o": 0,
+      "x": 5,
+      "y": 6
+    },
+    {
+      "t": "RABBIT",
+      "o": 0,
+      "x": 4,
+      "y": 7
+    },
+    {
+      "t": "TITAN",
+      "o": 1,
+      "x": 21,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 21,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 20,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 22,
+      "y": 9
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 20,
+      "y": 10
+    },
+    {
+      "t": "HAWKEYE",
+      "o": 1,
+      "x": 21,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 22,
+      "y": 10
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 21,
+      "y": 7
+    },
+    {
+      "t": "EAGLE",
+      "o": 1,
+      "x": 19,
+      "y": 9
+    },
+    {
+      "t": "RABBIT",
+      "o": 1,
+      "x": 19,
+      "y": 10
+    }
+  ]
+}

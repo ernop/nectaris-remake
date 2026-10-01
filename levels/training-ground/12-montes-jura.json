@@ -1,0 +1,152 @@
+{
+  "name": "MONTES JURA",
+  "pack": "AI-made: Training Ground",
+  "campaignId": "training-ground",
+  "mission": 12,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/training-ground/12-montes-jura.json",
+  "description": "New: the Pelican, an air transport for any one ground unit; it must land its passenger on plains, roads or bridges. A valley runs down the board: infantry can climb in and out, but vehicles cross only at the bridges. A Pelican can land a tank behind the Xenon lines.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "teaching campaign",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "teaching",
+    "symmetry": "half"
+  },
+  "grid": [
+    "......M....vv...hM.....M",
+    "......M....vv...hM.....M",
+    "......M....vv....Mh....M",
+    "......M....vv.hh.MMhh..M",
+    "......w.w..vv.hhh.M....M",
+    ".......hw-.==..h.......M",
+    "...h...hh-.vv..hh-.-.-..",
+    ".......h-w.vv..--.-.-.B.",
+    ".B.-.-.--..vv.w-h.......",
+    "..-.-.-hh..vv.-hh...h...",
+    "M.......h..==.-wh.......",
+    "M....M.hhh.vv..w.w......",
+    "M..hhMM.hh.vv....M......",
+    "M....hM....vv....M......",
+    "M.....Mh...vv....M......",
+    "M.....Mh...vv....M......"
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 8,
+      "owner": 0
+    },
+    {
+      "col": 22,
+      "row": 7,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "PELICAN",
+      "o": 0,
+      "x": 3,
+      "y": 8
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 3,
+      "y": 7
+    },
+    {
+      "t": "SEEKER",
+      "o": 0,
+      "x": 2,
+      "y": 8
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 4,
+      "y": 8
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 2,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 3,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 3,
+      "y": 6
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 1,
+      "y": 7
+    },
+    {
+      "t": "PELICAN",
+      "o": 1,
+      "x": 20,
+      "y": 8
+    },
+    {
+      "t": "HADRIAN",
+      "o": 1,
+      "x": 19,
+      "y": 7
+    },
+    {
+      "t": "SEEKER",
+      "o": 1,
+      "x": 20,
+      "y": 7
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 21,
+      "y": 7
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 19,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 21,
+      "y": 8
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 20,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 19,
+      "y": 6
+    }
+  ]
+}

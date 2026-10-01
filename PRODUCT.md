@@ -2375,14 +2375,16 @@ where the transcript is clear, otherwise paraphrased):
   (user, 2026-09-30). Marshal is that bot since 2026-09-29; when a stronger
   bot arrives, a campaign's curve is measured again with it.
 - The user's description of the built-in campaign is that it works this way.
-  Measured 2026-09-30 on its 16 maps under the rules of `2e14241` (turn limits,
-  and the factory entry rule before `375a392`), with Marshal on both sides, 60
-  games per map, and Marshal's Union against Classic, 32 games: with the
-  original CPU (Classic) as Xenon, a strong Union won 81-100% on maps 1-10 and
-  44-91% on maps 11-16 except KAISER (3%), which fits the description. With
-  Marshal on both sides, Union won 98-100% on maps 1-2, 53-87% on maps 3, 4, 6
-  and 7, and 0-27% on the rest (0-3% from map 11 on). The curve the user
-  describes is the one the original campaign has against its own CPU.
+  Measured 2026-09-30 on its 16 maps under the current rules (draws, factory
+  entry within the move; commit `abefc7e`), with Marshal on both sides, 60
+  games per map, and Marshal against Classic, 32 games per seat: with the
+  original CPU (Classic) as Xenon, a strong Union won 78-100% on maps 1-10 and
+  44-94% on maps 11-16 except KAISER (6%), which fits the description. With
+  Marshal on both sides, Union won 92-100% on maps 1-2, 55-92% on maps 3, 4, 6
+  and 7, and 0-38% on the rest (0-3% from map 11 on). The curve the user
+  describes is the one the original campaign has against its own CPU. The
+  same maps under the turn-limit rules of `2e14241` gave nearly the same
+  numbers.
 - The purpose of the map work is to understand how to design a campaign that is
   fun for human players; developing new missions matters more than the shipped
   ones, which stay as they are.
@@ -2391,6 +2393,46 @@ The balance-study findings in [MAP_BALANCE.md](MAP_BALANCE.md) (how strength,
 extra units, camps and factory stock move the result, and how much the
 measurements vary) are the tools for hitting a target chance on each map. The
 per-board turn limit, a strong lever in those studies, no longer exists.
+
+**Approved 2026-09-30: one 16-mission teaching campaign, as the test of the
+method.** Each mission introduces one thing a new player needs, in order;
+boards grow from small to large; armies may be unequal, so the early advantage
+can come from a larger army; the campaign has its own files. Targets:
+
+- **Curve:** Union's share of Marshal self-play is 95-100% on missions 1-3 and
+  falls evenly to about 60% on mission 16.
+- **Playing well matters** (tuned for, user's choice): against Marshal's Xenon,
+  Tactical's and Classic's Union each win less often than Marshal's Union on
+  every mission, and under a quarter of their games on missions 13-16.
+
+**Implemented 2026-09-30: AI-made: Training Ground**, credited AI-made by
+Claude Opus 5.5, after Arsenal in the mission library
+([catalog](ENVIRONMENT_CAMPAIGNS.md#training-ground)).
+
+- Lessons in order: capture the camp, terrain defense, zones of control,
+  support and surround, factories, Kilroy, artillery, buggies, aircraft,
+  anti-air, transports and roads, valleys and the Pelican, heavy armor,
+  experience, mines and fixed guns, all arms. Boards grow from 14×10 to 30×20;
+  all have edge barriers; mission 15 has unequal sides, the rest half-turn
+  symmetry.
+- Acceptance, on two fresh dice seeds pooled (300 games per pairing):
+  Marshal self-play within 6 points of each mission's target (at least 95% on
+  missions 1-3); each weak Union at least 5 points below Marshal's; each under
+  25% on missions 13-16. All 16 pass: Marshal's Union 97, 100, 100, 96, 94,
+  89, 84, 80, 82, 80, 67, 67, 66, 67, 68, 61%.
+- Win rates count wins; a draw is not a win. Tactical's Union mostly draws
+  against Marshal's Xenon (about 50% with draws counted half), so it meets the
+  "wins less often" target only under that counting.
+- Missions 11-15 measured 66-68%, inside the tolerance but flat where the
+  targets fall from 73 to 62.
+- Most boards start from a seeded clustered layer of hills, wasteland and
+  mountains (`texture()` in `tools/teaching-campaign-specs.js`), because
+  terrain seeds moved the results as much as armies did. The measurements
+  belong to those exact boards; the build is checked identical to them.
+- Method, findings and per-mission numbers:
+  [MAP_BALANCE.md](MAP_BALANCE.md#designing-a-campaign). Humans have not
+  played it; the menu and boards have not been looked at in a browser
+  (PROJECT_GUIDE.md, item 24).
 
 
 ## Edge barriers on four campaigns (2026-09-30)

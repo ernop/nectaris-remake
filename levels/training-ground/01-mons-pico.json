@@ -1,0 +1,98 @@
+{
+  "name": "MONS PICO",
+  "pack": "AI-made: Training Ground",
+  "campaignId": "training-ground",
+  "mission": 1,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/training-ground/01-mons-pico.json",
+  "description": "Your Charlies are infantry: move one onto the Xenon camp and you win. Your Bisons are tanks, the strongest units here; they attack from the hex beside an enemy. You also win by destroying every Xenon unit. You have one more Bison than the Xenon.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "teaching campaign",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "teaching",
+    "symmetry": "half"
+  },
+  "grid": [
+    "w...M..hhMhh..",
+    "w...M...hMh...",
+    "...MM.hh.M....",
+    "...MMM.-h-.-..",
+    "...MMM-.-.-.B.",
+    ".B.-.-.-MMM...",
+    "..-.-h-.MMM...",
+    "....M.hh.MM...",
+    "...hMh...M...w",
+    "..hhMhh..M...w"
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 5,
+      "owner": 0
+    },
+    {
+      "col": 12,
+      "row": 4,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 5
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 4
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 2,
+      "y": 5
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 5
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 2,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 10,
+      "y": 5
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 9,
+      "y": 4
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 10,
+      "y": 4
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 11,
+      "y": 4
+    }
+  ]
+}

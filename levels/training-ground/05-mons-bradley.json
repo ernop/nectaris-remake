@@ -1,0 +1,114 @@
+{
+  "name": "MONS BRADLEY",
+  "pack": "AI-made: Training Ground",
+  "campaignId": "training-ground",
+  "mission": 5,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/training-ground/05-mons-bradley.json",
+  "description": "A factory stores units. Move a Charlie onto a neutral factory to capture it: the Bisons inside join you and can leave next to it at once. A unit that enters your own factory is repaired to full strength and can leave again next turn. The Xenon Bisons start damaged.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "teaching campaign",
+    "half-turn symmetry"
+  ],
+  "design": {
+    "theme": "teaching",
+    "symmetry": "half"
+  },
+  "grid": [
+    "......M..M.Mwwwwh.",
+    "......M...hM......",
+    "h....FMhhhhM......",
+    ".....-M-.-hMM...MM",
+    "...--M-.-h..Mww...",
+    "...-.M..hh..M..-B.",
+    ".B-..M..hh..M.-...",
+    "...wwM..h-.-M--...",
+    "MM...MMh-.-M-.....",
+    "......MhhhhMF....h",
+    "......Mh...M......",
+    ".hwwwwM.M..M......"
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 6,
+      "owner": 0
+    },
+    {
+      "col": 16,
+      "row": 5,
+      "owner": 1
+    },
+    {
+      "col": 5,
+      "row": 2,
+      "owner": -1,
+      "stored": [
+        "BISON",
+        "BISON"
+      ]
+    },
+    {
+      "col": 12,
+      "row": 9,
+      "owner": -1,
+      "stored": [
+        "BISON",
+        "BISON"
+      ]
+    }
+  ],
+  "units": [
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 5
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 2,
+      "y": 6
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 14,
+      "y": 6
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 13,
+      "y": 5
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 14,
+      "y": 5,
+      "str": 6
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 15,
+      "y": 5,
+      "str": 6
+    }
+  ]
+}

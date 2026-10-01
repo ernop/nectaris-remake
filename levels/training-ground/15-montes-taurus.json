@@ -1,0 +1,197 @@
+{
+  "name": "MONTES TAURUS",
+  "pack": "AI-made: Training Ground",
+  "campaignId": "training-ground",
+  "mission": 15,
+  "author": "AI-made by Claude Opus 5.5",
+  "source": "levels/training-ground/15-montes-taurus.json",
+  "description": "New: fixed defenses. Trigger mines never move or fire but are very hard to destroy and still stop units beside them. An Atlas gun, set down by a transport, fires two to six hexes away but never moves again. The Octopus is a shorter-ranged, harder-hitting gun. Break the line with your own guns first.",
+  "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
+  "tags": [
+    "teaching campaign",
+    "unequal sides"
+  ],
+  "design": {
+    "theme": "teaching",
+    "symmetry": "none"
+  },
+  "grid": [
+    ".....M................M.....",
+    ".....M................M.....",
+    ".....M................M.....",
+    ".....M................M.....",
+    ".....M...........M....M.....",
+    ".................M..........",
+    ".................M..........",
+    "..........hh.....M..........",
+    "..........hhh...............",
+    ".B-------------....-------B.",
+    "..........hh.....M..........",
+    ".................M..........",
+    ".................M..........",
+    ".....M...........M....M.....",
+    ".....M................M.....",
+    ".....M................M.....",
+    ".....M................M.....",
+    ".....M................M....."
+  ],
+  "buildings": [
+    {
+      "col": 1,
+      "row": 9,
+      "owner": 0
+    },
+    {
+      "col": 26,
+      "row": 9,
+      "owner": 1
+    }
+  ],
+  "units": [
+    {
+      "t": "OCTOPUS",
+      "o": 0,
+      "x": 4,
+      "y": 9
+    },
+    {
+      "t": "OCTOPUS",
+      "o": 0,
+      "x": 3,
+      "y": 8
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 4,
+      "y": 8
+    },
+    {
+      "t": "HADRIAN",
+      "o": 0,
+      "x": 5,
+      "y": 8
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 3,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 0,
+      "x": 5,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 10
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 3,
+      "y": 7
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 4,
+      "y": 7
+    },
+    {
+      "t": "LENET",
+      "o": 0,
+      "x": 5,
+      "y": 7
+    },
+    {
+      "t": "BISON",
+      "o": 0,
+      "x": 2,
+      "y": 8,
+      "str": 4
+    },
+    {
+      "t": "SEEKER",
+      "o": 0,
+      "x": 5,
+      "y": 6
+    },
+    {
+      "t": "TRIGGER",
+      "o": 1,
+      "x": 17,
+      "y": 9
+    },
+    {
+      "t": "TRIGGER",
+      "o": 1,
+      "x": 17,
+      "y": 8
+    },
+    {
+      "t": "MULE",
+      "o": 1,
+      "x": 22,
+      "y": 9
+    },
+    {
+      "t": "ATLAS",
+      "o": 1,
+      "x": 21,
+      "y": 8
+    },
+    {
+      "t": "OCTOPUS",
+      "o": 1,
+      "x": 23,
+      "y": 9
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 23,
+      "y": 8
+    },
+    {
+      "t": "CHARLIE",
+      "o": 1,
+      "x": 24,
+      "y": 9
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 22,
+      "y": 10
+    },
+    {
+      "t": "BISON",
+      "o": 1,
+      "x": 23,
+      "y": 10
+    },
+    {
+      "t": "TITAN",
+      "o": 1,
+      "x": 24,
+      "y": 10
+    },
+    {
+      "t": "LENET",
+      "o": 1,
+      "x": 23,
+      "y": 7
+    },
+    {
+      "t": "HAWKEYE",
+      "o": 1,
+      "x": 24,
+      "y": 6
+    }
+  ]
+}
