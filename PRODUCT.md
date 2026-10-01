@@ -2416,15 +2416,20 @@ Claude Opus 5.5, after Arsenal in the mission library
   all have edge barriers; mission 15 has unequal sides, the rest half-turn
   symmetry.
 - Acceptance, on two fresh dice seeds pooled (300 games per pairing):
-  Marshal self-play within 6 points of each mission's target (at least 95% on
+  Marshal self-play within 5 points of each mission's target (at least 95% on
   missions 1-3); each weak Union at least 5 points below Marshal's; each under
-  25% on missions 13-16. All 16 pass: Marshal's Union 97, 100, 100, 96, 94,
-  89, 84, 80, 82, 80, 67, 67, 66, 67, 68, 61%.
+  25% on missions 13-16. The rule and targets are data in the specs file
+  (`checks`, `target`), applied by `tools/measure-campaign.js`. Marshal's
+  Union: 97, 100, 100, 96, 94, 89, 84, 80, 82, 80, 74, 67, 66, 67, 68, 61%.
+- Outside 5 points, pooling a third seed (the tool's reproduction run, 450
+  games per pairing): mission 9 at 84% (+6) and mission 15 at 68% (+6).
+  Mission 11 was at 66% (-7, target 73) and was re-tuned on 2026-09-30: one
+  Xenon Charlie starts at strength 3, which pooled 74% over 300 games.
 - Win rates count wins; a draw is not a win. Tactical's Union mostly draws
   against Marshal's Xenon (about 50% with draws counted half), so it meets the
-  "wins less often" target only under that counting.
-- Missions 11-15 measured 66-68%, inside the tolerance but flat where the
-  targets fall from 73 to 62.
+  "wins less often" target only under that counting. How the skill test
+  should count those draws is open with the user; missions 13-16 wait on it.
+- Missions 12-15 measured 66-68%, flat where the targets fall from 70 to 62.
 - Most boards start from a seeded clustered layer of hills, wasteland and
   mountains (`texture()` in `tools/teaching-campaign-specs.js`), because
   terrain seeds moved the results as much as armies did. The measurements

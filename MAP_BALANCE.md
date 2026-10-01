@@ -178,10 +178,40 @@ Marshal. No bot is made deliberately weak to produce a curve.
 
 Win rates count wins over games; a draw is not a win.
 
-**Acceptance**, on pooled confirmation games: Marshal self-play within 6 points
+**Acceptance**, on pooled confirmation games: Marshal self-play within 5 points
 of the mission's target (at least 95% on missions 1-3); each weak Union at
 least 5 points below Marshal's Union; each weak Union under 25% on missions
-13-16. Six points is about the 95% interval at 300 games.
+13-16. Tuning used these 5 points throughout. At 300 games the 95% interval
+of a 70% result is about ±5 points, so a mission 5 or 6 points off its target
+may still be on it. The rule is stored as `checks` in the specs file, with
+each mission's `target`, and `tools/measure-campaign.js` applies it.
+
+**Measuring a campaign.** From a clean checkout, with Rust's cargo installed:
+
+```sh
+# Every mission as specified: build, play every ordered pairing of Marshal,
+# Tactical and Classic 150 games per board, and check against the targets.
+node tools/measure-campaign.js measure --specs=tools/teaching-campaign-specs.js \
+  --out=/tmp/tg/run-a --games=150 --seed=any-new-text
+# Variants of missions (a file exporting [{m, label, ...spec fields}]); a
+# screen may use two bots and fewer games.
+node tools/measure-campaign.js measure --specs=tools/teaching-campaign-specs.js \
+  --variants=/tmp/tg/m11.js --out=/tmp/tg/m11-s1 --games=40 --pool=marshal,classic --seed=m11-s1
+# Pool runs on different dice seeds by board label, and check the pooled numbers.
+node tools/measure-campaign.js check /tmp/tg/run-a /tmp/tg/run-b
+# Print the boards (units as roster codes, Union upper case).
+node tools/measure-campaign.js view --specs=tools/teaching-campaign-specs.js --missions=11
+```
+
+`measure` refuses to run if `sim/data/game-data.json` is out of date, builds
+`sim`'s balance binary (`--cargo=PATH` when cargo is not on the PATH,
+`--target-dir=PATH` to reuse a build), and writes the export, a board list
+and the balance output next to `--out`. It runs balance with
+`--draws=pairs`, which adds a `pair-draws` line of drawn games per pairing
+after each `pairs` line and changes nothing else in the output; the check
+uses it to print each weak Union's score with draws counted half beside its
+win rate. `check` refuses to pool two runs with the same dice seed. A board
+fails `curve`, `gap` or `late` (the quarter rule on missions 13-16).
 
 **Reference: the original campaign under the current rules.** Union's wins over
 60 games on the 16 maps of the PC Engine campaign, REVOLT to NECTOR:
@@ -214,7 +244,8 @@ and 44-94% on 11-16 (KAISER 6%). The same maps under the turn-limit rules of
 
 Nine screening rounds measured 226 boards (drafts and variants), and five
 confirmation rounds 63 boards, some of them the same variant on a second seed;
-about 126,000 bot games in all.
+about 126,000 bot games in all. Those rounds ran on scripts outside the
+repository; `tools/measure-campaign.js` is their checked-in form.
 
 **What the tuning showed:**
 
@@ -246,30 +277,56 @@ about 126,000 bot games in all.
 
 **Results.** Union's wins in Marshal self-play (M), and Tactical's (T) and
 Classic's (C) Union against Marshal's Xenon, pooled over two fresh seeds (300
-games per pairing; mission 4, 450):
+games per pairing; mission 4, 450). The reproduction columns are one more
+fresh seed, 150 games per pairing, run with `tools/measure-campaign.js` on the
+shipped boards; "score" counts draws as half. Mission 11 was re-tuned after
+the reproduction (below), so its row is its new confirmation, which recorded
+draws.
 
-| # | Mission | Lesson | Target | M | T | C |
-|---:|---|---|---:|---:|---:|---:|
-| 1 | MONS PICO | capture the camp | 98 | 97 | 43 | 72 |
-| 2 | MONS PITON | terrain defense | 97 | 100 | 0 | 49 |
-| 3 | MONS LA HIRE | zones of control | 96 | 100 | 64 | 27 |
-| 4 | MONS HUYGENS | support and surround | 93 | 96 | 8 | 73 |
-| 5 | MONS BRADLEY | factories | 90 | 94 | 0 | 15 |
-| 6 | MONS WOLFF | Kilroy | 87 | 89 | 51 | 68 |
-| 7 | MONS AMPERE | artillery | 84 | 84 | 0 | 29 |
-| 8 | MONS ARGAEUS | buggies | 81 | 80 | 0 | 48 |
-| 9 | MONS VINOGRADOV | aircraft | 78 | 82 | 45 | 53 |
-| 10 | MONS GRUITHUISEN | anti-air | 76 | 80 | 2 | 2 |
-| 11 | MONS RUMKER | transports and roads | 73 | 67 | 0 | 18 |
-| 12 | MONTES JURA | valleys and the Pelican | 70 | 67 | 27 | 3 |
-| 13 | MONTES CAUCASUS | heavy armor | 68 | 66 | 21 | 12 |
-| 14 | MONTES HAEMUS | experience | 65 | 67 | 3 | 11 |
-| 15 | MONTES TAURUS | mines and fixed guns | 62 | 68 | 8 | 5 |
-| 16 | MONTES APENNINUS | all arms | 60 | 61 | 20 | 5 |
+| # | Mission | Target | M | T | C | Repro M | Repro T | T score | Repro C | C score |
+|---:|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1 | MONS PICO | 98 | 97 | 43 | 72 | 97 | 51 | 62 | 64 | 64 |
+| 2 | MONS PITON | 97 | 100 | 0 | 49 | 100 | 0 | 50 | 49 | 51 |
+| 3 | MONS LA HIRE | 96 | 100 | 64 | 27 | 100 | 63 | 80 | 21 | 44 |
+| 4 | MONS HUYGENS | 93 | 96 | 8 | 73 | 95 | 9 | 52 | 69 | 69 |
+| 5 | MONS BRADLEY | 90 | 94 | 0 | 15 | 93 | 0 | 50 | 21 | 21 |
+| 6 | MONS WOLFF | 87 | 89 | 51 | 68 | 86 | 53 | 56 | 75 | 75 |
+| 7 | MONS AMPERE | 84 | 84 | 0 | 29 | 84 | 0 | 50 | 29 | 29 |
+| 8 | MONS ARGAEUS | 81 | 80 | 0 | 48 | 78 | 0 | 50 | 47 | 47 |
+| 9 | MONS VINOGRADOV | 78 | 82 | 45 | 53 | 87 | 44 | 58 | 53 | 53 |
+| 10 | MONS GRUITHUISEN | 76 | 80 | 2 | 2 | 76 | 3 | 4 | 1 | 1 |
+| 11 | MONS RUMKER | 73 | 74 | 0 | 23 | - | - | 50 | - | 23 |
+| 12 | MONTES JURA | 70 | 67 | 27 | 3 | 67 | 32 | 64 | 1 | 1 |
+| 13 | MONTES CAUCASUS | 68 | 66 | 21 | 12 | 70 | 27 | 51 | 12 | 13 |
+| 14 | MONTES HAEMUS | 65 | 67 | 3 | 11 | 67 | 9 | 34 | 7 | 7 |
+| 15 | MONTES TAURUS | 62 | 68 | 8 | 5 | 69 | 8 | 50 | 2 | 2 |
+| 16 | MONTES APENNINUS | 60 | 61 | 20 | 5 | 57 | 17 | 44 | 5 | 6 |
 
-All 16 meet the acceptance rule. Missions 11-15 measured 66-68%, within the
-tolerance of targets that fall from 73 to 62, so the measured curve is flat
-there rather than falling evenly. Humans have not played the campaign yet.
+**Reproduction.** The checked-in tool reproduced the confirmations within
+noise: the largest differences from the pooled 300 games were 8 points
+(mission 1, Tactical up and Classic down), 6 (mission 13, Tactical) and 5
+(mission 9, Marshal), each under two standard deviations of a 150-game
+against 300-game comparison. On that single seed four missions failed the
+check: 9 (+9), 11 (-10), 15 (+7) and 13 (Tactical 27%, over the quarter).
+
+**Missions outside 5 points of their target.** Pooling the reproduction's wins
+with the two confirmation seeds (450 games per pairing): mission 9 at 84%
+(+6, target 78) and mission 15 at 68% (+6, target 62). Mission 11 was at 66%
+(-7, target 73) and was re-tuned. Tactical's Union on mission 13 pools at 23%,
+under the quarter. Missions 13-16 wait for the user's decision on how the
+skill test counts Tactical's draws.
+
+**Mission 11 re-tune (2026-09-30).** Screens of 40-60 games per pairing
+(Marshal and Classic) tried eight other terrain seeds (8-90%), an extra Union
+Bison at strengths 2-8 (62-95%, not monotone), the extra Xenon Bison at
+strengths 1-7 (28-90%), a damaged Xenon Kilroy, Charlie or Panther, and an
+extra Union Charlie. Two candidates passed confirmation: a Xenon Charlie at
+strength 3 (79% and 69% on the two seeds; 74% pooled) and a Xenon Kilroy at
+strength 5 (71% on both). The Charlie at strength 3 is in the campaign.
+
+Missions 12-15 measured 66-68% against targets that fall from 70 to 62, so the
+measured curve is flat there rather than falling evenly. Humans have not
+played the campaign yet.
 
 ## Findings
 

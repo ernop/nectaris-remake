@@ -54,7 +54,11 @@ Facts we need across sessions:
   Union win less often than Marshal's (under 25% on 13-16). Specs, including
   the seeded rough-ground `texture()` whose output the measurements depend
   on, are in `tools/teaching-campaign-specs.js`; built by
-  `tools/build-teaching-campaign.js` with the same rebuild command. Method and
+  `tools/build-teaching-campaign.js` with the same rebuild command. The specs
+  also hold each mission's `target` and the acceptance rule (`checks`);
+  measure and check with `node tools/measure-campaign.js measure
+  --specs=tools/teaching-campaign-specs.js --out=PREFIX --games=150
+  --seed=TEXT` (add `--cargo=PATH` when cargo is not on the PATH). Method and
   numbers: `MAP_BALANCE.md`, Designing a campaign.
 - **Local development:** `./serve.sh` serves the repo on fixed backend port
   `127.0.0.1:8001`; do not substitute a random port. The machine's shared

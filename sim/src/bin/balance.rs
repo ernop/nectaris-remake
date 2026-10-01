@@ -16,6 +16,9 @@
 //!   both seats.
 //!   Specs are lab specs (`lab::make_player`). `--data=PATH` reads boards
 //!   from another export in the sim/data/game-data.json format.
+//!   `--draws=pairs` (with --pool) adds a `pair-draws` line after each
+//!   `pairs` line, in the same layout, counting drawn games by pairing; the
+//!   other lines are unchanged.
 
 use nectaris_sim::data::Data;
 use nectaris_sim::dice::Seed;
@@ -71,10 +74,16 @@ fn run() -> Result<(), String> {
             Ok((k.to_string(), v.to_string()))
         })
         .collect::<Result<_, String>>()?;
-    let known = ["a", "b", "pool", "boards", "games", "seed", "threads", "work", "rounds", "data"];
+    let known = ["a", "b", "pool", "boards", "games", "seed", "threads", "work", "rounds", "data", "draws"];
     if let Some(k) = flags.keys().find(|k| !known.contains(&k.as_str())) {
         return Err(format!("Unknown option --{k}"));
     }
+    let pair_draws = match flags.get("draws").map(String::as_str) {
+        None => false,
+        Some("pairs") if flags.contains_key("pool") => true,
+        Some("pairs") => return Err("--draws=pairs applies to --pool".into()),
+        Some(v) => return Err(format!("--draws={v}: the only value is pairs")),
+    };
     let committed = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../sim/data/game-data.json");
     let data = Data::load(flags.get("data").map_or(committed.to_str().unwrap(), String::as_str));
     let pool: Vec<&str> = match (flags.get("pool"), flags.get("a")) {
@@ -187,13 +196,20 @@ fn run() -> Result<(), String> {
                 let n = pool.len();
                 let mut wins = vec![0u32; n * n];
                 let mut played_by = vec![0u32; n * n];
+                let mut drawn = vec![0u32; n * n];
                 for (g, game) in played.iter().enumerate() {
                     let cell = (g % n) * n + g / n % n;
                     played_by[cell] += 1;
                     wins[cell] += u32::from(game.winner == 0);
+                    drawn[cell] += u32::from(game.winner < 0);
                 }
-                let rows: Vec<String> = (0..n).map(|r| (0..n).map(|c| format!("{}/{}", wins[r * n + c], played_by[r * n + c])).collect::<Vec<_>>().join(" ")).collect();
-                println!("pairs {board} {}", rows.join(" | "));
+                let grid = |counts: &[u32]| -> String {
+                    (0..n).map(|r| (0..n).map(|c| format!("{}/{}", counts[r * n + c], played_by[r * n + c])).collect::<Vec<_>>().join(" ")).collect::<Vec<_>>().join(" | ")
+                };
+                println!("pairs {board} {}", grid(&wins));
+                if pair_draws {
+                    println!("pair-draws {board} {}", grid(&drawn));
+                }
             }
             println!(
                 "{board:5}  {:>5}  [{:>3}, {:>3}]  {:7}  {:7}  {xenon:5}  {:7}  {:7}  {draws:5}  {stalled:11}  {rounds:6.1}  {name}",

@@ -339,7 +339,10 @@ The briefs, armies and terrain seeds live in
 balance-study builder. Most boards start from a seeded layer of clustered
 hills, wasteland and mountains (`texture()` in the specs); the bot results
 belong to those exact boards, so changing the seed, the function or an army
-means measuring again.
+means measuring again, with
+[tools/measure-campaign.js](tools/measure-campaign.js) (commands in
+[MAP_BALANCE.md](MAP_BALANCE.md#designing-a-campaign)). Missions 9 and 15
+measure 6 points above their targets, one more than the 5-point tolerance.
 
 [Import the whole campaign](levels/training-ground.json).
 
@@ -355,7 +358,7 @@ means measuring again.
 | 8 | [MONS ARGAEUS](levels/training-ground/08-mons-argaeus.json) | 20×14 | 8 / 7 | 0 | buggies | A Rabbit and a Lynx; one of your Bisons is damaged. |
 | 9 | [MONS VINOGRADOV](levels/training-ground/09-mons-vinogradov.json) | 22×14 | 7 / 7 | 0 | aircraft | Your weakened Eagle squad against a Rabbit. |
 | 10 | [MONS GRUITHUISEN](levels/training-ground/10-mons-gruithuisen.json) | 22×16 | 8 / 7 | 0 | anti-air | A Seeker and a Hawkeye against one Xenon Eagle. |
-| 11 | [MONS RUMKER](levels/training-ground/11-mons-rumker.json) | 24×16 | 9 / 8 | 2 | transports and roads | Mules, Panthers and roads; one more Bison. |
+| 11 | [MONS RUMKER](levels/training-ground/11-mons-rumker.json) | 24×16 | 9 / 8 | 2 | transports and roads | Mules, Panthers and roads; one more Bison, and one Xenon Charlie starts at strength 3. |
 | 12 | [MONTES JURA](levels/training-ground/12-montes-jura.json) | 24×16 | 9 / 8 | 0 | valleys and the Pelican | A valley crossed by two bridges; one Pelican each. |
 | 13 | [MONTES CAUCASUS](levels/training-ground/13-montes-caucasus.json) | 26×16 | 9 / 9 | 0 | heavy armor | Giant and Grizzly against Polar and two Slaggers. |
 | 14 | [MONTES HAEMUS](levels/training-ground/14-montes-haemus.json) | 26×18 | 9 / 10 | 2 | experience | Your main squads start with a star; the Xenon has more units. |

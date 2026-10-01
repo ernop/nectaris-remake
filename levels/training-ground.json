@@ -1195,7 +1195,7 @@
       "mission": 11,
       "author": "AI-made by Claude Opus 5.5",
       "source": "levels/training-ground/11-mons-rumker.json",
-      "description": "New: wheels. The Mule carries one Charlie or Kilroy; the Panther is a fast infantry car that captures. Wheels pay double on plains and cannot enter wasteland, so use the roads. Two neutral factories hold reserves.",
+      "description": "New: wheels. The Mule carries one Charlie or Kilroy; the Panther is a fast infantry car that captures. Wheels pay double on plains and cannot enter wasteland, so use the roads. Two neutral factories hold reserves. You have one more Bison, and one Xenon Charlie starts badly damaged.",
       "special": "Capture the enemy camp or eliminate its eligible forces. Each battle starts with its own authored forces; units do not carry between missions.",
       "tags": [
         "teaching campaign",
@@ -1318,7 +1318,8 @@
           "t": "CHARLIE",
           "o": 1,
           "x": 19,
-          "y": 7
+          "y": 7,
+          "str": 3
         },
         {
           "t": "PANTHER",
