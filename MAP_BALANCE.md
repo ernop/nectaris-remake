@@ -199,6 +199,8 @@ node tools/measure-campaign.js measure --specs=tools/teaching-campaign-specs.js 
   --variants=/tmp/tg/m11.js --out=/tmp/tg/m11-s1 --games=40 --pool=marshal,classic --seed=m11-s1
 # Pool runs on different dice seeds by board label, and check the pooled numbers.
 node tools/measure-campaign.js check /tmp/tg/run-a /tmp/tg/run-b
+# The same runs, checked with a draw counted as half a win.
+node tools/measure-campaign.js check --draw-value=0.5 /tmp/tg/run-a /tmp/tg/run-b
 # Print the boards (units as roster codes, Union upper case).
 node tools/measure-campaign.js view --specs=tools/teaching-campaign-specs.js --missions=11
 ```
@@ -206,12 +208,20 @@ node tools/measure-campaign.js view --specs=tools/teaching-campaign-specs.js --m
 `measure` refuses to run if `sim/data/game-data.json` is out of date, builds
 `sim`'s balance binary (`--cargo=PATH` when cargo is not on the PATH,
 `--target-dir=PATH` to reuse a build), and writes the export, a board list
-and the balance output next to `--out`. It runs balance with
-`--draws=pairs`, which adds a `pair-draws` line of drawn games per pairing
-after each `pairs` line and changes nothing else in the output; the check
-uses it to print each weak Union's score with draws counted half beside its
-win rate. `check` refuses to pool two runs with the same dice seed. A board
-fails `curve`, `gap` or `late` (the quarter rule on missions 13-16).
+and the balance output next to `--out`. It runs balance with two opt-in
+flags that add lines and change nothing else in the output: `--draws=pairs`
+adds a `pair-draws` line of drawn games per pairing after each `pairs` line,
+and `--pair-rounds=yes` adds `pair-rounds` (mean rounds per pairing) and
+`pair-first` (mean round of the first attack, over the games that had one,
+and their number).
+
+The check prints two tables. The first applies the acceptance rule to each
+board; `--draw-value` sets what a draw adds to a Union's rate there: 0 by
+default, the approved rule that a draw is not a win, or 0.5. The second lists
+every Union/Xenon pairing with Union wins, draws and Union losses in percent,
+mean rounds and the first-attack round. `check` refuses to pool two runs with
+the same dice seed. A board fails `curve`, `gap` or `late` (the quarter rule
+on missions 13-16).
 
 **Reference: the original campaign under the current rules.** Union's wins over
 60 games on the 16 maps of the PC Engine campaign, REVOLT to NECTOR:
@@ -323,6 +333,44 @@ strengths 1-7 (28-90%), a damaged Xenon Kilroy, Charlie or Panther, and an
 extra Union Charlie. Two candidates passed confirmation: a Xenon Charlie at
 strength 3 (79% and 69% on the two seeds; 74% pooled) and a Xenon Kilroy at
 strength 5 (71% on both). The Charlie at strength 3 is in the campaign.
+
+**Draws by pairing (2026-10-02).** One fresh seed, 100 games per pairing, on
+the shipped missions (mission 11 re-tuned), from `tools/measure-campaign.js`.
+Draw % for each pairing, Union's bot first (M Marshal, T Tactical, C
+Classic), and Marshal self-play's mean rounds and the mean round of its first
+attack:
+
+| # | MvM | MvT | MvC | TvM | TvT | TvC | CvM | CvT | CvC | MvM rounds | MvM first attack |
+|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| 1 | 0 | 0 | 0 | 21 | 45 | 0 | 0 | 0 | 0 | 4.5 | 1.0 |
+| 2 | 0 | 0 | 0 | 100 | 100 | 0 | 6 | 0 | 0 | 5.0 | 2.0 |
+| 3 | 0 | 0 | 0 | 40 | 0 | 1 | 46 | 29 | 0 | 5.0 | 3.0 |
+| 4 | 0 | 1 | 0 | 84 | 38 | 0 | 0 | 0 | 0 | 7.0 | 4.0 |
+| 5 | 0 | 3 | 0 | 100 | 60 | 0 | 0 | 0 | 0 | 9.4 | 4.0 |
+| 6 | 0 | 0 | 0 | 7 | 4 | 0 | 0 | 0 | 0 | 6.4 | 1.0 |
+| 7 | 0 | 2 | 0 | 100 | 100 | 0 | 0 | 0 | 0 | 10.2 | 3.0 |
+| 8 | 0 | 0 | 0 | 100 | 22 | 0 | 0 | 0 | 0 | 10.5 | 2.0 |
+| 9 | 0 | 1 | 1 | 28 | 12 | 2 | 0 | 0 | 0 | 9.7 | 2.0 |
+| 10 | 3 | 0 | 0 | 7 | 3 | 1 | 0 | 1 | 0 | 14.5 | 2.0 |
+| 11 | 0 | 2 | 0 | 100 | 100 | 1 | 1 | 0 | 0 | 12.6 | 3.0 |
+| 12 | 8 | 6 | 0 | 61 | 20 | 1 | 0 | 1 | 4 | 21.3 | 3.0 |
+| 13 | 1 | 0 | 0 | 46 | 0 | 2 | 6 | 1 | 0 | 16.4 | 3.0 |
+| 14 | 2 | 10 | 2 | 41 | 53 | 0 | 0 | 0 | 0 | 15.2 | 1.0 |
+| 15 | 5 | 4 | 0 | 87 | 9 | 5 | 0 | 0 | 0 | 35.5 | 3.0 |
+| 16 | 0 | 1 | 0 | 54 | 41 | 3 | 0 | 5 | 1 | 13.7 | 2.0 |
+
+- Nearly all draws come from games with Tactical as Union. Against Marshal's
+  Xenon it drew every game on missions 2, 5, 7, 8 and 11, and in those games
+  no unit on either side attacked in 100 rounds: Marshal's   Xenon waits too
+  when Union does not come. Tactical against itself drew every game on 2, 7
+  and 11, with no attack at all on 2 and 7.
+- Apart from Classic's Union on mission 3 (46% draws against Marshal, 29%
+  against Tactical), games with Marshal or Classic as Union drew at most 10%
+  (Marshal against Tactical on mission 14); 67 of those 96 pairings had no
+  draw.
+- Marshal self-play attacks by round 1-4 and ends in 4.5-35.5 rounds.
+- On this seed the check passed 14 of 16 missions: mission 4 at 99% (+6) and
+  mission 9 at 85% (+7) were over the curve tolerance.
 
 Missions 12-15 measured 66-68% against targets that fall from 70 to 62, so the
 measured curve is flat there rather than falling evenly. Humans have not

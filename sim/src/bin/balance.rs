@@ -17,8 +17,11 @@
 //!   Specs are lab specs (`lab::make_player`). `--data=PATH` reads boards
 //!   from another export in the sim/data/game-data.json format.
 //!   `--draws=pairs` (with --pool) adds a `pair-draws` line after each
-//!   `pairs` line, in the same layout, counting drawn games by pairing; the
-//!   other lines are unchanged.
+//!   `pairs` line, in the same layout, counting drawn games by pairing.
+//!   `--pair-rounds=yes` (with --pool) adds a `pair-rounds` line of mean rounds
+//!   by pairing, and a `pair-first` line of the mean round of the first
+//!   attack over the games that had one, `mean/games`. The other lines are
+//!   unchanged.
 
 use nectaris_sim::data::Data;
 use nectaris_sim::dice::Seed;
@@ -43,6 +46,7 @@ struct Game {
     winner: i32,
     reason: &'static str,
     rounds: i32,
+    first_attack: i32,
 }
 
 /// The 95% Wilson interval of `wins` out of `n`, as fractions.
@@ -74,7 +78,7 @@ fn run() -> Result<(), String> {
             Ok((k.to_string(), v.to_string()))
         })
         .collect::<Result<_, String>>()?;
-    let known = ["a", "b", "pool", "boards", "games", "seed", "threads", "work", "rounds", "data", "draws"];
+    let known = ["a", "b", "pool", "boards", "games", "seed", "threads", "work", "rounds", "data", "draws", "pair-rounds"];
     if let Some(k) = flags.keys().find(|k| !known.contains(&k.as_str())) {
         return Err(format!("Unknown option --{k}"));
     }
@@ -83,6 +87,12 @@ fn run() -> Result<(), String> {
         Some("pairs") if flags.contains_key("pool") => true,
         Some("pairs") => return Err("--draws=pairs applies to --pool".into()),
         Some(v) => return Err(format!("--draws={v}: the only value is pairs")),
+    };
+    let pair_rounds = match flags.get("pair-rounds").map(String::as_str) {
+        None => false,
+        Some("yes") if flags.contains_key("pool") => true,
+        Some("yes") => return Err("--pair-rounds=yes applies to --pool".into()),
+        Some(v) => return Err(format!("--pair-rounds={v}: the only value is yes")),
     };
     let committed = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../sim/data/game-data.json");
     let data = Data::load(flags.get("data").map_or(committed.to_str().unwrap(), String::as_str));
@@ -138,7 +148,7 @@ fn run() -> Result<(), String> {
                 };
                 let mut players = [lab::make_player(specs[0], work).unwrap(), lab::make_player(specs[1], work).unwrap()];
                 let r = play::play_with(&data, boards[board], &seed, &mut players, rounds);
-                results.lock().unwrap()[job] = Some(Game { winner: r.winner, reason: r.reason, rounds: r.rounds });
+                results.lock().unwrap()[job] = Some(Game { winner: r.winner, reason: r.reason, rounds: r.rounds, first_attack: r.first_attack });
             });
         }
     });
@@ -209,6 +219,22 @@ fn run() -> Result<(), String> {
                 println!("pairs {board} {}", grid(&wins));
                 if pair_draws {
                     println!("pair-draws {board} {}", grid(&drawn));
+                }
+                if pair_rounds {
+                    let mut total = vec![0f64; n * n];
+                    let mut first = vec![0f64; n * n];
+                    let mut fought = vec![0u32; n * n];
+                    for (g, game) in played.iter().enumerate() {
+                        let cell = (g % n) * n + g / n % n;
+                        total[cell] += f64::from(game.rounds);
+                        if game.first_attack > 0 {
+                            first[cell] += f64::from(game.first_attack);
+                            fought[cell] += 1;
+                        }
+                    }
+                    let line = |cell: &dyn Fn(usize) -> String| (0..n).map(|r| (0..n).map(|c| cell(r * n + c)).collect::<Vec<_>>().join(" ")).collect::<Vec<_>>().join(" | ");
+                    println!("pair-rounds {board} {}", line(&|i| format!("{:.1}", total[i] / f64::from(played_by[i]))));
+                    println!("pair-first {board} {}", line(&|i| format!("{:.1}/{}", if fought[i] > 0 { first[i] / f64::from(fought[i]) } else { 0.0 }, fought[i])));
                 }
             }
             println!(

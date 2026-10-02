@@ -126,6 +126,8 @@ pub struct Outcome {
     pub winner: i32,
     pub reason: &'static str,
     pub rounds: i32,
+    /// The round of the first attack, or 0 when no unit attacked.
+    pub first_attack: i32,
     pub half_turns: i32,
     /// `tools/sim/state-hash.cjs` fingerprint of the final position.
     pub final_hash: u32,
@@ -138,13 +140,18 @@ pub fn play_with(d: &Data, board: usize, seed: &Seed, players: &mut [Box<dyn Pla
     let mut g = Game::new(d, board, seed, 0);
     g.log = Some(Vec::new());
     let mut turns = 0;
+    let mut first_attack = 0;
     let mut thinking = [0.0f64; 2];
     while !g.over() {
         let side = g.current;
         let started = Instant::now();
+        let logged = g.log.as_ref().unwrap().len();
         players[side as usize].play_turn(&mut g, side);
         thinking[side as usize] += started.elapsed().as_secs_f64() * 1000.0;
         turns += 1;
+        if first_attack == 0 && g.log.as_ref().unwrap()[logged..].iter().any(|c| matches!(c, Command::Attack(..))) {
+            first_attack = g.turn;
+        }
         if g.over() {
             break;
         }
@@ -160,6 +167,7 @@ pub fn play_with(d: &Data, board: usize, seed: &Seed, players: &mut [Box<dyn Pla
         winner: g.winner,
         reason: if g.over() { g.reason } else { "round-cap" },
         rounds: g.turn,
+        first_attack,
         half_turns: turns,
         final_hash: hash::state_hash(&g),
         thinking_ms: thinking,

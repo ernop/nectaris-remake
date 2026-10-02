@@ -2429,6 +2429,12 @@ Claude Opus 5.5, after Arsenal in the mission library
   against Marshal's Xenon (about 50% with draws counted half), so it meets the
   "wins less often" target only under that counting. How the skill test
   should count those draws is open with the user; missions 13-16 wait on it.
+  Until he decides, `tools/measure-campaign.js` checks with a draw as not a
+  win by default and takes `--draw-value=0.5` to count it as half; it also
+  lists wins, draws and losses for every pairing, with mean rounds and the
+  round of the first attack (2026-10-02, for his question on maps and rules
+  that make players fight rather than wait; the draw table is in
+  MAP_BALANCE.md).
 - Missions 12-15 measured 66-68%, flat where the targets fall from 70 to 62.
 - Most boards start from a seeded clustered layer of hills, wasteland and
   mountains (`texture()` in `tools/teaching-campaign-specs.js`), because

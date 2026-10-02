@@ -4,15 +4,18 @@
  *
  *   node tools/measure-campaign.js measure --specs=PATH --out=PREFIX --games=N --seed=TEXT
  *       [--variants=PATH] [--pool=marshal,tactical,classic] [--threads=N]
- *       [--cargo=cargo] [--target-dir=PATH]
+ *       [--cargo=cargo] [--target-dir=PATH] [--draw-value=0]
  *     Builds the campaign's missions (or the variants) into PREFIX.json, a
  *     simulator data export, with PREFIX.boards.json naming each board's
  *     mission, target and label; builds sim's balance binary with cargo;
  *     plays every ordered pairing of the pool N games on every board into
  *     PREFIX.pool.txt; prints the check.
- *   node tools/measure-campaign.js check PREFIX...
+ *   node tools/measure-campaign.js check [--draw-value=0] PREFIX...
  *     Pools runs by board label (the same variant on several dice seeds)
  *     and prints the check.
+ *   --draw-value is what a draw adds to a Union's rate in the checks: 0, the
+ *   approved rule (a draw is not a win), or 0.5. The check also lists every
+ *   pairing's wins, draws and losses, mean rounds and first-attack round.
  *   node tools/measure-campaign.js view --specs=PATH [--variants=PATH] [--missions=1,11]
  *     Prints each board: units as roster codes (Union upper case), camps @,
  *     factories &.
@@ -84,7 +87,7 @@ function boardsOf(flags) {
 }
 
 function measure(args) {
-  const {flags} = parseFlags(args, ["specs", "variants", "out", "games", "seed", "pool", "threads", "cargo", "target-dir"]);
+  const {flags} = parseFlags(args, ["specs", "variants", "out", "games", "seed", "pool", "threads", "cargo", "target-dir", "draw-value"]);
   const out = path.resolve(need(flags, "out")), games = whole(need(flags, "games"), "games"), seed = need(flags, "seed");
   const pool = (flags.pool === undefined ? "marshal,tactical,classic" : flags.pool).split(",");
   if (pool[0] !== "marshal" || pool.length < 2 || new Set(pool).size !== pool.length) fail("--pool must start with marshal and name two or more different bots");
@@ -106,40 +109,40 @@ function measure(args) {
   if (!fs.existsSync(binary)) fail("cargo built, but " + binary + " does not exist");
   const n = pool.length;
   const run = spawnSync(binary, ["--data=" + out + ".json", "--pool=" + pool.join(","), "--boards=0-" + (boards.length - 1),
-    "--games=" + n * n * games, "--seed=" + seed, "--draws=pairs", ...(flags.threads === undefined ? [] : ["--threads=" + whole(flags.threads, "threads")])],
+    "--games=" + n * n * games, "--seed=" + seed, "--draws=pairs", "--pair-rounds=yes", ...(flags.threads === undefined ? [] : ["--threads=" + whole(flags.threads, "threads")])],
     {stdio: ["ignore", "pipe", "inherit"], maxBuffer: 1 << 26, encoding: "utf8"});
   if (run.error) fail("balance did not run: " + run.error.message);
   if (run.status !== 0) fail("balance exited with status " + run.status);
   fs.writeFileSync(out + ".pool.txt", run.stdout);
-  report([out]);
+  report([out], drawValueOf(flags));
 }
 
-// Union wins and draws by pairing, [row = Union's bot][column = Xenon's bot] = [wins, draws, games].
+// Per pairing, [row = Union's bot][column = Xenon's bot] = [Union wins, draws,
+// games, sum of rounds, sum of first-attack rounds, games with an attack].
 function readRun(prefix) {
   const meta = JSON.parse(fs.readFileSync(prefix + ".boards.json", "utf8"));
-  const text = fs.readFileSync(prefix + ".pool.txt", "utf8"), cells = {};
+  const text = fs.readFileSync(prefix + ".pool.txt", "utf8"), cells = {}, kinds = ["pairs", "pair-draws", "pair-rounds", "pair-first"];
   const grid = s => s.split(" | ").map(r => r.split(" ").map(c => c.split("/").map(Number)));
   for (const line of text.split("\n")) {
-    const p = line.match(/^(pairs|pair-draws) (\d+) (.*)$/);
+    const p = line.match(/^(pairs|pair-draws|pair-rounds|pair-first) (\d+) (.*)$/);
     if (!p) continue;
-    const g = grid(p[3]), cell = cells[p[2]] = cells[p[2]] || {};
-    cell[p[1]] = g;
+    (cells[p[2]] = cells[p[2]] || {})[p[1]] = grid(p[3]);
   }
   const n = meta.pool.length, seed = (text.split("\n")[0].match(/; seed ([0-9a-f]+)$/) || [])[1];
   if (!seed) fail(prefix + ".pool.txt does not start with balance's header line");
   return {meta, seed, boards: meta.boards.map((b, i) => {
-    const c = cells[i];
-    if (!c || !c.pairs || !c["pair-draws"]) fail(prefix + ".pool.txt has no pairs and pair-draws lines for board " + i + " (" + b.label + ")");
+    const c = cells[i] || {};
+    kinds.forEach(k => { if (!c[k]) fail(prefix + ".pool.txt has no " + k + " line for board " + i + " (" + b.label + "); measure with this tool's measure command"); });
     const r = Array.from({length: n}, (_, u) => Array.from({length: n}, (_, x) => {
-      const [w, games] = c.pairs[u][x], [d, games2] = c["pair-draws"][u][x];
+      const [w, games] = c.pairs[u][x], [d, games2] = c["pair-draws"][u][x], [rounds] = c["pair-rounds"][u][x], [first, fought] = c["pair-first"][u][x];
       if (games !== games2) fail(prefix + ": board " + i + " pairs and pair-draws disagree on games played");
-      return [w, d, games];
+      return [w, d, games, rounds * games, first * fought, fought];
     }));
     return Object.assign({}, b, {r});
   })};
 }
 
-function report(prefixes) {
+function report(prefixes, drawValue) {
   const runs = prefixes.map(readRun), first = runs[0].meta, seeds = new Set();
   for (const run of runs) {
     if (seeds.has(run.seed)) fail("two runs share the dice seed " + run.seed + "; pooling them would count the same games twice");
@@ -156,29 +159,43 @@ function report(prefixes) {
     a.runs++;
   }
   const pct = (v, n) => Math.round(100 * v / n), pad = (x, w) => String(x).padStart(w);
-  console.log("Union win % (draws are not wins); a weak bot's score counts its draws as half. M = marshal; " +
-    weak.map((w, i) => w[0].toUpperCase() + " = " + w).join(", ") + ".");
-  console.log("Checks: M self-play within " + c.curve + " of target (at least " + c.earlyMin + " on missions 1-" + c.early +
+  const rate = ([w, d, g]) => pct(w + drawValue * d, g), letter = bot => bot[0].toUpperCase();
+  const boards = [...acc.entries()].sort((x, y) => x[1].mission - y[1].mission);
+  console.log("Union rate % = (wins + " + drawValue + " x draws) / games" + (drawValue === 0 ? " (a draw is not a win)" : "") +
+    "; draw % beside it. M = marshal; " + weak.map(w => letter(w) + " = " + w).join(", ") + ".");
+  console.log("Checks on those rates: M self-play within " + c.curve + " of target (at least " + c.earlyMin + " on missions 1-" + c.early +
     "); each weak Union at least " + c.gap + " below M's against M's Xenon, and under " + c.lateMax + " from mission " + c.lateFrom + ".");
-  const heads = weak.map(w => { const k = w[0].toUpperCase(); return `${k}vM win  ${k}vM score`; });
-  console.log(" m  target    MvM  diff  Mdraw  " + heads.join("  ") + "  " + weak.map(w => "Mv" + w[0].toUpperCase()).join("  ") + "  games  runs  verdict  board");
+  console.log(" m  target    MvM  diff  draw  " + weak.map(w => `${letter(w)}vM  draw`).join("  ") + "  games  runs  verdict  board");
   let passed = 0;
-  [...acc.entries()].sort((x, y) => x[1].mission - y[1].mission).forEach(([label, a]) => {
-    const [mw, md, mg] = a.r[0][0], mm = pct(mw, mg);
-    const ws = weak.map((w, i) => { const [wins, draws, games] = a.r[i + 1][0]; return {win: pct(wins, games), score: pct(wins + draws / 2, games)}; });
-    const mv = weak.map((w, i) => { const [wins, , games] = a.r[0][i + 1]; return pct(wins, games); });
+  for (const [label, a] of boards) {
+    const mm = rate(a.r[0][0]), ws = weak.map((w, i) => a.r[i + 1][0]);
     const bad = [];
     if (a.mission <= c.early ? mm < c.earlyMin : Math.abs(mm - a.target) > c.curve) bad.push("curve");
-    if (ws.some(x => x.win > mm - c.gap)) bad.push("gap");
-    if (a.mission >= c.lateFrom && ws.some(x => x.win >= c.lateMax)) bad.push("late");
+    if (ws.some(x => rate(x) > mm - c.gap)) bad.push("gap");
+    if (a.mission >= c.lateFrom && ws.some(x => rate(x) >= c.lateMax)) bad.push("late");
     if (!bad.length) passed++;
     const diff = mm - a.target;
-    console.log(`${pad(a.mission, 2)}  ${pad(a.target, 6)}  ${pad(mm, 5)}  ${pad((diff > 0 ? "+" : "") + diff, 4)}  ${pad(pct(md, mg), 5)}  ` +
-      ws.map(x => `${pad(x.win, 8)}  ${pad(x.score, 10)}`).join("  ") + "  " + mv.map(x => pad(x, 4)).join("  ") +
-      `  ${pad(mg, 5)}  ${pad(a.runs, 4)}  ${(bad.join(",") || "pass").padEnd(7)}  ${label}`);
+    console.log(`${pad(a.mission, 2)}  ${pad(a.target, 6)}  ${pad(mm, 5)}  ${pad((diff > 0 ? "+" : "") + diff, 4)}  ${pad(pct(a.r[0][0][1], a.r[0][0][2]), 4)}  ` +
+      ws.map(x => `${pad(rate(x), 3)}  ${pad(pct(x[1], x[2]), 4)}`).join("  ") +
+      `  ${pad(a.r[0][0][2], 5)}  ${pad(a.runs, 4)}  ${(bad.join(",") || "pass").padEnd(7)}  ${label}`);
+  }
+  console.log(passed + " of " + boards.length + " boards pass.");
+  console.log("");
+  console.log("Every pairing, Union's bot first: Union wins / draws / Union losses in %, mean rounds, mean round of the first attack (games with one).");
+  for (const [label, a] of boards) pool.forEach((u, i) => {
+    const cells = pool.map((x, k) => {
+      const [w, d, g, rounds, firstSum, fought] = a.r[i][k];
+      return `${letter(u)}v${letter(x)} ${pad(pct(w, g), 3)}/${pad(pct(d, g), 3)}/${pad(pct(g - w - d, g), 3)} ${pad((rounds / g).toFixed(1), 5)} ${pad(fought ? (firstSum / fought).toFixed(1) : "-", 4)}`;
+    });
+    console.log(`${pad(a.mission, 2)}  ${cells.join("   ")}   ${label}`);
   });
-  console.log(passed + " of " + acc.size + " boards pass.");
 }
+
+const drawValueOf = flags => {
+  if (flags["draw-value"] === undefined) return 0;
+  if (!["0", "0.5"].includes(flags["draw-value"])) fail("--draw-value is 0 (a draw is not a win) or 0.5 (a draw is half a win)");
+  return Number(flags["draw-value"]);
+};
 
 function view(args) {
   const {flags} = parseFlags(args, ["specs", "variants", "missions"]);
@@ -201,6 +218,10 @@ function view(args) {
 
 const [command, ...args] = process.argv.slice(2);
 if (command === "measure") measure(args);
-else if (command === "check") { const {rest} = parseFlags(args, []); if (!rest.length) fail("check needs one or more run prefixes"); report(rest.map(p => path.resolve(p))); }
+else if (command === "check") {
+  const {flags, rest} = parseFlags(args, ["draw-value"]);
+  if (!rest.length) fail("check needs one or more run prefixes");
+  report(rest.map(p => path.resolve(p)), drawValueOf(flags));
+}
 else if (command === "view") view(args);
 else fail("the command is measure, check or view (see the header of tools/measure-campaign.js)");
