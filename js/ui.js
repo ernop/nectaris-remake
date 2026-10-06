@@ -1279,7 +1279,7 @@ var UI = (function () {
     this.range = this.game.movementRange(preview);
     var highlights = {};
     for (var k in this.range) {
-      if (this.range[k].canStop) highlights[k] = "rgba(255,180,65,0.38)";
+      highlights[k] = this.range[k].canStop ? "rgba(255,180,65,0.38)" : "rgba(255,180,65,0.18)";
     }
     this.renderer.highlights = highlights;
     this.showFiringRange(unit, true);
@@ -1352,6 +1352,7 @@ var UI = (function () {
       var rec = this.range[k];
       if (rec.load) hl[k] = "rgba(120,200,255,0.55)";
       else if (rec.canStop) hl[k] = "rgba(70,150,255,0.38)";
+      else hl[k] = "rgba(70,150,255,0.18)";
     }
     this.pickTargets = this.previewTargets(unit);
     this.pickTargets.forEach(function (target) {

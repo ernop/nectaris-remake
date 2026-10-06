@@ -771,6 +771,18 @@ opponent's turn is shown step by step at all. Replays keep their own speed contr
 `test/board-playback.html` checks real-browser board bounds, camera stability,
 move-to-attack, auto-completion, save/RNG preservation and battle presentation.
 
+### Pass-through hexes in the movement range (user, 2026-10-06)
+
+The movement fill shows the unit's whole reach, not only where it may stop.
+Every hex in the engine's `movementRange` is painted: hexes it can end on
+(including its own hex and boardable transports) at full strength, and hexes
+it can only move through — those holding another friendly unit, and enemy or
+neutral factories a non-capturing unit cannot end on — in a lighter tint of
+the same colour. This applies to the blue friendly fill and the orange enemy
+preview. Enemy-occupied hexes stay unpainted because no unit can enter them.
+Previously only stoppable hexes were painted, so a friendly-occupied hex
+appeared outside the range even when the unit could cross it.
+
 ## Enemy movement and firing range inspection (updated 2026-09-22)
 
 During your turn, click an enemy to inspect its details and orange movement
