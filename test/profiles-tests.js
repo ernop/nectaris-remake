@@ -108,8 +108,10 @@ module.exports = function (ok) {
   store = new PROFILES.Store(storage);
   ok(store.sessions(alice.id)[0].id === "match-1", "profile choice and unfinished match survive reopening");
   match.state.winner = 0; match.state.winReason = "base";
-  store.checkpoint(alice.id, match); store.checkpoint(alice.id, match);
+  var recorded = store.checkpoint(alice.id, match), again = store.checkpoint(alice.id, match);
   ok(store.active().results.length === 1 && !store.sessions(alice.id).length, "victory recorded exactly once and clears continuation");
+  ok(recorded && recorded.id === "match-1" && recorded.outcome === "win" && again === null,
+    "only the save that records a result returns it, so a finished match is reported once");
   ok(store.active().cleared.indexOf(5) >= 0 && store.active().cleared.indexOf(4) < 0, "winning a later mission only marks that mission cleared");
   match.id = "match-2"; match.state.winner = 1; match.state.winReason = "elimination";
   store.checkpoint(alice.id, match);
@@ -198,4 +200,9 @@ module.exports = function (ok) {
     "the history summary counts attempts, results, abandoned and unfinished matches");
   ok(throws(function () { multi.checkpoint(player.id, {id: "keyless", options: {}, state: xenon.state}); }) &&
     multi.sessions(player.id).length === 1, "a match without the key of its board cannot be saved");
+  var sittings = {log: [{at: "2026-10-11T10:00:00.000Z", event: "start", match: "s"},
+    {at: "2026-10-11T10:05:00.000Z", event: "leave", match: "s"}, {at: "2026-10-11T10:06:00.000Z", event: "start", match: "other"},
+    {at: "2026-10-11T11:00:00.000Z", event: "resume", match: "s"}, {at: "2026-10-11T12:00:00.000Z", event: "resume", match: "s"}]};
+  ok(PROFILES.playSeconds(sittings, "s", Date.parse("2026-10-11T12:00:30.000Z")) === 330,
+    "a match's play time adds its sittings up to the end, without time away or a sitting whose end was never logged");
 };

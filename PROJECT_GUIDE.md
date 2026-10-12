@@ -32,6 +32,7 @@ retuned. These themes do not authorize extra features or unsourced rule changes.
 | Item | Status and record |
 | --- | --- |
 | Fuseki hosting | Live 2026-09-26 at https://nectaris-remake.fuseki.net/; every `main` commit passing Tests is released (the branch was `master` until 2026-09-30). [Scope](PRODUCT.md#fuseki-hosting-2026-09-26). |
+| Play statistics | Implemented 2026-10-11 from the owner's decision that day: every page loads the Fuseki repository's shared `js/fuseki-stats.js`, copied unchanged, which on the hosted site alone sends a random player number, active time and one event per finished match (board, mode, sides, opponent, result, ending, turns, seconds, units) to the site's own server; Restart sends a quit; AI-only matches send no match event; a line in the menu footer says so. On 2026-10-11 the server's `/_event` location was not yet installed, so the change was committed without pushing, to be released once it is. [Record](PRODUCT.md#play-statistics-2026-10-11). |
 | Campaign menu for new players | Implemented from the user's 2026-09-26 request: one header row (large NECTARIS, Campaigns / Bot tournament tabs, "You are logged in as Wilson" profile menu), one settings row (Mode, hotseat, AI), default profile Wilson, no language option, Normal / Advanced / Base Nectaris first, no `?` on the original campaigns, denser entries. Match defaults: Pixel + Legacy, Watch AI on, separate Move animation toggle. [Record](PRODUCT.md#campaign-menu-for-new-players-2026-09-26). |
 | Second-player compensation offers | Updated from the user's 2026-09-25 request, then simplified on 2026-09-26 into the menu's Mode dropdown (Normal default / Offer for first, no map-default choice; tournaments have their own tab); guided private switch-point questions, 32 cumulative menus, fixed previewable sites, explicit no-deal policies and saved/replayed initiative. Each bot uses its own move policy to assess opening roles. Offer fixtures mirror both factions and tie recipients; accepted offers are not measured equal odds. [Protocol and scope](PRODUCT.md#compensation-offers-before-play-2026-09-23). |
 | Board orientation and control docking | Updated through the user's 2026-09-26 correction: fixed left controls/metadata, full-height board, no content-driven reflow and no opponent-driven camera movement. Replay following requires opt-in. Auto / Normal / Sideways orientation remains; since 2026-09-27 Legacy terrain stays upright on a turned board. The Details panel was removed on 2026-09-26; hover cards carry unit and building details (empty-hex terrain is a known gap the user left open), and the hover forecast sits under the unit's action strip. Since 2026-09-26 the panel prints the level name with no mission chooser, and its settings sit in one compact block at the bottom. Status lines and Undo/Redo/End Turn never move during play; changing content scrolls in the panel's middle section (user, 2026-09-26). [Layout behavior](PRODUCT.md#board-orientation-and-control-docking-2026-09-23), [Details removal](PRODUCT.md#optional-inspector-and-full-map-height-updated-2026-09-25). |
@@ -246,6 +247,11 @@ Release first, verify later (user decision). Examine together later:
     Bridgeheads, in Pixel with Legacy and Remake art, Neon and Classic:
     one-hex-wide mountain lines read as walls, and a Knotted Heart pass reads
     as a way through; whether any board now feels cramped near a camp.
+28. Play statistics (2026-10-11), once released with the Fuseki side's
+    `/_event` location: a finished match adds one `game` line to the site's
+    event log and showing its result again adds none; Restart adds one `quit`;
+    a tournament run adds no `game` line; `http://nectaris.localhost` makes no
+    request to `/_event`; the menu footer line on wide and narrow windows.
 
 Research rather than a check: direct PC Engine confirmation of the Windows
 combat traces.

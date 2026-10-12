@@ -2519,7 +2519,82 @@ icons (`js/data-unit-art-legacy.js`) are third-party-derived art published
 here as they already are in the public repository; see `art/legacy/README.md`.
 The Fuseki repository's
 [independent application hosting plan](https://github.com/ernop/fuseki4_ai/blob/master/docs/minesweeper-friendly-hosting-plan.md)
-owns the server side.
+owns the server side. Since 2026-10-11 the hosted site also reports
+[play statistics](#play-statistics-2026-10-11) to its own origin.
+
+## Play statistics (2026-10-11)
+
+The project owner's decision of 2026-10-11: the hosted game reports play
+statistics to its own server, so that he can see how many people play, for how
+long, how many matches they finish and how those matches end. Nothing goes to
+any third party. He explicitly allowed a lasting random player number and
+detailed match data, and his own play is counted like anyone else's, with no
+way to switch it off. Before this the site sent nothing; the server saw only
+page loads.
+
+- **Where it goes.** `js/fuseki-stats.js` sends small GET requests, without
+  cookies or referrer, only to `/_event` on the page's own origin,
+  https://nectaris-remake.fuseki.net/. nginx answers them and writes them to a
+  private log, and the Fuseki analytics worker totals them for the owner's
+  staff-only dashboard. On any other host (`http://nectaris.localhost`, a file
+  opened from disk, a copy served elsewhere, the tests) it sends nothing. The
+  Content-Security-Policy already allows the site's own scripts and
+  connections.
+- **The script** belongs to the Fuseki repository (`setup/apps/fuseki-stats.js`
+  there), which shares it among the owner's hosted apps; it is copied here byte
+  for byte. Change the original and copy it again; never edit the copy here.
+  Every published page loads it as its last script: the game, the editor, the
+  Bot tournament, the Rust simulator and the thanks page.
+- **On every page.** Each page load has a random session number, and the
+  browser keeps a random player number (`fuseki-stats-player` in localStorage)
+  for later visits. A `play` request follows a page load's first click, key,
+  wheel or touch. A `time` request carries the active seconds when the page is
+  hidden or closed, and after every 10 active minutes; time is active while the
+  page is visible and has had input in the last 5 minutes. Each request also
+  carries its sequence number in the session and the page's path.
+- **One `game` request per finished match.** `js/main.js` sends it when the
+  profile first records the match's result: `PROFILES` `checkpoint` returns a
+  result only from the save that records it, once per match. Showing the result
+  again, later saves, reloading and Continue send nothing more; Replay and Next
+  mission start new matches, which send their own when they end. **Restart** of
+  a match under way sends one with `r=quit`; leaving with Save & Menu sends
+  nothing. Bot tournament matches, replays and imported recorded games send no
+  `game` request (the tournament page's visits and active time are counted).
+- **Fields of a `game` request**, values only from the match itself:
+
+| Field | Value |
+| --- | --- |
+| `m` | The board: `campaign:N` (0-15 Normal, 16-31 Advanced), `base:N`, `ai-made:N`, `expansion:N` or `environment:CAMPAIGN:N`, N counting from 0; `custom` for custom levels and play-tests, never their names |
+| `gm` | `solo` or `hotseat` |
+| `opening` | `offers` when an Offer for first deal was played, otherwise `normal` |
+| `side`, `ai` | Solo only: the player's side (`union`, `xenon`) and the AI opponent (`classic`, `tactical`, `beam`, `monte-carlo`, `apex`, `marshal`) |
+| `first` | The side that moved first |
+| `r` | Solo `win`, `loss` or `draw`; hotseat `done` or `draw`; `quit` for Restart |
+| `ws` | The winning side, when there is one |
+| `reason` | `base`, `elimination`, `no-progress`, or `turnlimit` (turn 5000 ended) |
+| `turns` | The turn number at the end |
+| `d` | Wall-clock seconds the match was open and in play: its sittings in the profile's play history, from start or resume to leaving, added up, so time away between sittings is not counted |
+| `union_units`, `xenon_units` | Units on the field at the end, as the match panel counts them |
+
+A won Normal campaign mission 4 as the server receives it (player and session
+numbers, sequence number, active seconds and page first):
+
+```text
+/_event?v=1&e=game&p=3f9c2a7b81d04e65&s=a1b2c3d4e5f60718&n=4&t=287&pg=%2F&m=campaign%3A3&gm=solo&opening=normal&side=union&ai=classic&first=union&r=win&ws=union&reason=base&turns=14&d=1843&union_units=9&xenon_units=4
+```
+
+- **What players are told.** The menu footer says: "Play statistics — a random
+  player number, active time, and game results such as map, result and turns —
+  are recorded on this site's server."
+- Implementation choices within the owner's field list, not his requirements:
+  the names `opening`, `first`, `reason`, `union_units` and `xenon_units`;
+  `ws` on solo matches as well; `draw` rather than `done` for a drawn hotseat
+  match; `d` added up over sittings; `quit` sent only by Restart, the one place
+  where a match is given up for a new one.
+- Tests: `test/outcome-menu-tests.js` plays matches through the real menu into
+  the real script and checks each event and that none repeats;
+  `test/play-stats-tests.js` checks that every published page loads the script
+  and that an AI-only tournament match sends no `game` request.
 
 ## Thanks page (2026-09-27)
 

@@ -36,6 +36,24 @@
   }
   function logEvent(event, turn) { profiles.record(visit.profileId, playEntry(event, turn)); }
 
+  // Play statistics: js/fuseki-stats.js sends them only to the hosted site's
+  // own server (PRODUCT "Play statistics"). One event when a match's result is
+  // first recorded, one when Restart gives up a match under way. The module
+  // drops null fields.
+  var SIDES = ["union", "xenon"];
+  function reportMatch(game, outcome) {
+    try {
+      if (!window.FusekiStats) return;
+      var board = PROFILES.boardOf(visit.key), hotseat = !!currentOptions.hotseat;
+      window.FusekiStats.game({m: /^custom:/.test(board) ? "custom" : board, gm: hotseat ? "hotseat" : "solo",
+        opening: currentOptions.balance || currentOptions.opening === "offers" ? "offers" : "normal",
+        side: hotseat ? null : SIDES[currentOptions.humanSide], ai: hotseat ? null : currentOptions.opponent,
+        first: SIDES[game.firstPlayer], r: outcome, ws: game.winner === null ? null : SIDES[game.winner],
+        reason: game.winReason, turns: game.turn, d: PROFILES.playSeconds(profiles.active(), visit.id, Date.now()),
+        union_units: game.playerUnits(0).length, xenon_units: game.playerUnits(1).length});
+    } catch (error) { /* the match goes on without statistics */ }
+  }
+
   function saveMatch(ui) {
     if (!visit || ui !== currentUI) return true;
     try {
@@ -50,8 +68,9 @@
         }
       }
       if (visit.acted || visit.resumed || state.winReason !== null) {
-        profiles.checkpoint(visit.profileId, {id: visit.id, key: visit.key, options: currentOptions,
+        var result = profiles.checkpoint(visit.profileId, {id: visit.id, key: visit.key, options: currentOptions,
           savedAt: new Date().toISOString(), state: state});
+        if (result) reportMatch(ui.game, result.hotseat ? (result.winner === null ? "draw" : "done") : result.outcome);
       }
       $("save-error").classList.add("hidden");
       return true;
@@ -88,6 +107,7 @@
     if (begun) {
       try { profiles.abandon(visit.profileId, {id: visit.id, key: visit.key}, playEntry("abandon", game.turn)); }
       catch (error) { reportSaveError(error); return; }
+      reportMatch(game, "quit");
     }
     visit = null;
     startGame(mapDef, fresh);

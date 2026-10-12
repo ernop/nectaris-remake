@@ -78,6 +78,17 @@ module.exports = function (ok) {
     g.units.find(function(u){return u.player===g.currentPlayer;}).moved=true;
     liveUI.options.onStateChange(liveUI);
   }
+  // The real play statistics module, sending into a list instead of the network.
+  var sent=[],statsModule={exports:{}};
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname,"../js/fuseki-stats.js"),"utf8"),{module:statsModule});
+  context.window.FusekiStats=statsModule.exports.create({window:{addEventListener:function(){}},
+    document:{visibilityState:"visible",addEventListener:function(){}},storage:null,
+    crypto:{getRandomValues:function(bytes){return bytes.fill(1);}},location:{pathname:"/index.html"},now:Date.now,
+    send:function(url){sent.push(new URLSearchParams(url.split("?")[1]));},endpoint:"/_event",setInterval:function(){}});
+  function gameEvents(){return sent.filter(function(ping){return ping.get("e")==="game";});}
+  function lastGame(){var games=gameEvents();return games[games.length-1];}
+  // An event's fields in order, without the per-ping numbers and the play time.
+  function described(ping){var out=[];ping.forEach(function(v,k){if(["p","s","n","t","d"].indexOf(k)<0)out.push(k+"="+v);});return out.join(" ");}
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,"../js/main.js"),"utf8"),context);
   listeners.DOMContentLoaded();
   ok(cards("mission-list").length===16 && cards("advanced-mission-list").length===16,
@@ -290,6 +301,8 @@ module.exports = function (ok) {
   ok(liveSetup!==setupBeforeRestart && liveSetup.game.map.name===campaign[0].name &&
     store.session(first.id,"campaign:0:offers")===null && lastEvent()==="abandon",
     "Restart gives the match up, keeps it in the history as abandoned and opens the level's questions again");
+  ok(gameEvents().length===1 && /^v=1 e=game pg=\/index.html m=campaign:0 gm=solo opening=normal side=union ai=classic first=union r=quit turns=1 union_units=\d+ xenon_units=\d+$/
+    .test(described(lastGame())),"Restart of a match under way sends one quit event, with no winner or ending");
   liveSetup.options.onCancel();
   // Exercise real start/save/continue/next wiring, without changing browser storage.
   selectOpening("original");
@@ -306,6 +319,13 @@ module.exports = function (ok) {
   liveUI.game.winner=0;liveUI.game.winReason="base";liveUI.options.onGameOver(0);
   ok(!get("gameover-next").classList.contains("hidden") && store.session(first.id,"environment:open-horizons:0")===null,
     "terrain campaign completion removes the finished match and offers the next mission");
+  var won=lastGame(),g=liveUI.game;
+  ok(gameEvents().length===2 && described(won)==="v=1 e=game pg=/index.html m=environment:open-horizons:0 gm=solo opening=normal "+
+    "side=union ai=classic first=union r=win ws=union reason=base turns="+g.turn+" union_units="+g.playerUnits(0).length+
+    " xenon_units="+g.playerUnits(1).length && /^\d+$/.test(won.get("d")),
+    "a finished match sends one game event: board, mode, sides, opponent, result, ending, turns, seconds and units");
+  liveUI.options.onGameOver(0);liveUI.options.onStateChange(liveUI);
+  ok(gameEvents().length===2,"showing the result again and later saves send nothing more");
   get("gameover-next").onclick();act();
   ok(store.session(first.id,"environment:open-horizons:1").options.environmentCampaign==="open-horizons",
     "Next mission advances inside its own sixteen-level campaign");
@@ -334,6 +354,8 @@ module.exports = function (ok) {
   find(cards("mission-list")[0],"level-play-xenon").onclick();
   liveUI.game.winner=1;liveUI.game.winReason="base";liveUI.options.onGameOver(1);
   ok(get("gameover-record").textContent.indexOf("Victory")===0,"the Xenon player's win is reported as a victory");
+  ok(gameEvents().length===4 && described(lastGame()).indexOf(" m=campaign:0 gm=solo opening=normal side=xenon ai=classic first=xenon r=win ws=xenon ")>0,
+    "a Xenon player's win is sent with Xenon as the player's side, the first to move and the winner");
   liveUI.options.onMenu();
   ok(find(get("normal-section"),"group-progress").textContent===wonBefore &&
     find(cards("mission-list")[0],"level-play-xenon").textContent==="✓",
@@ -347,9 +369,20 @@ module.exports = function (ok) {
   liveUI.game.winReason="no-progress";liveUI.options.onGameOver(null);
   ok(get("gameover-record").textContent.indexOf("Draw · Recorded for ")===0 &&
     PROFILES.levelRecord(store.active(),campaign[0],{campaignIndex:0}).draws===1,"a drawn match is reported and recorded as a draw");
+  ok(gameEvents().length===5 && described(lastGame()).indexOf(" r=draw reason=no-progress turns=")>0,"a draw is sent without a winning side");
   liveUI.options.onMenu();
   ok(/ \/ 1D$/.test(find(cards("mission-list")[0],"mission-record").textContent) &&
     find(get("history-list").children[0],"history-event").textContent==="Draw","the level card and the history count the draw");
+  var stats=context.window.FusekiStats;context.window.FusekiStats={game:function(){throw new Error("offline");}};
+  find(cards("mission-list")[1],"level-play").onclick();act();
+  liveUI.game.winner=0;liveUI.game.winReason="base";liveUI.options.onGameOver(0);
+  ok(get("gameover-record").textContent.indexOf("Victory · Recorded for ")===0,"a failing statistics module never stops a result being recorded");
+  context.window.FusekiStats=stats;liveUI.options.onMenu();
+  setHotseat(true);find(cards("mission-list")[2],"level-play").onclick();act();
+  liveUI.game.winner=1;liveUI.game.winReason="elimination";liveUI.options.onGameOver(1);
+  ok(gameEvents().length===6 && /^v=1 e=game pg=\/index.html m=campaign:2 gm=hotseat opening=normal first=union r=done ws=xenon reason=elimination turns=\d+ union_units=\d+ xenon_units=\d+$/
+    .test(described(lastGame())),"a hotseat match is sent as done with the winning side, and without a player's side or opponent");
+  liveUI.options.onMenu();setHotseat(false);
   storage.setItem("nectaris-custom-levels","[]");selectOpening("original");
   ok(find(get("custom-list"),"empty-levels") && get("custom-level-tools").parentNode.id==="custom-section",
     "an empty custom collection still has a useful empty state and import controls");

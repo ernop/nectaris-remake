@@ -58,6 +58,7 @@ editor with URL sharing.
 | `js/sfx.js`, `js/sfx-bank-*.js` | Selectable original synthesized soundscapes with an off-by-default toggle (Web Audio; no audio files) |
 | `js/ui.js`, `js/main.js` | Game UI and boot/menu |
 | `js/profiles.js` | Local player profiles, unfinished-match saves, results and play history |
+| `js/fuseki-stats.js` | Play statistics sent to the hosted site's own server; the Fuseki repository's shared script, copied unchanged |
 | `js/map-thumbnail.js` | Pictures of each level's starting position for the mission menu, drawn by the match renderer and shrunk |
 | `js/editor.js` | Editor logic |
 | `test/run-tests.js` | Node test suite (`node test/run-tests.js`) |
@@ -100,7 +101,10 @@ Serve the lab over HTTP on localhost or HTTPS; it uses Web Workers, IndexedDB
 and Web Locks. Ordinary match/profile saves remain in localStorage.
 
 Hosted at https://nectaris-remake.fuseki.net/ (released automatically from
-`main` after Tests pass; see PRODUCT "Fuseki hosting").
+`main` after Tests pass; see PRODUCT "Fuseki hosting"). The hosted copy
+records play statistics (a random player number, active time and how each
+match ended) on its own server; a local copy sends nothing. See PRODUCT "Play
+statistics".
 
 Static files, no build step, no dependencies. Copy the folder to any web
 server (or open `index.html` from disk — no modules, plain scripts). Ordinary

@@ -1155,6 +1155,9 @@ require("./draw-rule-tests.js")(ok);
 require("./outcome-tests.js")(ok);
 require("./outcome-menu-tests.js")(ok);
 
+section("play statistics");
+require("./play-stats-tests.js")(ok);
+
 /* ---------- summary ---------- */
 
 section("performance algorithm equivalence");

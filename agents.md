@@ -166,6 +166,15 @@ Facts we need across sessions:
   (a page, script, worker, stylesheet, level, or linked document), or the
   release build fails. Server allows only `css/`, `js/`, `levels/` and
   root files of type css/html/js/json/md. See PRODUCT "Fuseki hosting".
+- **Play statistics (owner's decision, 2026-10-11):** `js/fuseki-stats.js` is
+  the Fuseki repository's `setup/apps/fuseki-stats.js`, copied byte for byte:
+  never edit it here; change the original, copy it again and `cmp` the two.
+  Every published page loads it as its last script, a new page included
+  (`test/play-stats-tests.js` fails otherwise). It sends only from
+  https://nectaris-remake.fuseki.net/ to that site's own `/_event`. Only
+  `main.js` calls it: one `game` event when `PROFILES` `checkpoint` first
+  records a match's result, and `r=quit` on Restart; AI-only matches send
+  none. Fields and rules: PRODUCT "Play statistics".
 - **Imported data is untrusted (2026-09-26):** levels, custom units and
   recorded games come from files and web addresses, and the UI builds much
   of its markup with `innerHTML`. `checkLevel` and `Game.restore` in

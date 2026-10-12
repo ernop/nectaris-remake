@@ -33,6 +33,7 @@
   "js/data-units.js",
   "js/editor.js",
   "js/engine.js",
+  "js/fuseki-stats.js",
   "js/hex.js",
   "js/legacy-terrain.js",
   "js/main.js",

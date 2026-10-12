@@ -90,6 +90,21 @@ var PROFILES = (function () {
     // A result written in the same millisecond as the move that ended the match comes after it.
     return entries.sort(function (a, b) { return a.at < b.at ? 1 : a.at > b.at ? -1 : b.order - a.order; });
   }
+  // Wall-clock seconds a match was open and in play, summed over its sittings:
+  // each runs from its start or resume entry to the next entry (leave or
+  // abandon), the last one to `now` (ms). A sitting whose end was never logged,
+  // as when a tab crashed, counts nothing.
+  function playSeconds(profile, matchId, now) {
+    var total = 0, from = null;
+    profile.log.forEach(function (entry) {
+      if (entry.match !== matchId) return;
+      var at = Date.parse(entry.at);
+      if (entry.event === "start" || entry.event === "resume") from = at;
+      else if (from !== null) { total += at - from; from = null; }
+    });
+    if (from !== null) total += now - from;
+    return Math.max(0, Math.round(total / 1000));
+  }
   function summary(profile, sessions) {
     var ids = new Set(), count = {attempts: 0, wins: 0, losses: 0, draws: 0, hotseat: 0, abandoned: 0, open: sessions.length};
     profile.log.forEach(function (entry) { ids.add(entry.match); if (entry.event === "abandon") count.abandoned++; });
@@ -242,6 +257,7 @@ var PROFILES = (function () {
   };
   // Save a match: {id, key, options, savedAt, state}. An unfinished match
   // updates its session; a finished one becomes a result and its session goes.
+  // Returns the result when this call recorded it, which happens once per match.
   Store.prototype.checkpoint = function (profileId, match) {
     var data = this.read(), p = playing(data, profileId), state = match.state;
     if (state.winner !== null && state.winner !== 0 && state.winner !== 1) {
@@ -249,20 +265,22 @@ var PROFILES = (function () {
     }
     if (state.winner !== null && state.winReason === null) throw new Error("Cannot record a match won for no reason.");
     if (typeof match.key !== "string") throw new Error("Cannot save a match without the key of its board.");
-    if (closed(p, match.id)) return;
+    if (closed(p, match.id)) return null;
     // winReason is null only while the match is being played; a draw has a reason and no winner.
-    if (state.winReason === null) { this.writeSession(profileId, match); return; }
-    p.results.push({id: match.id, name: state.map.name, endedAt: new Date().toISOString(),
+    if (state.winReason === null) { this.writeSession(profileId, match); return null; }
+    var result = {id: match.id, name: state.map.name, endedAt: new Date().toISOString(),
       winner: state.winner, humanSide: humanSide(match.options),
       outcome: state.winner === null ? "draw" : state.winner === humanSide(match.options) ? "win" : "loss",
       hotseat: !!match.options.hotseat, turn: state.turn,
       levelKey: levelKey(state.map, match.options), reason: state.winReason,
       balance:state.balance || null,firstPlayer:state.firstPlayer || 0,
-      opponent: match.options.opponent || "classic", opponentChanges: match.options.opponentChanges || []});
+      opponent: match.options.opponent || "classic", opponentChanges: match.options.opponentChanges || []};
+    p.results.push(result);
     var ci = match.options.campaignIndex;
     if (state.winner === 0 && humanSide(match.options) === 0 && !state.balance && match.options.opening!=="offers" && ci !== undefined && p.cleared.indexOf(ci) < 0) p.cleared.push(ci);
     this.write(data);
     this.removeSession(profileId, match);
+    return result;
   };
   // Append a play event: {at, event, match, key, name, side, hotseat, opponent, turn}.
   Store.prototype.record = function (profileId, entry) {
@@ -279,6 +297,6 @@ var PROFILES = (function () {
   return {Store: Store, KEY: KEY, SESSION_PREFIX: SESSION_PREFIX, DEFAULT_NAME: DEFAULT_NAME, newId: id,
     boardKey: boardKey, levelKey: levelKey, sessionKey: sessionKey, sessionName: sessionName, boardOf: boardOf,
     outcomeLabel: outcomeLabel, reasonLabel: reasonLabel, levelRecord: levelRecord, attemptCounts: attemptCounts,
-    history: history, summary: summary, humanSide: humanSide};
+    history: history, summary: summary, playSeconds: playSeconds, humanSide: humanSide};
 })();
 if (typeof module !== "undefined") module.exports = PROFILES;
