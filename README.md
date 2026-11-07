@@ -16,7 +16,7 @@ editor with URL sharing.
 | File | Purpose |
 |---|---|
 | [PROJECT_GUIDE.md](PROJECT_GUIDE.md) | Guidance and decision index: current requirements, pending work, experiments and historical evidence |
-| [agents.md](agents.md) | Repository working rules and persistent constraints (entry point: `AGENTS.md`) |
+| [AGENTS.md](AGENTS.md) | Repository working rules and persistent constraints |
 | `index.html` | The game: mission menu, campaign, custom levels, hotseat |
 | `editor.html` | Level editor: terrain, units, factories, custom unit types |
 | `PRODUCT.md` | Settled UI/product decisions |

@@ -314,7 +314,7 @@ Do not edit an active archive or launch two CLI processes into the same output.
 ### The Rust runner (2026-09-27)
 
 `sim/` plays the same tournaments with every bot's decisions unchanged, locked
-to JavaScript by `test/fixtures/sim-corpus.json.gz` (see agents.md). The same
+to JavaScript by `test/fixtures/sim-corpus.json.gz` (see AGENTS.md). The same
 options give the same games, seeds and seats as `run.cjs`. Normal openings
 only, built-in boards, no resume:
 

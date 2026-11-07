@@ -711,7 +711,7 @@ Community additions, one sentence each after the remake paragraph:
 
 ## Open questions
 
-- **Repository wording:** `agents.md`, `MECHANICS.md`, `FIDELITY_AUDIT.md`,
+- **Repository wording:** `AGENTS.md`, `MECHANICS.md`, `FIDELITY_AUDIT.md`,
   `MANUAL_AUDIT.md`, `art/legacy/README.md` and several code comments call
   anka.sakura.ne.jp "Anka's" guide. Its administrator is 火鉢; those references
   have not been renamed yet. No player-visible text uses the name.

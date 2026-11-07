@@ -2634,7 +2634,7 @@ Implemented as `thanks.html`, deployed with `css/thanks.css` and
   The page links to Konami's 2020 interview, which shows Matsuda and Iwasaki,
   instead of copying photographs, and invites team members to send their own.
   No box art, screenshots or other original assets appear, per the IP posture
-  in `agents.md`.
+  in `AGENTS.md`.
 - Implementation choices, not user requirements: the dark site palette with
   pure white text, gold years, the card layout and which people each card
   names. The Japanese text still needs a native speaker's read.
@@ -2664,7 +2664,7 @@ Implemented as `simulator.html`, deployed with `css/simulator.css`:
   `tournaments.html` and `thanks.html`; source links go to GitHub.
 - The numbers are a snapshot measured on 2026-09-27 and 28 on the
   development machine (AMD Ryzen 9 5950X, Node 22, Rust 1.98), not updated
-  automatically. `agents.md` asks for the page to be updated when the speed
+  automatically. `AGENTS.md` asks for the page to be updated when the speed
   or the checks change.
 - Implementation choices, not user requirements: the thanks page's dark
   palette, and one-line table rows with gold ratios.

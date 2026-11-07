@@ -6,7 +6,7 @@
 //! openings.
 //!
 //! Players here must stay in lockstep with the browser game: a bot exists in
-//! both languages and decides identically (agents.md, behaviour lock).
+//! both languages and decides identically (AGENTS.md, behaviour lock).
 
 use crate::classic;
 use crate::data::Data;

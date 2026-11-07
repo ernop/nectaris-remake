@@ -9,7 +9,7 @@ instructions for the next session.
 
 | Topic | Owning record |
 | --- | --- |
-| Working rules, dependency-free runtime, fixed development endpoint, validation and asset boundaries | [agents.md](agents.md) |
+| Working rules, dependency-free runtime, fixed development endpoint, validation and asset boundaries | [AGENTS.md](AGENTS.md) |
 | Running, controls, saves, editor, custom units and sharing | [README.md](README.md) |
 | Product behavior, interaction requirements, UI presentation and individual map design choices | [PRODUCT.md](PRODUCT.md) |
 | Adopted PCE gameplay rules, release distinctions, sources and known uncertainty | [MECHANICS.md](MECHANICS.md) |

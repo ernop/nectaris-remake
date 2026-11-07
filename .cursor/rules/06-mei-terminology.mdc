@@ -43,7 +43,7 @@ alwaysApply: true
   the intent is unclear: do not commit; report what is there and stop.
 - **pdeploy** — ppush, then deploy to the project's written live target.
   The target and procedure must already be written in the current repo
-  (`agents.md` / a deploy rule / an obvious deploy script named from those
+  (`AGENTS.md` / a deploy rule / an obvious deploy script named from those
   docs). If mei cannot find that writing — first session in the repo, no
   deploy notes, multiple possible targets, or the notes contradict the
   code — **stop and ask**. Do not guess a host, script, or store. Do not
